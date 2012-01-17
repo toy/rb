@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>xmlcanonicalizer.rb~</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            xmlcanonicalizer.rb~
+        </h1>
+        <ul class="files">
+            <li>lib/xml/util/xmlcanonicalizer.rb~</li>
+            <li>Last modified: Sun Oct 02 01:02:07 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+require &#8220;rexml/document&#8220; require &#8220;base64&#8221; require
+&#8220;log4r&#8220;
+</p>
+<p>
+include REXML include Log4r
+</p>
+<p>
+module <a href="../../../../classes/XML.html">XML</a>
+</p>
+<pre>
+  module Util
+
+      class REXML::Instruction
+        def write(writer, indent=-1, transitive=false, ie_hack=false)
+          indent(writer, indent)
+          writer &lt;&lt; START.sub(/\\/u, '')
+          writer &lt;&lt; @target
+          writer &lt;&lt; ' '
+          writer &lt;&lt; @content if @content != nil
+          writer &lt;&lt; STOP.sub(/\\/u, '')
+        end
+      end
+
+      class REXML::Attribute
+        def &lt;=&gt;(a2)
+          if (self === a2)
+            return 0
+          elsif (self == nil)
+            return -1
+          elsif (a2 == nil)
+            return 1
+          elsif (self.prefix() == a2.prefix())
+            return self.name()&lt;=&gt;a2.name()
+          end
+          if (self.prefix() == nil)
+            return -1
+          elsif (a2.prefix() == nil)
+            return 1
+          end
+          ret = self.namespace()&lt;=&gt;a2.namespace()
+          if (ret == 0)
+            ret = self.prefix()&lt;=&gt;a2.prefix()
+          end
+          return ret
+        end
+      end
+
+      class REXML::Element
+        def search_namespace(prefix)
+          if (self.namespace(prefix) == nil)
+            return (self.parent().search_namespace(prefix)) if (self.parent() != nil)
+          else
+            return self.namespace(prefix)
+          end
+        end
+      def rendered=(rendered)
+                        @rendered = rendered
+                end
+                def rendered?()
+                        return @rendered
+                end
+        def node_namespaces()
+          ns = Array.new()
+          ns.push(self.prefix())
+          self.attributes().each_attribute{|a|
+            if (a.prefix() != nil)
+              ns.push(a.prefix())
+            end
+            if (a.prefix() == &quot;&quot; &amp;&amp; a.local_name() == &quot;xmlns&quot;)
+              ns.push(&quot;xmlns&quot;)
+            end
+          }
+          ns
+        end
+      end
+
+      class NamespaceNode
+        attr_reader :prefix, :uri
+        def initialize(prefix, uri)
+          @prefix = prefix
+          @uri = uri
+        end
+      end
+
+      class XmlCanonicalizer
+        attr_accessor :prefix_list, :logger
+
+        BEFORE_DOC_ELEMENT = 0
+        INSIDE_DOC_ELEMENT = 1
+        AFTER_DOC_ELEMENT  = 2
+
+        NODE_TYPE_ATTRIBUTE  = 3
+        NODE_TYPE_WHITESPACE = 4
+        NODE_TYPE_COMMENT    = 5
+        NODE_TYPE_PI         = 6
+        NODE_TYPE_TEXT       = 7
+
+        def initialize(with_comments, excl_c14n)
+          @with_comments = with_comments
+          @exclusive = excl_c14n
+          @res = &quot;&quot;
+          @state = BEFORE_DOC_ELEMENT
+          @xnl = Array.new()
+          @prevVisibleNamespacesStart = 0
+          @prevVisibleNamespacesEnd = 0
+          @visibleNamespaces = Array.new()
+                         @inclusive_namespaces = Array.new()
+          @prefix_list = nil
+                         @rendered_prefixes = Array.new()
+        end
+
+        def add_inclusive_namespaces(prefix_list, element, visible_namespaces)
+          namespaces = element.attributes()
+          namespaces.each_attribute{|ns|
+            if (ns.prefix==&quot;xmlns&quot;)
+              if (prefix_list.include?(ns.local_name()))
+                visible_namespaces.push(NamespaceNode.new(&quot;xmlns:&quot;+ns.local_name(), ns.value()))
+              end
+            end
+          }
+          parent = element.parent()
+          add_inclusive_namespaces(prefix_list, parent, visible_namespaces) if (parent)
+          visible_namespaces
+        end
+
+        def canonicalize(document)
+          write_document_node(document)
+          @res
+        end
+
+        def canonicalize_element(element, logging = true)
+                          logging=(true) if logging
+                          @logger.debug(&quot;Canonicalize element:\n &quot; + element.to_s()) if @logger
+          @inclusive_namespaces = add_inclusive_namespaces(@prefix_list, element, @inclusive_namespaces) if (@prefix_list)
+          @preserve_document = element.document()
+          tmp_parent = element.parent()
+          body_string = remove_whitespace(element.to_s().gsub(&quot;\n&quot;,&quot;&quot;).gsub(&quot;\t&quot;,&quot;&quot;).gsub(&quot;\r&quot;,&quot;&quot;))
+          document = Document.new(body_string)
+          tmp_parent.delete_element(element)
+          element = tmp_parent.add_element(document.root())
+          @preserve_element = element
+          document = Document.new(element.to_s())
+          ns = element.namespace(element.prefix())
+          document.root().add_namespace(element.prefix(), ns)
+          write_document_node(document)
+                         @logger.debug(&quot;Canonicalized result:\n &quot; + @res.to_s()) if @logger
+          @res
+        end
+
+        def write_document_node(document)
+          @state = BEFORE_DOC_ELEMENT
+          if (document.class().to_s() == &quot;REXML::Element&quot;)
+            write_node(document)
+          else
+            document.each_child{|child|
+              write_node(child)
+            }
+          end
+          @res
+        end
+
+        def write_node(node)
+          visible = is_node_visible(node)
+          if ((node.node_type() == :text) &amp;&amp; white_text?(node.value()))
+            res = node.value()
+            res.gsub(&quot;\r\n&quot;,&quot;\n&quot;)
+            #res = res.delete(&quot; &quot;).delete(&quot;\t&quot;)
+            res.delete(&quot;\r&quot;)
+            @res = @res + res
+            #write_text_node(node,visible) if (@state == INSIDE_DOC_ELEMENT)
+            return
+          end
+          if (node.node_type() == :text)
+            write_text_node(node, visible)
+            return
+          end
+          if (node.node_type() == :element)
+            write_element_node(node, visible) if (!node.rendered?())
+                                node.rendered=(true)
+          end
+          if (node.node_type() == :processing_instruction)
+          end
+          if (node.node_type() == :comment)
+          end
+        end
+
+        def write_element_node(node, visible)
+          savedPrevVisibleNamespacesStart = @prevVisibleNamespacesStart
+          savedPrevVisibleNamespacesEnd = @prevVisibleNamespacesEnd
+          savedVisibleNamespacesSize = @visibleNamespaces.size()
+          state = @state
+          state = INSIDE_DOC_ELEMENT if (visible &amp;&amp; state == BEFORE_DOC_ELEMENT)
+          @res = @res + &quot;&lt;&quot; + node.expanded_name() if (visible)
+          write_namespace_axis(node, visible)
+          write_attribute_axis(node)
+          @res = @res + &quot;&gt;&quot; if (visible)
+          node.each_child{|child|
+                             write_node(child)
+                         }
+          @res = @res + &quot;&lt;/&quot; +node.expanded_name() + &quot;&gt;&quot; if (visible)
+          @state = AFTER_DOC_ELEMENT if (visible &amp;&amp; state == BEFORE_DOC_ELEMENT)
+          @prevVisibleNamespacesStart = savedPrevVisibleNamespacesStart
+          @prevVisibleNamespacesEnd = savedPrevVisibleNamespacesEnd
+          @visibleNamespaces.slice!(savedVisibleNamespacesSize, @visibleNamespaces.size() - savedVisibleNamespacesSize)                 if (@visibleNamespaces.size() &gt; savedVisibleNamespacesSize)
+        end
+
+        def write_namespace_axis(node, visible)
+          doc = node.document()
+          has_empty_namespace = false
+          list = Array.new()
+          cur = node
+          #while ((cur != nil) &amp;&amp; (cur != doc) &amp;&amp; (cur.node_type() != :document))
+          namespaces = cur.node_namespaces()
+          namespaces.each{|prefix|
+            next if ((prefix == &quot;xmlns&quot;) &amp;&amp; (node.namespace(prefix) == &quot;&quot;))
+            namespace = cur.namespace(prefix)
+            next if (is_namespace_node(namespace))
+            next if (node.namespace(prefix) != cur.namespace(prefix))
+            next if (prefix == &quot;xml&quot; &amp;&amp; namespace == &quot;http://www.w3.org/XML/1998/namespace&quot;)
+            next if (!is_node_visible(cur))
+            rendered = is_namespace_rendered(prefix, namespace)
+            @visibleNamespaces.push(NamespaceNode.new(&quot;xmlns:&quot;+prefix,namespace)) if (visible)
+            if ((!rendered) &amp;&amp; !list.include?(prefix))
+              list.push(prefix)
+            end
+            has_empty_namespace = true if (prefix == nil)
+          }
+          if (visible &amp;&amp; !has_empty_namespace &amp;&amp; !is_namespace_rendered(nil, nil))
+            @res = @res + ' xmlns=&quot;&quot;'
+          end
+          #TODO: ns of inclusive_list
+</pre>
+<p>
+#=begin
+</p>
+<pre>
+          if ((@prefix_list) &amp;&amp; (node.to_s() == node.parent().to_s()))
+            #list.push(node.prefix())
+            @inclusive_namespaces.each{|ns|
+              prefix = ns.prefix().split(&quot;:&quot;)[1]
+              list.push(prefix) if (!list.include?(prefix) &amp;&amp; (!node.attributes.prefixes.include?(prefix)))
+            }
+                                @prefix_list = nil
+          end
+</pre>
+<p>
+#=end
+</p>
+<pre>
+          list.sort!()
+          list.each{|prefix|
+            next if (prefix == &quot;&quot;)
+                                next if (@rendered_prefixes.include?(prefix))
+                                @rendered_prefixes.push(prefix)
+            ns = node.namespace(prefix)
+            ns = @preserve_element.namespace(prefix) if (ns == nil)
+            @res = @res + normalize_string(&quot; &quot; + prefix + '=&quot;' + ns + '&quot;', NODE_TYPE_TEXT) if (prefix == &quot;xmlns&quot;)
+            @res = @res + normalize_string(&quot; xmlns:&quot; + prefix + '=&quot;' + ns + '&quot;', NODE_TYPE_TEXT) if (prefix != nil &amp;&amp; prefix != &quot;xmlns&quot;)
+          }
+          if (visible)
+            @prevVisibleNamespacesStart = @prevVisibleNamespacesEnd
+            @prevVisibleNamespacesEnd = @visibleNamespaces.size()
+          end
+        end
+
+        def write_attribute_axis(node)
+          list = Array.new()
+          node.attributes().each_attribute{|attr|
+            list.push(attr) if (!is_namespace_node(attr.value()) &amp;&amp; !is_namespace_decl(attr)) # &amp;&amp; is_node_visible(
+          }
+          if (!@exclusive &amp;&amp; node.parent() != nil &amp;&amp; node.parent().parent() != nil)
+            cur = node.parent()
+            while (cur != nil)
+              #next if (cur.attributes() == nil)
+              cur.each_attribute{|attribute|
+                next if (attribute.prefix() != &quot;xml&quot;)
+                next if (attribute.prefix().index(&quot;xmlns&quot;) == 0)
+                next if (node.namespace(attribute.prefix()) == attribute.value())
+                found = true
+                list.each{|n|
+                  if (n.prefix() == &quot;xml&quot; &amp;&amp; n.value() == attritbute.value())
+                    found = true
+                    break
+                  end
+                }
+                next if (found)
+                list.push(attribute)
+              }
+            end
+          end
+          list.each{|attribute|
+            if (attribute != nil)
+              if (attribute.name() != &quot;xmlns&quot;)
+                @res = @res + &quot; &quot; + normalize_string(attribute.to_string(), NODE_TYPE_ATTRIBUTE).gsub(&quot;'&quot;,'&quot;')
+              end
+              # else
+              # @res = @res + &quot; &quot; + normalize_string(attribute.name()+'=&quot;'+attribute.to_s()+'&quot;', NODE_TYPE_ATTRIBUTE).gsub(&quot;'&quot;,'&quot;')
+              #end
+            end
+          }
+        end
+
+        def is_namespace_node(namespace_uri)
+          return (namespace_uri == &quot;http://www.w3.org/2000/xmlns/&quot;)
+        end
+
+        def is_namespace_rendered(prefix, uri)
+          is_empty_ns = prefix == nil &amp;&amp; uri == nil
+          if (is_empty_ns)
+            start = 0
+          else
+            start = @prevVisibleNamespacesStart
+          end
+          @visibleNamespaces.each{|ns|
+            if (ns.prefix() == &quot;xmlns:&quot;+prefix.to_s() &amp;&amp; ns.uri() == uri)
+              return true
+            end
+          }
+          return is_empty_ns
+          #(@visibleNamespaces.size()-1).downto(start) {|i|
+          #   ns = @visibleNamespaces[i]
+          #     return true if (ns.prefix() == &quot;xmlns:&quot;+prefix.to_s() &amp;&amp; ns.uri() == uri)
+          #     #p = ns.prefix() if (ns.prefix().index(&quot;xmlns&quot;) == 0)
+          #     #return ns.uri() == uri if (p == prefix)
+          #}
+          #return is_empty_ns
+        end
+
+        def is_node_visible(node)
+          return true if (@xnl.size() == 0)
+          @xnl.each{|element|
+            return true if (element == node)
+          }
+          return false
+        end
+
+        def normalize_string(input, type)
+          sb = &quot;&quot;
+          return input
+        end
+        #input.each_byte{|b|
+        #       if (b ==60 &amp;&amp; (type == NODE_TYPE_ATTRIBUTE || is_text_node(type)))
+        #               sb = sb + &quot;&amp;lt;&quot;
+        #       elsif (b == 62 &amp;&amp; is_text_node(type))
+        #               sb = sb + &quot;&amp;gt;&quot;
+        #       elsif (b == 38 &amp;&amp; (is_text_node(type) || is_text_node(type))) #Ampersand
+        #               sb = sb + &quot;&amp;amp;&quot;
+        #       elsif (b == 34 &amp;&amp; is_text_node(type)) #Quote
+        #               sb = sb + &quot;&amp;quot;&quot;
+        #       elsif (b == 9 &amp;&amp; is_text_node(type)) #Tabulator
+        #               sb = sb + &quot;&amp;#x9;&quot;
+        #       elsif (b == 11 &amp;&amp; is_text_node(type)) #CR
+        #               sb = sb + &quot;&amp;#xA;&quot;
+        #       elsif (b == 13 &amp;&amp; (type == NODE_TYPE_ATTRIBUTE || (is_text_node(type) &amp;&amp; type != NODE_TYPE_WHITESPACE) || type == NODE_TYPE_COMMENT || type == NODE_TYPE_PI))
+        #               sb = sb + &quot;&amp;#xD;&quot;
+        #       elsif (b == 13)
+        #               next
+        #       else
+        #               sb = sb.concat(b)
+        #       end
+        #}
+        #sb
+        #end
+
+        def write_text_node(node, visible)
+          if (visible)
+            @res = @res + normalize_string(node.value(), node.node_type())
+          end
+        end
+
+        def white_text?(text)
+          return true if ((text.strip() == &quot;&quot;) || (text.strip() == nil))
+          return false
+        end
+
+        def is_namespace_decl(attribute)
+          #return true if (attribute.name() == &quot;xmlns&quot;)
+          return true if (attribute.prefix().index(&quot;xmlns&quot;) == 0)
+          return false
+        end
+
+        def is_text_node(type)
+          return true if (type == NODE_TYPE_TEXT || type == NODE_TYPE_CDATA || type == NODE_TYPE_WHITESPACE)
+          return false
+        end
+
+        def remove_whitespace(string)
+          new_string = &quot;&quot;
+          in_white = false
+          string.each_byte{|b|
+            #if (in_white &amp;&amp; b == 32)
+            #else
+            if !(in_white &amp;&amp; b == 32)
+              new_string = new_string + b.chr()
+            end
+            if (b == 62) #&gt;
+              in_white = true
+            end
+            if (b == 60) #&lt;
+              in_white = false
+            end
+          }
+          new_string
+        end
+      end
+
+      def logging=(state)
+                        if (state)
+                         @logger = Logger.new(&quot;xmlcanonicalizer&quot;)
+                         @logger.level = DEBUG
+                         @logger.trace = false
+                         p = PatternFormatter.new(:pattern =&gt; &quot;[%l] %d :: %.100m %15t&quot;)
+                         @logger.add(FileOutputter.new(&quot;wss4r&quot;, {:filename =&gt; &quot;xmlcanonicalizer.log&quot;, :formatter =&gt; BasicFormatter}))
+                        else
+                                @logger = nil
+                        end
+                end
+    end #Util
+</pre>
+<p>
+end <a href="../../../../classes/XML.html">XML</a>
+</p>
+<p>
+if <em>FILE</em> == $0
+</p>
+<pre>
+  document = Document.new(File.new(ARGV[0]))
+  body = nil
+  c = WSS4R::Security::Util::XmlCanonicalizer.new(false, true)
+
+  if (ARGV.size() == 3)
+    body = ARGV[2]
+    if (body == &quot;true&quot;)
+      element = XPath.match(document, &quot;/soap:Envelope/soap:Body&quot;)[0]
+      element = XPath.first(document, &quot;/soap:Envelope/soap:Header/wsse:Security/Signature/SignedInfo&quot;)
+      result = c.canonicalize_element(element)
+      puts(&quot;-----&quot;)
+      puts(result)
+      puts(&quot;-----&quot;)
+      puts(result.size())
+      puts(&quot;-----&quot;)
+      puts(CryptHash.new().digest_b64(result))
+    end
+  else
+    result = c.canonicalize(document)
+  end
+
+  file = File.new(ARGV[1], &quot;wb&quot;)
+  file.write(result)
+  file.close()
+</pre>
+<p>
+end
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

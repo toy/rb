@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sun Oct 02 01:02:06 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="../classes/UUID.html">UUID</a> Generator</h1>
+<p>
+Generates universally unique identifiers (UUIDs) for use in distributed
+applications. Based on <a href="http://www.ietf.org/rfc/rfc4122.txt">RFC
+4122</a>.
+</p>
+<h2>Generating UUIDs</h2>
+<p>
+Call generate to generate a new <a href="../classes/UUID.html">UUID</a>.
+The method returns a string in one of three formats. The default format is
+36 characters long, and contains the 32 hexadecimal octets and hyphens
+separating the various value parts. The <tt>:compact</tt> format omits the
+hyphens, while the <tt>:urn</tt> format adds the <tt>:urn:uuid</tt> prefix.
+</p>
+<p>
+For example:
+</p>
+<pre>
+  uuid = UUID.new
+  10.times do
+    p uuid.generate
+  end
+</pre>
+<h2>UUIDs in Brief</h2>
+<p>
+<a href="../classes/UUID.html">UUID</a> (universally unique identifier) are
+guaranteed to be unique across time and space.
+</p>
+<p>
+A <a href="../classes/UUID.html">UUID</a> is 128 bit long, and consists of
+a 60-bit time value, a 16-bit sequence number and a 48-bit node identifier.
+</p>
+<p>
+The time value is taken from the system clock, and is monotonically
+incrementing. However, since it is possible to set the system clock
+backward, a sequence number is added. The sequence number is incremented
+each time the <a href="../classes/UUID.html">UUID</a> generator is started.
+The combination guarantees that identifiers created on the same machine are
+unique with a high degree of probability.
+</p>
+<p>
+Note that due to the structure of the <a
+href="../classes/UUID.html">UUID</a> and the use of sequence number, there
+is no guarantee that <a href="../classes/UUID.html">UUID</a> values
+themselves are monotonically incrementing. The <a
+href="../classes/UUID.html">UUID</a> value cannot itself be used to sort
+based on order of creation.
+</p>
+<p>
+To guarantee that UUIDs are unique across all machines in the network, the
+IEEE 802 MAC address of the machine&#8217;s network interface card is used
+as the node identifier.
+</p>
+<p>
+For more information see <a href="http://www.ietf.org/rfc/rfc4122.txt">RFC
+4122</a>.
+</p>
+<h2><a href="../classes/UUID.html">UUID</a> State File</h2>
+<p>
+The <a href="../classes/UUID.html">UUID</a> generator uses a state file to
+hold the MAC address and sequence number.
+</p>
+<p>
+The MAC address is used to generate identifiers that are unique to your
+machine, preventing conflicts in distributed applications. The MAC address
+is six bytes (48 bit) long. It is automatically extracted from one of the
+network cards on your machine.
+</p>
+<p>
+The sequence number is incremented each time the <a
+href="../classes/UUID.html">UUID</a> generator is first used by the
+application, to prevent multiple processes from generating the same set of
+identifiers, and deal with changes to the system clock.
+</p>
+<p>
+The <a href="../classes/UUID.html">UUID</a> state file is created in
+<tt>/var/tmp/ruby-uuid</tt> or the Windows common application data
+directory using mode 0644. If that directory is not writable, the file is
+created as <tt>.ruby-uuid</tt> in the home directory. If you need to create
+the file with a different mode, use <a
+href="../classes/UUID.html#M000004">UUID#state_file</a> before running the
+<a href="../classes/UUID.html">UUID</a> generator.
+</p>
+<p>
+Note: If you are running on a shared host where the state file is not
+shared between processes, or persisted across restarts (e.g. Heroku, Google
+App Engine) you can simple turn it off:
+</p>
+<pre>
+  UUID.state_file = false
+</pre>
+<p>
+State files are not portable across machines.
+</p>
+<p>
+Note: when using a forking server (Unicorn, Resque, Pipemaster, etc) you
+don&#8217;t want your forked processes using the same sequence number. Make
+sure to increment the sequence number each time a worker forks.
+</p>
+<p>
+For example, in config/unicorn.rb:
+</p>
+<pre>
+  after_fork do |server, worker|
+    UUID.generator.next_sequence
+  end
+</pre>
+<h2>Command Line</h2>
+<p>
+You can run uuid from the command line, generating new <a
+href="../classes/UUID.html">UUID</a> to stdout:
+</p>
+<pre>
+  $ uuid
+</pre>
+<p>
+Multiple UUIDs in a sequence, separated with a newline:
+</p>
+<pre>
+  $ uuid --count 10
+</pre>
+<p>
+You can also run client and server from the command line
+</p>
+<pre>
+  $ uuid --server &amp;
+  $ uuid --socket /var/lib/uuid.sock
+</pre>
+<h2>Latest and Greatest</h2>
+<p>
+Source code and documentation hosted on Github: <a
+href="http://github.com/assaf/uuid">github.com/assaf/uuid</a>
+</p>
+<p>
+To get <a href="../classes/UUID.html">UUID</a> from source:
+</p>
+<pre>
+  git clone git://github.com/assaf/uuid.git
+</pre>
+<h2>License</h2>
+<p>
+This package is licensed under the MIT license and/or the Creative Commons
+Attribution-ShareAlike.
+</p>
+<p>
+Copyright &#169; 2005-2010 Assaf Arkin, Eric Hodel
+</p>
+<p>
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+&#8220;Software&#8221;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the
+following conditions:
+</p>
+<p>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+</p>
+<p>
+THE SOFTWARE IS PROVIDED &#8220;AS IS&#8221;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>UniversalDetector::HebrewProber</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            UniversalDetector::HebrewProber 
+            
+                <span class="parent">&lt; 
+                    
+                    CharSetProber
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/HebrewProber_rb.html">lib/HebrewProber.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000059">feed</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000060">get_charset_name</a>,</li>
+                
+                <li><a href="#M000061">get_state</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000057">is_final</a>,</li>
+                
+                <li><a href="#M000058">is_non_final</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000054">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000055">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000056">set_model_probers</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000054">
+                    
+                    <a name="M000054"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000054_source')" id="l_M000054_source">show</a>
+                        
+                    </p>
+                    <div id="M000054_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 154</span>
+154:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+155:             <span class="ruby-keyword kw">super</span>
+156:             <span class="ruby-ivar">@_mLogicalProber</span> = <span class="ruby-keyword kw">nil</span>
+157:             <span class="ruby-ivar">@_mVisualProber</span> = <span class="ruby-keyword kw">nil</span>
+158:             <span class="ruby-identifier">reset</span>()
+159:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000059">
+                    
+                    <a name="M000059"></a><b>feed</b>(aBuf)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000059_source')" id="l_M000059_source">show</a>
+                        
+                    </p>
+                    <div id="M000059_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 195</span>
+195:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">feed</span>(<span class="ruby-identifier">aBuf</span>)
+196:             <span class="ruby-comment cmt"># Final letter analysis for logical-visual decision.</span>
+197:             <span class="ruby-comment cmt"># Look for evidence that the received buffer is either logical Hebrew or </span>
+198:             <span class="ruby-comment cmt"># visual Hebrew.</span>
+199:             <span class="ruby-comment cmt"># The following cases are checked:</span>
+200:             <span class="ruby-comment cmt"># 1) A word longer than 1 letter, ending with a final letter. This is an </span>
+201:             <span class="ruby-comment cmt">#    indication that the text is laid out &quot;naturally&quot; since the final letter </span>
+202:             <span class="ruby-comment cmt">#    really appears at the end. +1 for logical score.</span>
+203:             <span class="ruby-comment cmt"># 2) A word longer than 1 letter, ending with a Non-Final letter. In normal</span>
+204:             <span class="ruby-comment cmt">#    Hebrew, words ending with Kaf, Mem, Nun, Pe or Tsadi, should not end with</span>
+205:             <span class="ruby-comment cmt">#    the Non-Final form of that letter. Exceptions to this rule are mentioned</span>
+206:             <span class="ruby-comment cmt">#    above in isNonFinal(). This is an indication that the text is laid out</span>
+207:             <span class="ruby-comment cmt">#    backwards. +1 for visual score</span>
+208:             <span class="ruby-comment cmt"># 3) A word longer than 1 letter, starting with a final letter. Final letters </span>
+209:             <span class="ruby-comment cmt">#    should not appear at the beginning of a word. This is an indication that </span>
+210:             <span class="ruby-comment cmt">#    the text is laid out backwards. +1 for visual score.</span>
+211:             <span class="ruby-comment cmt"># </span>
+212:             <span class="ruby-comment cmt"># The visual score and logical score are accumulated throughout the text and </span>
+213:             <span class="ruby-comment cmt"># are finally checked against each other in GetCharSetName().</span>
+214:             <span class="ruby-comment cmt"># No checking for final letters in the middle of words is done since that case</span>
+215:             <span class="ruby-comment cmt"># is not an indication for either Logical or Visual text.</span>
+216:             <span class="ruby-comment cmt"># </span>
+217:             <span class="ruby-comment cmt"># We automatically filter out all 7-bit characters (replace them with spaces)</span>
+218:             <span class="ruby-comment cmt"># so the word boundary detection works properly. [MAP]</span>
+219: 
+220:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">get_state</span>() <span class="ruby-operator">==</span> <span class="ruby-identifier">:NotMe</span>
+221:                 <span class="ruby-comment cmt"># Both model probers say it's not them. No reason to continue.</span>
+222:                 <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">:NotMe</span>
+223:             <span class="ruby-keyword kw">end</span>
+224: 
+225:             <span class="ruby-identifier">aBuf</span> = <span class="ruby-identifier">filter_high_bit_only</span>(<span class="ruby-identifier">aBuf</span>)
+226: 
+227:             <span class="ruby-keyword kw">for</span> <span class="ruby-identifier">cur</span> <span class="ruby-keyword kw">in</span> <span class="ruby-identifier">aBuf</span>
+228:                 <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cur</span> <span class="ruby-operator">==</span> <span class="ruby-value str">' '</span>
+229:                     <span class="ruby-comment cmt"># We stand on a space - a word just ended</span>
+230:                     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@_mBeforePrev</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">' '</span>
+231:                         <span class="ruby-comment cmt"># next-to-last char was not a space so @_mPrev is not a 1 letter word</span>
+232:                         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">is_final</span>(<span class="ruby-ivar">@_mPrev</span>)
+233:                             <span class="ruby-comment cmt"># case (1) [-2:not space][-1:final letter][cur:space]</span>
+234:                             <span class="ruby-ivar">@_mFinalCharLogicalScore</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+235:                         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">is_non_final</span>(<span class="ruby-ivar">@_mPrev</span>)
+236:                             <span class="ruby-comment cmt"># case (2) [-2:not space][-1:Non-Final letter][cur:space]</span>
+237:                             <span class="ruby-ivar">@_mFinalCharVisualScore</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+238:                         <span class="ruby-keyword kw">end</span>
+239:                     <span class="ruby-keyword kw">end</span>
+240:                 <span class="ruby-keyword kw">else</span>
+241:                     <span class="ruby-comment cmt"># Not standing on a space</span>
+242:                     <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@_mBeforePrev</span> <span class="ruby-operator">==</span> <span class="ruby-value str">' '</span>) <span class="ruby-keyword kw">and</span> (<span class="ruby-identifier">is_final</span>(<span class="ruby-ivar">@_mPrev</span>)) <span class="ruby-keyword kw">and</span> (<span class="ruby-identifier">cur</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">' '</span>)
+243:                         <span class="ruby-comment cmt"># case (3) [-2:space][-1:final letter][cur:not space]</span>
+244:                         <span class="ruby-ivar">@_mFinalCharVisualScore</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+245:                     <span class="ruby-keyword kw">end</span>
+246:                 <span class="ruby-keyword kw">end</span>
+247:                 <span class="ruby-ivar">@_mBeforePrev</span> = <span class="ruby-ivar">@_mPrev</span>
+248:                 <span class="ruby-ivar">@_mPrev</span> = <span class="ruby-identifier">cur</span>
+249:             <span class="ruby-keyword kw">end</span>
+250: 
+251:             <span class="ruby-comment cmt"># Forever detecting, till the end or until both model probers return eNotMe (handled above)</span>
+252:             <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">:Detecting</span>
+253:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000060">
+                    
+                    <a name="M000060"></a><b>get_charset_name</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000060_source')" id="l_M000060_source">show</a>
+                        
+                    </p>
+                    <div id="M000060_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 255</span>
+255:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_charset_name</span>
+256:             <span class="ruby-comment cmt"># Make the decision: is it Logical or Visual?</span>
+257:             <span class="ruby-comment cmt"># If the final letter score distance is dominant enough, rely on it.</span>
+258:             <span class="ruby-identifier">finalsub</span> = <span class="ruby-ivar">@_mFinalCharLogicalScore</span> <span class="ruby-operator">-</span> <span class="ruby-ivar">@_mFinalCharVisualScore</span>
+259:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">finalsub</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-constant">MIN_FINAL_CHAR_DISTANCE</span>
+260:                 <span class="ruby-keyword kw">return</span> <span class="ruby-constant">LOGICAL_HEBREW_NAME</span>
+261:             <span class="ruby-keyword kw">end</span>
+262:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">finalsub</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-operator">-</span><span class="ruby-constant">MIN_FINAL_CHAR_DISTANCE</span>
+263:                 <span class="ruby-keyword kw">return</span> <span class="ruby-constant">VISUAL_HEBREW_NAME</span>
+264:             <span class="ruby-keyword kw">end</span>
+265: 
+266:             <span class="ruby-comment cmt"># It's not dominant enough, try to rely on the model scores instead.</span>
+267:             <span class="ruby-identifier">modelsub</span> = <span class="ruby-ivar">@_mLogicalProber</span>.<span class="ruby-identifier">get_confidence</span>() <span class="ruby-operator">-</span> <span class="ruby-ivar">@_mVisualProber</span>.<span class="ruby-identifier">get_confidence</span>()
+268:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">modelsub</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">MIN_MODEL_DISTANCE</span>
+269:                 <span class="ruby-keyword kw">return</span> <span class="ruby-constant">LOGICAL_HEBREW_NAME</span>
+270:             <span class="ruby-keyword kw">end</span>
+271:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">modelsub</span> <span class="ruby-operator">&lt;</span> <span class="ruby-operator">-</span><span class="ruby-constant">MIN_MODEL_DISTANCE</span>
+272:                 <span class="ruby-keyword kw">return</span> <span class="ruby-constant">VISUAL_HEBREW_NAME</span>
+273:             <span class="ruby-keyword kw">end</span>
+274: 
+275:             <span class="ruby-comment cmt"># Still no good, back to final letter distance, maybe it'll save the day.</span>
+276:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">finalsub</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+277:                 <span class="ruby-keyword kw">return</span> <span class="ruby-constant">VISUAL_HEBREW_NAME</span>
+278:             <span class="ruby-keyword kw">end</span>
+279: 
+280:             <span class="ruby-comment cmt"># (finalsub &gt; 0 - Logical) or (don't know what to do) default to Logical.</span>
+281:             <span class="ruby-keyword kw">return</span> <span class="ruby-constant">LOGICAL_HEBREW_NAME</span>
+282:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000061">
+                    
+                    <a name="M000061"></a><b>get_state</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000061_source')" id="l_M000061_source">show</a>
+                        
+                    </p>
+                    <div id="M000061_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 284</span>
+284:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_state</span>
+285:             <span class="ruby-comment cmt"># Remain active as long as any of the model probers are active.</span>
+286:             <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@_mLogicalProber</span>.<span class="ruby-identifier">get_state</span>() <span class="ruby-operator">==</span> <span class="ruby-identifier">:NotMe</span>) <span class="ruby-keyword kw">and</span> (<span class="ruby-ivar">@_mVisualProber</span>.<span class="ruby-identifier">get_state</span>() <span class="ruby-operator">==</span> <span class="ruby-identifier">:NotMe</span>)
+287:                 <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">:NotMe</span>
+288:             <span class="ruby-keyword kw">end</span>
+289:             <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">:Detecting</span>
+290:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000057">
+                    
+                    <a name="M000057"></a><b>is_final</b>(c)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000057_source')" id="l_M000057_source">show</a>
+                        
+                    </p>
+                    <div id="M000057_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 177</span>
+177:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">is_final</span>(<span class="ruby-identifier">c</span>)
+178:             <span class="ruby-keyword kw">return</span> [<span class="ruby-constant">FINAL_KAF</span>, <span class="ruby-constant">FINAL_MEM</span>, <span class="ruby-constant">FINAL_NUN</span>, <span class="ruby-constant">FINAL_PE</span>, <span class="ruby-constant">FINAL_TSADI</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">c</span>)
+179:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000058">
+                    
+                    <a name="M000058"></a><b>is_non_final</b>(c)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000058_source')" id="l_M000058_source">show</a>
+                        
+                    </p>
+                    <div id="M000058_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 181</span>
+181:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">is_non_final</span>(<span class="ruby-identifier">c</span>)
+182:             <span class="ruby-comment cmt"># The normal Tsadi is not a good Non-Final letter due to words like </span>
+183:             <span class="ruby-comment cmt"># 'lechotet' (to chat) containing an apostrophe after the tsadi. This </span>
+184:             <span class="ruby-comment cmt"># apostrophe is converted to a space in FilterWithoutEnglishLetters causing </span>
+185:             <span class="ruby-comment cmt"># the Non-Final tsadi to appear at an end of a word even though this is not </span>
+186:             <span class="ruby-comment cmt"># the case in the original text.</span>
+187:             <span class="ruby-comment cmt"># The letters Pe and Kaf rarely display a related behavior of not being a </span>
+188:             <span class="ruby-comment cmt"># good Non-Final letter. Words like 'Pop', 'Winamp' and 'Mubarak' for </span>
+189:             <span class="ruby-comment cmt"># example legally end with a Non-Final Pe or Kaf. However, the benefit of </span>
+190:             <span class="ruby-comment cmt"># these letters as Non-Final letters outweighs the damage since these words </span>
+191:             <span class="ruby-comment cmt"># are quite rare.</span>
+192:             <span class="ruby-keyword kw">return</span> [<span class="ruby-constant">NORMAL_KAF</span>, <span class="ruby-constant">NORMAL_MEM</span>, <span class="ruby-constant">NORMAL_NUN</span>, <span class="ruby-constant">NORMAL_PE</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">c</span>)
+193:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000055">
+                    
+                    <a name="M000055"></a><b>reset</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000055_source')" id="l_M000055_source">show</a>
+                        
+                    </p>
+                    <div id="M000055_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 161</span>
+161:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reset</span>
+162:             <span class="ruby-ivar">@_mFinalCharLogicalScore</span> = <span class="ruby-value">0</span>
+163:             <span class="ruby-ivar">@_mFinalCharVisualScore</span> = <span class="ruby-value">0</span>
+164:             <span class="ruby-comment cmt"># The two last characters seen in the previous buffer,</span>
+165:             <span class="ruby-comment cmt"># mPrev and mBeforePrev are initialized to space in order to simulate a word </span>
+166:             <span class="ruby-comment cmt"># delimiter at the beginning of the data</span>
+167:             <span class="ruby-ivar">@_mPrev</span> = <span class="ruby-value str">' '</span>
+168:             <span class="ruby-ivar">@_mBeforePrev</span> = <span class="ruby-value str">' '</span>
+169:             <span class="ruby-comment cmt"># These probers are owned by the group prober.</span>
+170:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000056">
+                    
+                    <a name="M000056"></a><b>set_model_probers</b>(logicalProber, visualProber)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000056_source')" id="l_M000056_source">show</a>
+                        
+                    </p>
+                    <div id="M000056_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/HebrewProber.rb, line 172</span>
+172:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_model_probers</span>(<span class="ruby-identifier">logicalProber</span>, <span class="ruby-identifier">visualProber</span>)
+173:             <span class="ruby-ivar">@_mLogicalProber</span> = <span class="ruby-identifier">logicalProber</span>
+174:             <span class="ruby-ivar">@_mVisualProber</span> = <span class="ruby-identifier">visualProber</span>
+175:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

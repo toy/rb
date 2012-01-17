@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>target-libpath.exp</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            target-libpath.exp
+        </h1>
+        <ul class="files">
+            <li>ext/ffi_c/libffi/testsuite/lib/target-libpath.exp</li>
+            <li>Last modified: Sun Nov 27 22:44:59 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.
+</p>
+<p>
+# This program is free software; you can redistribute it and/or modify # it
+under the terms of the GNU General Public License as published by # the
+Free Software Foundation; either version 3 of the License, or # (at your
+option) any later version. # # This program is distributed in the hope that
+it will be useful, # but WITHOUT ANY WARRANTY; without even the implied
+warranty of # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details. # # You should have received
+a copy of the GNU General Public License # along with GCC; see the file
+COPYING3. If not see # <<a
+href="http://www.gnu.org/licenses/">www.gnu.org/licenses/</a>>.
+</p>
+<p>
+# This file was contributed by John David Anglin
+(dave.anglin@nrc-cnrc.gc.ca)
+</p>
+<p>
+set orig_environment_saved 0 set orig_ld_library_path_saved 0 set
+orig_ld_run_path_saved 0 set orig_shlib_path_saved 0 set
+orig_ld_libraryn32_path_saved 0 set orig_ld_library64_path_saved 0 set
+orig_ld_library_path_32_saved 0 set orig_ld_library_path_64_saved 0 set
+orig_dyld_library_path_saved 0
+</p>
+<p>
+####################################### # proc set_ld_library_path_env_vars
+{ } #######################################
+</p>
+<p>
+proc set_ld_library_path_env_vars { } {
+</p>
+<pre>
+  global ld_library_path
+  global orig_environment_saved
+  global orig_ld_library_path_saved
+  global orig_ld_run_path_saved
+  global orig_shlib_path_saved
+  global orig_ld_libraryn32_path_saved
+  global orig_ld_library64_path_saved
+  global orig_ld_library_path_32_saved
+  global orig_ld_library_path_64_saved
+  global orig_dyld_library_path_saved
+  global orig_ld_library_path
+  global orig_ld_run_path
+  global orig_shlib_path
+  global orig_ld_libraryn32_path
+  global orig_ld_library64_path
+  global orig_ld_library_path_32
+  global orig_ld_library_path_64
+  global orig_dyld_library_path
+  global GCC_EXEC_PREFIX
+
+  # Set the relocated compiler prefix, but only if the user hasn't specified one.
+  if { [info exists GCC_EXEC_PREFIX] &amp;&amp; ![info exists env(GCC_EXEC_PREFIX)] } {
+    setenv GCC_EXEC_PREFIX &quot;$GCC_EXEC_PREFIX&quot;
+  }
+
+  # Setting the ld library path causes trouble when testing cross-compilers.
+  if { [is_remote target] } {
+    return
+  }
+
+  if { $orig_environment_saved == 0 } {
+    global env
+
+    set orig_environment_saved 1
+
+    # Save the original environment.
+    if [info exists env(LD_LIBRARY_PATH)] {
+      set orig_ld_library_path &quot;$env(LD_LIBRARY_PATH)&quot;
+      set orig_ld_library_path_saved 1
+    }
+    if [info exists env(LD_RUN_PATH)] {
+      set orig_ld_run_path &quot;$env(LD_RUN_PATH)&quot;
+      set orig_ld_run_path_saved 1
+    }
+    if [info exists env(SHLIB_PATH)] {
+      set orig_shlib_path &quot;$env(SHLIB_PATH)&quot;
+      set orig_shlib_path_saved 1
+    }
+    if [info exists env(LD_LIBRARYN32_PATH)] {
+      set orig_ld_libraryn32_path &quot;$env(LD_LIBRARYN32_PATH)&quot;
+      set orig_ld_libraryn32_path_saved 1
+    }
+    if [info exists env(LD_LIBRARY64_PATH)] {
+      set orig_ld_library64_path &quot;$env(LD_LIBRARY64_PATH)&quot;
+      set orig_ld_library64_path_saved 1
+    }
+    if [info exists env(LD_LIBRARY_PATH_32)] {
+      set orig_ld_library_path_32 &quot;$env(LD_LIBRARY_PATH_32)&quot;
+      set orig_ld_library_path_32_saved 1
+    }
+    if [info exists env(LD_LIBRARY_PATH_64)] {
+      set orig_ld_library_path_64 &quot;$env(LD_LIBRARY_PATH_64)&quot;
+      set orig_ld_library_path_64_saved 1
+    }
+    if [info exists env(DYLD_LIBRARY_PATH)] {
+      set orig_dyld_library_path &quot;$env(DYLD_LIBRARY_PATH)&quot;
+      set orig_dyld_library_path_saved 1
+    }
+  }
+
+  # We need to set ld library path in the environment.  Currently,
+  # unix.exp doesn't set the environment correctly for all systems.
+  # It only sets SHLIB_PATH and LD_LIBRARY_PATH when it executes a
+  # program.  We also need the environment set for compilations, etc.
+  #
+  # On IRIX 6, we have to set variables akin to LD_LIBRARY_PATH, but
+  # called LD_LIBRARYN32_PATH (for the N32 ABI) and LD_LIBRARY64_PATH
+  # (for the 64-bit ABI).  The same applies to Darwin (DYLD_LIBRARY_PATH),
+  # Solaris 32 bit (LD_LIBRARY_PATH_32), Solaris 64 bit (LD_LIBRARY_PATH_64),
+  # and HP-UX (SHLIB_PATH).  In some cases, the variables are independent
+  # of LD_LIBRARY_PATH, and in other cases LD_LIBRARY_PATH is used if the
+  # variable is not defined.
+  #
+  # Doing this is somewhat of a hack as ld_library_path gets repeated in
+  # SHLIB_PATH and LD_LIBRARY_PATH when unix_load sets these variables.
+  if { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARY_PATH &quot;$ld_library_path:$orig_ld_library_path&quot;
+  } else {
+    setenv LD_LIBRARY_PATH &quot;$ld_library_path&quot;
+  }
+  if { $orig_ld_run_path_saved } {
+    setenv LD_RUN_PATH &quot;$ld_library_path:$orig_ld_run_path&quot;
+  } else {
+    setenv LD_RUN_PATH &quot;$ld_library_path&quot;
+  }
+  # The default shared library dynamic path search for 64-bit
+  # HP-UX executables searches LD_LIBRARY_PATH before SHLIB_PATH.
+  # LD_LIBRARY_PATH isn't used for 32-bit executables.  Thus, we
+  # set LD_LIBRARY_PATH and SHLIB_PATH as if they were independent.
+  if { $orig_shlib_path_saved } {
+    setenv SHLIB_PATH &quot;$ld_library_path:$orig_shlib_path&quot;
+  } else {
+    setenv SHLIB_PATH &quot;$ld_library_path&quot;
+  }
+  if { $orig_ld_libraryn32_path_saved } {
+    setenv LD_LIBRARYN32_PATH &quot;$ld_library_path:$orig_ld_libraryn32_path&quot;
+  } elseif { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARYN32_PATH &quot;$ld_library_path:$orig_ld_library_path&quot;
+  } else {
+    setenv LD_LIBRARYN32_PATH &quot;$ld_library_path&quot;
+  }
+  if { $orig_ld_library64_path_saved } {
+    setenv LD_LIBRARY64_PATH &quot;$ld_library_path:$orig_ld_library64_path&quot;
+  } elseif { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARY64_PATH &quot;$ld_library_path:$orig_ld_library_path&quot;
+  } else {
+    setenv LD_LIBRARY64_PATH &quot;$ld_library_path&quot;
+  }
+  if { $orig_ld_library_path_32_saved } {
+    setenv LD_LIBRARY_PATH_32 &quot;$ld_library_path:$orig_ld_library_path_32&quot;
+  } elseif { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARY_PATH_32 &quot;$ld_library_path:$orig_ld_library_path&quot;
+  } else {
+    setenv LD_LIBRARY_PATH_32 &quot;$ld_library_path&quot;
+  }
+  if { $orig_ld_library_path_64_saved } {
+    setenv LD_LIBRARY_PATH_64 &quot;$ld_library_path:$orig_ld_library_path_64&quot;
+  } elseif { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARY_PATH_64 &quot;$ld_library_path:$orig_ld_library_path&quot;
+  } else {
+    setenv LD_LIBRARY_PATH_64 &quot;$ld_library_path&quot;
+  }
+  if { $orig_dyld_library_path_saved } {
+    setenv DYLD_LIBRARY_PATH &quot;$ld_library_path:$orig_dyld_library_path&quot;
+  } else {
+    setenv DYLD_LIBRARY_PATH &quot;$ld_library_path&quot;
+  }
+
+  verbose -log &quot;set_ld_library_path_env_vars: ld_library_path=$ld_library_path&quot;
+</pre>
+<p>
+}
+</p>
+<p>
+####################################### # proc
+restore_ld_library_path_env_vars { }
+#######################################
+</p>
+<p>
+proc restore_ld_library_path_env_vars { } {
+</p>
+<pre>
+  global orig_environment_saved
+  global orig_ld_library_path_saved
+  global orig_ld_run_path_saved
+  global orig_shlib_path_saved
+  global orig_ld_libraryn32_path_saved
+  global orig_ld_library64_path_saved
+  global orig_ld_library_path_32_saved
+  global orig_ld_library_path_64_saved
+  global orig_dyld_library_path_saved
+  global orig_ld_library_path
+  global orig_ld_run_path
+  global orig_shlib_path
+  global orig_ld_libraryn32_path
+  global orig_ld_library64_path
+  global orig_ld_library_path_32
+  global orig_ld_library_path_64
+  global orig_dyld_library_path
+
+  if { $orig_environment_saved == 0 } {
+    return
+  }
+
+  if { $orig_ld_library_path_saved } {
+    setenv LD_LIBRARY_PATH &quot;$orig_ld_library_path&quot;
+  } elseif [info exists env(LD_LIBRARY_PATH)] {
+    unsetenv LD_LIBRARY_PATH
+  }
+  if { $orig_ld_run_path_saved } {
+    setenv LD_RUN_PATH &quot;$orig_ld_run_path&quot;
+  } elseif [info exists env(LD_RUN_PATH)] {
+    unsetenv LD_RUN_PATH
+  }
+  if { $orig_shlib_path_saved } {
+    setenv SHLIB_PATH &quot;$orig_shlib_path&quot;
+  } elseif [info exists env(SHLIB_PATH)] {
+    unsetenv SHLIB_PATH
+  }
+  if { $orig_ld_libraryn32_path_saved } {
+    setenv LD_LIBRARYN32_PATH &quot;$orig_ld_libraryn32_path&quot;
+  } elseif [info exists env(LD_LIBRARYN32_PATH)] {
+    unsetenv LD_LIBRARYN32_PATH
+  }
+  if { $orig_ld_library64_path_saved } {
+    setenv LD_LIBRARY64_PATH &quot;$orig_ld_library64_path&quot;
+  } elseif [info exists env(LD_LIBRARY64_PATH)] {
+    unsetenv LD_LIBRARY64_PATH
+  }
+  if { $orig_ld_library_path_32_saved } {
+    setenv LD_LIBRARY_PATH_32 &quot;$orig_ld_library_path_32&quot;
+  } elseif [info exists env(LD_LIBRARY_PATH_32)] {
+    unsetenv LD_LIBRARY_PATH_32
+  }
+  if { $orig_ld_library_path_64_saved } {
+    setenv LD_LIBRARY_PATH_64 &quot;$orig_ld_library_path_64&quot;
+  } elseif [info exists env(LD_LIBRARY_PATH_64)] {
+    unsetenv LD_LIBRARY_PATH_64
+  }
+  if { $orig_dyld_library_path_saved } {
+    setenv DYLD_LIBRARY_PATH &quot;$orig_dyld_library_path&quot;
+  } elseif [info exists env(DYLD_LIBRARY_PATH)] {
+    unsetenv DYLD_LIBRARY_PATH
+  }
+</pre>
+<p>
+}
+</p>
+<p>
+####################################### # proc get_shlib_extension { }
+#######################################
+</p>
+<p>
+proc get_shlib_extension { } {
+</p>
+<pre>
+    global shlib_ext
+
+    if { [ istarget *-*-darwin* ] } {
+        set shlib_ext &quot;dylib&quot;
+    } elseif { [ istarget *-*-cygwin* ] || [ istarget *-*-mingw* ] } {
+        set shlib_ext &quot;dll&quot;
+    } elseif { [ istarget hppa*-*-hpux* ] } {
+        set shlib_ext &quot;sl&quot;
+    } else {
+        set shlib_ext &quot;so&quot;
+    }
+    return $shlib_ext
+</pre>
+<p>
+}
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

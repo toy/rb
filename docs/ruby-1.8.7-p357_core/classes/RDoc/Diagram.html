@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RDoc::Diagram</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RDoc::Diagram 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rdoc/diagram_rb.html">lib/rdoc/diagram.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Draw a set of diagrams representing the modules and classes in the system.
+We draw one diagram for each file, and one for each toplevel class or
+module. This means there will be overlap. However, it also means that
+you&#8217;ll get better context for objects.
+</p>
+<p>
+To use, simply
+</p>
+<pre>
+  d = Diagram.new(info)   # pass in collection of top level infos
+  d.draw
+</pre>
+<p>
+The results will be written to the <tt>dot</tt> subdirectory. The process
+also sets the <tt>diagram</tt> attribute in each object it graphs to the
+name of the file containing the image. This can be used by output
+generators to insert images.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003481">add_classes</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003494">convert_to_png</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003461">draw</a>,</li>
+                
+                <li><a href="#M003474">draw_module</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003469">find_full_name</a>,</li>
+                
+                <li><a href="#M003465">find_names</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003456">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003498">wrap_in_image_map</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">FONT</td>
+            <td>=</td>
+            <td class="attr-value">&quot;Arial&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DOT_PATH</td>
+            <td>=</td>
+            <td class="attr-value">&quot;dot&quot;</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003461">
+                    
+                    <a name="M003461"></a><b>draw</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Draw the diagrams. We traverse the files, drawing a diagram for each. We
+also traverse each top-level class and module in that file drawing a
+diagram for these too.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003461_source')" id="l_M003461_source">show</a>
+                        
+                    </p>
+                    <div id="M003461_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 48</span>
+ 48:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">draw</span>
+ 49:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">quiet</span>
+ 50:         <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">print</span> <span class="ruby-value str">&quot;Diagrams: &quot;</span>
+ 51:         <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">flush</span>
+ 52:       <span class="ruby-keyword kw">end</span>
+ 53: 
+ 54:       <span class="ruby-ivar">@info</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span>, <span class="ruby-identifier">file_count</span><span class="ruby-operator">|</span>
+ 55:         <span class="ruby-ivar">@done_modules</span> = {}
+ 56:         <span class="ruby-ivar">@local_names</span> = <span class="ruby-identifier">find_names</span>(<span class="ruby-identifier">i</span>)
+ 57:         <span class="ruby-ivar">@global_names</span> = []
+ 58:         <span class="ruby-ivar">@global_graph</span> = <span class="ruby-identifier">graph</span> = <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTDigraph</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'TopLevel'</span>,
+ 59:                                     <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+ 60:                                     <span class="ruby-value str">'fontsize'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'8'</span>,
+ 61:                                     <span class="ruby-value str">'bgcolor'</span>  =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'lightcyan1'</span>,
+ 62:                                     <span class="ruby-value str">'compound'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'true'</span>)
+ 63:         
+ 64:         <span class="ruby-comment cmt"># it's a little hack %) i'm too lazy to create a separate class</span>
+ 65:         <span class="ruby-comment cmt"># for default node</span>
+ 66:         <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'node'</span>,
+ 67:                                   <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+ 68:                                   <span class="ruby-value str">'color'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'black'</span>,
+ 69:                                   <span class="ruby-value str">'fontsize'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">8</span>)
+ 70:         
+ 71:         <span class="ruby-identifier">i</span>.<span class="ruby-identifier">modules</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">mod</span><span class="ruby-operator">|</span>
+ 72:           <span class="ruby-identifier">draw_module</span>(<span class="ruby-identifier">mod</span>, <span class="ruby-identifier">graph</span>, <span class="ruby-keyword kw">true</span>, <span class="ruby-identifier">i</span>.<span class="ruby-identifier">file_relative_name</span>)
+ 73:         <span class="ruby-keyword kw">end</span>
+ 74:         <span class="ruby-identifier">add_classes</span>(<span class="ruby-identifier">i</span>, <span class="ruby-identifier">graph</span>, <span class="ruby-identifier">i</span>.<span class="ruby-identifier">file_relative_name</span>)
+ 75: 
+ 76:         <span class="ruby-identifier">i</span>.<span class="ruby-identifier">diagram</span> = <span class="ruby-identifier">convert_to_png</span>(<span class="ruby-node">&quot;f_#{file_count}&quot;</span>, <span class="ruby-identifier">graph</span>)
+ 77:         
+ 78:         <span class="ruby-comment cmt"># now go through and document each top level class and</span>
+ 79:         <span class="ruby-comment cmt"># module independently</span>
+ 80:         <span class="ruby-identifier">i</span>.<span class="ruby-identifier">modules</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">mod</span>, <span class="ruby-identifier">count</span><span class="ruby-operator">|</span>
+ 81:           <span class="ruby-ivar">@done_modules</span> = {}
+ 82:           <span class="ruby-ivar">@local_names</span> = <span class="ruby-identifier">find_names</span>(<span class="ruby-identifier">mod</span>)
+ 83:           <span class="ruby-ivar">@global_names</span> = []
+ 84: 
+ 85:           <span class="ruby-ivar">@global_graph</span> = <span class="ruby-identifier">graph</span> = <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTDigraph</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'TopLevel'</span>,
+ 86:                                       <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+ 87:                                       <span class="ruby-value str">'fontsize'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'8'</span>,
+ 88:                                       <span class="ruby-value str">'bgcolor'</span>  =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'lightcyan1'</span>,
+ 89:                                       <span class="ruby-value str">'compound'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'true'</span>)
+ 90: 
+ 91:           <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'node'</span>,
+ 92:                                     <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+ 93:                                     <span class="ruby-value str">'color'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'black'</span>,
+ 94:                                     <span class="ruby-value str">'fontsize'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">8</span>)
+ 95:           <span class="ruby-identifier">draw_module</span>(<span class="ruby-identifier">mod</span>, <span class="ruby-identifier">graph</span>, <span class="ruby-keyword kw">true</span>)
+ 96:           <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">diagram</span> = <span class="ruby-identifier">convert_to_png</span>(<span class="ruby-node">&quot;m_#{file_count}_#{count}&quot;</span>, 
+ 97:                                        <span class="ruby-identifier">graph</span>) 
+ 98:         <span class="ruby-keyword kw">end</span>
+ 99:       <span class="ruby-keyword kw">end</span>
+100:       <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">puts</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">quiet</span>
+101:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003481">
+                    
+                    <a name="M003481"></a><b>add_classes</b>(container, graph, file = nil )
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003481_source')" id="l_M003481_source">show</a>
+                        
+                    </p>
+                    <div id="M003481_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 168</span>
+168:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_classes</span>(<span class="ruby-identifier">container</span>, <span class="ruby-identifier">graph</span>, <span class="ruby-identifier">file</span> = <span class="ruby-keyword kw">nil</span> )
+169: 
+170:       <span class="ruby-identifier">use_fileboxes</span> = <span class="ruby-constant">Options</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">fileboxes</span>
+171: 
+172:       <span class="ruby-identifier">files</span> = {}
+173: 
+174:       <span class="ruby-comment cmt"># create dummy node (needed if empty and for module includes)</span>
+175:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">container</span>.<span class="ruby-identifier">full_name</span>
+176:         <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{container.full_name.gsub( /:/,'_' )}&quot;</span>,
+177:                                   <span class="ruby-value str">'label'</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;&quot;</span>,
+178:                                   <span class="ruby-value str">'width'</span>  =<span class="ruby-operator">&gt;</span> (<span class="ruby-identifier">container</span>.<span class="ruby-identifier">classes</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">and</span> 
+179:                                                <span class="ruby-identifier">container</span>.<span class="ruby-identifier">modules</span>.<span class="ruby-identifier">empty?</span>) <span class="ruby-operator">?</span> 
+180:                                   <span class="ruby-value str">'0.75'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">'0.01'</span>,
+181:                                   <span class="ruby-value str">'height'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'0.01'</span>,
+182:                                   <span class="ruby-value str">'shape'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'plaintext'</span>)
+183:       <span class="ruby-keyword kw">end</span>
+184:       <span class="ruby-identifier">container</span>.<span class="ruby-identifier">classes</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">cl</span>, <span class="ruby-identifier">cl_index</span><span class="ruby-operator">|</span>
+185:         <span class="ruby-identifier">last_file</span> = <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">in_files</span>[<span class="ruby-value">-1</span>].<span class="ruby-identifier">file_relative_name</span>
+186: 
+187:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_fileboxes</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">files</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">last_file</span>)
+188:           <span class="ruby-ivar">@counter</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+189:           <span class="ruby-identifier">files</span>[<span class="ruby-identifier">last_file</span>] =
+190:             <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTSubgraph</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{@counter}&quot;</span>,
+191:                                  <span class="ruby-value str">'label'</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{last_file}&quot;</span>,
+192:                                  <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+193:                                  <span class="ruby-value str">'color'</span>=<span class="ruby-operator">&gt;</span>
+194:                                  <span class="ruby-identifier">last_file</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">file</span> <span class="ruby-value">? </span><span class="ruby-value str">'red'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">'black'</span>)
+195:         <span class="ruby-keyword kw">end</span>
+196: 
+197:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'Object'</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">name</span>[<span class="ruby-value">0</span>,<span class="ruby-value">2</span>] <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;&lt;&lt;&quot;</span>
+198: 
+199:         <span class="ruby-identifier">url</span> = <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">http_url</span>(<span class="ruby-value str">&quot;classes&quot;</span>)
+200:         
+201:         <span class="ruby-identifier">label</span> = <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">dup</span>
+202:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_fileboxes</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">in_files</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>
+203:           <span class="ruby-identifier">label</span> <span class="ruby-operator">&lt;&lt;</span>  <span class="ruby-value str">'\n['</span> <span class="ruby-operator">+</span> 
+204:                         <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">in_files</span>.<span class="ruby-identifier">collect</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+205:                              <span class="ruby-identifier">i</span>.<span class="ruby-identifier">file_relative_name</span> 
+206:                         }.<span class="ruby-identifier">sort</span>.<span class="ruby-identifier">join</span>( <span class="ruby-value str">'\n'</span> ) <span class="ruby-operator">+</span>
+207:                     <span class="ruby-value str">']'</span>
+208:         <span class="ruby-keyword kw">end</span> 
+209:                 
+210:         <span class="ruby-identifier">attrs</span> = {
+211:           <span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{cl.full_name.gsub( /:/, '_' )}&quot;</span>,
+212:           <span class="ruby-value str">'fontcolor'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'black'</span>,
+213:           <span class="ruby-value str">'style'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'filled'</span>,
+214:           <span class="ruby-value str">'color'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'palegoldenrod'</span>,
+215:           <span class="ruby-value str">'label'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">label</span>,
+216:           <span class="ruby-value str">'shape'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'ellipse'</span>,
+217:           <span class="ruby-value str">'URL'</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-node">%{&quot;#{url}&quot;}</span>
+218:         }
+219: 
+220:         <span class="ruby-identifier">c</span> = <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">attrs</span>)
+221:         
+222:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_fileboxes</span>
+223:           <span class="ruby-identifier">files</span>[<span class="ruby-identifier">last_file</span>].<span class="ruby-identifier">push</span> <span class="ruby-identifier">c</span> 
+224:         <span class="ruby-keyword kw">else</span>
+225:           <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">c</span>
+226:         <span class="ruby-keyword kw">end</span>
+227:       <span class="ruby-keyword kw">end</span>
+228:       
+229:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">use_fileboxes</span>
+230:         <span class="ruby-identifier">files</span>.<span class="ruby-identifier">each_value</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">val</span><span class="ruby-operator">|</span>
+231:           <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">val</span>
+232:         <span class="ruby-keyword kw">end</span>
+233:       <span class="ruby-keyword kw">end</span>
+234:       
+235:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">container</span>.<span class="ruby-identifier">classes</span>.<span class="ruby-identifier">empty?</span>
+236:         <span class="ruby-identifier">container</span>.<span class="ruby-identifier">classes</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">cl</span>, <span class="ruby-identifier">cl_index</span><span class="ruby-operator">|</span>
+237:           <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">includes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span>
+238:             <span class="ruby-identifier">m_full_name</span> = <span class="ruby-identifier">find_full_name</span>(<span class="ruby-identifier">m</span>.<span class="ruby-identifier">name</span>, <span class="ruby-identifier">cl</span>)
+239:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@local_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">m_full_name</span>)
+240:               <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTEdge</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'from'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+241:                                       <span class="ruby-value str">'to'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{cl.full_name.gsub( /:/,'_' )}&quot;</span>,
+242:                                       <span class="ruby-value str">'ltail'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{m_full_name.gsub( /:/,'_' )}&quot;</span>)
+243:             <span class="ruby-keyword kw">else</span>
+244:               <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@global_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">m_full_name</span>)
+245:                 <span class="ruby-identifier">path</span> = <span class="ruby-identifier">m_full_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;::&quot;</span>)
+246:                 <span class="ruby-identifier">url</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'classes'</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">path</span>) <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;.html&quot;</span>
+247:                 <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+248:                                           <span class="ruby-value str">'shape'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'box'</span>,
+249:                                           <span class="ruby-value str">'label'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name}&quot;</span>,
+250:                                           <span class="ruby-value str">'URL'</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-node">%{&quot;#{url}&quot;}</span>)
+251:                 <span class="ruby-ivar">@global_names</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">m_full_name</span>
+252:               <span class="ruby-keyword kw">end</span>
+253:               <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTEdge</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'from'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+254:                                       <span class="ruby-value str">'to'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{cl.full_name.gsub( /:/, '_')}&quot;</span>)
+255:             <span class="ruby-keyword kw">end</span>
+256:           <span class="ruby-keyword kw">end</span>
+257: 
+258:           <span class="ruby-identifier">sclass</span> = <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">superclass</span>
+259:           <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sclass</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">sclass</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'Object'</span>
+260:           <span class="ruby-identifier">sclass_full_name</span> = <span class="ruby-identifier">find_full_name</span>(<span class="ruby-identifier">sclass</span>,<span class="ruby-identifier">cl</span>)
+261:           <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@local_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">sclass_full_name</span>) <span class="ruby-keyword kw">or</span> <span class="ruby-ivar">@global_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">sclass_full_name</span>)
+262:             <span class="ruby-identifier">path</span> = <span class="ruby-identifier">sclass_full_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;::&quot;</span>)
+263:             <span class="ruby-identifier">url</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'classes'</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">path</span>) <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;.html&quot;</span>
+264:             <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(
+265:                        <span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{sclass_full_name.gsub( /:/, '_' )}&quot;</span>,
+266:                        <span class="ruby-value str">'label'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">sclass_full_name</span>,
+267:                        <span class="ruby-value str">'URL'</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-node">%{&quot;#{url}&quot;}</span>)
+268:             <span class="ruby-ivar">@global_names</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">sclass_full_name</span>
+269:           <span class="ruby-keyword kw">end</span>
+270:           <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTEdge</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'from'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{sclass_full_name.gsub( /:/,'_' )}&quot;</span>,
+271:                                     <span class="ruby-value str">'to'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{cl.full_name.gsub( /:/, '_')}&quot;</span>)
+272:         <span class="ruby-keyword kw">end</span>
+273:       <span class="ruby-keyword kw">end</span>
+274: 
+275:       <span class="ruby-identifier">container</span>.<span class="ruby-identifier">modules</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">submod</span><span class="ruby-operator">|</span>
+276:         <span class="ruby-identifier">draw_module</span>(<span class="ruby-identifier">submod</span>, <span class="ruby-identifier">graph</span>)
+277:       <span class="ruby-keyword kw">end</span>
+278:       
+279:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003494">
+                    
+                    <a name="M003494"></a><b>convert_to_png</b>(file_base, graph)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003494_source')" id="l_M003494_source">show</a>
+                        
+                    </p>
+                    <div id="M003494_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 281</span>
+281:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">convert_to_png</span>(<span class="ruby-identifier">file_base</span>, <span class="ruby-identifier">graph</span>)
+282:       <span class="ruby-identifier">str</span> = <span class="ruby-identifier">graph</span>.<span class="ruby-identifier">to_s</span>
+283:       <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@diagram_cache</span>[<span class="ruby-identifier">str</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@diagram_cache</span>[<span class="ruby-identifier">str</span>]
+284:       <span class="ruby-identifier">op_type</span> = <span class="ruby-constant">Options</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">image_format</span>
+285:       <span class="ruby-identifier">dotfile</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">DOT_PATH</span>, <span class="ruby-identifier">file_base</span>)
+286:       <span class="ruby-identifier">src</span> = <span class="ruby-identifier">dotfile</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;.dot&quot;</span>
+287:       <span class="ruby-identifier">dot</span> = <span class="ruby-identifier">dotfile</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;.&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">op_type</span>
+288: 
+289:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">quiet</span>
+290:         <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">print</span> <span class="ruby-value str">&quot;.&quot;</span>
+291:         <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">flush</span>
+292:       <span class="ruby-keyword kw">end</span>
+293: 
+294:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">src</span>, <span class="ruby-value str">'w+'</span> ) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+295:         <span class="ruby-identifier">f</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">str</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;\n&quot;</span>
+296:       <span class="ruby-keyword kw">end</span>
+297:       
+298:       <span class="ruby-identifier">system</span> <span class="ruby-value str">&quot;dot&quot;</span>, <span class="ruby-node">&quot;-T#{op_type}&quot;</span>, <span class="ruby-identifier">src</span>, <span class="ruby-value str">&quot;-o&quot;</span>, <span class="ruby-identifier">dot</span>
+299: 
+300:       <span class="ruby-comment cmt"># Now construct the imagemap wrapper around</span>
+301:       <span class="ruby-comment cmt"># that png</span>
+302: 
+303:       <span class="ruby-identifier">ret</span> = <span class="ruby-identifier">wrap_in_image_map</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dot</span>)
+304:       <span class="ruby-ivar">@diagram_cache</span>[<span class="ruby-identifier">str</span>] = <span class="ruby-identifier">ret</span>
+305:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">ret</span>
+306:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003474">
+                    
+                    <a name="M003474"></a><b>draw_module</b>(mod, graph, toplevel = false, file = nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003474_source')" id="l_M003474_source">show</a>
+                        
+                    </p>
+                    <div id="M003474_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 125</span>
+125:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">draw_module</span>(<span class="ruby-identifier">mod</span>, <span class="ruby-identifier">graph</span>, <span class="ruby-identifier">toplevel</span> = <span class="ruby-keyword kw">false</span>, <span class="ruby-identifier">file</span> = <span class="ruby-keyword kw">nil</span>)
+126:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span>  <span class="ruby-ivar">@done_modules</span>[<span class="ruby-identifier">mod</span>.<span class="ruby-identifier">full_name</span>] <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">toplevel</span>
+127: 
+128:       <span class="ruby-ivar">@counter</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+129:       <span class="ruby-identifier">url</span> = <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">http_url</span>(<span class="ruby-value str">&quot;classes&quot;</span>)
+130:       <span class="ruby-identifier">m</span> = <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTSubgraph</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{mod.full_name.gsub( /:/,'_' )}&quot;</span>,
+131:                                <span class="ruby-value str">'label'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">name</span>,
+132:                                <span class="ruby-value str">'fontname'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">FONT</span>,
+133:                                <span class="ruby-value str">'color'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'blue'</span>, 
+134:                                <span class="ruby-value str">'style'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'filled'</span>, 
+135:                                <span class="ruby-value str">'URL'</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-node">%{&quot;#{url}&quot;}</span>,
+136:                                <span class="ruby-value str">'fillcolor'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">toplevel</span> <span class="ruby-value">? </span><span class="ruby-value str">'palegreen1'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">'palegreen3'</span>)
+137:       
+138:       <span class="ruby-ivar">@done_modules</span>[<span class="ruby-identifier">mod</span>.<span class="ruby-identifier">full_name</span>] = <span class="ruby-identifier">m</span>
+139:       <span class="ruby-identifier">add_classes</span>(<span class="ruby-identifier">mod</span>, <span class="ruby-identifier">m</span>, <span class="ruby-identifier">file</span>)
+140:       <span class="ruby-identifier">graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">m</span>
+141: 
+142:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">includes</span>.<span class="ruby-identifier">empty?</span>
+143:         <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">includes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span>
+144:           <span class="ruby-identifier">m_full_name</span> = <span class="ruby-identifier">find_full_name</span>(<span class="ruby-identifier">m</span>.<span class="ruby-identifier">name</span>, <span class="ruby-identifier">mod</span>)
+145:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@local_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">m_full_name</span>)
+146:             <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTEdge</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'from'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+147:                                       <span class="ruby-value str">'to'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{mod.full_name.gsub( /:/,'_' )}&quot;</span>,
+148:                                       <span class="ruby-value str">'ltail'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+149:                                       <span class="ruby-value str">'lhead'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{mod.full_name.gsub( /:/,'_' )}&quot;</span>)
+150:           <span class="ruby-keyword kw">else</span>
+151:             <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@global_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">m_full_name</span>)
+152:               <span class="ruby-identifier">path</span> = <span class="ruby-identifier">m_full_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;::&quot;</span>)
+153:               <span class="ruby-identifier">url</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'classes'</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">path</span>) <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;.html&quot;</span>
+154:               <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTNode</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'name'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+155:                                         <span class="ruby-value str">'shape'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'box'</span>,
+156:                                         <span class="ruby-value str">'label'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name}&quot;</span>,
+157:                                         <span class="ruby-value str">'URL'</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-node">%{&quot;#{url}&quot;}</span>)
+158:               <span class="ruby-ivar">@global_names</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">m_full_name</span>
+159:             <span class="ruby-keyword kw">end</span>
+160:             <span class="ruby-ivar">@global_graph</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">DOT</span><span class="ruby-operator">::</span><span class="ruby-constant">DOTEdge</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'from'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{m_full_name.gsub( /:/,'_' )}&quot;</span>,
+161:                                       <span class="ruby-value str">'to'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{mod.full_name.gsub( /:/,'_' )}&quot;</span>,
+162:                                       <span class="ruby-value str">'lhead'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;cluster_#{mod.full_name.gsub( /:/,'_' )}&quot;</span>)
+163:           <span class="ruby-keyword kw">end</span>
+164:         <span class="ruby-keyword kw">end</span>
+165:       <span class="ruby-keyword kw">end</span>
+166:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003469">
+                    
+                    <a name="M003469"></a><b>find_full_name</b>(name, mod)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003469_source')" id="l_M003469_source">show</a>
+                        
+                    </p>
+                    <div id="M003469_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 112</span>
+112:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_full_name</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">mod</span>)
+113:       <span class="ruby-identifier">full_name</span> = <span class="ruby-identifier">name</span>.<span class="ruby-identifier">dup</span>
+114:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">full_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@local_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">full_name</span>)
+115:       <span class="ruby-identifier">mod_path</span> = <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">full_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'::'</span>)[<span class="ruby-value">0</span><span class="ruby-operator">..</span><span class="ruby-value">-2</span>]
+116:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">mod_path</span>.<span class="ruby-identifier">nil?</span>
+117:         <span class="ruby-keyword kw">until</span> <span class="ruby-identifier">mod_path</span>.<span class="ruby-identifier">empty?</span>
+118:           <span class="ruby-identifier">full_name</span> = <span class="ruby-identifier">mod_path</span>.<span class="ruby-identifier">pop</span> <span class="ruby-operator">+</span> <span class="ruby-value str">'::'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">full_name</span>
+119:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">full_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@local_names</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">full_name</span>)
+120:         <span class="ruby-keyword kw">end</span>
+121:       <span class="ruby-keyword kw">end</span>
+122:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">name</span>
+123:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003465">
+                    
+                    <a name="M003465"></a><b>find_names</b>(mod)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003465_source')" id="l_M003465_source">show</a>
+                        
+                    </p>
+                    <div id="M003465_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 107</span>
+107:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_names</span>(<span class="ruby-identifier">mod</span>)
+108:       <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">mod</span>.<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">classes</span>.<span class="ruby-identifier">collect</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">cl</span><span class="ruby-operator">|</span> <span class="ruby-identifier">cl</span>.<span class="ruby-identifier">full_name</span>} <span class="ruby-operator">+</span>
+109:         <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">modules</span>.<span class="ruby-identifier">collect</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span> <span class="ruby-identifier">find_names</span>(<span class="ruby-identifier">m</span>)}.<span class="ruby-identifier">flatten</span>
+110:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003498">
+                    
+                    <a name="M003498"></a><b>wrap_in_image_map</b>(src, dot)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Extract the client-side image map from dot, and use it to generate the
+imagemap proper. Return the whole <map>..<img> combination, suitable for
+inclusion on the page
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003498_source')" id="l_M003498_source">show</a>
+                        
+                    </p>
+                    <div id="M003498_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 313</span>
+313:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">wrap_in_image_map</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dot</span>)
+314:       <span class="ruby-identifier">res</span> = <span class="ruby-value str">%{&lt;map id=&quot;map&quot; name=&quot;map&quot;&gt;\n}</span>
+315:       <span class="ruby-identifier">dot_map</span> = <span class="ruby-node">`dot -Tismap #{src}`</span>
+316:       <span class="ruby-identifier">dot_map</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">area</span><span class="ruby-operator">|</span>
+317:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">area</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^rectangle \((\d+),(\d+)\) \((\d+),(\d+)\) ([\/\w.]+)\s*(.*)/</span>
+318:           <span class="ruby-identifier">$stderr</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unexpected output from dot:\n#{area}&quot;</span>
+319:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+320:         <span class="ruby-keyword kw">end</span>
+321:         
+322:         <span class="ruby-identifier">xs</span>, <span class="ruby-identifier">ys</span> = [<span class="ruby-identifier">$1</span>.<span class="ruby-identifier">to_i</span>, <span class="ruby-identifier">$3</span>.<span class="ruby-identifier">to_i</span>], [<span class="ruby-identifier">$2</span>.<span class="ruby-identifier">to_i</span>, <span class="ruby-identifier">$4</span>.<span class="ruby-identifier">to_i</span>]
+323:         <span class="ruby-identifier">url</span>, <span class="ruby-identifier">area_name</span> = <span class="ruby-identifier">$5</span>, <span class="ruby-identifier">$6</span>
+324: 
+325:         <span class="ruby-identifier">res</span> <span class="ruby-operator">&lt;&lt;</span>  <span class="ruby-node">%{  &lt;area shape=&quot;rect&quot; coords=&quot;#{xs.min},#{ys.min},#{xs.max},#{ys.max}&quot; }</span>
+326:         <span class="ruby-identifier">res</span> <span class="ruby-operator">&lt;&lt;</span>  <span class="ruby-node">%{     href=&quot;#{url}&quot; alt=&quot;#{area_name}&quot; /&gt;\n}</span>
+327:       <span class="ruby-keyword kw">end</span>
+328:       <span class="ruby-identifier">res</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;&lt;/map&gt;\n&quot;</span>
+329: <span class="ruby-comment cmt">#      map_file = src.sub(/.dot/, '.map')</span>
+330: <span class="ruby-comment cmt">#      system(&quot;dot -Timap #{src} -o #{map_file}&quot;)</span>
+331:       <span class="ruby-identifier">res</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">%{&lt;img src=&quot;#{dot}&quot; usemap=&quot;#map&quot; border=&quot;0&quot; alt=&quot;#{dot}&quot;&gt;}</span>
+332:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">res</span>
+333:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003456">
+                    
+                    <a name="M003456"></a><b>new</b>(info, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Pass in the set of top level objects. The method also creates the
+subdirectory to hold the images
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003456_source')" id="l_M003456_source">show</a>
+                        
+                    </p>
+                    <div id="M003456_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/diagram.rb, line 36</span>
+36:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">info</span>, <span class="ruby-identifier">options</span>)
+37:       <span class="ruby-ivar">@info</span> = <span class="ruby-identifier">info</span>
+38:       <span class="ruby-ivar">@options</span> = <span class="ruby-identifier">options</span>
+39:       <span class="ruby-ivar">@counter</span> = <span class="ruby-value">0</span>
+40:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">makedirs</span>(<span class="ruby-constant">DOT_PATH</span>)
+41:       <span class="ruby-ivar">@diagram_cache</span> = {}
+42:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

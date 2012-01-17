@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>PhusionPassenger::AdminTools::MemoryStats</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            PhusionPassenger::AdminTools::MemoryStats 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/phusion_passenger/admin_tools/memory_stats_rb.html">lib/phusion_passenger/admin_tools/memory_stats.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000072">apache_processes</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000088">determine_private_dirty_rss</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000082">list_processes</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000073">nginx_processes</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000074">passenger_processes</a>,</li>
+                
+                <li><a href="#M000076">platform_provides_private_dirty_rss_information?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000077">root_privileges_required_for_private_dirty_rss?</a>,</li>
+                
+                <li><a href="#M000080">ruby_platform</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000078">should_show_private_dirty_rss?</a>,</li>
+                
+                <li><a href="#M000075">sum_memory_usage</a>,</li>
+                
+                <li><a href="#M000079">system_ram_usage</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="MemoryStats/Process.html">PhusionPassenger::AdminTools::MemoryStats::Process</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000072">
+                    
+                    <a name="M000072"></a><b>apache_processes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a list of Apache processes, which may be the empty list if Apache
+is not running. If the Apache executable name is unknown then nil will be
+returned.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000072_source')" id="l_M000072_source">show</a>
+                        
+                    </p>
+                    <div id="M000072_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 64</span>
+64:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">apache_processes</span>
+65:     <span class="ruby-ivar">@apache_processes</span> <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">begin</span>
+66:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">PlatformInfo</span>.<span class="ruby-identifier">httpd</span>
+67:         <span class="ruby-identifier">processes</span> = <span class="ruby-identifier">list_processes</span>(<span class="ruby-identifier">:exe</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">PlatformInfo</span>.<span class="ruby-identifier">httpd</span>)
+68:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">processes</span>.<span class="ruby-identifier">empty?</span>
+69:           <span class="ruby-comment cmt"># On some Linux distros, the Apache worker processes</span>
+70:           <span class="ruby-comment cmt"># are called &quot;httpd.worker&quot;</span>
+71:           <span class="ruby-identifier">processes</span> = <span class="ruby-identifier">list_processes</span>(<span class="ruby-identifier">:exe</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{PlatformInfo.httpd}.worker&quot;</span>)
+72:         <span class="ruby-keyword kw">end</span>
+73:         <span class="ruby-identifier">processes</span>
+74:       <span class="ruby-keyword kw">else</span>
+75:         <span class="ruby-keyword kw">nil</span>
+76:       <span class="ruby-keyword kw">end</span>
+77:     <span class="ruby-keyword kw">end</span>
+78:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000073">
+                    
+                    <a name="M000073"></a><b>nginx_processes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a list of Nginx processes, which may be the empty list if Nginx is
+not running.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000073_source')" id="l_M000073_source">show</a>
+                        
+                    </p>
+                    <div id="M000073_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 82</span>
+82:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nginx_processes</span>
+83:     <span class="ruby-ivar">@nginx_processes</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">list_processes</span>(<span class="ruby-identifier">:exe</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;nginx&quot;</span>)
+84:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000074">
+                    
+                    <a name="M000074"></a><b>passenger_processes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a list of Phusion Passenger processes, which may be the empty list
+if Phusion Passenger is not running.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000074_source')" id="l_M000074_source">show</a>
+                        
+                    </p>
+                    <div id="M000074_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 88</span>
+88:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">passenger_processes</span>
+89:     <span class="ruby-ivar">@passenger_processes</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">list_processes</span>(<span class="ruby-identifier">:match</span> =<span class="ruby-operator">&gt;</span>
+90:       <span class="ruby-regexp re">/((^| )Passenger |(^| )Rails:|(^| )Rack:|PassengerHelperAgent|PassengerWatchdog|PassengerLoggingAgent)/</span>)
+91:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000076">
+                    
+                    <a name="M000076"></a><b>platform_provides_private_dirty_rss_information?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000076_source')" id="l_M000076_source">show</a>
+                        
+                    </p>
+                    <div id="M000076_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 117</span>
+117:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">platform_provides_private_dirty_rss_information?</span>
+118:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">ruby_platform</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/linux/</span>
+119:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000077">
+                    
+                    <a name="M000077"></a><b>root_privileges_required_for_private_dirty_rss?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns whether root privileges are required in order to measure private
+dirty RSS. Only meaningful if <a
+href="MemoryStats.html#M000076">platform_provides_private_dirty_rss_information?</a>
+returns true.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000077_source')" id="l_M000077_source">show</a>
+                        
+                    </p>
+                    <div id="M000077_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 123</span>
+123:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">root_privileges_required_for_private_dirty_rss?</span>
+124:     <span class="ruby-identifier">all_processes</span> = (<span class="ruby-identifier">apache_processes</span> <span class="ruby-operator">||</span> []) <span class="ruby-operator">+</span> <span class="ruby-identifier">nginx_processes</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">passenger_processes</span>
+125:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">all_processes</span>.<span class="ruby-identifier">any?</span>{ <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">private_dirty_rss</span>.<span class="ruby-identifier">nil?</span> }
+126:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000078">
+                    
+                    <a name="M000078"></a><b>should_show_private_dirty_rss?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000078_source')" id="l_M000078_source">show</a>
+                        
+                    </p>
+                    <div id="M000078_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 128</span>
+128:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">should_show_private_dirty_rss?</span>
+129:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">platform_provides_private_dirty_rss_information?</span> <span class="ruby-operator">&amp;&amp;</span>
+130:       (<span class="ruby-operator">::</span><span class="ruby-constant">Process</span>.<span class="ruby-identifier">euid</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">root_privileges_required_for_private_dirty_rss?</span>)
+131:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000075">
+                    
+                    <a name="M000075"></a><b>sum_memory_usage</b>(processes)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the sum of the memory usages of all given processes. Returns a pair
+[usage, accurate]. <tt>usage</tt> is the summed memory usage in KB, and
+<tt>accurate</tt> indicates whether this sum is accurate. This may be false
+if some process&#8217;s memory usage cannot be determined.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000075_source')" id="l_M000075_source">show</a>
+                        
+                    </p>
+                    <div id="M000075_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 97</span>
+ 97:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sum_memory_usage</span>(<span class="ruby-identifier">processes</span>)
+ 98:     <span class="ruby-identifier">total</span> = <span class="ruby-value">0</span>
+ 99:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">should_show_private_dirty_rss?</span>
+100:       <span class="ruby-identifier">accurate</span> = <span class="ruby-keyword kw">true</span>
+101:       <span class="ruby-identifier">processes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span>
+102:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">private_dirty_rss</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Numeric</span>)
+103:           <span class="ruby-identifier">total</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">private_dirty_rss</span>
+104:         <span class="ruby-keyword kw">else</span>
+105:           <span class="ruby-identifier">accurate</span> = <span class="ruby-keyword kw">true</span>
+106:         <span class="ruby-keyword kw">end</span>
+107:       <span class="ruby-keyword kw">end</span>
+108:       <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">total</span>, <span class="ruby-identifier">accurate</span>]
+109:     <span class="ruby-keyword kw">else</span>
+110:       <span class="ruby-identifier">processes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span>
+111:         <span class="ruby-identifier">total</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">rss</span>
+112:       <span class="ruby-keyword kw">end</span>
+113:       <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">total</span>, <span class="ruby-keyword kw">true</span>]
+114:     <span class="ruby-keyword kw">end</span>
+115:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000079">
+                    
+                    <a name="M000079"></a><b>system_ram_usage</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Determine the system&#8217;s RAM usage, not including swap. Returns a tuple
+[total, used] where both numbers are in KB, or nil if the system&#8217;s
+RAM usage cannot be determined.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000079_source')" id="l_M000079_source">show</a>
+                        
+                    </p>
+                    <div id="M000079_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 136</span>
+136:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">system_ram_usage</span>
+137:     <span class="ruby-ivar">@total_system_ram</span> <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">begin</span>
+138:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">ruby_platform</span>
+139:       <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/linux/</span>
+140:         <span class="ruby-identifier">free_text</span> = <span class="ruby-value">`free -k`</span>
+141:         
+142:         <span class="ruby-identifier">free_text</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">%r{Mem:(.+)$}</span>
+143:         <span class="ruby-identifier">line</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">strip</span>
+144:         <span class="ruby-identifier">total</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/ +/</span>).<span class="ruby-identifier">first</span>.<span class="ruby-identifier">to_i</span>
+145:         
+146:         <span class="ruby-identifier">free_text</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">%r{buffers/cache:(.+)$}</span>
+147:         <span class="ruby-identifier">line</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">strip</span>
+148:         <span class="ruby-identifier">used</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/ +/</span>).<span class="ruby-identifier">first</span>.<span class="ruby-identifier">to_i</span>
+149:         
+150:         [<span class="ruby-identifier">total</span>, <span class="ruby-identifier">used</span>]
+151:       <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/darwin/</span>
+152:         <span class="ruby-identifier">vm_stat</span> = <span class="ruby-value">`vm_stat`</span>
+153:         <span class="ruby-identifier">vm_stat</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/page size of (\d+) bytes/</span>
+154:         <span class="ruby-identifier">page_size</span> = <span class="ruby-identifier">$1</span>
+155:         <span class="ruby-identifier">vm_stat</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/Pages free: +(\d+)/</span>
+156:         <span class="ruby-identifier">free</span> = <span class="ruby-identifier">$1</span>
+157:         <span class="ruby-identifier">vm_stat</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/Pages active: +(\d+)/</span>
+158:         <span class="ruby-identifier">active</span> = <span class="ruby-identifier">$1</span>
+159:         <span class="ruby-identifier">vm_stat</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/Pages inactive: +(\d+)/</span>
+160:         <span class="ruby-identifier">inactive</span> = <span class="ruby-identifier">$1</span>
+161:         <span class="ruby-identifier">vm_stat</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/Pages wired down: +(\d+)/</span>
+162:         <span class="ruby-identifier">wired</span> = <span class="ruby-identifier">$1</span>
+163:         
+164:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">page_size</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">free</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">active</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">inactive</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">wired</span>
+165:           <span class="ruby-identifier">page_size</span> = <span class="ruby-identifier">page_size</span>.<span class="ruby-identifier">to_i</span>
+166:           <span class="ruby-identifier">free</span> = <span class="ruby-identifier">free</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">page_size</span> <span class="ruby-operator">/</span> <span class="ruby-value">1024</span>
+167:           <span class="ruby-identifier">active</span> = <span class="ruby-identifier">active</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">page_size</span> <span class="ruby-operator">/</span> <span class="ruby-value">1024</span>
+168:           <span class="ruby-identifier">inactive</span> = <span class="ruby-identifier">inactive</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">page_size</span> <span class="ruby-operator">/</span> <span class="ruby-value">1024</span>
+169:           <span class="ruby-identifier">wired</span> = <span class="ruby-identifier">wired</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">page_size</span> <span class="ruby-operator">/</span> <span class="ruby-value">1024</span>
+170:           
+171:           <span class="ruby-identifier">used</span> = <span class="ruby-identifier">active</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">wired</span>
+172:           [<span class="ruby-identifier">free</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">inactive</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">used</span>, <span class="ruby-identifier">used</span>]
+173:         <span class="ruby-keyword kw">else</span>
+174:           <span class="ruby-keyword kw">nil</span>
+175:         <span class="ruby-keyword kw">end</span>
+176:       <span class="ruby-keyword kw">else</span>
+177:         <span class="ruby-value">`top`</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/(\d+)(K|M) Active, (\d+)(K|M) Inact, (\d+)(K|M) Wired,.*?(\d+)(K|M) Free/</span>
+178:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$2</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$3</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$4</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$5</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$6</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$7</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$8</span>
+179:           <span class="ruby-identifier">to_kb</span> = <span class="ruby-identifier">lambda</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">number</span>, <span class="ruby-identifier">unit</span><span class="ruby-operator">|</span>
+180:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">unit</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'K'</span>
+181:               <span class="ruby-identifier">number</span>.<span class="ruby-identifier">to_i</span>
+182:             <span class="ruby-keyword kw">else</span>
+183:               <span class="ruby-identifier">number</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">*</span> <span class="ruby-value">1024</span>
+184:             <span class="ruby-keyword kw">end</span>
+185:           <span class="ruby-keyword kw">end</span>
+186:           
+187:           <span class="ruby-identifier">active</span> = <span class="ruby-identifier">to_kb</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">$1</span>, <span class="ruby-identifier">$2</span>)
+188:           <span class="ruby-identifier">inactive</span> = <span class="ruby-identifier">to_kb</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">$3</span>, <span class="ruby-identifier">$4</span>)
+189:           <span class="ruby-identifier">wired</span> = <span class="ruby-identifier">to_kb</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">$5</span>, <span class="ruby-identifier">$6</span>)
+190:           <span class="ruby-identifier">free</span> = <span class="ruby-identifier">to_kb</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">$7</span>, <span class="ruby-identifier">$8</span>)
+191:           
+192:           <span class="ruby-identifier">used</span> = <span class="ruby-identifier">active</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">wired</span>
+193:           [<span class="ruby-identifier">free</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">inactive</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">used</span>, <span class="ruby-identifier">used</span>]
+194:         <span class="ruby-keyword kw">else</span>
+195:           <span class="ruby-keyword kw">nil</span>
+196:         <span class="ruby-keyword kw">end</span>
+197:       <span class="ruby-keyword kw">end</span>
+198:     <span class="ruby-keyword kw">end</span>
+199:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000088">
+                    
+                    <a name="M000088"></a><b>determine_private_dirty_rss</b>(pid)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the private dirty RSS for the given process, in KB.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000088_source')" id="l_M000088_source">show</a>
+                        
+                    </p>
+                    <div id="M000088_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 280</span>
+280:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">determine_private_dirty_rss</span>(<span class="ruby-identifier">pid</span>)
+281:     <span class="ruby-identifier">total</span> = <span class="ruby-value">0</span>
+282:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-node">&quot;/proc/#{pid}/smaps&quot;</span>).<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+283:       <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^(Private)_Dirty: +(\d+)/</span>
+284:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$2</span>
+285:         <span class="ruby-identifier">total</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">$2</span>.<span class="ruby-identifier">to_i</span>
+286:       <span class="ruby-keyword kw">end</span>
+287:     <span class="ruby-keyword kw">end</span>
+288:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">total</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+289:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+290:     <span class="ruby-keyword kw">else</span>
+291:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">total</span>
+292:     <span class="ruby-keyword kw">end</span>
+293:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EACCES</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>
+294:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+295:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000082">
+                    
+                    <a name="M000082"></a><b>list_processes</b>(options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a list of <a href="MemoryStats/Process.html">Process</a> objects
+that match the given search criteria.
+</p>
+<pre>
+ # Search by executable path.
+ list_processes(:exe =&gt; '/usr/sbin/apache2')
+
+ # Search by executable name.
+ list_processes(:name =&gt; 'ruby1.8')
+
+ # Search by process name.
+ list_processes(:match =&gt; 'Passenger FrameworkSpawner')
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000082_source')" id="l_M000082_source">show</a>
+                        
+                    </p>
+                    <div id="M000082_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 216</span>
+216:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">list_processes</span>(<span class="ruby-identifier">options</span>)
+217:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exe</span>]
+218:       <span class="ruby-identifier">name</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:exe</span>].<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/.*\/(.*)/</span>, <span class="ruby-value str">'\1'</span>)
+219:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ruby_platform</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/linux/</span>
+220:         <span class="ruby-identifier">ps</span> = <span class="ruby-node">&quot;ps -C '#{name}'&quot;</span>
+221:       <span class="ruby-keyword kw">else</span>
+222:         <span class="ruby-identifier">ps</span> = <span class="ruby-value str">&quot;ps -A&quot;</span>
+223:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:match</span>] = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span>(<span class="ruby-identifier">name</span>))
+224:       <span class="ruby-keyword kw">end</span>
+225:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:name</span>]
+226:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ruby_platform</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/linux/</span>
+227:         <span class="ruby-identifier">ps</span> = <span class="ruby-node">&quot;ps -C '#{options[:name]}'&quot;</span>
+228:       <span class="ruby-keyword kw">else</span>
+229:         <span class="ruby-identifier">ps</span> = <span class="ruby-value str">&quot;ps -A&quot;</span>
+230:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:match</span>] = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot; #{Regexp.escape(options[:name])}&quot;</span>)
+231:       <span class="ruby-keyword kw">end</span>
+232:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:match</span>]
+233:       <span class="ruby-identifier">ps</span> = <span class="ruby-value str">&quot;ps -A&quot;</span>
+234:     <span class="ruby-keyword kw">else</span>
+235:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;Invalid options.&quot;</span>
+236:     <span class="ruby-keyword kw">end</span>
+237:     
+238:     <span class="ruby-identifier">processes</span> = []
+239:     <span class="ruby-keyword kw">case</span> <span class="ruby-constant">RUBY_PLATFORM</span>
+240:     <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/solaris/</span>
+241:       <span class="ruby-identifier">list</span> = <span class="ruby-node">`#{ps} -o pid,ppid,nlwp,vsz,rss,pcpu,comm`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+242:       <span class="ruby-identifier">threads_known</span> = <span class="ruby-keyword kw">true</span>
+243:     <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/darwin/</span>
+244:       <span class="ruby-identifier">list</span> = <span class="ruby-node">`#{ps} -w -o pid,ppid,vsz,rss,%cpu,command`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+245:       <span class="ruby-identifier">threads_known</span> = <span class="ruby-keyword kw">false</span>
+246:     <span class="ruby-keyword kw">else</span>
+247:       <span class="ruby-identifier">list</span> = <span class="ruby-node">`#{ps} -w -o pid,ppid,nlwp,vsz,rss,%cpu,command`</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+248:       <span class="ruby-identifier">threads_known</span> = <span class="ruby-keyword kw">true</span>
+249:     <span class="ruby-keyword kw">end</span>
+250:     <span class="ruby-identifier">list</span>.<span class="ruby-identifier">shift</span>
+251:     <span class="ruby-identifier">list</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+252:       <span class="ruby-identifier">line</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/^ */</span>, <span class="ruby-value str">''</span>)
+253:       <span class="ruby-identifier">line</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/ *$/</span>, <span class="ruby-value str">''</span>)
+254:       
+255:       <span class="ruby-identifier">p</span> = <span class="ruby-constant">Process</span>.<span class="ruby-identifier">new</span>
+256:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">threads_known</span>
+257:         <span class="ruby-identifier">p</span>.<span class="ruby-identifier">pid</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">ppid</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">threads</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">vm_size</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">rss</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">cpu</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/ +/</span>, <span class="ruby-value">7</span>)
+258:       <span class="ruby-keyword kw">else</span>
+259:         <span class="ruby-identifier">p</span>.<span class="ruby-identifier">pid</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">ppid</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">vm_size</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">rss</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">cpu</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/ +/</span>, <span class="ruby-value">6</span>)
+260:       <span class="ruby-keyword kw">end</span>
+261:       <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/\Aruby: /</span>, <span class="ruby-value str">''</span>)
+262:       <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/ \(ruby\)\Z/</span>, <span class="ruby-value str">''</span>)
+263:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">!~</span> <span class="ruby-regexp re">/^ps/</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-operator">!</span><span class="ruby-identifier">options</span>[<span class="ruby-identifier">:match</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">match</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:match</span>]))
+264:         <span class="ruby-comment cmt"># Convert some values to integer.</span>
+265:         [<span class="ruby-identifier">:pid</span>, <span class="ruby-identifier">:ppid</span>, <span class="ruby-identifier">:vm_size</span>, <span class="ruby-identifier">:rss</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span><span class="ruby-operator">|</span>
+266:           <span class="ruby-identifier">p</span>.<span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{attr}=&quot;</span>, <span class="ruby-identifier">p</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">attr</span>).<span class="ruby-identifier">to_i</span>)
+267:         <span class="ruby-keyword kw">end</span>
+268:         <span class="ruby-identifier">p</span>.<span class="ruby-identifier">threads</span> = <span class="ruby-identifier">p</span>.<span class="ruby-identifier">threads</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">threads_known</span>
+269: 
+270:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">platform_provides_private_dirty_rss_information?</span>
+271:           <span class="ruby-identifier">p</span>.<span class="ruby-identifier">private_dirty_rss</span> = <span class="ruby-identifier">determine_private_dirty_rss</span>(<span class="ruby-identifier">p</span>.<span class="ruby-identifier">pid</span>)
+272:         <span class="ruby-keyword kw">end</span>
+273:         <span class="ruby-identifier">processes</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">p</span>
+274:       <span class="ruby-keyword kw">end</span>
+275:     <span class="ruby-keyword kw">end</span>
+276:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">processes</span>
+277:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000080">
+                    
+                    <a name="M000080"></a><b>ruby_platform</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000080_source')" id="l_M000080_source">show</a>
+                        
+                    </p>
+                    <div id="M000080_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/phusion_passenger/admin_tools/memory_stats.rb, line 202</span>
+202:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ruby_platform</span>
+203:     <span class="ruby-keyword kw">return</span> <span class="ruby-constant">RUBY_PLATFORM</span>
+204:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

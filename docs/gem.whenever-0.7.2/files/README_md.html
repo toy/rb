@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sun Dec 25 21:58:20 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../classes/Whenever.html">Whenever</a> is a Ruby gem that provides
+a clear syntax for writing and deploying cron jobs.
+</p>
+<p>
+### Installation
+</p>
+<p>
+```sh $ gem install whenever ```
+</p>
+<p>
+Or with Bundler in your Gemfile.
+</p>
+<p>
+```ruby gem &#8216;whenever&#8217;, :require => false ```
+</p>
+<p>
+### Getting started
+</p>
+<p>
+```sh $ cd /apps/my-great-project $ wheneverize . ```
+</p>
+<p>
+This will create an initial `config/schedule.rb` file for you.
+</p>
+<p>
+### Example schedule.rb file
+</p>
+<p>
+```ruby every 3.hours do
+</p>
+<pre>
+  runner &quot;MyModel.some_process&quot;
+  rake &quot;my:rake:task&quot;
+  command &quot;/usr/bin/my_great_command&quot;
+</pre>
+<p>
+end
+</p>
+<p>
+every 1.day, :at => &#8216;4:30 am&#8217; do
+</p>
+<pre>
+  runner &quot;MyModel.task_to_run_at_four_thirty_in_the_morning&quot;
+</pre>
+<p>
+end
+</p>
+<p>
+every :hour do # Many shortcuts available: :hour, :day, :month, :year,
+:reboot
+</p>
+<pre>
+  runner &quot;SomeModel.ladeeda&quot;
+</pre>
+<p>
+end
+</p>
+<p>
+every :sunday, :at => &#8216;12pm&#8217; do # Use any day of the week or
+:weekend, :weekday
+</p>
+<pre>
+  runner &quot;Task.do_something_great&quot;
+</pre>
+<p>
+end
+</p>
+<p>
+every &#8216;0 0 27-31 * *&#8217; do
+</p>
+<pre>
+  command &quot;echo 'you can use raw cron syntax too'&quot;
+</pre>
+<p>
+end ```
+</p>
+<p>
+### Define your own job types
+</p>
+<p>
+<a href="../classes/Whenever.html">Whenever</a> ships with three
+pre-defined job types: command, runner, and rake. You can define your own
+with `job_type`.
+</p>
+<p>
+For example:
+</p>
+<p>
+```ruby job_type :awesome, &#8216;/usr/local/bin/awesome :task
+:fun_level&#8216;
+</p>
+<p>
+every 2.hours do
+</p>
+<pre>
+  awesome &quot;party&quot;, :fun_level =&gt; &quot;extreme&quot;
+</pre>
+<p>
+end ```
+</p>
+<p>
+Would run `/usr/local/bin/awesome party extreme` every two hours. `:task`
+is always replaced with the first argument, and any additional `:whatevers`
+are replaced with the options passed in or by variables that have been
+defined with `set`.
+</p>
+<p>
+The default job types that ship with <a
+href="../classes/Whenever.html">Whenever</a> are defined like so:
+</p>
+<p>
+```ruby job_type :command, &#8220;:task :output&#8221; job_type :rake,
+&#8220;cd :path &amp;&amp; RAILS_ENV=:environment bundle exec rake :task
+&#8212;silent :output&#8221; job_type :runner, &#8220;cd :path &amp;&amp;
+script/rails runner -e :environment &#8217;:task&#8217; :output&#8221; ```
+</p>
+<p>
+Pre-Rails 3 apps and apps that don&#8217;t use Bundler will redefine the
+`rake` and `runner` jobs respectively to function correctly.
+</p>
+<p>
+If a `:path` is not set it will default to the directory in which
+`whenever` was executed. `:environment` will default to
+&#8216;production&#8217;. `:output` will be replaced with your output
+redirection settings which you can read more about here: <<a
+href="http://github.com/javan/whenever/wiki/Output-redirection-aka-logging-your-cron-jobs">github.com/javan/whenever/wiki/Output-redirection-aka-logging-your-cron-jobs</a>>
+</p>
+<p>
+All jobs are by default run with `bash -l -c &#8216;command...&#8217;`.
+Among other things, this allows your cron jobs to play nice with RVM by
+loading the entire environment instead of cron&#8217;s somewhat limited
+environment. Read more: <<a
+href="http://blog.scoutapp.com/articles/2010/09/07/rvm-and-cron-in-production">blog.scoutapp.com/articles/2010/09/07/rvm-and-cron-in-production</a>>
+</p>
+<p>
+You can change this by setting your own `:job_template`.
+</p>
+<p>
+```ruby set :job_template, &#8220;bash -l -c &#8217;:job&#8217;&#8221; ```
+</p>
+<p>
+Or set the job_template to nil to have your jobs execute normally.
+</p>
+<p>
+```ruby set :job_template, nil ```
+</p>
+<p>
+### Capistrano integration
+</p>
+<p>
+Use the built-in Capistrano recipe for easy crontab updates with deploys.
+</p>
+<p>
+In your &#8220;config/deploy.rb&#8220; file:
+</p>
+<p>
+```ruby require &#8220;whenever/capistrano&#8220; ```
+</p>
+<p>
+Take a look at the recipe for options you can set. <<a
+href="http://github.com/javan/whenever/blob/master/lib/whenever/capistrano.rb">github.com/javan/whenever/blob/master/lib/whenever/capistrano.rb</a>>
+For example, if you&#8217;re using bundler do this:
+</p>
+<p>
+```ruby set :whenever_command, &#8220;bundle exec whenever&#8221; require
+&#8220;whenever/capistrano&#8220; ```
+</p>
+<p>
+If you are using different environments (such as staging, production), then
+you may want to do this:
+</p>
+<p>
+```ruby set :whenever_environment, defer { stage } require
+&#8220;whenever/capistrano&#8220; ```
+</p>
+<p>
+The capistrano variable `:stage` should be the one holding your environment
+name. This will make the correct `:environment` available in your
+`schedule.rb`.
+</p>
+<p>
+If both your environments are on the same server you&#8217;ll want to
+namespace them or they&#8217;ll overwrite each other when you deploy:
+</p>
+<p>
+```ruby set :whenever_environment, defer { stage } set
+:whenever_identifier, defer { &#8220;#{application}_#{stage}&#8221; }
+require &#8220;whenever/capistrano&#8220; ```
+</p>
+<p>
+### RVM Integration
+</p>
+<p>
+If your production environment uses RVM (Ruby Version Manager) you will run
+into a gotcha that causes your cron jobs to hang. This is not directly
+related to <a href="../classes/Whenever.html">Whenever</a>, and can be
+tricky to debug. Your .rvmrc files must be trusted or else the cron jobs
+will hang waiting for the file to be trusted. A solution is to disable the
+prompt by adding this line to your user rvm file in `~/.rvmrc`
+</p>
+<p>
+`rvm_trust_rvmrcs_flag=1`
+</p>
+<p>
+This tells rvm to trust all rvmrc files, which is documented here: <a
+href="http://wayneeseguin.beginrescueend.com/2010/08/22/ruby-environment-version-manager-rvm-1-0-0">wayneeseguin.beginrescueend.com/2010/08/22/ruby-environment-version-manager-rvm-1-0-0</a>/
+</p>
+<p>
+### The `whenever` command
+</p>
+<p>
+```sh $ cd /apps/my-great-project $ whenever ```
+</p>
+<p>
+This will simply show you your `schedule.rb` file converted to cron syntax.
+It does not read or write your crontab file. Run `whenever &#8212;help` for
+a complete list of options.
+</p>
+<p>
+### Credit
+</p>
+<p>
+<a href="../classes/Whenever.html">Whenever</a> was created for use at
+Inkling (<<a href="http://inklingmarkets.com">inklingmarkets.com</a>>).
+Their take on it: <<a
+href="http://blog.inklingmarkets.com/2009/02/whenever-easy-way-to-do-cron-jobs-from.html">blog.inklingmarkets.com/2009/02/whenever-easy-way-to-do-cron-jobs-from.html</a>>
+</p>
+<p>
+Thanks to all the contributors who have made it even better: <<a
+href="http://github.com/javan/whenever/contributors">github.com/javan/whenever/contributors</a>>
+</p>
+<p>
+### Discussion / Feedback / Issues / Bugs
+</p>
+<p>
+For general discussion and questions, please use the google group: <<a
+href="http://groups.google.com/group/whenever-gem">groups.google.com/group/whenever-gem</a>>
+</p>
+<p>
+If you&#8217;ve found a genuine bug or issue, please use the Issues section
+on github: <<a
+href="http://github.com/javan/whenever/issues">github.com/javan/whenever/issues</a>>
+</p>
+<p>
+Ryan Bates created a great Railscast about Whenever: <<a
+href="http://railscasts.com/episodes/164-cron-in-ruby">railscasts.com/episodes/164-cron-in-ruby</a>>
+It&#8217;s a little bit dated now, but remains a good introduction.
+</p>
+<hr size="2"></hr><p>
+Compatible with Ruby 1.8.7-1.9.2, JRuby, and Rubinius. [![Build Status](<a
+href="https://secure.travis-ci.org/javan/whenever.png)](http://travis-ci.org/javan/whenever">secure.travis-ci.org/javan/whenever.png)](http://travis-ci.org/javan/whenever</a>)
+</p>
+<hr size="2"></hr><p>
+Copyright &amp;copy; 2011 Javan Makhmali
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

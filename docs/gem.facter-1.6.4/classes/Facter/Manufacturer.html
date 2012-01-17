@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Facter::Manufacturer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Facter::Manufacturer 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/facter/util/manufacturer_rb.html">lib/facter/util/manufacturer.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+mamufacturer.rb Support methods for manufacturer specific facts
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000063">dmi_find_system_info</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000062">get_dmi_table</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000066">prtdiag_sparc_find_system_info</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000064">sysctl_find_system_info</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000068">win32_find_system_info</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000063">
+                    
+                    <a name="M000063"></a><b>dmi_find_system_info</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000063_source')" id="l_M000063_source">show</a>
+                        
+                    </p>
+                    <div id="M000063_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/facter/util/manufacturer.rb, line 30</span>
+30:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">dmi_find_system_info</span>(<span class="ruby-identifier">name</span>)
+31:     <span class="ruby-identifier">splitstr</span>=  <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">value</span>(<span class="ruby-identifier">:kernel</span>) <span class="ruby-operator">==</span>  <span class="ruby-value str">'SunOS'</span> <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;ID  SIZE TYPE&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-regexp re">/^Handle/</span>
+32:     <span class="ruby-identifier">output</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">get_dmi_table</span>()
+33:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">output</span>.<span class="ruby-identifier">nil?</span>
+34:     <span class="ruby-identifier">name</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span>
+35:       <span class="ruby-identifier">v</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">v2</span><span class="ruby-operator">|</span>
+36:         <span class="ruby-identifier">v2</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">value</span>,<span class="ruby-identifier">facterkey</span><span class="ruby-operator">|</span>
+37:           <span class="ruby-identifier">output</span>.<span class="ruby-identifier">split</span>(<span class="ruby-identifier">splitstr</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+38:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/#{key}/</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/\n\s+#{value} (.+)\n/</span>
+39:               <span class="ruby-identifier">result</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">strip</span>
+40:               <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">facterkey</span>) <span class="ruby-keyword kw">do</span>
+41:                 <span class="ruby-identifier">confine</span> <span class="ruby-identifier">:kernel</span> =<span class="ruby-operator">&gt;</span> [ <span class="ruby-identifier">:linux</span>, <span class="ruby-identifier">:freebsd</span>, <span class="ruby-identifier">:netbsd</span>, <span class="ruby-identifier">:sunos</span>, <span class="ruby-identifier">:&quot;gnu/kfreebsd&quot;</span> ]
+42:                 <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+43:                   <span class="ruby-identifier">result</span>
+44:                 <span class="ruby-keyword kw">end</span>
+45:               <span class="ruby-keyword kw">end</span>
+46:             <span class="ruby-keyword kw">end</span>
+47:           <span class="ruby-keyword kw">end</span>
+48:         <span class="ruby-keyword kw">end</span>
+49:       <span class="ruby-keyword kw">end</span>
+50:     <span class="ruby-keyword kw">end</span>
+51:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000062">
+                    
+                    <a name="M000062"></a><b>get_dmi_table</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000062_source')" id="l_M000062_source">show</a>
+                        
+                    </p>
+                    <div id="M000062_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/facter/util/manufacturer.rb, line 6</span>
+ 6:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">get_dmi_table</span>()
+ 7:     <span class="ruby-keyword kw">case</span> <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">value</span>(<span class="ruby-identifier">:kernel</span>)
+ 8:     <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'Linux'</span>, <span class="ruby-value str">'GNU/kFreeBSD'</span>
+ 9:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">FileTest</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-value str">&quot;/usr/sbin/dmidecode&quot;</span>)
+10: 
+11:       <span class="ruby-identifier">output</span>=<span class="ruby-value">%x{/usr/sbin/dmidecode 2&gt;/dev/null}</span>
+12:     <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'FreeBSD'</span>
+13:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">FileTest</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-value str">&quot;/usr/local/sbin/dmidecode&quot;</span>)
+14: 
+15:       <span class="ruby-identifier">output</span>=<span class="ruby-value">%x{/usr/local/sbin/dmidecode 2&gt;/dev/null}</span>
+16:     <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'NetBSD'</span>
+17:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">FileTest</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-value str">&quot;/usr/pkg/sbin/dmidecode&quot;</span>)
+18: 
+19:       <span class="ruby-identifier">output</span>=<span class="ruby-value">%x{/usr/pkg/sbin/dmidecode 2&gt;/dev/null}</span>
+20:     <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'SunOS'</span>
+21:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">FileTest</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-value str">&quot;/usr/sbin/smbios&quot;</span>)
+22: 
+23:       <span class="ruby-identifier">output</span>=<span class="ruby-value">%x{/usr/sbin/smbios 2&gt;/dev/null}</span>
+24:     <span class="ruby-keyword kw">else</span>
+25:       <span class="ruby-identifier">output</span>=<span class="ruby-keyword kw">nil</span>
+26:     <span class="ruby-keyword kw">end</span>
+27:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">output</span>
+28:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000066">
+                    
+                    <a name="M000066"></a><b>prtdiag_sparc_find_system_info</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000066_source')" id="l_M000066_source">show</a>
+                        
+                    </p>
+                    <div id="M000066_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/facter/util/manufacturer.rb, line 64</span>
+64:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">prtdiag_sparc_find_system_info</span>()
+65:     <span class="ruby-comment cmt"># Parses prtdiag for a SPARC architecture string, won't work with Solaris x86</span>
+66:     <span class="ruby-identifier">output</span> = <span class="ruby-constant">Facter</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-constant">Resolution</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-value str">'/usr/sbin/prtdiag 2&gt;/dev/null'</span>)
+67: 
+68:     <span class="ruby-comment cmt"># System Configuration:  Sun Microsystems  sun4u Sun SPARC Enterprise M3000 Server</span>
+69:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">output</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">output</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^System Configuration:\s+(.+?)\s+(sun\d+\S+)\s+(.+)/</span>
+70:       <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-value str">'manufacturer'</span>) <span class="ruby-keyword kw">do</span>
+71:         <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+72:           <span class="ruby-identifier">$1</span>
+73:         <span class="ruby-keyword kw">end</span>
+74:       <span class="ruby-keyword kw">end</span>
+75:       <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-value str">'productname'</span>) <span class="ruby-keyword kw">do</span>
+76:         <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+77:           <span class="ruby-identifier">$3</span>
+78:         <span class="ruby-keyword kw">end</span>
+79:       <span class="ruby-keyword kw">end</span>
+80:     <span class="ruby-keyword kw">end</span>
+81: 
+82:     <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-value str">'serialnumber'</span>) <span class="ruby-keyword kw">do</span>
+83:       <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+84:         <span class="ruby-constant">Facter</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-constant">Resolution</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-value str">&quot;/usr/sbin/sneep&quot;</span>)
+85:       <span class="ruby-keyword kw">end</span>
+86:     <span class="ruby-keyword kw">end</span>
+87:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000064">
+                    
+                    <a name="M000064"></a><b>sysctl_find_system_info</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000064_source')" id="l_M000064_source">show</a>
+                        
+                    </p>
+                    <div id="M000064_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/facter/util/manufacturer.rb, line 53</span>
+53:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">sysctl_find_system_info</span>(<span class="ruby-identifier">name</span>)
+54:     <span class="ruby-identifier">name</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sysctlkey</span>,<span class="ruby-identifier">facterkey</span><span class="ruby-operator">|</span>
+55:       <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">facterkey</span>) <span class="ruby-keyword kw">do</span>
+56:         <span class="ruby-identifier">confine</span> <span class="ruby-identifier">:kernel</span> =<span class="ruby-operator">&gt;</span> [<span class="ruby-identifier">:openbsd</span>, <span class="ruby-identifier">:darwin</span>]
+57:         <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+58:           <span class="ruby-constant">Facter</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-constant">Resolution</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-node">&quot;sysctl -n #{sysctlkey} 2&gt;/dev/null&quot;</span>)
+59:         <span class="ruby-keyword kw">end</span>
+60:       <span class="ruby-keyword kw">end</span>
+61:     <span class="ruby-keyword kw">end</span>
+62:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000068">
+                    
+                    <a name="M000068"></a><b>win32_find_system_info</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000068_source')" id="l_M000068_source">show</a>
+                        
+                    </p>
+                    <div id="M000068_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/facter/util/manufacturer.rb, line 89</span>
+ 89:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">win32_find_system_info</span>(<span class="ruby-identifier">name</span>)
+ 90:     <span class="ruby-identifier">require</span> <span class="ruby-value str">'facter/util/wmi'</span>
+ 91:     <span class="ruby-identifier">value</span> = <span class="ruby-value str">&quot;&quot;</span>
+ 92:     <span class="ruby-identifier">wmi</span> = <span class="ruby-constant">Facter</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-constant">WMI</span>.<span class="ruby-identifier">connect</span>()
+ 93:     <span class="ruby-identifier">name</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">facterkey</span>, <span class="ruby-identifier">win32key</span><span class="ruby-operator">|</span>
+ 94:       <span class="ruby-identifier">query</span> = <span class="ruby-identifier">wmi</span>.<span class="ruby-constant">ExecQuery</span>(<span class="ruby-node">&quot;select * from Win32_#{win32key.last}&quot;</span>)
+ 95:       <span class="ruby-constant">Facter</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">facterkey</span>) <span class="ruby-keyword kw">do</span>
+ 96:         <span class="ruby-identifier">confine</span> <span class="ruby-identifier">:kernel</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:windows</span>
+ 97:         <span class="ruby-identifier">setcode</span> <span class="ruby-keyword kw">do</span>
+ 98:           <span class="ruby-identifier">query</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">value</span> = <span class="ruby-identifier">x</span>.<span class="ruby-identifier">__send__</span>( (<span class="ruby-identifier">win32key</span>.<span class="ruby-identifier">first</span>).<span class="ruby-identifier">to_sym</span>) }
+ 99:           <span class="ruby-identifier">value</span>
+100:         <span class="ruby-keyword kw">end</span>
+101:       <span class="ruby-keyword kw">end</span>
+102:     <span class="ruby-keyword kw">end</span>
+103:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

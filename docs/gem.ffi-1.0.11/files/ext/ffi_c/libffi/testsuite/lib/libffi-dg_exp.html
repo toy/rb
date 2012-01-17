@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>libffi-dg.exp</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            libffi-dg.exp
+        </h1>
+        <ul class="files">
+            <li>ext/ffi_c/libffi/testsuite/lib/libffi-dg.exp</li>
+            <li>Last modified: Sun Nov 27 22:44:59 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# Copyright (C) 2003, 2005, 2008, 2009 Free Software Foundation, Inc.
+</p>
+<p>
+# This program is free software; you can redistribute it and/or modify # it
+under the terms of the GNU General Public License as published by # the
+Free Software Foundation; either version 2 of the License, or # (at your
+option) any later version. # # This program is distributed in the hope that
+it will be useful, # but WITHOUT ANY WARRANTY; without even the implied
+warranty of # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details. # # You should have received
+a copy of the GNU General Public License # along with this program; if not,
+write to the Free Software # Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+</p>
+<p>
+proc load_gcc_lib { filename } {
+</p>
+<pre>
+    global srcdir
+    load_file $srcdir/lib/$filename
+</pre>
+<p>
+}
+</p>
+<p>
+load_lib dg.exp load_lib libgloss.exp load_gcc_lib target-libpath.exp
+load_gcc_lib wrapper.exp
+</p>
+<p>
+# Define libffi callbacks for dg.exp.
+</p>
+<p>
+proc libffi-dg-test-1 { target_compile prog do_what extra_tool_flags } {
+</p>
+<pre>
+    # To get all \n in dg-output test strings to match printf output
+    # in a system that outputs it as \015\012 (i.e. not just \012), we
+    # need to change all \n into \r?\n.  As there is no dejagnu flag
+    # or hook to do that, we simply change the text being tested.
+    # Unfortunately, we have to know that the variable is called
+    # dg-output-text and lives in the caller of libffi-dg-test, which
+    # is two calls up.  Overriding proc dg-output would be longer and
+    # would necessarily have the same assumption.
+    upvar 2 dg-output-text output_match
+
+    if { [llength $output_match] &gt; 1 } {
+        regsub -all &quot;\n&quot; [lindex $output_match 1] &quot;\r?\n&quot; x
+        set output_match [lreplace $output_match 1 1 $x]
+    }
+
+    # Set up the compiler flags, based on what we're going to do.
+
+    set options [list]
+    switch $do_what {
+        &quot;compile&quot; {
+            set compile_type &quot;assembly&quot;
+            set output_file &quot;[file rootname [file tail $prog]].s&quot;
+        }
+        &quot;link&quot; {
+            set compile_type &quot;executable&quot;
+            set output_file &quot;[file rootname [file tail $prog]].exe&quot;
+            # The following line is needed for targets like the i960 where
+            # the default output file is b.out.  Sigh.
+        }
+        &quot;run&quot; {
+            set compile_type &quot;executable&quot;
+            # FIXME: &quot;./&quot; is to cope with &quot;.&quot; not being in $PATH.
+            # Should this be handled elsewhere?
+            # YES.
+            set output_file &quot;./[file rootname [file tail $prog]].exe&quot;
+            # This is the only place where we care if an executable was
+            # created or not.  If it was, dg.exp will try to run it.
+            remote_file build delete $output_file;
+        }
+        default {
+            perror &quot;$do_what: not a valid dg-do keyword&quot;
+            return &quot;&quot;
+        }
+    }
+
+    if { $extra_tool_flags != &quot;&quot; } {
+        lappend options &quot;additional_flags=$extra_tool_flags&quot;
+    }
+
+    set comp_output [libffi_target_compile &quot;$prog&quot; &quot;$output_file&quot; &quot;$compile_type&quot; $options];
+
+    return [list $comp_output $output_file]
+</pre>
+<p>
+}
+</p>
+<p>
+proc libffi-dg-test { prog do_what extra_tool_flags } {
+</p>
+<pre>
+    return [libffi-dg-test-1 target_compile $prog $do_what $extra_tool_flags]
+</pre>
+<p>
+}
+</p>
+<p>
+proc libffi-init { args } {
+</p>
+<pre>
+    global gluefile wrap_flags;
+    global srcdir
+    global blddirffi
+    global objdir
+    global TOOL_OPTIONS
+    global tool
+    global libffi_include
+    global libffi_link_flags
+    global tool_root_dir
+    global ld_library_path
+
+    set blddirffi [pwd]/..
+    verbose &quot;libffi $blddirffi&quot;
+
+    set gccdir [lookfor_file $tool_root_dir gcc/libgcc.a]
+    if {$gccdir != &quot;&quot;} {
+        set gccdir [file dirname $gccdir]
+    }
+    verbose &quot;gccdir $gccdir&quot;
+
+    set ld_library_path &quot;.&quot;
+    append ld_library_path &quot;:${gccdir}&quot;
+
+    set compiler &quot;${gccdir}/xgcc&quot;
+    if { [is_remote host] == 0 &amp;&amp; [which $compiler] != 0 } {
+        foreach i &quot;[exec $compiler --print-multi-lib]&quot; {
+            set mldir &quot;&quot;
+            regexp -- &quot;\[a-z0-9=_/\.-\]*;&quot; $i mldir
+            set mldir [string trimright $mldir &quot;\;@&quot;]
+            if { &quot;$mldir&quot; == &quot;.&quot; } {
+                continue
+            }
+            if { [llength [glob -nocomplain ${gccdir}/${mldir}/libgcc_s*.so.*]] &gt;= 1 } {
+                append ld_library_path &quot;:${gccdir}/${mldir}&quot;
+            }
+        }
+    }
+    # add the library path for libffi.
+    append ld_library_path &quot;:${blddirffi}/.libs&quot;
+
+    verbose &quot;ld_library_path: $ld_library_path&quot;
+
+    # Point to the Libffi headers in libffi.
+    set libffi_include &quot;${blddirffi}/include&quot;
+    verbose &quot;libffi_include $libffi_include&quot;
+
+    set libffi_dir  &quot;${blddirffi}/.libs&quot;
+    verbose &quot;libffi_dir $libffi_dir&quot;
+    if { $libffi_dir != &quot;&quot; } {
+        set libffi_dir [file dirname ${libffi_dir}]
+        set libffi_link_flags &quot;-L${libffi_dir}/.libs&quot;
+    }
+
+    set_ld_library_path_env_vars
+    libffi_maybe_build_wrapper &quot;${objdir}/testglue.o&quot;
+</pre>
+<p>
+}
+</p>
+<p>
+proc libffi_exit { } {
+</p>
+<pre>
+    global gluefile;
+
+    if [info exists gluefile] {
+        file_on_build delete $gluefile;
+        unset gluefile;
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+proc libffi_target_compile { source dest type options } {
+</p>
+<pre>
+    global gluefile wrap_flags;
+    global srcdir
+    global blddirffi
+    global TOOL_OPTIONS
+    global libffi_link_flags
+    global libffi_include
+    global target_triplet
+
+    if { [target_info needs_status_wrapper]!=&quot;&quot; &amp;&amp; [info exists gluefile] } {
+        lappend options &quot;libs=${gluefile}&quot;
+        lappend options &quot;ldflags=$wrap_flags&quot;
+    }
+
+    # TOOL_OPTIONS must come first, so that it doesn't override testcase
+    # specific options.
+    if [info exists TOOL_OPTIONS] {
+        lappend  options [concat &quot;additional_flags=$TOOL_OPTIONS&quot; $options];
+    }
+
+    # search for ffi_mips.h in srcdir, too
+    lappend options &quot;additional_flags=-I${libffi_include} -I${srcdir}/../include  -I${libffi_include}/..&quot;
+    lappend options &quot;additional_flags=${libffi_link_flags}&quot;
+
+    # Darwin needs a stack execution allowed flag.
+
+    if { [istarget &quot;*-*-darwin9*&quot;] || [istarget &quot;*-*-darwin1*&quot;]
+         || [istarget &quot;*-*-darwin2*&quot;] } {
+        lappend options &quot;additional_flags=-Wl,-allow_stack_execute&quot;
+    }
+
+    # If you're building the compiler with --prefix set to a place
+    # where it's not yet installed, then the linker won't be able to
+    # find the libgcc used by libffi.dylib.  We could pass the
+    # -dylib_file option, but that's complicated, and it's much easier
+    # to just make the linker find libgcc using -L options.
+    if { [string match &quot;*-*-darwin*&quot; $target_triplet] } {
+        lappend options &quot;libs= -shared-libgcc&quot;
+    }
+
+    if { [string match &quot;*-*-openbsd*&quot; $target_triplet] } {
+        lappend options &quot;libs= -lpthread&quot;
+    }
+
+    lappend options &quot;libs= -lffi&quot;
+
+    verbose &quot;options: $options&quot;
+    return [target_compile $source $dest $type $options]
+</pre>
+<p>
+}
+</p>
+<p>
+# Utility routines.
+</p>
+<p>
+# # search_for &#8212; looks for a string match in a file # proc search_for
+{ file pattern } {
+</p>
+<pre>
+    set fd [open $file r]
+    while { [gets $fd cur_line]&gt;=0 } {
+        if [string match &quot;*$pattern*&quot; $cur_line] then {
+            close $fd
+            return 1
+        }
+    }
+    close $fd
+    return 0
+</pre>
+<p>
+}
+</p>
+<p>
+# Modified dg-runtest that can cycle through a list of optimization options
+# as c-torture does. proc libffi-dg-runtest { testcases default-extra-flags
+} {
+</p>
+<pre>
+    global runtests
+
+    foreach test $testcases {
+        # If we're only testing specific files and this isn't one of
+        # them, skip it.
+        if ![runtest_file_p $runtests $test] {
+            continue
+        }
+
+        # Look for a loop within the source code - if we don't find one,
+        # don't pass -funroll[-all]-loops.
+        global torture_with_loops torture_without_loops
+        if [expr [search_for $test &quot;for*(&quot;]+[search_for $test &quot;while*(&quot;]] {
+            set option_list $torture_with_loops
+        } else {
+            set option_list $torture_without_loops
+        }
+
+        set nshort [file tail [file dirname $test]]/[file tail $test]
+
+        foreach flags $option_list {
+            verbose &quot;Testing $nshort, $flags&quot; 1
+            dg-test $test $flags ${default-extra-flags}
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+# Like check_conditional_xfail, but callable from a dg test.
+</p>
+<p>
+proc dg-xfail-if { args } {
+</p>
+<pre>
+    set args [lreplace $args 0 0]
+    set selector &quot;target [join [lindex $args 1]]&quot;
+    if { [dg-process-target $selector] == &quot;S&quot; } {
+        global compiler_conditional_xfail_data
+        set compiler_conditional_xfail_data $args
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+# We need to make sure that additional_files and additional_sources # are
+both cleared out after every test. It is not enough to clear # them out
+<b>before</b> the next test run because gcc-target-compile gets # run
+directly from some .exp files (outside of any test). (Those # uses should
+eventually be eliminated.)
+</p>
+<p>
+# Because the DG framework doesn&#8217;t provide a hook that is run at the
+# end of a test, we must replace dg-test with a wrapper.
+</p>
+<p>
+if { [info procs saved-dg-test] == [list] } {
+</p>
+<pre>
+    rename dg-test saved-dg-test
+
+    proc dg-test { args } {
+        global additional_files
+        global additional_sources
+        global errorInfo
+
+        if { [ catch { eval saved-dg-test $args } errmsg ] } {
+            set saved_info $errorInfo
+            set additional_files &quot;&quot;
+            set additional_sources &quot;&quot;
+            error $errmsg $saved_info
+        }
+        set additional_files &quot;&quot;
+        set additional_sources &quot;&quot;
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+# Local Variables: # tcl-indent-level:4 # End:
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

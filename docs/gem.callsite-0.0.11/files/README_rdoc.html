@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Thu Dec 01 02:49:36 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="../classes/Callsite.html">Callsite</a></h1>
+<p>
+Caller/backtrace parser with some useful utilities for manipulating the
+load path, and doing other relative things.
+</p>
+<h2>Usage</h2>
+<p>
+The primary thing you can do is parse a caller line(s).
+</p>
+<pre>
+  pp Callsite.parse(caller)
+</pre>
+<p>
+Gives back
+</p>
+<pre>
+  =&gt; [#&lt;struct Callsite::Line
+    filename=&quot;/opt/local/lib/ruby/1.8/irb/workspace.rb&quot;,
+    line=52,
+    method=&quot;irb_binding&quot;&gt;,
+   #&lt;struct Callsite::Line filename=&quot;&quot;, line=0, method=nil&gt;]
+</pre>
+<p>
+This is also suitable for parsing a backtrace, to get detailed information
+about it.
+</p>
+<pre>
+  begin
+    raise
+  rescue
+    pp Callsite.parse($!)
+  end
+</pre>
+<p>
+Produces
+</p>
+<pre>
+  =&gt; [#&lt;struct Callsite::Line filename=&quot;(irb)&quot;, line=27, method=&quot;irb_binding&quot;&gt;,
+   #&lt;struct Callsite::Line
+    filename=&quot;/opt/local/lib/ruby/1.8/irb/workspace.rb&quot;,
+    line=52,
+    method=&quot;irb_binding&quot;&gt;,
+   #&lt;struct Callsite::Line filename=&quot;&quot;, line=0, method=nil&gt;]
+</pre>
+<p>
+There are also six methods which patch existing objects to give you
+powerful usage of the caller.
+</p>
+<h3><a href="../classes/Callsite.html#M000002">Callsite.activate_string_methods</a></h3>
+<p>
+This gives you the ~@ method on <tt>String</tt>, which takes any string,
+and gives you a relative version of it, treating it as a file path. For
+example,
+</p>
+<pre>
+  ~'lib/callsite.rb'
+</pre>
+<p>
+Gives you (on my laptop)
+</p>
+<pre>
+  =&gt; &quot;/Users/joshua/Development/callsite/lib/callsite.rb&quot;
+</pre>
+<h3><a href="../classes/Callsite.html#M000003">Callsite.activate_file_methods</a></h3>
+<p>
+This adds the <tt>File.relative</tt> method. File.relative(file_path) has
+the same effect as ~file_path.
+</p>
+<h3><a href="../classes/Callsite.html#M000004">Callsite.activate_module_methods</a></h3>
+<p>
+This adds <tt>autoload_relative</tt> onto Module. This allows you to do the
+following.
+</p>
+<pre>
+  module MyModule
+    autoload_relative :Whatever, &quot;lib/whatever&quot;
+  end
+</pre>
+<p>
+In this case, lib/whatever will be treated as a relative path from the
+definition of the module.
+</p>
+<h3><a href="../classes/Callsite.html#M000005">Callsite.activate_kernel_dir_methods</a></h3>
+<p>
+This adds the <tt>__DIR_REL__</tt> and optionally <tt>__DIR__</tt> and
+require_relative methods to <a href="../classes/Kernel.html">Kernel</a>.
+<tt>__DIR__</tt> or <tt>__DIR_REL__</tt> will give you your current
+directory, much like <tt>__FILE__</tt> gives you the current
+<tt>__FILE__</tt> you&#8217;re in. <tt>require_relative</tt> is like
+<tt>require</tt> .. only, it&#8217;s relative.
+</p>
+<h3><a href="../classes/Callsite.html#M000006">Callsite.activate_kernel_require_methods</a></h3>
+<p>
+This adds a couple of weird methods to <a
+href="../classes/Kernel.html">Kernel</a>, require_next and require_all.
+There search your current $LOAD_PATH, and require the next file (ingoring
+the current one you&#8217;re in on the load_path) or require all files of a
+given name.
+</p>
+<h3>Callsite.activate_load_path_methods</h3>
+<p>
+This adds some super useful methods to $LOAD_PATH. There are find_file
+(finds a single file on your load path), find_all_files (finds all of em),
+add_current (adds to the end of the load path your current dir) and
+add_current! (adds it to the beginning).
+</p>
+<p>
+As well, this gives you add and add!, both of which guard against a path
+being added twice to the load path. Add appends to the end if it
+doesn&#8217;t exist, and add! forces it to the beginning.
+</p>
+<h2>This deprecates <tt>dirge</tt> and <tt>load_path_find</tt></h2>
+<p>
+Once you have this installed, you can use require &#8216;dirge&#8217; and
+require &#8216;load_path_find&#8217; to get exactly the functionality you
+had before.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

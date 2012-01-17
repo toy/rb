@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::EvmaUDPSocket</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::EvmaUDPSocket 
+            
+                <span class="parent">&lt; 
+                    
+                    DatagramObject
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/pure_ruby_rb.html">lib/em/pure_ruby.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+@private
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000433">create</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000435">eventable_read</a>,</li>
+                
+                <li><a href="#M000434">eventable_write</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000437">send_data</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000433">
+                    
+                    <a name="M000433"></a><b>create</b>(host, port)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000433_source')" id="l_M000433_source">show</a>
+                        
+                    </p>
+                    <div id="M000433_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 952</span>
+952:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create</span> <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>
+953:         <span class="ruby-identifier">sd</span> = <span class="ruby-constant">Socket</span>.<span class="ruby-identifier">new</span>( <span class="ruby-constant">Socket</span><span class="ruby-operator">::</span><span class="ruby-constant">AF_INET</span>, <span class="ruby-constant">Socket</span><span class="ruby-operator">::</span><span class="ruby-constant">SOCK_DGRAM</span>, <span class="ruby-value">0</span> )
+954:         <span class="ruby-identifier">sd</span>.<span class="ruby-identifier">bind</span> <span class="ruby-constant">Socket</span><span class="ruby-operator">::</span><span class="ruby-identifier">pack_sockaddr_in</span>( <span class="ruby-identifier">port</span>, <span class="ruby-identifier">host</span> )
+955:         <span class="ruby-constant">EvmaUDPSocket</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">sd</span>
+956:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000435">
+                    
+                    <a name="M000435"></a><b>eventable_read</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Proper nonblocking I/O was added to Ruby 1.8.4 in May 2006. If we have it,
+then we can read multiple times safely to improve performance.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000435_source')" id="l_M000435_source">show</a>
+                        
+                    </p>
+                    <div id="M000435_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 986</span>
+ 986:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eventable_read</span>
+ 987:       <span class="ruby-keyword kw">begin</span>
+ 988:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:recvfrom_nonblock</span>)
+ 989:           <span class="ruby-value">40</span>.<span class="ruby-identifier">times</span> {
+ 990:             <span class="ruby-identifier">data</span>,<span class="ruby-ivar">@return_address</span> = <span class="ruby-identifier">io</span>.<span class="ruby-identifier">recvfrom_nonblock</span>(<span class="ruby-value">16384</span>)
+ 991:             <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">event_callback</span> <span class="ruby-identifier">uuid</span>, <span class="ruby-constant">ConnectionData</span>, <span class="ruby-identifier">data</span>
+ 992:             <span class="ruby-ivar">@return_address</span> = <span class="ruby-keyword kw">nil</span>
+ 993:           }
+ 994:         <span class="ruby-keyword kw">else</span>
+ 995:           <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;unimplemented datagram-read operation on this Ruby&quot;</span>
+ 996:         <span class="ruby-keyword kw">end</span>
+ 997:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EAGAIN</span>
+ 998:         <span class="ruby-comment cmt"># no-op</span>
+ 999:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNRESET</span>, <span class="ruby-constant">EOFError</span>
+1000:         <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span>
+1001:         <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">event_callback</span> <span class="ruby-identifier">uuid</span>, <span class="ruby-constant">ConnectionUnbound</span>, <span class="ruby-keyword kw">nil</span>
+1002:       <span class="ruby-keyword kw">end</span>
+1003: 
+1004:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000434">
+                    
+                    <a name="M000434"></a><b>eventable_write</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="EvmaUDPSocket.html#M000434">eventable_write</a> This really
+belongs in <a href="DatagramObject.html">DatagramObject</a>, but there is
+some UDP-specific stuff.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000434_source')" id="l_M000434_source">show</a>
+                        
+                    </p>
+                    <div id="M000434_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 961</span>
+961:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eventable_write</span>
+962:       <span class="ruby-value">40</span>.<span class="ruby-identifier">times</span> {
+963:         <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">empty?</span>
+964:         <span class="ruby-keyword kw">begin</span>
+965:           <span class="ruby-identifier">data</span>,<span class="ruby-identifier">target</span> = <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">first</span>
+966: 
+967:           <span class="ruby-comment cmt"># This damn better be nonblocking.</span>
+968:           <span class="ruby-identifier">io</span>.<span class="ruby-identifier">send</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">to_s</span>, <span class="ruby-value">0</span>, <span class="ruby-identifier">target</span>
+969: 
+970:           <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">shift</span>
+971:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EAGAIN</span>
+972:           <span class="ruby-comment cmt"># It's not been observed in testing that we ever get here.</span>
+973:           <span class="ruby-comment cmt"># True to the definition, packets will be accepted and quietly dropped</span>
+974:           <span class="ruby-comment cmt"># if the system is under pressure.</span>
+975:           <span class="ruby-keyword kw">break</span>
+976:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">EOFError</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNRESET</span>
+977:           <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span>
+978:           <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">clear</span>
+979:         <span class="ruby-keyword kw">end</span>
+980:       }
+981:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000437">
+                    
+                    <a name="M000437"></a><b>send_data</b>(data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000437_source')" id="l_M000437_source">show</a>
+                        
+                    </p>
+                    <div id="M000437_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 1007</span>
+1007:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">send_data</span> <span class="ruby-identifier">data</span>
+1008:       <span class="ruby-identifier">send_datagram</span> <span class="ruby-identifier">data</span>, <span class="ruby-ivar">@return_address</span>
+1009:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

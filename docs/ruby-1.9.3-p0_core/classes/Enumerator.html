@@ -1,0 +1,982 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Enumerator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Enumerator 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/enumerator_c.html">enumerator.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A class which allows both internal and external iteration.
+</p>
+<p>
+An <a href="Enumerator.html">Enumerator</a> can be created by the following
+methods.
+</p>
+<ul>
+<li>Kernel#to_enum
+
+</li>
+<li>Kernel#enum_for
+
+</li>
+<li><a href="Enumerator.html#M000256">Enumerator.new</a>
+
+</li>
+</ul>
+<p>
+Most methods have two forms: a block form where the contents are evaluated
+for each item in the enumeration, and a non-block form which returns a new
+<a href="Enumerator.html">Enumerator</a> wrapping the iteration.
+</p>
+<pre>
+  enumerator = %w(one two three).each
+  puts enumerator.class # =&gt; Enumerator
+  enumerator.each_with_object(&quot;foo&quot;) do |item,obj|
+    puts &quot;#{obj}: #{item}&quot;
+  end
+  # foo: one
+  # foo: two
+  # foo: three
+  enum_with_obj = enumerator.each_with_object(&quot;foo&quot;)
+  puts enum_with_obj.class # =&gt; Enumerator
+  enum_with_obj.each do |item,obj|
+    puts &quot;#{obj: #{item}&quot;
+  end
+  # foo: one
+  # foo: two
+  # foo: three
+</pre>
+<p>
+This allows you to chain Enumerators together. For example, you can map a
+list&#8217;s elements to strings containing the index and the element as a
+string via:
+</p>
+<pre>
+  puts %w[foo bar baz].map.with_index {|w,i| &quot;#{i}:#{w}&quot; }
+  # =&gt; [&quot;0:foo&quot;, &quot;1:bar&quot;, &quot;2:baz&quot;]
+</pre>
+<p>
+An <a href="Enumerator.html">Enumerator</a> can also be used as an external
+iterator. For example, <a
+href="Enumerator.html#M000265">Enumerator#next</a> returns the next value
+of the iterator or raises <a href="StopIteration.html">StopIteration</a> if
+the <a href="Enumerator.html">Enumerator</a> is at the end.
+</p>
+<pre>
+  e = [1,2,3].each   # returns an enumerator object.
+  puts e.next   # =&gt; 1
+  puts e.next   # =&gt; 2
+  puts e.next   # =&gt; 3
+  puts e.next   # raises StopIteration
+</pre>
+<p>
+You can use this to implement an internal iterator as follows:
+</p>
+<pre>
+  def ext_each(e)
+    while true
+      begin
+        vs = e.next_values
+      rescue StopIteration
+        return $!.result
+      end
+      y = yield(*vs)
+      e.feed y
+    end
+  end
+
+  o = Object.new
+
+  def o.each
+    puts yield
+    puts yield(1)
+    puts yield(1, 2)
+    3
+  end
+
+  # use o.each as an internal iterator directly.
+  puts o.each {|*x| puts x; [:b, *x] }
+  # =&gt; [], [:b], [1], [:b, 1], [1, 2], [:b, 1, 2], 3
+
+  # convert o.each to an external iterator for
+  # implementing an internal iterator.
+  puts ext_each(o.to_enum) {|*x| puts x; [:b, *x] }
+  # =&gt; [], [:b], [1], [:b, 1], [1, 2], [:b, 1, 2], 3
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000258">each</a>,</li>
+                
+                <li><a href="#M000259">each_with_index</a>,</li>
+                
+                <li><a href="#M000260">each_with_object</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000267">feed</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000269">inspect</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000256">new</a>,</li>
+                
+                <li><a href="#M000265">next</a>,</li>
+                
+                <li><a href="#M000263">next_values</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000266">peek</a>,</li>
+                
+                <li><a href="#M000264">peek_values</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000268">rewind</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000261">with_index</a>,</li>
+                
+                <li><a href="#M000262">with_object</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="JSON.html">JSON</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000256">
+                    
+                    <a name="M000256"></a><b>Enumerator.new { |yielder| ... }
+Enumerator.new(obj, method = :each, *args)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="Enumerator.html">Enumerator</a> object, which can be
+used as an <a href="Enumerable.html">Enumerable</a>.
+</p>
+<p>
+In the first form, iteration is defined by the given block, in which a
+&#8220;yielder&#8221; object, given as block parameter, can be used to
+yield a value by calling the <tt>yield</tt> method (aliased as +<<+):
+</p>
+<pre>
+  fib = Enumerator.new do |y|
+    a = b = 1
+    loop do
+      y &lt;&lt; a
+      a, b = b, a + b
+    end
+  end
+
+  p fib.take(10) # =&gt; [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+</pre>
+<p>
+In the second, deprecated, form, a generated <a
+href="Enumerator.html">Enumerator</a> iterates over the given object using
+the given method with the given arguments passed.
+</p>
+<p>
+Use of this form is discouraged. Use Kernel#enum_for or Kernel#to_enum
+instead.
+</p>
+<pre>
+  e = Enumerator.new(ObjectSpace, :each_object)
+      #-&gt; ObjectSpace.enum_for(:each_object)
+
+  e.select { |obj| obj.is_a?(Class) }  #=&gt; array of all classes
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000256_source')" id="l_M000256_source">show</a>
+                        
+                    </p>
+                    <div id="M000256_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_initialize(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE recv, meth = sym_each;
+
+    if (argc == 0) {
+  if (!rb_block_given_p())
+      rb_raise(rb_eArgError, &quot;wrong number of argument (0 for 1+)&quot;);
+
+  recv = generator_init(generator_allocate(rb_cGenerator), rb_block_proc());
+    }
+    else {
+  recv = *argv++;
+  if (--argc) {
+      meth = *argv++;
+      --argc;
+  }
+    }
+
+    return enumerator_init(obj, recv, meth, argc, argv);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000258">
+                    
+                    <a name="M000258"></a><b>enum.each {...}
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Iterates over the block according to how this <a
+href="Enumerable.html">Enumerable</a> was constructed. If no block is
+given, returns self.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000258_source')" id="l_M000258_source">show</a>
+                        
+                    </p>
+                    <div id="M000258_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_each(VALUE obj)
+{
+    if (!rb_block_given_p()) return obj;
+    return enumerator_block_call(obj, 0, obj);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000259">
+                    
+                    <a name="M000259"></a><b>e.each_with_index {|(*args), idx| ... }
+e.each_with_index
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Same as <a href="Enumerator.html#M000261">Enumerator#with_index(0)</a>,
+i.e. there is no starting offset.
+</p>
+<p>
+If no block is given, a new <a href="Enumerator.html">Enumerator</a> is
+returned that includes the index.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000259_source')" id="l_M000259_source">show</a>
+                        
+                    </p>
+                    <div id="M000259_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_each_with_index(VALUE obj)
+{
+    return enumerator_with_index(0, NULL, obj);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000260">
+                    
+                    <a name="M000260"></a><b>e.with_object(obj) {|(*args), obj| ... }
+e.with_object(obj)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Iterates the given block for each element with an arbitrary object,
+<tt>obj</tt>, and returns <tt>obj</tt>
+</p>
+<p>
+If no block is given, returns a new <a
+href="Enumerator.html">Enumerator</a>.
+</p>
+<h3>Example</h3>
+<pre>
+  to_three = Enumerator.new do |y|
+    3.times do |x|
+      y &lt;&lt; x
+    end
+  end
+
+  to_three_with_string = to_three.with_object(&quot;foo&quot;)
+  to_three_with_string.each do |x,string|
+    puts &quot;#{string}: #{x}&quot;
+  end
+
+  # =&gt; foo:0
+  # =&gt; foo:1
+  # =&gt; foo:2
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000260_source')" id="l_M000260_source">show</a>
+                        
+                    </p>
+                    <div id="M000260_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_with_object(VALUE obj, VALUE memo)
+{
+    RETURN_ENUMERATOR(obj, 1, &amp;memo);
+    enumerator_block_call(obj, enumerator_with_object_i, memo);
+
+    return memo;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000267">
+                    
+                    <a name="M000267"></a><b>e.feed obj   &rarr; nil
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the value to be returned by the next yield inside <tt>e</tt>.
+</p>
+<p>
+If the value is not set, the yield returns nil.
+</p>
+<p>
+This value is cleared after being yielded.
+</p>
+<pre>
+  o = Object.new
+  def o.each
+    x = yield         # (2) blocks
+    p x               # (5) =&gt; &quot;foo&quot;
+    x = yield         # (6) blocks
+    p x               # (8) =&gt; nil
+    x = yield         # (9) blocks
+    p x               # not reached w/o another e.next
+  end
+
+  e = o.to_enum
+  e.next              # (1)
+  e.feed &quot;foo&quot;        # (3)
+  e.next              # (4)
+  e.next              # (7)
+                      # (10)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000267_source')" id="l_M000267_source">show</a>
+                        
+                    </p>
+                    <div id="M000267_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_feed(VALUE obj, VALUE v)
+{
+    struct enumerator *e = enumerator_ptr(obj);
+
+    if (e-&gt;feedvalue != Qundef) {
+  rb_raise(rb_eTypeError, &quot;feed value already set&quot;);
+    }
+    e-&gt;feedvalue = v;
+
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000269">
+                    
+                    <a name="M000269"></a><b>e.inspect  &rarr; string
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a printable version of <em>e</em>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000269_source')" id="l_M000269_source">show</a>
+                        
+                    </p>
+                    <div id="M000269_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_inspect(VALUE obj)
+{
+    return rb_exec_recursive(inspect_enumerator, obj, 0);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000265">
+                    
+                    <a name="M000265"></a><b>e.next   &rarr; object
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the next object in the enumerator, and move the internal position
+forward. When the position reached at the end, <a
+href="StopIteration.html">StopIteration</a> is raised.
+</p>
+<h3>Example</h3>
+<pre>
+  a = [1,2,3]
+  e = a.to_enum
+  p e.next   #=&gt; 1
+  p e.next   #=&gt; 2
+  p e.next   #=&gt; 3
+  p e.next   #raises StopIteration
+</pre>
+<p>
+Note that enumeration sequence by <tt>next</tt> does not affect other
+non-external enumeration methods, unless the underlying iteration methods
+itself has side-effect, e.g. <a href="IO.html#M000659">IO#each_line</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000265_source')" id="l_M000265_source">show</a>
+                        
+                    </p>
+                    <div id="M000265_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_next(VALUE obj)
+{
+    VALUE vs = enumerator_next_values(obj);
+    return ary2sv(vs, 0);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000263">
+                    
+                    <a name="M000263"></a><b>e.next_values   &rarr; array
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the next object as an array in the enumerator, and move the
+internal position forward. When the position reached at the end, <a
+href="StopIteration.html">StopIteration</a> is raised.
+</p>
+<p>
+This method can be used to distinguish <tt>yield</tt> and <tt>yield
+nil</tt>.
+</p>
+<h3>Example</h3>
+<pre>
+  o = Object.new
+  def o.each
+    yield
+    yield 1
+    yield 1, 2
+    yield nil
+    yield [1, 2]
+  end
+  e = o.to_enum
+  p e.next_values
+  p e.next_values
+  p e.next_values
+  p e.next_values
+  p e.next_values
+  e = o.to_enum
+  p e.next
+  p e.next
+  p e.next
+  p e.next
+  p e.next
+
+  ## yield args       next_values      next
+  #  yield            []               nil
+  #  yield 1          [1]              1
+  #  yield 1, 2       [1, 2]           [1, 2]
+  #  yield nil        [nil]            nil
+  #  yield [1, 2]     [[1, 2]]         [1, 2]
+</pre>
+<p>
+Note that <tt><a href="Enumerator.html#M000263">next_values</a></tt> does
+not affect other non-external enumeration methods unless underlying
+iteration method itself has side-effect, e.g. <a
+href="IO.html#M000659">IO#each_line</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000263_source')" id="l_M000263_source">show</a>
+                        
+                    </p>
+                    <div id="M000263_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_next_values(VALUE obj)
+{
+    struct enumerator *e = enumerator_ptr(obj);
+    VALUE vs;
+
+    if (e-&gt;lookahead != Qundef) {
+        vs = e-&gt;lookahead;
+        e-&gt;lookahead = Qundef;
+        return vs;
+    }
+
+    return get_next_values(obj, e);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000266">
+                    
+                    <a name="M000266"></a><b>e.peek   &rarr; object
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the next object in the enumerator, but doesn&#8217;t move the
+internal position forward. If the position is already at the end, <a
+href="StopIteration.html">StopIteration</a> is raised.
+</p>
+<h3>Example</h3>
+<pre>
+  a = [1,2,3]
+  e = a.to_enum
+  p e.next   #=&gt; 1
+  p e.peek   #=&gt; 2
+  p e.peek   #=&gt; 2
+  p e.peek   #=&gt; 2
+  p e.next   #=&gt; 2
+  p e.next   #=&gt; 3
+  p e.next   #raises StopIteration
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000266_source')" id="l_M000266_source">show</a>
+                        
+                    </p>
+                    <div id="M000266_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_peek(VALUE obj)
+{
+    VALUE vs = enumerator_peek_values(obj);
+    return ary2sv(vs, 1);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000264">
+                    
+                    <a name="M000264"></a><b>e.peek_values   &rarr; array
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the next object as an array, similar to <a
+href="Enumerator.html#M000263">Enumerator#next_values</a>, but
+doesn&#8217;t move the internal position forward. If the position is
+already at the end, <a href="StopIteration.html">StopIteration</a> is
+raised.
+</p>
+<h3>Example</h3>
+<pre>
+  o = Object.new
+  def o.each
+    yield
+    yield 1
+    yield 1, 2
+  end
+  e = o.to_enum
+  p e.peek_values    #=&gt; []
+  e.next
+  p e.peek_values    #=&gt; [1]
+  p e.peek_values    #=&gt; [1]
+  e.next
+  p e.peek_values    #=&gt; [1, 2]
+  e.next
+  p e.peek_values    # raises StopIteration
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000264_source')" id="l_M000264_source">show</a>
+                        
+                    </p>
+                    <div id="M000264_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_peek_values_m(VALUE obj)
+{
+    return rb_ary_dup(enumerator_peek_values(obj));
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000268">
+                    
+                    <a name="M000268"></a><b>e.rewind   &rarr; e
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Rewinds the enumeration sequence by one step.
+</p>
+<p>
+If the enclosed object responds to a &#8220;rewind&#8221; method, it is
+called.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000268_source')" id="l_M000268_source">show</a>
+                        
+                    </p>
+                    <div id="M000268_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_rewind(VALUE obj)
+{
+    struct enumerator *e = enumerator_ptr(obj);
+
+    rb_check_funcall(e-&gt;obj, id_rewind, 0, 0);
+
+    e-&gt;fib = 0;
+    e-&gt;dst = Qnil;
+    e-&gt;lookahead = Qundef;
+    e-&gt;feedvalue = Qundef;
+    e-&gt;stop_exc = Qfalse;
+    return obj;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000261">
+                    
+                    <a name="M000261"></a><b>e.with_index(offset = 0) {|(*args), idx| ... }
+e.with_index(offset = 0)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Iterates the given block for each element with an index, which starts from
+<tt>offset</tt>. If no block is given, returns a new <a
+href="Enumerator.html">Enumerator</a> that includes the index, starting
+from <tt>offset</tt>
+</p>
+<table>
+<tr><td valign="top"><tt>offset</tt>:</td><td>the starting index to use
+
+</td></tr>
+</table>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000261_source')" id="l_M000261_source">show</a>
+                        
+                    </p>
+                    <div id="M000261_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_with_index(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE memo;
+
+    rb_scan_args(argc, argv, &quot;01&quot;, &amp;memo);
+    RETURN_ENUMERATOR(obj, argc, argv);
+    memo = NIL_P(memo) ? 0 : (VALUE)NUM2LONG(memo);
+    return enumerator_block_call(obj, enumerator_with_index_i, (VALUE)&amp;memo);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000262">
+                    
+                    <a name="M000262"></a><b>e.with_object(obj) {|(*args), obj| ... }
+e.with_object(obj)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Iterates the given block for each element with an arbitrary object,
+<tt>obj</tt>, and returns <tt>obj</tt>
+</p>
+<p>
+If no block is given, returns a new <a
+href="Enumerator.html">Enumerator</a>.
+</p>
+<h3>Example</h3>
+<pre>
+  to_three = Enumerator.new do |y|
+    3.times do |x|
+      y &lt;&lt; x
+    end
+  end
+
+  to_three_with_string = to_three.with_object(&quot;foo&quot;)
+  to_three_with_string.each do |x,string|
+    puts &quot;#{string}: #{x}&quot;
+  end
+
+  # =&gt; foo:0
+  # =&gt; foo:1
+  # =&gt; foo:2
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000262_source')" id="l_M000262_source">show</a>
+                        
+                    </p>
+                    <div id="M000262_source" class="dyn-source">
+                        <pre>static VALUE
+enumerator_with_object(VALUE obj, VALUE memo)
+{
+    RETURN_ENUMERATOR(obj, 1, &amp;memo);
+    enumerator_block_call(obj, enumerator_with_object_i, memo);
+
+    return memo;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

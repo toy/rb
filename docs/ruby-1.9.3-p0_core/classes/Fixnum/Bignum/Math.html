@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Fixnum::Bignum::Math</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Fixnum::Bignum::Math 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/mathn_rb.html">lib/mathn.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+When mathn is required, the <a href="Math.html">Math</a> module changes as
+follows:
+</p>
+<p>
+Standard <a href="Math.html">Math</a> module behaviour:
+</p>
+<pre>
+  Math.sqrt(4/9)     # =&gt; 0.0
+  Math.sqrt(4.0/9.0) # =&gt; 0.666666666666667
+  Math.sqrt(- 4/9)   # =&gt; Errno::EDOM: Numerical argument out of domain - sqrt
+</pre>
+<p>
+After require &#8216;mathn&#8217;, this is changed to:
+</p>
+<pre>
+  require 'mathn'
+  Math.sqrt(4/9)      # =&gt; 2/3
+  Math.sqrt(4.0/9.0)  # =&gt; 0.666666666666667
+  Math.sqrt(- 4/9)    # =&gt; Complex(0, 2/3)
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002645">rsqrt</a>,</li>
+                
+                <li><a href="#M002645">rsqrt</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002643">sqrt</a>,</li>
+                
+                <li><a href="#M002643">sqrt</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002645">
+                    
+                    <a name="M002645"></a><b>rsqrt</b>(a)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Compute square root of a non negative number. This method is internally
+used by <tt><a href="Math.html#M002643">Math.sqrt</a></tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002645_source')" id="l_M002645_source">show</a>
+                        
+                    </p>
+                    <div id="M002645_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/mathn.rb, line 255</span>
+255:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>)
+256:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Float</span>)
+257:       <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">a</span>)
+258:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Rational</span>)
+259:       <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">numerator</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">denominator</span>)
+260:     <span class="ruby-keyword kw">else</span>
+261:       <span class="ruby-identifier">src</span> = <span class="ruby-identifier">a</span>
+262:       <span class="ruby-identifier">max</span> = <span class="ruby-value">2</span> <span class="ruby-operator">**</span> <span class="ruby-value">32</span>
+263:       <span class="ruby-identifier">byte_a</span> = [<span class="ruby-identifier">src</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffffff</span>]
+264:       <span class="ruby-comment cmt"># ruby's bug</span>
+265:       <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">src</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-identifier">max</span>) <span class="ruby-keyword kw">and</span> (<span class="ruby-identifier">src</span> <span class="ruby-operator">&gt;&gt;=</span> <span class="ruby-value">32</span>)
+266:         <span class="ruby-identifier">byte_a</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-identifier">src</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffffff</span>
+267:       <span class="ruby-keyword kw">end</span>
+268: 
+269:       <span class="ruby-identifier">answer</span> = <span class="ruby-value">0</span>
+270:       <span class="ruby-identifier">main</span> = <span class="ruby-value">0</span>
+271:       <span class="ruby-identifier">side</span> = <span class="ruby-value">0</span>
+272:       <span class="ruby-keyword kw">for</span> <span class="ruby-identifier">elm</span> <span class="ruby-keyword kw">in</span> <span class="ruby-identifier">byte_a</span>
+273:         <span class="ruby-identifier">main</span> = (<span class="ruby-identifier">main</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">32</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">elm</span>
+274:         <span class="ruby-identifier">side</span> <span class="ruby-operator">&lt;&lt;=</span> <span class="ruby-value">16</span>
+275:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">answer</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+276:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">main</span> <span class="ruby-operator">*</span> <span class="ruby-value">4</span>  <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">side</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">side</span>
+277:             <span class="ruby-identifier">applo</span> = <span class="ruby-identifier">main</span>.<span class="ruby-identifier">div</span>(<span class="ruby-identifier">side</span>)
+278:           <span class="ruby-keyword kw">else</span>
+279:             <span class="ruby-identifier">applo</span> = ((<span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">side</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">side</span> <span class="ruby-operator">+</span> <span class="ruby-value">4</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">main</span>) <span class="ruby-operator">-</span> <span class="ruby-identifier">side</span>)<span class="ruby-operator">/</span><span class="ruby-value">2.0</span>).<span class="ruby-identifier">to_i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+280:           <span class="ruby-keyword kw">end</span>
+281:         <span class="ruby-keyword kw">else</span>
+282:           <span class="ruby-identifier">applo</span> = <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">main</span>).<span class="ruby-identifier">to_i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+283:         <span class="ruby-keyword kw">end</span>
+284: 
+285:         <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">x</span> = (<span class="ruby-identifier">side</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">applo</span>) <span class="ruby-operator">*</span> <span class="ruby-identifier">applo</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">main</span>
+286:           <span class="ruby-identifier">applo</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+287:         <span class="ruby-keyword kw">end</span>
+288:         <span class="ruby-identifier">main</span> <span class="ruby-operator">-=</span> <span class="ruby-identifier">x</span>
+289:         <span class="ruby-identifier">answer</span> = (<span class="ruby-identifier">answer</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">16</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">applo</span>
+290:         <span class="ruby-identifier">side</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">applo</span> <span class="ruby-operator">*</span> <span class="ruby-value">2</span>
+291:       <span class="ruby-keyword kw">end</span>
+292:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">main</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+293:         <span class="ruby-identifier">answer</span>
+294:       <span class="ruby-keyword kw">else</span>
+295:         <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">a</span>)
+296:       <span class="ruby-keyword kw">end</span>
+297:     <span class="ruby-keyword kw">end</span>
+298:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002643">
+                    
+                    <a name="M002643"></a><b>sqrt</b>(a)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Computes the square root of <tt>a</tt>. It makes use of <a
+href="../../Complex.html">Complex</a> and <a
+href="Rational.html">Rational</a> to have no rounding errors if possible.
+</p>
+<pre>
+  Math.sqrt(4/9)      # =&gt; 2/3
+  Math.sqrt(- 4/9)    # =&gt; Complex(0, 2/3)
+  Math.sqrt(4.0/9.0)  # =&gt; 0.666666666666667
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002643_source')" id="l_M002643_source">show</a>
+                        
+                    </p>
+                    <div id="M002643_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/mathn.rb, line 226</span>
+226:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">a</span>)
+227:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Complex</span>)
+228:       <span class="ruby-identifier">abs</span> = <span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span><span class="ruby-operator">*</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span><span class="ruby-operator">*</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span>)
+229: <span class="ruby-comment cmt">#      if not abs.kind_of?(Rational)</span>
+230: <span class="ruby-comment cmt">#        return a**Rational(1,2)</span>
+231: <span class="ruby-comment cmt">#      end</span>
+232:       <span class="ruby-identifier">x</span> = <span class="ruby-identifier">sqrt</span>((<span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">abs</span>)<span class="ruby-operator">/</span><span class="ruby-constant">Rational</span>(<span class="ruby-value">2</span>))
+233:       <span class="ruby-identifier">y</span> = <span class="ruby-identifier">sqrt</span>((<span class="ruby-operator">-</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">abs</span>)<span class="ruby-operator">/</span><span class="ruby-constant">Rational</span>(<span class="ruby-value">2</span>))
+234: <span class="ruby-comment cmt">#      if !(x.kind_of?(Rational) and y.kind_of?(Rational))</span>
+235: <span class="ruby-comment cmt">#        return a**Rational(1,2)</span>
+236: <span class="ruby-comment cmt">#      end</span>
+237:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>
+238:         <span class="ruby-constant">Complex</span>(<span class="ruby-identifier">x</span>, <span class="ruby-identifier">y</span>)
+239:       <span class="ruby-keyword kw">else</span>
+240:         <span class="ruby-constant">Complex</span>(<span class="ruby-identifier">x</span>, <span class="ruby-operator">-</span><span class="ruby-identifier">y</span>)
+241:       <span class="ruby-keyword kw">end</span>
+242:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:nan?</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">nan?</span>
+243:       <span class="ruby-identifier">a</span>
+244:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>
+245:       <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>)
+246:     <span class="ruby-keyword kw">else</span>
+247:       <span class="ruby-constant">Complex</span>(<span class="ruby-value">0</span>,<span class="ruby-identifier">rsqrt</span>(<span class="ruby-operator">-</span><span class="ruby-identifier">a</span>))
+248:     <span class="ruby-keyword kw">end</span>
+249:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002645">
+                    
+                    <a name="M002645"></a><b>rsqrt</b>(a)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Compute square root of a non negative number. This method is internally
+used by <tt><a href="Math.html#M002643">Math.sqrt</a></tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002645_source')" id="l_M002645_source">show</a>
+                        
+                    </p>
+                    <div id="M002645_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/mathn.rb, line 255</span>
+255:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>)
+256:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Float</span>)
+257:       <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">a</span>)
+258:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Rational</span>)
+259:       <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">numerator</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">denominator</span>)
+260:     <span class="ruby-keyword kw">else</span>
+261:       <span class="ruby-identifier">src</span> = <span class="ruby-identifier">a</span>
+262:       <span class="ruby-identifier">max</span> = <span class="ruby-value">2</span> <span class="ruby-operator">**</span> <span class="ruby-value">32</span>
+263:       <span class="ruby-identifier">byte_a</span> = [<span class="ruby-identifier">src</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffffff</span>]
+264:       <span class="ruby-comment cmt"># ruby's bug</span>
+265:       <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">src</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-identifier">max</span>) <span class="ruby-keyword kw">and</span> (<span class="ruby-identifier">src</span> <span class="ruby-operator">&gt;&gt;=</span> <span class="ruby-value">32</span>)
+266:         <span class="ruby-identifier">byte_a</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-identifier">src</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffffff</span>
+267:       <span class="ruby-keyword kw">end</span>
+268: 
+269:       <span class="ruby-identifier">answer</span> = <span class="ruby-value">0</span>
+270:       <span class="ruby-identifier">main</span> = <span class="ruby-value">0</span>
+271:       <span class="ruby-identifier">side</span> = <span class="ruby-value">0</span>
+272:       <span class="ruby-keyword kw">for</span> <span class="ruby-identifier">elm</span> <span class="ruby-keyword kw">in</span> <span class="ruby-identifier">byte_a</span>
+273:         <span class="ruby-identifier">main</span> = (<span class="ruby-identifier">main</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">32</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">elm</span>
+274:         <span class="ruby-identifier">side</span> <span class="ruby-operator">&lt;&lt;=</span> <span class="ruby-value">16</span>
+275:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">answer</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+276:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">main</span> <span class="ruby-operator">*</span> <span class="ruby-value">4</span>  <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">side</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">side</span>
+277:             <span class="ruby-identifier">applo</span> = <span class="ruby-identifier">main</span>.<span class="ruby-identifier">div</span>(<span class="ruby-identifier">side</span>)
+278:           <span class="ruby-keyword kw">else</span>
+279:             <span class="ruby-identifier">applo</span> = ((<span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">side</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">side</span> <span class="ruby-operator">+</span> <span class="ruby-value">4</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">main</span>) <span class="ruby-operator">-</span> <span class="ruby-identifier">side</span>)<span class="ruby-operator">/</span><span class="ruby-value">2.0</span>).<span class="ruby-identifier">to_i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+280:           <span class="ruby-keyword kw">end</span>
+281:         <span class="ruby-keyword kw">else</span>
+282:           <span class="ruby-identifier">applo</span> = <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">main</span>).<span class="ruby-identifier">to_i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+283:         <span class="ruby-keyword kw">end</span>
+284: 
+285:         <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">x</span> = (<span class="ruby-identifier">side</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">applo</span>) <span class="ruby-operator">*</span> <span class="ruby-identifier">applo</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">main</span>
+286:           <span class="ruby-identifier">applo</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+287:         <span class="ruby-keyword kw">end</span>
+288:         <span class="ruby-identifier">main</span> <span class="ruby-operator">-=</span> <span class="ruby-identifier">x</span>
+289:         <span class="ruby-identifier">answer</span> = (<span class="ruby-identifier">answer</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">16</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">applo</span>
+290:         <span class="ruby-identifier">side</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">applo</span> <span class="ruby-operator">*</span> <span class="ruby-value">2</span>
+291:       <span class="ruby-keyword kw">end</span>
+292:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">main</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+293:         <span class="ruby-identifier">answer</span>
+294:       <span class="ruby-keyword kw">else</span>
+295:         <span class="ruby-identifier">sqrt!</span>(<span class="ruby-identifier">a</span>)
+296:       <span class="ruby-keyword kw">end</span>
+297:     <span class="ruby-keyword kw">end</span>
+298:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002643">
+                    
+                    <a name="M002643"></a><b>sqrt</b>(a)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Computes the square root of <tt>a</tt>. It makes use of <a
+href="../../Complex.html">Complex</a> and <a
+href="Rational.html">Rational</a> to have no rounding errors if possible.
+</p>
+<pre>
+  Math.sqrt(4/9)      # =&gt; 2/3
+  Math.sqrt(- 4/9)    # =&gt; Complex(0, 2/3)
+  Math.sqrt(4.0/9.0)  # =&gt; 0.666666666666667
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002643_source')" id="l_M002643_source">show</a>
+                        
+                    </p>
+                    <div id="M002643_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/mathn.rb, line 226</span>
+226:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">a</span>)
+227:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Complex</span>)
+228:       <span class="ruby-identifier">abs</span> = <span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span><span class="ruby-operator">*</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span><span class="ruby-operator">*</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span>)
+229: <span class="ruby-comment cmt">#      if not abs.kind_of?(Rational)</span>
+230: <span class="ruby-comment cmt">#        return a**Rational(1,2)</span>
+231: <span class="ruby-comment cmt">#      end</span>
+232:       <span class="ruby-identifier">x</span> = <span class="ruby-identifier">sqrt</span>((<span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">abs</span>)<span class="ruby-operator">/</span><span class="ruby-constant">Rational</span>(<span class="ruby-value">2</span>))
+233:       <span class="ruby-identifier">y</span> = <span class="ruby-identifier">sqrt</span>((<span class="ruby-operator">-</span><span class="ruby-identifier">a</span>.<span class="ruby-identifier">real</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">abs</span>)<span class="ruby-operator">/</span><span class="ruby-constant">Rational</span>(<span class="ruby-value">2</span>))
+234: <span class="ruby-comment cmt">#      if !(x.kind_of?(Rational) and y.kind_of?(Rational))</span>
+235: <span class="ruby-comment cmt">#        return a**Rational(1,2)</span>
+236: <span class="ruby-comment cmt">#      end</span>
+237:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">imag</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>
+238:         <span class="ruby-constant">Complex</span>(<span class="ruby-identifier">x</span>, <span class="ruby-identifier">y</span>)
+239:       <span class="ruby-keyword kw">else</span>
+240:         <span class="ruby-constant">Complex</span>(<span class="ruby-identifier">x</span>, <span class="ruby-operator">-</span><span class="ruby-identifier">y</span>)
+241:       <span class="ruby-keyword kw">end</span>
+242:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:nan?</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">nan?</span>
+243:       <span class="ruby-identifier">a</span>
+244:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">a</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>
+245:       <span class="ruby-identifier">rsqrt</span>(<span class="ruby-identifier">a</span>)
+246:     <span class="ruby-keyword kw">else</span>
+247:       <span class="ruby-constant">Complex</span>(<span class="ruby-value">0</span>,<span class="ruby-identifier">rsqrt</span>(<span class="ruby-operator">-</span><span class="ruby-identifier">a</span>))
+248:     <span class="ruby-keyword kw">end</span>
+249:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

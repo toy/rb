@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sun Oct 09 21:02:10 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>configuration.rb</h1>
+<p>
+pure ruby scoped configuration files
+</p>
+<h2>Description</h2>
+<p>
+configuration.rb provides a mechanism for configuring ruby programs with
+ruby configuration files. a configuration.rb file, for example
+&#8216;config/app.rb&#8217;, can be written simply as
+</p>
+<pre>
+  Configuration.for('app') {
+    key 'value'
+    foo 'bar'
+    port 42
+  }
+</pre>
+<p>
+and loaded via the normal ruby require/load mechanism
+</p>
+<pre>
+  Kernel.load 'config/app.rb'
+</pre>
+<p>
+or with a slightly augmented loading mechnanism which simply searches an
+extra set of paths in <b>addition</b> to the standard ones
+</p>
+<pre>
+  Configuration.path = %w( config configuration )
+
+  Configuration.load 'app'
+</pre>
+<p>
+configurations are completely open
+</p>
+<pre>
+  Configuration.for('app') {
+    object_id 'very open'
+  }
+</pre>
+<p>
+support arbitrarily nested values
+</p>
+<pre>
+  Configuration.for('app') {
+    a { b { c { d 42 } } }
+  }
+
+  c = Configuration.for 'app'
+
+  p c.a.b.c.d #=&gt; 42
+</pre>
+<p>
+allow POLS scoped lookup of vars
+</p>
+<pre>
+  Configuration.for('config') {
+    outer 'bar'
+
+    inner {
+      value 42
+    }
+  }
+
+  c = Configuration.for 'config'
+
+  p c.outer       #=&gt; 'bar'
+  p c.inner.value #=&gt; 42
+  p c.inner.outer #=&gt; 'bar'
+</pre>
+<p>
+allow default values
+</p>
+<pre>
+  default = Configuration.for( 'default' ) {
+    a 1
+    b 2
+  }
+
+  c = Configuration.for( 'config', default ) {
+   a 10
+  }
+
+  p c.a     #=&gt; 10
+  p c.b     #=&gt; 2
+</pre>
+<p>
+and not a whole lot else - configuration.rb is s very small library
+consisting of one file and < 150 loc
+</p>
+<h2>Samples</h2>
+<h3>samples/a.rb</h3>
+<pre>
+  ~ &gt; cat samples/a.rb
+
+    #
+    # basic usage is quite, simple, load the config and use it's values.  the
+    # config syntax is fairly obvious, i think, but note that it *is* ruby and any
+    # ruby can be included.  also note that each config is named, allowing
+    # multiple configs to be places in one file
+    #
+      require 'configuration'
+
+      c = Configuration.load 'a'
+
+      p c.a + c.b - c.c
+
+  ~ &gt; ruby samples/a.rb
+
+    42
+</pre>
+<h3>samples/b.rb</h3>
+<pre>
+  ~ &gt; cat samples/b.rb
+
+    #
+    # configuration.rb supports a very natural nesting syntax.  note how values
+    # are scoped in a POLS fashion
+    #
+      require 'configuration'
+
+      c = Configuration.for 'b'
+
+      p c.www.url
+      p c.db.url
+      p c.mail.url
+
+  ~ &gt; ruby samples/b.rb
+
+    &quot;http://codeforpeople.com:80&quot;
+    &quot;db://codeforpeople.com:5342&quot;
+    &quot;mail://gmail.com:25&quot;
+</pre>
+<h3>samples/c.rb</h3>
+<pre>
+  ~ &gt; cat samples/c.rb
+
+    #
+    # configuration.rb let's you keep code very dry.
+    #
+
+      require 'configuration'
+
+      Configuration.load 'c'
+
+      p Configuration.for('development').db
+      p Configuration.for('production').db
+      p Configuration.for('testing').db
+
+  ~ &gt; ruby samples/c.rb
+
+    &quot;db/development&quot;
+    &quot;db/production&quot;
+    &quot;db/testing&quot;
+</pre>
+<h3>samples/d.rb</h3>
+<pre>
+  ~ &gt; cat samples/d.rb
+
+    #
+    # configuration.rb makes use of an external blank slate dsl, this means that
+    # you Configuration objects do, in fact, have all built-in ruby methods such
+    # as #inspect, etc, *unless* you configure over the top of them.  the effect
+    # is a configuration object that behaves like a nice ruby object, but which
+    # allows *any* key to be configured
+    #
+      require 'configuration'
+
+      c = Configuration.for 'd'
+
+      p c.object_id
+      p c.inspect
+      p c.p
+
+  ~ &gt; ruby samples/d.rb
+
+    config/d.rb:2:in `object_id': wrong number of arguments (1 for 0) (ArgumentError)
+      from config/d.rb:2
+      from ./lib/configuration.rb:159:in `instance_eval'
+      from ./lib/configuration.rb:159:in `call'
+      from ./lib/configuration.rb:159:in `method_missing'
+      from ./lib/configuration.rb:105:in `evaluate'
+      from ./lib/configuration.rb:68:in `initialize'
+      from ./lib/configuration.rb:29:in `new'
+      from ./lib/configuration.rb:29:in `for'
+      from config/d.rb:1
+      from ./lib/configuration.rb:53:in `load'
+      from ./lib/configuration.rb:53:in `load'
+      from ./lib/configuration.rb:31:in `for'
+      from samples/d.rb:10
+</pre>
+<h3>samples/e.rb</h3>
+<pre>
+  ~ &gt; cat samples/e.rb
+
+    #
+    # configuration.rb uses a totally clean slate dsl for the block.  if you need
+    # to access base Object methods you can do this
+    #
+
+      require 'configuration'
+
+      c = Configuration.for 'e'
+
+      p c.foo
+      p c.bar
+      p c.foobar
+
+  ~ &gt; ruby samples/e.rb
+
+    42
+    &quot;forty-two&quot;
+    42.0
+</pre>
+<h3>samples/f.rb</h3>
+<pre>
+  ~ &gt; cat samples/f.rb
+
+    #
+    # configuration.rb let's you inherit values from another configuration.
+    # Like this, you keep your code very dry.
+    #
+
+      require 'configuration'
+
+      Configuration.load 'f'
+
+      p c.a
+      p c.b
+
+  ~ &gt; ruby samples/f.rb
+
+    10
+    2
+</pre>
+<h2>Author</h2>
+<p>
+ara.t.howard@gmail.com
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

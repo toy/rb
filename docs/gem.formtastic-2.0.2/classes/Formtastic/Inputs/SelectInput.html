@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Formtastic::Inputs::SelectInput</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Formtastic::Inputs::SelectInput 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/formtastic/inputs/select_input_rb.html">lib/formtastic/inputs/select_input.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A select input is used to render a `<select>` tag with a series of options
+to choose from. It works for both single selections (like a `belongs_to`
+relationship, or &#8220;yes/no&#8220; boolean), as well as multiple
+selections (like a `has_and_belongs_to_many`/`has_many` relationship, for
+assigning many genres to a song, for example).
+</p>
+<p>
+This is the default input choice when:
+</p>
+<ul>
+<li>the database column type is an `:integer` and there is an association
+(`belongs_to`)
+
+</li>
+<li>the database column type is a `:string` and the `:collection` option is
+used
+
+</li>
+<li>there an object with an association, but no database column on the object
+(`has_many`, etc)
+
+</li>
+<li>there is no object and the `:collection` option is used
+
+</li>
+</ul>
+<p>
+The flexibility of the `:collection` option (see examples) makes the
+:select input viable as an alternative for many other input types. For
+example, instead of...
+</p>
+<ul>
+<li>a `:string` input (where you want to force the user to choose from a few
+specific strings rather than entering anything)
+
+</li>
+<li>a `:boolean` checkbox input (where the user could choose yes or no, rather
+than checking a box)
+
+</li>
+<li>a `:date`, `:time` or `:datetime` input (where the user could choose from
+pre-selected dates)
+
+</li>
+<li>a `:number` input (where the user could choose from a set of pre-defined
+numbers)
+
+</li>
+<li>a `:time_zone` input (where you want to provide your own set of choices
+instead of relying on Rails)
+
+</li>
+<li>a `:country` input (no need for a plugin really)
+
+</li>
+</ul>
+<p>
+Within the standard `<li>` wrapper, the output is a `<label>` tag followed
+by a `<select>` tag containing `<option>` tags.
+</p>
+<p>
+For inputs that map to associations on the object model, <a
+href="../../Formtastic.html">Formtastic</a> will automatically load in a
+collection of objects on the association as options to choose from. This
+might be an `Author.all` on a `Post` form with an input for a `belongs_to
+:user` association, or a `Tag.all` for a `Post` form with an input for a
+`has_and_belongs_to_many :tags` association. You can override or customise
+this collection and the `<option>` tags it will render through the
+`:collection` option (see examples).
+</p>
+<p>
+The way on which <a href="../../Formtastic.html">Formtastic</a> renders the
+`value` attribute and content of each `<option>` tag is customisable
+through the `:member_label` and `:member_value` options. When not provided,
+we fall back to a list of methods to try on each object such as
+`:to_label`, `:name` and `:to_s`, which are defined in the configurations
+`collection_label_methods` and `collection_value_methods` (see examples
+below).
+</p>
+<p>
+@example Basic `belongs_to` example with full form context
+</p>
+<pre>
+    &lt;%= semantic_form_for @post do |f| %&gt;
+      &lt;%= f.inputs do %&gt;
+        &lt;%= f.input :author, :as =&gt; :select %&gt;
+      &lt;% end %&gt;
+    &lt;% end %&gt;
+
+    &lt;form...&gt;
+      &lt;fieldset&gt;
+        &lt;ol&gt;
+          &lt;li class='select'&gt;
+            &lt;label for=&quot;post_author_id&quot;&gt;Author&lt;/label&gt;
+            &lt;select id=&quot;post_author_id&quot; name=&quot;post[post_author_id]&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;&lt;/option&gt;
+              &lt;option value=&quot;1&quot;&gt;Justin&lt;/option&gt;
+              &lt;option value=&quot;3&quot;&gt;Kate&lt;/option&gt;
+              &lt;option value=&quot;2&quot;&gt;Amelia&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/li&gt;
+        &lt;/ol&gt;
+      &lt;/fieldset&gt;
+    &lt;/form&gt;
+</pre>
+<p>
+@example Basic `has_many` or `has_and_belongs_to_many` example with full
+form context
+</p>
+<pre>
+    &lt;%= semantic_form_for @post do |f| %&gt;
+      &lt;%= f.inputs do %&gt;
+        &lt;%= f.input :tags, :as =&gt; :select %&gt;
+      &lt;% end %&gt;
+    &lt;% end %&gt;
+
+    &lt;form...&gt;
+      &lt;fieldset&gt;
+        &lt;ol&gt;
+          &lt;li class='select'&gt;
+            &lt;label for=&quot;post_tag_ids&quot;&gt;Author&lt;/label&gt;
+            &lt;select id=&quot;post_tag_ids&quot; name=&quot;post[tag_ids]&quot; multiple=&quot;true&quot;&gt;
+              &lt;option value=&quot;1&quot;&gt;Ruby&lt;/option&gt;
+              &lt;option value=&quot;6&quot;&gt;Rails&lt;/option&gt;
+              &lt;option value=&quot;3&quot;&gt;Forms&lt;/option&gt;
+              &lt;option value=&quot;4&quot;&gt;Awesome&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/li&gt;
+        &lt;/ol&gt;
+      &lt;/fieldset&gt;
+    &lt;/form&gt;
+</pre>
+<p>
+@example Override Formtastic&#8217;s assumption on when you need a multi
+select
+</p>
+<pre>
+  &lt;%= f.input :authors, :as =&gt; :select, :input_html =&gt; { :multiple =&gt; true } %&gt;
+  &lt;%= f.input :authors, :as =&gt; :select, :input_html =&gt; { :multiple =&gt; false } %&gt;
+</pre>
+<p>
+@example The `:collection` option can be used to customize the choices
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; @authors %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; Author.all %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; Author.some_named_scope %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; [Author.find_by_login(&quot;justin&quot;), Category.find_by_name(&quot;kate&quot;)] %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; [&quot;Justin&quot;, &quot;Kate&quot;] %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; [[&quot;Justin&quot;, &quot;justin&quot;], [&quot;Kate&quot;, &quot;kate&quot;]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; [[&quot;Justin&quot;, &quot;1&quot;], [&quot;Kate&quot;, &quot;3&quot;]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; [[&quot;Justin&quot;, 1], [&quot;Kate&quot;, 3]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; 1..5 %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; &quot;&lt;option&gt;your own options HTML string&lt;/option&gt;&quot; %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; options_for_select(...) %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; options_from_collection_for_select(...) %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; grouped_options_for_select(...) %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :collection =&gt; time_zone_options_for_select(...) %&gt;
+</pre>
+<p>
+@example The `:member_label` can be used to call a different method (or a
+Proc) on each object in the collection for rendering the label text
+(it&#8217;ll try the methods like `to_s` in `collection_label_methods`
+config by default)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :select, :member_label =&gt; :name %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :member_label =&gt; :name_with_post_count
+  &lt;%= f.input :author, :as =&gt; :select, :member_label =&gt; Proc.new { |a| &quot;#{c.name} (#{pluralize(&quot;post&quot;, a.posts.count)})&quot; }
+</pre>
+<p>
+@example The `:member_value` can be used to call a different method (or a
+Proc) on each object in the collection for rendering the value for each
+checkbox (it&#8217;ll try the methods like `id` in
+`collection_value_methods` config by default)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :select, :member_value =&gt; :login %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :member_value =&gt; Proc.new { |c| c.full_name.downcase.underscore }
+</pre>
+<p>
+@example Set HTML attributes on the `<select>` tag with `:input_html`
+</p>
+<pre>
+  &lt;%= f.input :authors, :as =&gt; :select, :input_html =&gt; { :size =&gt; 20, :multiple =&gt; true, :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example Set HTML attributes on the `<li>` wrapper with `:wrapper_html`
+</p>
+<pre>
+  &lt;%= f.input :authors, :as =&gt; :select, :wrapper_html =&gt; { :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example Exclude or include the blank option at the top of the select, or
+change the prompt
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :select, :input_html =&gt; { :include_blank =&gt; false } %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :input_html =&gt; { :include_blank =&gt; true } %&gt;
+  &lt;%= f.input :author, :as =&gt; :select, :input_html =&gt; { :prompt =&gt; &quot;Please select an Author...&quot; } %&gt;
+</pre>
+<p>
+@example Group options an `<optgroup>` with the `:group_by` and
+`:group_label` options (`belongs_to` associations only)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :select, :group_by =&gt; :continent %&gt;
+</pre>
+<p>
+@see Formtastic::Helpers::InputsHelper#input InputsHelper#input for full
+documetation of all possible options. @see <a
+href="CheckBoxesInput.html">Formtastic::Inputs::CheckBoxesInput</a> <a
+href="CheckBoxesInput.html">CheckBoxesInput</a> as an alternative for
+`has_many` and `has_and_belongs_to_many` associations @see <a
+href="RadioInput.html">Formtastic::Inputs::RadioInput</a> <a
+href="RadioInput.html">RadioInput</a> as an alternative for `belongs_to`
+associations
+</p>
+<p>
+@todo Do/can we support the per-item HTML options like <a
+href="RadioInput.html">RadioInput</a>?
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000227">extra_input_html_options</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000222">grouped_select_html</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000223">include_blank?</a>,</li>
+                
+                <li><a href="#M000226">input_html_options</a>,</li>
+                
+                <li><a href="#M000225">input_options</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000224">label_html_options</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000230">multiple?</a>,</li>
+                
+                <li><a href="#M000228">multiple_by_association?</a>,</li>
+                
+                <li><a href="#M000229">multiple_by_options?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000221">select_html</a>,</li>
+                
+                <li><a href="#M000231">single?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000220">to_html</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="Base/Stringish.html">Formtastic::Inputs::Base::Stringish</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Base::Collections</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Base::GroupedCollections</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000227">
+                    
+                    <a name="M000227"></a><b>extra_input_html_options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000227_source')" id="l_M000227_source">show</a>
+                        
+                    </p>
+                    <div id="M000227_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 185</span>
+185:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">extra_input_html_options</span>
+186:         {
+187:           <span class="ruby-identifier">:multiple</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">multiple?</span>,
+188:           <span class="ruby-identifier">:name</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-node">&quot;#{object_name}[#{association_primary_key}]#{'[]' if multiple?}&quot;</span>
+189:         }
+190:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000222">
+                    
+                    <a name="M000222"></a><b>grouped_select_html</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000222_source')" id="l_M000222_source">show</a>
+                        
+                    </p>
+                    <div id="M000222_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 153</span>
+153:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">grouped_select_html</span>
+154:         <span class="ruby-identifier">builder</span>.<span class="ruby-identifier">grouped_collection_select</span>(
+155:           <span class="ruby-identifier">input_name</span>, 
+156:           <span class="ruby-identifier">grouped_collection</span>,
+157:           <span class="ruby-identifier">group_association</span>, 
+158:           <span class="ruby-identifier">group_label_method</span>,
+159:           <span class="ruby-identifier">value_method</span>, 
+160:           <span class="ruby-identifier">label_method</span>,
+161:           <span class="ruby-identifier">input_options</span>, 
+162:           <span class="ruby-identifier">input_html_options</span>
+163:         )
+164:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000223">
+                    
+                    <a name="M000223"></a><b>include_blank?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000223_source')" id="l_M000223_source">show</a>
+                        
+                    </p>
+                    <div id="M000223_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 166</span>
+166:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include_blank?</span>
+167:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prompt</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:prompt</span>)
+168:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:include_blank</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:include_blank</span>)
+169:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">single?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">builder</span>.<span class="ruby-identifier">include_blank_for_select_by_default</span>)
+170:         <span class="ruby-keyword kw">false</span>
+171:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000226">
+                    
+                    <a name="M000226"></a><b>input_html_options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000226_source')" id="l_M000226_source">show</a>
+                        
+                    </p>
+                    <div id="M000226_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 181</span>
+181:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">input_html_options</span>
+182:         <span class="ruby-identifier">extra_input_html_options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-keyword kw">super</span>)
+183:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000225">
+                    
+                    <a name="M000225"></a><b>input_options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000225_source')" id="l_M000225_source">show</a>
+                        
+                    </p>
+                    <div id="M000225_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 177</span>
+177:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">input_options</span>
+178:         <span class="ruby-keyword kw">super</span>.<span class="ruby-identifier">merge</span>({<span class="ruby-identifier">:include_blank</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">include_blank?</span>, <span class="ruby-identifier">:prompt</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>})
+179:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000224">
+                    
+                    <a name="M000224"></a><b>label_html_options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000224_source')" id="l_M000224_source">show</a>
+                        
+                    </p>
+                    <div id="M000224_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 173</span>
+173:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">label_html_options</span>
+174:         <span class="ruby-keyword kw">super</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:for</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">input_html_options</span>[<span class="ruby-identifier">:id</span>])
+175:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000230">
+                    
+                    <a name="M000230"></a><b>multiple?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000230_source')" id="l_M000230_source">show</a>
+                        
+                    </p>
+                    <div id="M000230_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 200</span>
+200:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">multiple?</span>
+201:         <span class="ruby-identifier">multiple_by_options?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">multiple_by_association?</span> 
+202:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000228">
+                    
+                    <a name="M000228"></a><b>multiple_by_association?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000228_source')" id="l_M000228_source">show</a>
+                        
+                    </p>
+                    <div id="M000228_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 192</span>
+192:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">multiple_by_association?</span>
+193:         <span class="ruby-identifier">reflection</span> <span class="ruby-operator">&amp;&amp;</span> [ <span class="ruby-identifier">:has_many</span>, <span class="ruby-identifier">:has_and_belongs_to_many</span> ].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">macro</span>)
+194:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000229">
+                    
+                    <a name="M000229"></a><b>multiple_by_options?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000229_source')" id="l_M000229_source">show</a>
+                        
+                    </p>
+                    <div id="M000229_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 196</span>
+196:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">multiple_by_options?</span>
+197:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:multiple</span>] <span class="ruby-operator">||</span> (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:input_html</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:input_html</span>][<span class="ruby-identifier">:multiple</span>])
+198:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000221">
+                    
+                    <a name="M000221"></a><b>select_html</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000221_source')" id="l_M000221_source">show</a>
+                        
+                    </p>
+                    <div id="M000221_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 149</span>
+149:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">select_html</span>
+150:         <span class="ruby-identifier">builder</span>.<span class="ruby-identifier">select</span>(<span class="ruby-identifier">input_name</span>, <span class="ruby-identifier">collection</span>, <span class="ruby-identifier">input_options</span>, <span class="ruby-identifier">input_html_options</span>)
+151:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000231">
+                    
+                    <a name="M000231"></a><b>single?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000231_source')" id="l_M000231_source">show</a>
+                        
+                    </p>
+                    <div id="M000231_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 204</span>
+204:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">single?</span>
+205:         <span class="ruby-operator">!</span><span class="ruby-identifier">multiple?</span>
+206:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000220">
+                    
+                    <a name="M000220"></a><b>to_html</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000220_source')" id="l_M000220_source">show</a>
+                        
+                    </p>
+                    <div id="M000220_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/select_input.rb, line 142</span>
+142:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_html</span>
+143:         <span class="ruby-identifier">input_wrapping</span> <span class="ruby-keyword kw">do</span>
+144:           <span class="ruby-identifier">label_html</span> <span class="ruby-operator">&lt;&lt;</span>
+145:           (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:group_by</span>] <span class="ruby-operator">?</span> <span class="ruby-identifier">grouped_select_html</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">select_html</span>)
+146:         <span class="ruby-keyword kw">end</span>
+147:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

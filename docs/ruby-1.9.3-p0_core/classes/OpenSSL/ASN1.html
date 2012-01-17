@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenSSL::ASN1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            OpenSSL::ASN1 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/ext/openssl/ossl_c.html">ext/openssl/ossl.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Abstract Syntax Notation One (or ASN.1) is a notation syntax to describe
+data structures and is defined in ITU-T X.680. ASN.1 itself does not
+mandate any encoding or parsing rules, but usually ASN.1 data structures
+are encoded using the Distinguished <a href="../Encoding.html">Encoding</a>
+Rules (DER) or less often the Basic <a href="../Encoding.html">Encoding</a>
+Rules (BER) described in ITU-T X.690. DER and BER encodings are binary
+Tag-Length-Value (TLV) encodings that are quite concise compared to other
+popular data description formats such as <a href="../XML.html">XML</a>, <a
+href="../JSON.html">JSON</a> etc. ASN.1 data structures are very common in
+cryptographic applications, e.g. X.509 public key certificates or
+certificate revocation lists (CRLs) are all defined in ASN.1 and
+DER-encoded. ASN.1, DER and BER are the building blocks of applied
+cryptography. The <a href="ASN1.html">ASN1</a> module provides the
+necessary classes that allow generation of ASN.1 data structures and the
+methods to encode them using a DER encoding. The decode method allows
+parsing arbitrary BER-/DER-encoded data to a Ruby object that can then be
+modified and re-encoded at will.
+</p>
+<h2>ASN.1 class hierarchy</h2>
+<p>
+The base class representing ASN.1 structures is <a
+href="ASN1/ASN1Data.html">ASN1Data</a>. <a
+href="ASN1/ASN1Data.html">ASN1Data</a> offers attributes to read and set
+the <tt>tag</tt>, the <tt>tag_class</tt> and finally the <tt>value</tt> of
+a particular ASN.1 item. Upon parsing, any tagged values (implicit or
+explicit) will be represented by <a href="ASN1/ASN1Data.html">ASN1Data</a>
+instances because their &#8220;real type&#8221; can only be determined
+using out-of-band information from the ASN.1 type declaration. Since this
+information is normally known when encoding a type, all sub-classes of <a
+href="ASN1/ASN1Data.html">ASN1Data</a> offer an additional attribute
+<tt>tagging</tt> that allows to encode a value implicitly
+(<tt>:IMPLICIT</tt>) or explicitly (<tt>:EXPLICIT</tt>).
+</p>
+<h3><a href="ASN1/Constructive.html">Constructive</a></h3>
+<p>
+<a href="ASN1/Constructive.html">Constructive</a> is, as its name implies,
+the base class for all constructed encodings, i.e. those that consist of
+several values, opposed to &#8220;primitive&#8221; encodings with just one
+single value. <a href="ASN1/Primitive.html">Primitive</a> values that are
+encoded with &#8220;infinite length&#8221; are typically constructed (their
+values come in multiple chunks) and are therefore represented by instances
+of <a href="ASN1/Constructive.html">Constructive</a>. The value of an <a
+href="ASN1/Constructive.html">Constructive</a> is always an <a
+href="../Array.html">Array</a>.
+</p>
+<h4><a href="../Set.html">ASN1::Set</a> and ASN1::Sequence</h4>
+<p>
+The most common constructive encodings are SETs and SEQUENCEs, which is why
+there are two sub-classes of <a
+href="ASN1/Constructive.html">Constructive</a> representing each of them.
+</p>
+<h3><a href="ASN1/Primitive.html">Primitive</a></h3>
+<p>
+This is the super class of all primitive values. <a
+href="ASN1/Primitive.html">Primitive</a> itself is not used when parsing
+ASN.1 data, all values are either instances of a corresponding sub-class of
+<a href="ASN1/Primitive.html">Primitive</a> or they are instances of <a
+href="ASN1/ASN1Data.html">ASN1Data</a> if the value was tagged implicitly
+or explicitly. Please cf. <a href="ASN1/Primitive.html">Primitive</a>
+documentation for details on sub-classes and their respective mappings of
+ASN.1 data types to Ruby objects.
+</p>
+<h2>Possible values for <tt>tagging</tt></h2>
+<p>
+When constructing an <a href="ASN1/ASN1Data.html">ASN1Data</a> object the
+ASN.1 type definition may require certain elements to be either implicitly
+or explicitly tagged. This can be achieved by setting the <tt>tagging</tt>
+attribute manually for sub-classes of <a
+href="ASN1/ASN1Data.html">ASN1Data</a>. Use the symbol <tt>:IMPLICIT</tt>
+for implicit tagging and <tt>:EXPLICIT</tt> if the element requires
+explicit tagging.
+</p>
+<h2>Possible values for <tt>tag_class</tt></h2>
+<p>
+It is possible to create arbitrary <a
+href="ASN1/ASN1Data.html">ASN1Data</a> objects that also support a PRIVATE
+or APPLICATION tag class. Possible values for the <tt>tag_class</tt>
+attribute are:
+</p>
+<ul>
+<li><tt>:UNIVERSAL</tt> (the default for untagged values)
+
+</li>
+<li><tt>:CONTEXT_SPECIFIC</tt> (the default for tagged values)
+
+</li>
+<li><tt>:APPLICATION</tt>
+
+</li>
+<li><tt>:PRIVATE</tt>
+
+</li>
+</ul>
+<h2>Tag constants</h2>
+<p>
+There is a constant defined for each universal tag:
+</p>
+<ul>
+<li>OpenSSL::ASN1::EOC (0)
+
+</li>
+<li>OpenSSL::ASN1::BOOLEAN (1)
+
+</li>
+<li>OpenSSL::ASN1::INTEGER (2)
+
+</li>
+<li>OpenSSL::ASN1::BIT_STRING (3)
+
+</li>
+<li>OpenSSL::ASN1::OCTET_STRING (4)
+
+</li>
+<li>OpenSSL::ASN1::NULL (5)
+
+</li>
+<li>OpenSSL::ASN1::OBJECT (6)
+
+</li>
+<li>OpenSSL::ASN1::ENUMERATED (10)
+
+</li>
+<li>OpenSSL::ASN1::UTF8STRING (12)
+
+</li>
+<li>OpenSSL::ASN1::SEQUENCE (16)
+
+</li>
+<li>OpenSSL::ASN1::SET (17)
+
+</li>
+<li>OpenSSL::ASN1::NUMERICSTRING (18)
+
+</li>
+<li>OpenSSL::ASN1::PRINTABLESTRING (19)
+
+</li>
+<li>OpenSSL::ASN1::T61STRING (20)
+
+</li>
+<li>OpenSSL::ASN1::VIDEOTEXSTRING (21)
+
+</li>
+<li>OpenSSL::ASN1::IA5STRING (22)
+
+</li>
+<li>OpenSSL::ASN1::UTCTIME (23)
+
+</li>
+<li>OpenSSL::ASN1::GENERALIZEDTIME (24)
+
+</li>
+<li>OpenSSL::ASN1::GRAPHICSTRING (25)
+
+</li>
+<li>OpenSSL::ASN1::ISO64STRING (26)
+
+</li>
+<li>OpenSSL::ASN1::GENERALSTRING (27)
+
+</li>
+<li>OpenSSL::ASN1::UNIVERSALSTRING (28)
+
+</li>
+<li>OpenSSL::ASN1::BMPSTRING (30)
+
+</li>
+</ul>
+<h2><a href="ASN1.html#UNIVERSAL_TAG_NAME">UNIVERSAL_TAG_NAME</a> constant</h2>
+<p>
+An <a href="../Array.html">Array</a> that stores the name of a given tag
+number. These names are the same as the name of the tag constant that is
+additionally defined, e.g. <a
+href="ASN1.html#UNIVERSAL_TAG_NAME">UNIVERSAL_TAG_NAME</a>[2] =
+&#8220;INTEGER&#8221; and OpenSSL::ASN1::INTEGER = 2.
+</p>
+<h2>Example usage</h2>
+<h3>Decoding and viewing a DER-encoded file</h3>
+<pre>
+  require 'openssl'
+  require 'pp'
+  der = File.binread('data.der')
+  asn1 = OpenSSL::ASN1.decode(der)
+  pp der
+</pre>
+<h3>Creating an ASN.1 structure and DER-encoding it</h3>
+<pre>
+  require 'openssl'
+  version = OpenSSL::ASN1::Integer.new(1)
+  # Explicitly 0-tagged implies context-specific tag class
+  serial = OpenSSL::ASN1::Integer.new(12345, 0, :EXPLICIT, :CONTEXT_SPECIFIC)
+  name = OpenSSL::ASN1::PrintableString.new('Data 1')
+  sequence = OpenSSL::ASN1::Sequence.new( [ version, serial, name ] )
+  der = sequence.to_der
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009358">decode</a>,</li>
+                
+                <li><a href="#M009359">decode_all</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009357">traverse</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="ASN1/ASN1Data.html">OpenSSL::ASN1::ASN1Data</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="ASN1/ASN1Error.html">OpenSSL::ASN1::ASN1Error</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="ASN1/Constructive.html">OpenSSL::ASN1::Constructive</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="ASN1/Primitive.html">OpenSSL::ASN1::Primitive</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">UNIVERSAL_TAG_NAME</td>
+            <td>=</td>
+            <td class="attr-value">ary</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="../Array.html">Array</a> storing tag names at the tag&#8217;s
+index.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009358">
+                    
+                    <a name="M009358"></a><b>OpenSSL::ASN1.decode(der) &rarr; ASN1Data
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Decodes a BER- or DER-encoded value and creates an <a
+href="ASN1/ASN1Data.html">ASN1Data</a> instance. <tt>der</tt> may be a
+<tt>String</tt> or any object that features a <tt>to_der</tt> method
+transforming it into a BER-/DER-encoded <tt>String</tt>.
+</p>
+<h2>Example</h2>
+<pre>
+  der = File.binread('asn1data')
+  asn1 = OpenSSL::ASN1.decode(der)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009358_source')" id="l_M009358_source">show</a>
+                        
+                    </p>
+                    <div id="M009358_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_asn1_decode(VALUE self, VALUE obj)
+{
+    VALUE ret;
+    unsigned char *p;
+    volatile VALUE tmp;
+    long len, read = 0, offset = 0;
+
+    obj = ossl_to_der_if_possible(obj);
+    tmp = rb_str_new4(StringValue(obj));
+    p = (unsigned char *)RSTRING_PTR(tmp);
+    len = RSTRING_LEN(tmp);
+    ret = ossl_asn1_decode0(&amp;p, len, &amp;offset, 0, 0, &amp;read);
+    int_ossl_decode_sanity_check(len, read, offset);
+    return ret;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009359">
+                    
+                    <a name="M009359"></a><b>OpenSSL::ASN1.decode_all(der) &rarr; Array of ASN1Data
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Similar to <tt>decode</tt> with the difference that <tt>decode</tt> expects
+one distinct value represented in <tt>der</tt>. <tt><a
+href="ASN1.html#M009359">decode_all</a></tt> on the contrary decodes a
+sequence of sequential BER/DER values lined up in <tt>der</tt> and returns
+them as an array.
+</p>
+<h2>Example</h2>
+<pre>
+  ders = File.binread('asn1data_seq')
+  asn1_ary = OpenSSL::ASN1.decode_all(ders)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009359_source')" id="l_M009359_source">show</a>
+                        
+                    </p>
+                    <div id="M009359_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_asn1_decode_all(VALUE self, VALUE obj)
+{
+    VALUE ary, val;
+    unsigned char *p;
+    long len, tmp_len = 0, read = 0, offset = 0;
+    volatile VALUE tmp;
+
+    obj = ossl_to_der_if_possible(obj);
+    tmp = rb_str_new4(StringValue(obj));
+    p = (unsigned char *)RSTRING_PTR(tmp);
+    len = RSTRING_LEN(tmp);
+    tmp_len = len;
+    ary = rb_ary_new();
+    while (tmp_len &gt; 0) {
+  long tmp_read = 0;
+  val = ossl_asn1_decode0(&amp;p, tmp_len, &amp;offset, 0, 0, &amp;tmp_read);
+  rb_ary_push(ary, val);
+  read += tmp_read;
+  tmp_len -= tmp_read;
+    }
+    int_ossl_decode_sanity_check(len, read, offset);
+    return ary;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009357">
+                    
+                    <a name="M009357"></a><b>OpenSSL::ASN1.traverse(asn1) &rarr; nil
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If a block is given, it prints out each of the elements encountered. Block
+parameters are (in that order):
+</p>
+<ul>
+<li>depth: The recursion depth, plus one with each constructed value being
+encountered (Number)
+
+</li>
+<li>offset: Current byte offset (Number)
+
+</li>
+<li>header length: Combined length in bytes of the Tag and Length headers.
+(Number)
+
+</li>
+<li>length: The overall remaining length of the entire data (Number)
+
+</li>
+<li>constructed: Whether this value is constructed or not (Boolean)
+
+</li>
+<li>tag_class: Current tag class (<a href="../Symbol.html">Symbol</a>)
+
+</li>
+<li>tag: The current tag (Number)
+
+</li>
+</ul>
+<h2>Example</h2>
+<pre>
+  der = File.binread('asn1data.der')
+  OpenSSL::ASN1.traverse(der) do | depth, offset, header_len, length, constructed, tag_class, tag|
+    puts &quot;Depth: #{depth} Offset: #{offset} Length: #{length}&quot;
+    puts &quot;Header length: #{header_len} Tag: #{tag} Tag class: #{tag_class} Constructed: #{constructed}&quot;
+  end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009357_source')" id="l_M009357_source">show</a>
+                        
+                    </p>
+                    <div id="M009357_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_asn1_traverse(VALUE self, VALUE obj)
+{
+    unsigned char *p;
+    volatile VALUE tmp;
+    long len, read = 0, offset = 0;
+
+    obj = ossl_to_der_if_possible(obj);
+    tmp = rb_str_new4(StringValue(obj));
+    p = (unsigned char *)RSTRING_PTR(tmp);
+    len = RSTRING_LEN(tmp);
+    ossl_asn1_decode0(&amp;p, len, &amp;offset, 0, 1, &amp;read);
+    int_ossl_decode_sanity_check(len, read, offset);
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

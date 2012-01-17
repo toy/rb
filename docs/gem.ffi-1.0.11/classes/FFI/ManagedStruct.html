@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>FFI::ManagedStruct</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            FFI::ManagedStruct 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Struct.html">FFI::Struct</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/ffi/managedstruct_rb.html">lib/ffi/managedstruct.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="ManagedStruct.html">FFI::ManagedStruct</a> allows custom
+garbage-collection of your FFI::Structs.
+</p>
+<p>
+The typical use case would be when interacting with a library that has a
+nontrivial memory management design, such as a linked list or a binary
+tree.
+</p>
+<p>
+When the <a href="Struct.html">Struct</a> instance is garbage collected, <a
+href="ManagedStruct.html">FFI::ManagedStruct</a> will invoke the
+class&#8217;s release() method during object finalization.
+</p>
+<p>
+Example usage:
+</p>
+<pre>
+  module MyLibrary
+    ffi_lib &quot;libmylibrary&quot;
+    attach_function :new_dlist, [], :pointer
+    attach_function :destroy_dlist, [:pointer], :void
+  end
+
+  class DoublyLinkedList &lt; FFI::ManagedStruct
+    @@@
+    struct do |s|
+      s.name 'struct dlist'
+      s.include 'dlist.h'
+      s.field :head, :pointer
+      s.field :tail, :pointer
+    end
+    @@@
+
+    def self.release ptr
+      MyLibrary.destroy_dlist(ptr)
+    end
+  end
+
+  begin
+    ptr = DoublyLinkedList.new(MyLibrary.new_dlist)
+    #  do something with the list
+  end
+  # struct is out of scope, and will be GC'd using DoublyLinkedList#release
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000031">new</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000031">
+                    
+                    <a name="M000031"></a><b>ManagedStruct.new(pointer)
+ManagedStruct.new
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+When passed a pointer, create a new <a
+href="ManagedStruct.html">ManagedStruct</a> which will invoke the class
+method release() on
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000031_source')" id="l_M000031_source">show</a>
+                        
+                    </p>
+                    <div id="M000031_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/managedstruct.rb, line 48</span>
+48:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">pointer</span>=<span class="ruby-keyword kw">nil</span>)
+49:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">NoMethodError</span>, <span class="ruby-node">&quot;release() not implemented for class #{self}&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:release</span>
+50:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;Must supply a pointer to memory for the Struct&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">pointer</span>
+51:       <span class="ruby-keyword kw">super</span> <span class="ruby-constant">AutoPointer</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">pointer</span>, <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">method</span>(<span class="ruby-identifier">:release</span>))
+52:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

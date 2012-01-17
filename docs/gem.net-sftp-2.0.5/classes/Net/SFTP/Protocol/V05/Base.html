@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SFTP::Protocol::V05::Base</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::SFTP::Protocol::V05::Base 
+            
+                <span class="parent">&lt; 
+                    
+                    V04::Base
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../../files/lib/net/sftp/protocol/05/base_rb.html">lib/net/sftp/protocol/05/base.rb</a></li>
+            
+            <li><a href="../../../../../files/lib/net/sftp/protocol/05/base_rb.html">lib/net/sftp/protocol/05/base.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Wraps the low-level <a href="../../../SFTP.html">SFTP</a> calls for version
+5 of the <a href="../../../SFTP.html">SFTP</a> protocol.
+</p>
+<p>
+None of these protocol methods block&#8212;all of them return immediately,
+requiring the <a href="../../../SSH.html">SSH</a> event loop to be run
+while the server response is pending.
+</p>
+<p>
+You will almost certainly never need to use this driver directly. Please
+see <a href="../../Session.html">Net::SFTP::Session</a> for the recommended
+interface.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000369">open</a>,</li>
+                
+                <li><a href="#M000138">open</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000137">rename</a>,</li>
+                
+                <li><a href="#M000368">rename</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000367">version</a>,</li>
+                
+                <li><a href="#M000136">version</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000369">
+                    
+                    <a name="M000369"></a><b>open</b>(path, flags, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sends a FXP_OPEN packet to the server and returns the packet identifier.
+The <tt>flags</tt> parameter is either an integer (in which case it must be
+a combination of the IO constants) or a string (in which case it must be
+one of the mode strings that IO::open accepts). The <tt>options</tt>
+parameter is a hash that is used to construct a new Attribute object, to
+pass as part of the FXP_OPEN request.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000369_source')" id="l_M000369_source">show</a>
+                        
+                    </p>
+                    <div id="M000369_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 35</span>
+35:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">flags</span>, <span class="ruby-identifier">options</span>)
+36:       <span class="ruby-identifier">flags</span> = <span class="ruby-identifier">normalize_open_flags</span>(<span class="ruby-identifier">flags</span>)
+37: 
+38:       <span class="ruby-identifier">sftp_flags</span>, <span class="ruby-identifier">desired_access</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">WRONLY</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>) <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+39:           <span class="ruby-identifier">open</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">EXCL</span>) <span class="ruby-operator">==</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">EXCL</span>)
+40:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">CREATE_NEW</span>
+41:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">TRUNC</span>) <span class="ruby-operator">==</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">TRUNC</span>)
+42:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">CREATE_TRUNCATE</span>
+43:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span>
+44:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_OR_CREATE</span>
+45:           <span class="ruby-keyword kw">else</span>
+46:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_EXISTING</span>
+47:           <span class="ruby-keyword kw">end</span>
+48:           <span class="ruby-identifier">access</span> = <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">WRITE_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">WRITE_ATTRIBUTES</span>
+49:           <span class="ruby-identifier">access</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_ATTRIBUTES</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>) <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>
+50:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND</span> <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND</span>
+51:             <span class="ruby-identifier">open</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND_DATA</span>
+52:             <span class="ruby-identifier">access</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND_DATA</span>
+53:           <span class="ruby-keyword kw">end</span>
+54:           [<span class="ruby-identifier">open</span>, <span class="ruby-identifier">access</span>]
+55:         <span class="ruby-keyword kw">else</span>
+56:           [<span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_EXISTING</span>, <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_ATTRIBUTES</span>]
+57:         <span class="ruby-keyword kw">end</span>
+58: 
+59:       <span class="ruby-identifier">attributes</span> = <span class="ruby-identifier">attribute_factory</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">options</span>)
+60: 
+61:       <span class="ruby-identifier">send_request</span>(<span class="ruby-constant">FXP_OPEN</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">desired_access</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">sftp_flags</span>, <span class="ruby-identifier">:raw</span>, <span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">to_s</span>)
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000138">
+                    
+                    <a name="M000138"></a><b>open</b>(path, flags, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sends a FXP_OPEN packet to the server and returns the packet identifier.
+The <tt>flags</tt> parameter is either an integer (in which case it must be
+a combination of the IO constants) or a string (in which case it must be
+one of the mode strings that IO::open accepts). The <tt>options</tt>
+parameter is a hash that is used to construct a new Attribute object, to
+pass as part of the FXP_OPEN request.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000138_source')" id="l_M000138_source">show</a>
+                        
+                    </p>
+                    <div id="M000138_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 35</span>
+35:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">flags</span>, <span class="ruby-identifier">options</span>)
+36:       <span class="ruby-identifier">flags</span> = <span class="ruby-identifier">normalize_open_flags</span>(<span class="ruby-identifier">flags</span>)
+37: 
+38:       <span class="ruby-identifier">sftp_flags</span>, <span class="ruby-identifier">desired_access</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">WRONLY</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>) <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+39:           <span class="ruby-identifier">open</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">EXCL</span>) <span class="ruby-operator">==</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">EXCL</span>)
+40:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">CREATE_NEW</span>
+41:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">TRUNC</span>) <span class="ruby-operator">==</span> (<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">|</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">TRUNC</span>)
+42:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">CREATE_TRUNCATE</span>
+43:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span> <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">CREAT</span>
+44:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_OR_CREATE</span>
+45:           <span class="ruby-keyword kw">else</span>
+46:             <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_EXISTING</span>
+47:           <span class="ruby-keyword kw">end</span>
+48:           <span class="ruby-identifier">access</span> = <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">WRITE_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">WRITE_ATTRIBUTES</span>
+49:           <span class="ruby-identifier">access</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_ATTRIBUTES</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>) <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">RDWR</span>
+50:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flags</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND</span> <span class="ruby-operator">==</span> <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND</span>
+51:             <span class="ruby-identifier">open</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND_DATA</span>
+52:             <span class="ruby-identifier">access</span> <span class="ruby-operator">|=</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">APPEND_DATA</span>
+53:           <span class="ruby-keyword kw">end</span>
+54:           [<span class="ruby-identifier">open</span>, <span class="ruby-identifier">access</span>]
+55:         <span class="ruby-keyword kw">else</span>
+56:           [<span class="ruby-constant">FV5</span><span class="ruby-operator">::</span><span class="ruby-constant">OPEN_EXISTING</span>, <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_DATA</span> <span class="ruby-operator">|</span> <span class="ruby-constant">ACE</span><span class="ruby-operator">::</span><span class="ruby-constant">Mask</span><span class="ruby-operator">::</span><span class="ruby-constant">READ_ATTRIBUTES</span>]
+57:         <span class="ruby-keyword kw">end</span>
+58: 
+59:       <span class="ruby-identifier">attributes</span> = <span class="ruby-identifier">attribute_factory</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">options</span>)
+60: 
+61:       <span class="ruby-identifier">send_request</span>(<span class="ruby-constant">FXP_OPEN</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">desired_access</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">sftp_flags</span>, <span class="ruby-identifier">:raw</span>, <span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">to_s</span>)
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000137">
+                    
+                    <a name="M000137"></a><b>rename</b>(name, new_name, flags=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sends a FXP_RENAME packet to the server to request that the file or
+directory with the given <tt>name</tt> (must be a full path) be changed to
+<tt>new_name</tt> (which must also be a path). The <tt>flags</tt> parameter
+must be either <tt>nil</tt> or 0 (the default), or some combination of the
+<a
+href="../../Constants/RenameFlags.html">Net::SFTP::Constants::RenameFlags</a>
+constants.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000137_source')" id="l_M000137_source">show</a>
+                        
+                    </p>
+                    <div id="M000137_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 25</span>
+25:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rename</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">flags</span>=<span class="ruby-keyword kw">nil</span>)
+26:       <span class="ruby-identifier">send_request</span>(<span class="ruby-constant">FXP_RENAME</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">flags</span> <span class="ruby-operator">||</span> <span class="ruby-value">0</span>)
+27:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000368">
+                    
+                    <a name="M000368"></a><b>rename</b>(name, new_name, flags=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sends a FXP_RENAME packet to the server to request that the file or
+directory with the given <tt>name</tt> (must be a full path) be changed to
+<tt>new_name</tt> (which must also be a path). The <tt>flags</tt> parameter
+must be either <tt>nil</tt> or 0 (the default), or some combination of the
+<a
+href="../../Constants/RenameFlags.html">Net::SFTP::Constants::RenameFlags</a>
+constants.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000368_source')" id="l_M000368_source">show</a>
+                        
+                    </p>
+                    <div id="M000368_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 25</span>
+25:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rename</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">flags</span>=<span class="ruby-keyword kw">nil</span>)
+26:       <span class="ruby-identifier">send_request</span>(<span class="ruby-constant">FXP_RENAME</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">:string</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">:long</span>, <span class="ruby-identifier">flags</span> <span class="ruby-operator">||</span> <span class="ruby-value">0</span>)
+27:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000367">
+                    
+                    <a name="M000367"></a><b>version</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the protocol version implemented by this driver. (5, in this case)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000367_source')" id="l_M000367_source">show</a>
+                        
+                    </p>
+                    <div id="M000367_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 16</span>
+16:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">version</span>
+17:       <span class="ruby-value">5</span>
+18:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000136">
+                    
+                    <a name="M000136"></a><b>version</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the protocol version implemented by this driver. (5, in this case)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000136_source')" id="l_M000136_source">show</a>
+                        
+                    </p>
+                    <div id="M000136_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/sftp/protocol/05/base.rb, line 16</span>
+16:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">version</span>
+17:       <span class="ruby-value">5</span>
+18:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

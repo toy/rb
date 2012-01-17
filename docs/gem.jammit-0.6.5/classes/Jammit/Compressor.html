@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Jammit::Compressor</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Jammit::Compressor 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/jammit/compressor_rb.html">lib/jammit/compressor.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Uses the YUI <a href="Compressor.html">Compressor</a> or Closure Compiler
+to compress JavaScript. Always uses YUI to compress CSS (Which means that
+Java must be installed.) Also knows how to create a concatenated JST file.
+If &#8220;embed_assets&#8220; is turned on, creates &#8220;mhtml&#8221; and
+&#8220;datauri&#8221; versions of all stylesheets, with all enabled assets
+inlined into the css.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000018">absolute_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000006">compile_jst</a>,</li>
+                
+                <li><a href="#M000005">compress_css</a>,</li>
+                
+                <li><a href="#M000004">compress_js</a>,</li>
+                
+                <li><a href="#M000026">concatenate</a>,</li>
+                
+                <li><a href="#M000010">concatenate_and_tag_assets</a>,</li>
+                
+                <li><a href="#M000016">construct_asset_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000023">embeddable?</a>,</li>
+                
+                <li><a href="#M000024">encoded_contents</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000007">find_base_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000025">mime_type</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000003">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000022">rails_asset_id</a>,</li>
+                
+                <li><a href="#M000027">read_binary_file</a>,</li>
+                
+                <li><a href="#M000020">relative_path</a>,</li>
+                
+                <li><a href="#M000021">rewrite_asset_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000009">template_name</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000012">with_data_uris</a>,</li>
+                
+                <li><a href="#M000013">with_mhtml</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBED_MIME_TYPES</td>
+            <td>=</td>
+            <td class="attr-value">{       '.png'  =&gt; 'image/png',       '.jpg'  =&gt; 'image/jpeg',       '.jpeg' =&gt; 'image/jpeg',       '.gif'  =&gt; 'image/gif',       '.tif'  =&gt; 'image/tiff',       '.tiff' =&gt; 'image/tiff',       '.ttf'  =&gt; 'font/truetype',       '.otf'  =&gt; 'font/opentype',       '.woff' =&gt; 'font/woff'     }</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Mapping from extension to mime-type of all embeddable assets.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBED_EXTS</td>
+            <td>=</td>
+            <td class="attr-value">EMBED_MIME_TYPES.keys</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Font extensions for which we allow embedding:
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBED_FONTS</td>
+            <td>=</td>
+            <td class="attr-value">['.ttf', '.otf', '.woff']</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MAX_IMAGE_SIZE</td>
+            <td>=</td>
+            <td class="attr-value">32700</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+(32k - padding) maximum length for data-uri assets (an IE8 limitation).
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBED_DETECTOR</td>
+            <td>=</td>
+            <td class="attr-value">/url\(['&quot;]?([^\s)]+\.[a-z]+)(\?\d+)?['&quot;]?\)/</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+CSS asset-embedding regexes for URL rewriting.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBEDDABLE</td>
+            <td>=</td>
+            <td class="attr-value">/[\A\/]embed\//</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EMBED_REPLACER</td>
+            <td>=</td>
+            <td class="attr-value">/url\(__EMBED__(.+?)(\?\d+)?\)/</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MHTML_START</td>
+            <td>=</td>
+            <td class="attr-value">&quot;/*\r\nContent-Type: multipart/related; boundary=\&quot;MHTML_MARK\&quot;\r\n\r\n&quot;</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+MHTML file constants.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MHTML_SEPARATOR</td>
+            <td>=</td>
+            <td class="attr-value">&quot;--MHTML_MARK\r\n&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MHTML_END</td>
+            <td>=</td>
+            <td class="attr-value">&quot;\r\n--MHTML_MARK--\r\n*/\r\n&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">JST_START</td>
+            <td>=</td>
+            <td class="attr-value">&quot;(function(){&quot;</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+JST file constants.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">JST_END</td>
+            <td>=</td>
+            <td class="attr-value">&quot;})();&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">COMPRESSORS</td>
+            <td>=</td>
+            <td class="attr-value">{       :yui      =&gt; YUI::JavaScriptCompressor,       :closure  =&gt; Jammit.compressors.include?(:closure)  ? Closure::Compiler : nil,       :uglifier =&gt; Jammit.compressors.include?(:uglifier) ? Jammit::Uglifier  : nil     }</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_OPTIONS</td>
+            <td>=</td>
+            <td class="attr-value">{       :yui      =&gt; {:munge =&gt; true},       :closure  =&gt; {},       :uglifier =&gt; {:copyright =&gt; false}     }</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b>new</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The css compressor is always the YUI <a
+href="Compressor.html">Compressor</a>. JS compression can be provided with
+YUI <a href="Compressor.html">Compressor</a>, Google Closure Compiler or
+UglifyJS.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 58</span>
+58:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+59:       <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">check_java_version</span>
+60:       <span class="ruby-ivar">@css_compressor</span> = <span class="ruby-constant">YUI</span><span class="ruby-operator">::</span><span class="ruby-constant">CssCompressor</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">css_compressor_options</span> <span class="ruby-operator">||</span> {})
+61:       <span class="ruby-identifier">flavor</span>          = <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">javascript_compressor</span> <span class="ruby-operator">||</span> <span class="ruby-constant">Jammit</span><span class="ruby-operator">::</span><span class="ruby-constant">DEFAULT_COMPRESSOR</span>
+62:       <span class="ruby-ivar">@options</span>        = <span class="ruby-constant">DEFAULT_OPTIONS</span>[<span class="ruby-identifier">flavor</span>].<span class="ruby-identifier">merge</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">compressor_options</span> <span class="ruby-operator">||</span> {})
+63:       <span class="ruby-ivar">@js_compressor</span>  = <span class="ruby-constant">COMPRESSORS</span>[<span class="ruby-identifier">flavor</span>].<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@options</span>)
+64:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000006">
+                    
+                    <a name="M000006"></a><b>compile_jst</b>(paths)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Compiles a single JST file by writing out a javascript that adds template
+properties to a top-level template namespace object. Adds a JST-compilation
+function to the top of the package, unless you&#8217;ve specified your own
+preferred function, or turned it off. JST templates are named with the
+basename of their file.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
+                        
+                    </p>
+                    <div id="M000006_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 97</span>
+ 97:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">compile_jst</span>(<span class="ruby-identifier">paths</span>)
+ 98:       <span class="ruby-identifier">namespace</span>   = <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">template_namespace</span>
+ 99:       <span class="ruby-identifier">paths</span>       = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">grep</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">template_extension_matcher</span>).<span class="ruby-identifier">sort</span>
+100:       <span class="ruby-identifier">base_path</span>   = <span class="ruby-identifier">find_base_path</span>(<span class="ruby-identifier">paths</span>)
+101:       <span class="ruby-identifier">compiled</span>    = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">path</span><span class="ruby-operator">|</span>
+102:         <span class="ruby-identifier">contents</span>  = <span class="ruby-identifier">read_binary_file</span>(<span class="ruby-identifier">path</span>)
+103:         <span class="ruby-identifier">contents</span>  = <span class="ruby-identifier">contents</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\r?\n/</span>, <span class="ruby-value str">&quot;\\n&quot;</span>).<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">&quot;'&quot;</span>, <span class="ruby-value str">'\\\\\''</span>)
+104:         <span class="ruby-identifier">name</span>      = <span class="ruby-identifier">template_name</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">base_path</span>)
+105:         <span class="ruby-node">&quot;#{namespace}['#{name}'] = #{Jammit.template_function}('#{contents}');&quot;</span>
+106:       <span class="ruby-keyword kw">end</span>
+107:       <span class="ruby-identifier">compiler</span> = <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">include_jst_script</span> <span class="ruby-value">? </span><span class="ruby-identifier">read_binary_file</span>(<span class="ruby-constant">DEFAULT_JST_SCRIPT</span>) <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>;
+108:       <span class="ruby-identifier">setup_namespace</span> = <span class="ruby-node">&quot;#{namespace} = #{namespace} || {};&quot;</span>
+109:       [<span class="ruby-constant">JST_START</span>, <span class="ruby-identifier">setup_namespace</span>, <span class="ruby-identifier">compiler</span>, <span class="ruby-identifier">compiled</span>, <span class="ruby-constant">JST_END</span>].<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+110:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b>compress_css</b>(paths, variant=nil, asset_url=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Concatenate and compress a list of CSS stylesheets. When compressing a
+:datauri or :mhtml variant, post-processes the result to embed referenced
+assets.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 80</span>
+80:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">compress_css</span>(<span class="ruby-identifier">paths</span>, <span class="ruby-identifier">variant</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">asset_url</span>=<span class="ruby-keyword kw">nil</span>)
+81:       <span class="ruby-ivar">@asset_contents</span> = {}
+82:       <span class="ruby-identifier">css</span> = <span class="ruby-identifier">concatenate_and_tag_assets</span>(<span class="ruby-identifier">paths</span>, <span class="ruby-identifier">variant</span>)
+83:       <span class="ruby-identifier">css</span> = <span class="ruby-ivar">@css_compressor</span>.<span class="ruby-identifier">compress</span>(<span class="ruby-identifier">css</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">compress_assets</span>
+84:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">variant</span>
+85:       <span class="ruby-keyword kw">when</span> <span class="ruby-keyword kw">nil</span>      <span class="ruby-keyword kw">then</span> <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">css</span>
+86:       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:datauri</span> <span class="ruby-keyword kw">then</span> <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">with_data_uris</span>(<span class="ruby-identifier">css</span>)
+87:       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:mhtml</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">with_mhtml</span>(<span class="ruby-identifier">css</span>, <span class="ruby-identifier">asset_url</span>)
+88:       <span class="ruby-keyword kw">else</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackageNotFound</span>, <span class="ruby-node">&quot;\&quot;#{variant}\&quot; is not a valid stylesheet variant&quot;</span>
+89:       <span class="ruby-keyword kw">end</span>
+90:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>compress_js</b>(paths)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Concatenate together a list of JavaScript paths, and pass them through the
+YUI <a href="Compressor.html">Compressor</a> (with munging enabled). JST
+can optionally be included.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 68</span>
+68:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">compress_js</span>(<span class="ruby-identifier">paths</span>)
+69:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">jst_paths</span> = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">grep</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">template_extension_matcher</span>)).<span class="ruby-identifier">empty?</span>
+70:         <span class="ruby-identifier">js</span> = <span class="ruby-identifier">concatenate</span>(<span class="ruby-identifier">paths</span>)
+71:       <span class="ruby-keyword kw">else</span>
+72:         <span class="ruby-identifier">js</span> = <span class="ruby-identifier">concatenate</span>(<span class="ruby-identifier">paths</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">jst_paths</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">compile_jst</span>(<span class="ruby-identifier">jst_paths</span>)
+73:       <span class="ruby-keyword kw">end</span>
+74:       <span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">compress_assets</span> <span class="ruby-value">? </span><span class="ruby-ivar">@js_compressor</span>.<span class="ruby-identifier">compress</span>(<span class="ruby-identifier">js</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">js</span>
+75:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>absolute_path</b>(asset_pathname, css_pathname)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the site-absolute public path for an asset file path that may or may
+not be relative, given the path of the stylesheet that contains it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 188</span>
+188:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">absolute_path</span>(<span class="ruby-identifier">asset_pathname</span>, <span class="ruby-identifier">css_pathname</span>)
+189:       (<span class="ruby-identifier">asset_pathname</span>.<span class="ruby-identifier">absolute?</span> <span class="ruby-value">?
+190: </span>        <span class="ruby-constant">Pathname</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">public_root</span>, <span class="ruby-identifier">asset_pathname</span>)) <span class="ruby-operator">:</span>
+191:         <span class="ruby-identifier">css_pathname</span>.<span class="ruby-identifier">dirname</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">asset_pathname</span>).<span class="ruby-identifier">cleanpath</span>
+192:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000026">
+                    
+                    <a name="M000026"></a><b>concatenate</b>(paths)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Concatenate together a list of asset files.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000026_source')" id="l_M000026_source">show</a>
+                        
+                    </p>
+                    <div id="M000026_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 243</span>
+243:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">concatenate</span>(<span class="ruby-identifier">paths</span>)
+244:       [<span class="ruby-identifier">paths</span>].<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">map</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">read_binary_file</span>(<span class="ruby-identifier">p</span>) }.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+245:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>concatenate_and_tag_assets</b>(paths, variant=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+In order to support embedded assets from relative paths, we need to expand
+the paths before contatenating the CSS together and losing the location of
+the original stylesheet path. Validate the assets while we&#8217;re at it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 140</span>
+140:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">concatenate_and_tag_assets</span>(<span class="ruby-identifier">paths</span>, <span class="ruby-identifier">variant</span>=<span class="ruby-keyword kw">nil</span>)
+141:       <span class="ruby-identifier">stylesheets</span> = [<span class="ruby-identifier">paths</span>].<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">css_path</span><span class="ruby-operator">|</span>
+142:         <span class="ruby-identifier">contents</span> = <span class="ruby-identifier">read_binary_file</span>(<span class="ruby-identifier">css_path</span>)
+143:         <span class="ruby-identifier">contents</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-constant">EMBED_DETECTOR</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">url</span><span class="ruby-operator">|</span>
+144:           <span class="ruby-identifier">ipath</span>, <span class="ruby-identifier">cpath</span> = <span class="ruby-constant">Pathname</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">$1</span>), <span class="ruby-constant">Pathname</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">css_path</span>))
+145:           <span class="ruby-identifier">is_url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">$1</span>).<span class="ruby-identifier">absolute?</span>
+146:           <span class="ruby-identifier">is_url</span> <span class="ruby-value">? </span><span class="ruby-identifier">url</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;url(#{construct_asset_path(ipath, cpath, variant)})&quot;</span>
+147:         <span class="ruby-keyword kw">end</span>
+148:       <span class="ruby-keyword kw">end</span>
+149:       <span class="ruby-identifier">stylesheets</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+150:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000016">
+                    
+                    <a name="M000016"></a><b>construct_asset_path</b>(asset_path, css_path, variant)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return a rewritten asset URL for a new stylesheet &#8212; the asset should
+be tagged for embedding if embeddable, and referenced at the correct level
+if relative.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000016_source')" id="l_M000016_source">show</a>
+                        
+                    </p>
+                    <div id="M000016_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 179</span>
+179:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">construct_asset_path</span>(<span class="ruby-identifier">asset_path</span>, <span class="ruby-identifier">css_path</span>, <span class="ruby-identifier">variant</span>)
+180:       <span class="ruby-identifier">public_path</span> = <span class="ruby-identifier">absolute_path</span>(<span class="ruby-identifier">asset_path</span>, <span class="ruby-identifier">css_path</span>)
+181:       <span class="ruby-keyword kw">return</span> <span class="ruby-node">&quot;__EMBED__#{public_path}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">embeddable?</span>(<span class="ruby-identifier">public_path</span>, <span class="ruby-identifier">variant</span>)
+182:       <span class="ruby-identifier">source</span> = <span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">absolute?</span> <span class="ruby-value">? </span><span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">relative_path</span>(<span class="ruby-identifier">public_path</span>)
+183:       <span class="ruby-identifier">rewrite_asset_path</span>(<span class="ruby-identifier">source</span>, <span class="ruby-identifier">public_path</span>)
+184:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000023">
+                    
+                    <a name="M000023"></a><b>embeddable?</b>(asset_path, variant)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+An asset is valid for embedding if it exists, is less than 32K, and is
+stored somewhere inside of a folder named &#8220;embed&#8221;. IE does not
+support Data-URIs larger than 32K, and you probably shouldn&#8217;t be
+embedding assets that large in any case. Because we need to check the
+base64 length here, save it so that we don&#8217;t have to compute it again
+later.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000023_source')" id="l_M000023_source">show</a>
+                        
+                    </p>
+                    <div id="M000023_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 220</span>
+220:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">embeddable?</span>(<span class="ruby-identifier">asset_path</span>, <span class="ruby-identifier">variant</span>)
+221:       <span class="ruby-identifier">font</span> = <span class="ruby-constant">EMBED_FONTS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">extname</span>)
+222:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">variant</span>
+223:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">match</span>(<span class="ruby-constant">EMBEDDABLE</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">exist?</span>
+224:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">EMBED_EXTS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">asset_path</span>.<span class="ruby-identifier">extname</span>)
+225:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">font</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">encoded_contents</span>(<span class="ruby-identifier">asset_path</span>).<span class="ruby-identifier">length</span> <span class="ruby-operator">&lt;</span> <span class="ruby-constant">MAX_IMAGE_SIZE</span>
+226:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">font</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">variant</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:mhtml</span>
+227:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+228:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000024">
+                    
+                    <a name="M000024"></a><b>encoded_contents</b>(asset_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return the Base64-encoded contents of an asset on a single line.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000024_source')" id="l_M000024_source">show</a>
+                        
+                    </p>
+                    <div id="M000024_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 231</span>
+231:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">encoded_contents</span>(<span class="ruby-identifier">asset_path</span>)
+232:       <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@asset_contents</span>[<span class="ruby-identifier">asset_path</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@asset_contents</span>[<span class="ruby-identifier">asset_path</span>]
+233:       <span class="ruby-identifier">data</span> = <span class="ruby-identifier">read_binary_file</span>(<span class="ruby-identifier">asset_path</span>)
+234:       <span class="ruby-ivar">@asset_contents</span>[<span class="ruby-identifier">asset_path</span>] = <span class="ruby-constant">Base64</span>.<span class="ruby-identifier">encode64</span>(<span class="ruby-identifier">data</span>).<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\n/</span>, <span class="ruby-value str">''</span>)
+235:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000007">
+                    
+                    <a name="M000007"></a><b>find_base_path</b>(paths)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Given a set of paths, find a common prefix path.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
+                        
+                    </p>
+                    <div id="M000007_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 116</span>
+116:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_base_path</span>(<span class="ruby-identifier">paths</span>)
+117:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-value">1</span>
+118:       <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">sort!</span>
+119:       <span class="ruby-identifier">first</span> = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'/'</span>)
+120:       <span class="ruby-identifier">last</span>  = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'/'</span>)
+121:       <span class="ruby-identifier">i</span> = <span class="ruby-value">0</span>
+122:       <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">first</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">last</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-identifier">first</span>.<span class="ruby-identifier">length</span>
+123:         <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+124:       <span class="ruby-keyword kw">end</span>
+125:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">first</span>.<span class="ruby-identifier">slice</span>(<span class="ruby-value">0</span>, <span class="ruby-identifier">i</span>).<span class="ruby-identifier">join</span>(<span class="ruby-value str">'/'</span>)
+126:       <span class="ruby-identifier">res</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">nil</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">res</span>
+127:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000025">
+                    
+                    <a name="M000025"></a><b>mime_type</b>(asset_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Grab the mime-type of an asset, by filename.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000025_source')" id="l_M000025_source">show</a>
+                        
+                    </p>
+                    <div id="M000025_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 238</span>
+238:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mime_type</span>(<span class="ruby-identifier">asset_path</span>)
+239:       <span class="ruby-constant">EMBED_MIME_TYPES</span>[<span class="ruby-constant">File</span>.<span class="ruby-identifier">extname</span>(<span class="ruby-identifier">asset_path</span>)]
+240:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000022">
+                    
+                    <a name="M000022"></a><b>rails_asset_id</b>(path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Similar to the AssetTagHelper&#8217;s method of the same name, this will
+determine the correct asset id for a file.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000022_source')" id="l_M000022_source">show</a>
+                        
+                    </p>
+                    <div id="M000022_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 209</span>
+209:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rails_asset_id</span>(<span class="ruby-identifier">path</span>)
+210:       <span class="ruby-identifier">asset_id</span> = <span class="ruby-constant">ENV</span>[<span class="ruby-value str">&quot;RAILS_ASSET_ID&quot;</span>]
+211:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">asset_id</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">asset_id</span>
+212:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">exists?</span>(<span class="ruby-identifier">path</span>) <span class="ruby-operator">?</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">mtime</span>(<span class="ruby-identifier">path</span>).<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>
+213:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000027">
+                    
+                    <a name="M000027"></a><b>read_binary_file</b>(path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+`File.read`, but in &#8220;binary&#8221; mode.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000027_source')" id="l_M000027_source">show</a>
+                        
+                    </p>
+                    <div id="M000027_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 248</span>
+248:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_binary_file</span>(<span class="ruby-identifier">path</span>)
+249:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">path</span>, <span class="ruby-value str">'rb:UTF-8'</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">read</span> }
+250:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000020">
+                    
+                    <a name="M000020"></a><b>relative_path</b>(absolute_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+CSS assets that are referenced by relative paths, and are <b>not</b> being
+embedded, must be rewritten relative to the newly-merged stylesheet path.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000020_source')" id="l_M000020_source">show</a>
+                        
+                    </p>
+                    <div id="M000020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 196</span>
+196:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">relative_path</span>(<span class="ruby-identifier">absolute_path</span>)
+197:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'../'</span>, <span class="ruby-identifier">absolute_path</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-constant">Jammit</span>.<span class="ruby-identifier">public_root</span>, <span class="ruby-value str">''</span>))
+198:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000021">
+                    
+                    <a name="M000021"></a><b>rewrite_asset_path</b>(path, file_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Similar to the AssetTagHelper&#8217;s method of the same name, this will
+append the RAILS_ASSET_ID cache-buster to URLs, if it&#8217;s defined.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000021_source')" id="l_M000021_source">show</a>
+                        
+                    </p>
+                    <div id="M000021_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 202</span>
+202:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rewrite_asset_path</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">file_path</span>)
+203:       <span class="ruby-identifier">asset_id</span> = <span class="ruby-identifier">rails_asset_id</span>(<span class="ruby-identifier">file_path</span>)
+204:       (<span class="ruby-operator">!</span><span class="ruby-identifier">asset_id</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">asset_id</span> <span class="ruby-operator">==</span> <span class="ruby-value str">''</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">path</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{path}?#{asset_id}&quot;</span>
+205:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000009">
+                    
+                    <a name="M000009"></a><b>template_name</b>(path, base_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Determine the name of a JS template. If there&#8217;s a common base path,
+use the namespaced prefix. Otherwise, simply use the filename.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000009_source')" id="l_M000009_source">show</a>
+                        
+                    </p>
+                    <div id="M000009_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 131</span>
+131:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">template_name</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">base_path</span>)
+132:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">basename</span>(<span class="ruby-identifier">path</span>, <span class="ruby-node">&quot;.#{Jammit.template_extension}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">base_path</span>
+133:       <span class="ruby-identifier">path</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-node">/\A#{Regexp.escape(base_path)}\/(.*)\.#{Jammit.template_extension}\Z/</span>, <span class="ruby-value str">'\1'</span>)
+134:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>with_data_uris</b>(css)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Re-write all enabled asset URLs in a stylesheet with their corresponding
+Data-URI Base-64 encoded asset contents.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 154</span>
+154:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_data_uris</span>(<span class="ruby-identifier">css</span>)
+155:       <span class="ruby-identifier">css</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-constant">EMBED_REPLACER</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">url</span><span class="ruby-operator">|</span>
+156:         <span class="ruby-node">&quot;url(\&quot;data:#{mime_type($1)};charset=utf-8;base64,#{encoded_contents($1)}\&quot;)&quot;</span>
+157:       <span class="ruby-keyword kw">end</span>
+158:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000013">
+                    
+                    <a name="M000013"></a><b>with_mhtml</b>(css, asset_url)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Re-write all enabled asset URLs in a stylesheet with the MHTML equivalent.
+The newlines (&#8220;r\n&#8220;) in the following method are critical.
+Without them your MHTML will look identical, but won&#8217;t work.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000013_source')" id="l_M000013_source">show</a>
+                        
+                    </p>
+                    <div id="M000013_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/jammit/compressor.rb, line 163</span>
+163:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_mhtml</span>(<span class="ruby-identifier">css</span>, <span class="ruby-identifier">asset_url</span>)
+164:       <span class="ruby-identifier">paths</span>, <span class="ruby-identifier">index</span> = {}, <span class="ruby-value">0</span>
+165:       <span class="ruby-identifier">css</span> = <span class="ruby-identifier">css</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-constant">EMBED_REPLACER</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">url</span><span class="ruby-operator">|</span>
+166:         <span class="ruby-identifier">i</span> = <span class="ruby-identifier">paths</span>[<span class="ruby-identifier">$1</span>] <span class="ruby-operator">||=</span> <span class="ruby-node">&quot;#{index += 1}-#{File.basename($1)}&quot;</span>
+167:         <span class="ruby-node">&quot;url(mhtml:#{asset_url}!#{i})&quot;</span>
+168:       <span class="ruby-keyword kw">end</span>
+169:       <span class="ruby-identifier">mhtml</span> = <span class="ruby-identifier">paths</span>.<span class="ruby-identifier">sort</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">path</span>, <span class="ruby-identifier">identifier</span><span class="ruby-operator">|</span>
+170:         <span class="ruby-identifier">mime</span>, <span class="ruby-identifier">contents</span> = <span class="ruby-identifier">mime_type</span>(<span class="ruby-identifier">path</span>), <span class="ruby-identifier">encoded_contents</span>(<span class="ruby-identifier">path</span>)
+171:         [<span class="ruby-constant">MHTML_SEPARATOR</span>, <span class="ruby-node">&quot;Content-Location: #{identifier}\r\n&quot;</span>, <span class="ruby-node">&quot;Content-Type: #{mime}\r\n&quot;</span>, <span class="ruby-value str">&quot;Content-Transfer-Encoding: base64\r\n\r\n&quot;</span>, <span class="ruby-identifier">contents</span>, <span class="ruby-value str">&quot;\r\n&quot;</span>]
+172:       <span class="ruby-keyword kw">end</span>
+173:       [<span class="ruby-constant">MHTML_START</span>, <span class="ruby-identifier">mhtml</span>, <span class="ruby-constant">MHTML_END</span>, <span class="ruby-identifier">css</span>].<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">''</span>)
+174:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

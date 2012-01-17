@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>DaemonController::LockFile</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            DaemonController::LockFile 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/daemon_controller/lock_file_rb.html">lib/daemon_controller/lock_file.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A lock file is a synchronization mechanism, like a Mutex, but it also
+allows inter-process synchronization (as opposed to only inter-thread
+synchronization within a single process).
+</p>
+<p>
+Processes can obtain either a shared lock or an exclusive lock. It&#8217;s
+possible for multiple processes to obtain a shared lock on a file as long
+as no exclusive lock has been obtained by a process. If a process has
+obtained an exclusive lock, then no other processes can lock the file,
+whether they&#8217;re trying to obtain a shared lock or an exclusive lock.
+</p>
+<p>
+Note that on JRuby, <a href="LockFile.html">LockFile</a> can only guarantee
+synchronization between threads if the different threads use the same <a
+href="LockFile.html">LockFile</a> object. Specifying the same filename is
+not enough.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000001">exclusive_lock</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000000">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000002">shared_lock</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000004">try_exclusive_lock</a>,</li>
+                
+                <li><a href="#M000003">try_shared_lock</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="LockFile/AlreadyLocked.html">DaemonController::LockFile::AlreadyLocked</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000001">
+                    
+                    <a name="M000001"></a><b>exclusive_lock</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Obtain an exclusive lock on the lock file, yield the given block, then
+unlock the lockfile. If the lock file was already locked (whether shared or
+exclusively) by another process/thread then this method will block until
+the lock file has been unlocked.
+</p>
+<p>
+The lock file <b>must</b> be writable, otherwise an Errno::EACCESS
+exception will be raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000001_source')" id="l_M000001_source">show</a>
+                        
+                    </p>
+                    <div id="M000001_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemon_controller/lock_file.rb, line 62</span>
+62:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exclusive_lock</span>
+63:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@filename</span>, <span class="ruby-value str">'w'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+64:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Fcntl</span>.<span class="ruby-identifier">const_defined?</span> <span class="ruby-identifier">:F_SETFD</span>
+65:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">fcntl</span>(<span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">F_SETFD</span>, <span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">FD_CLOEXEC</span>)
+66:       <span class="ruby-keyword kw">end</span>
+67:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_EX</span>)
+68:       <span class="ruby-keyword kw">yield</span>
+69:     <span class="ruby-keyword kw">end</span>
+70:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000002">
+                    
+                    <a name="M000002"></a><b>shared_lock</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Obtain an exclusive lock on the lock file, yield the given block, then
+unlock the lockfile. If the lock file was already exclusively locked by
+another process/thread then this method will block until the exclusive lock
+has been released. This method will not block if only shared locks have
+been obtained.
+</p>
+<p>
+The lock file <b>must</b> be writable, otherwise an Errno::EACCESS
+exception will be raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000002_source')" id="l_M000002_source">show</a>
+                        
+                    </p>
+                    <div id="M000002_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemon_controller/lock_file.rb, line 80</span>
+80:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">shared_lock</span>
+81:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@filename</span>, <span class="ruby-value str">'w'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+82:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Fcntl</span>.<span class="ruby-identifier">const_defined?</span> <span class="ruby-identifier">:F_SETFD</span>
+83:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">fcntl</span>(<span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">F_SETFD</span>, <span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">FD_CLOEXEC</span>)
+84:       <span class="ruby-keyword kw">end</span>
+85:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_SH</span>)
+86:       <span class="ruby-keyword kw">yield</span>
+87:     <span class="ruby-keyword kw">end</span>
+88:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>try_exclusive_lock</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to obtain an exclusive lock on the lock file, similar to <a
+href="LockFile.html#M000001">exclusive_lock</a>. But unlike <a
+href="LockFile.html#M000001">exclusive_lock</a>, this method will raise <a
+href="LockFile/AlreadyLocked.html">AlreadyLocked</a> if no lock can be
+obtained, instead of blocking.
+</p>
+<p>
+If a lock can be obtained, then the given block will be yielded.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemon_controller/lock_file.rb, line 113</span>
+113:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">try_exclusive_lock</span>
+114:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@filename</span>, <span class="ruby-value str">'w'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+115:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Fcntl</span>.<span class="ruby-identifier">const_defined?</span> <span class="ruby-identifier">:F_SETFD</span>
+116:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">fcntl</span>(<span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">F_SETFD</span>, <span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">FD_CLOEXEC</span>)
+117:       <span class="ruby-keyword kw">end</span>
+118:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_EX</span> <span class="ruby-operator">|</span> <span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_NB</span>)
+119:         <span class="ruby-keyword kw">yield</span>
+120:       <span class="ruby-keyword kw">else</span>
+121:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">AlreadyLocked</span>
+122:       <span class="ruby-keyword kw">end</span>
+123:     <span class="ruby-keyword kw">end</span>
+124:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b>try_shared_lock</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to obtain a shared lock on the lock file, similar to <a
+href="LockFile.html#M000002">shared_lock</a>. But unlike <a
+href="LockFile.html#M000002">shared_lock</a>, this method will raise <a
+href="LockFile/AlreadyLocked.html">AlreadyLocked</a> if no lock can be
+obtained, instead of blocking.
+</p>
+<p>
+If a lock can be obtained, then the given block will be yielded.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemon_controller/lock_file.rb, line 95</span>
+ 95:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">try_shared_lock</span>
+ 96:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@filename</span>, <span class="ruby-value str">'w'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+ 97:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Fcntl</span>.<span class="ruby-identifier">const_defined?</span> <span class="ruby-identifier">:F_SETFD</span>
+ 98:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">fcntl</span>(<span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">F_SETFD</span>, <span class="ruby-constant">Fcntl</span><span class="ruby-operator">::</span><span class="ruby-constant">FD_CLOEXEC</span>)
+ 99:       <span class="ruby-keyword kw">end</span>
+100:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flock</span>(<span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_SH</span> <span class="ruby-operator">|</span> <span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">LOCK_NB</span>)
+101:         <span class="ruby-keyword kw">yield</span>
+102:       <span class="ruby-keyword kw">else</span>
+103:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">AlreadyLocked</span>
+104:       <span class="ruby-keyword kw">end</span>
+105:     <span class="ruby-keyword kw">end</span>
+106:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000000">
+                    
+                    <a name="M000000"></a><b>new</b>(filename)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Create a <a href="LockFile.html">LockFile</a> object. The lock file is
+initially not locked.
+</p>
+<p>
+<tt>filename</tt> may point to a nonexistant file. In that case, the lock
+file will not be created until one&#8217;s trying to obtain a lock.
+</p>
+<p>
+Note that <a href="LockFile.html">LockFile</a> will use this exact
+filename. So if <tt>filename</tt> is a relative filename, then the actual
+lock file that will be used depends on the current working directory.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
+                        
+                    </p>
+                    <div id="M000000_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemon_controller/lock_file.rb, line 51</span>
+51:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">filename</span>)
+52:     <span class="ruby-ivar">@filename</span> = <span class="ruby-identifier">filename</span>
+53:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

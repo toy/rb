@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Dir</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Dir 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/backported_tmpdir_rb.html">lib/backported_tmpdir.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000004">mktmpdir</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000000">tmpdir</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">CSIDL_LOCAL_APPDATA</td>
+            <td>=</td>
+            <td class="attr-value">0x001c</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>mktmpdir</b>(prefix_suffix=nil, tmpdir=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Dir.html#M000004">Dir.mktmpdir</a> creates a temporary directory.
+</p>
+<p>
+The directory is created with 0700 permission.
+</p>
+<p>
+The prefix and suffix of the name of the directory is specified by the
+optional first argument, <em>prefix_suffix</em>.
+</p>
+<ul>
+<li>If it is not specified or nil, &#8220;d&#8221; is used as the prefix and no
+suffix is used.
+
+</li>
+<li>If it is a string, it is used as the prefix and no suffix is used.
+
+</li>
+<li>If it is an array, first element is used as the prefix and second element
+is used as a suffix.
+
+</li>
+</ul>
+<pre>
+ Dir.mktmpdir {|dir| dir is &quot;.../d...&quot; }
+ Dir.mktmpdir(&quot;foo&quot;) {|dir| dir is &quot;.../foo...&quot; }
+ Dir.mktmpdir([&quot;foo&quot;, &quot;bar&quot;]) {|dir| dir is &quot;.../foo...bar&quot; }
+</pre>
+<p>
+The directory is created under <a href="Dir.html#M000000">Dir.tmpdir</a> or
+the optional second argument <em>tmpdir</em> if non-nil value is given.
+</p>
+<pre>
+ Dir.mktmpdir {|dir| dir is &quot;#{Dir.tmpdir}/d...&quot; }
+ Dir.mktmpdir(nil, &quot;/var/tmp&quot;) {|dir| dir is &quot;/var/tmp/d...&quot; }
+</pre>
+<p>
+If a block is given, it is yielded with the path of the directory. The
+directory and its contents are removed using FileUtils.remove_entry_secure
+before <a href="Dir.html#M000004">Dir.mktmpdir</a> returns. The value of
+the block is returned.
+</p>
+<pre>
+ Dir.mktmpdir {|dir|
+   # use the directory...
+   open(&quot;#{dir}/foo&quot;, &quot;w&quot;) { ... }
+ }
+</pre>
+<p>
+If a block is not given, The path of the directory is returned. In this
+case, <a href="Dir.html#M000004">Dir.mktmpdir</a> doesn&#8217;t remove the
+directory.
+</p>
+<pre>
+ dir = Dir.mktmpdir
+ begin
+   # use the directory...
+   open(&quot;#{dir}/foo&quot;, &quot;w&quot;) { ... }
+ ensure
+   # remove the directory.
+   FileUtils.remove_entry_secure dir
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/backported_tmpdir.rb, line 99</span>
+ 99:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mktmpdir</span>(<span class="ruby-identifier">prefix_suffix</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">tmpdir</span>=<span class="ruby-keyword kw">nil</span>)
+100:     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">prefix_suffix</span>
+101:     <span class="ruby-keyword kw">when</span> <span class="ruby-keyword kw">nil</span>
+102:       <span class="ruby-identifier">prefix</span> = <span class="ruby-value str">&quot;d&quot;</span>
+103:       <span class="ruby-identifier">suffix</span> = <span class="ruby-value str">&quot;&quot;</span>
+104:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">String</span>
+105:       <span class="ruby-identifier">prefix</span> = <span class="ruby-identifier">prefix_suffix</span>
+106:       <span class="ruby-identifier">suffix</span> = <span class="ruby-value str">&quot;&quot;</span>
+107:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Array</span>
+108:       <span class="ruby-identifier">prefix</span> = <span class="ruby-identifier">prefix_suffix</span>[<span class="ruby-value">0</span>]
+109:       <span class="ruby-identifier">suffix</span> = <span class="ruby-identifier">prefix_suffix</span>[<span class="ruby-value">1</span>]
+110:     <span class="ruby-keyword kw">else</span>
+111:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-node">&quot;unexpected prefix_suffix: #{prefix_suffix.inspect}&quot;</span>
+112:     <span class="ruby-keyword kw">end</span>
+113:     <span class="ruby-identifier">tmpdir</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">tmpdir</span>
+114:     <span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">strftime</span>(<span class="ruby-value str">&quot;%Y%m%d&quot;</span>)
+115:     <span class="ruby-identifier">n</span> = <span class="ruby-keyword kw">nil</span>
+116:     <span class="ruby-keyword kw">begin</span>
+117:       <span class="ruby-identifier">path</span> = <span class="ruby-node">&quot;#{tmpdir}/#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}&quot;</span>
+118:       <span class="ruby-identifier">path</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;-#{n}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">n</span>
+119:       <span class="ruby-identifier">path</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">suffix</span>
+120:       <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">path</span>, <span class="ruby-value">0700</span>)
+121:     <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EEXIST</span>
+122:       <span class="ruby-identifier">n</span> <span class="ruby-operator">||=</span> <span class="ruby-value">0</span>
+123:       <span class="ruby-identifier">n</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+124:       <span class="ruby-keyword kw">retry</span>
+125:     <span class="ruby-keyword kw">end</span>
+126: 
+127:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+128:       <span class="ruby-keyword kw">begin</span>
+129:         <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">path</span>
+130:       <span class="ruby-keyword kw">ensure</span>
+131:         <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">remove_entry_secure</span> <span class="ruby-identifier">path</span>
+132:       <span class="ruby-keyword kw">end</span>
+133:     <span class="ruby-keyword kw">else</span>
+134:       <span class="ruby-identifier">path</span>
+135:     <span class="ruby-keyword kw">end</span>
+136:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000000">
+                    
+                    <a name="M000000"></a><b>tmpdir</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the operating system&#8217;s temporary file path.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
+                        
+                    </p>
+                    <div id="M000000_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/backported_tmpdir.rb, line 39</span>
+39:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Dir</span><span class="ruby-operator">::</span><span class="ruby-identifier">tmpdir</span>
+40:     <span class="ruby-identifier">tmp</span> = <span class="ruby-value str">'.'</span>
+41:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$SAFE</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+42:       <span class="ruby-identifier">tmp</span> = <span class="ruby-ivar">@@systmpdir</span>
+43:     <span class="ruby-keyword kw">else</span>
+44:       <span class="ruby-keyword kw">for</span> <span class="ruby-identifier">dir</span> <span class="ruby-keyword kw">in</span> [<span class="ruby-constant">ENV</span>[<span class="ruby-value str">'TMPDIR'</span>], <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'TMP'</span>], <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'TEMP'</span>],
+45:             <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'USERPROFILE'</span>], <span class="ruby-ivar">@@systmpdir</span>, <span class="ruby-value str">'/tmp'</span>]
+46:   <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">dir</span> <span class="ruby-keyword kw">and</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span>(<span class="ruby-identifier">dir</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">writable?</span>(<span class="ruby-identifier">dir</span>)
+47:     <span class="ruby-identifier">tmp</span> = <span class="ruby-identifier">dir</span>
+48:     <span class="ruby-keyword kw">break</span>
+49:   <span class="ruby-keyword kw">end</span>
+50:       <span class="ruby-keyword kw">end</span>
+51:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">tmp</span>)
+52:     <span class="ruby-keyword kw">end</span>
+53:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

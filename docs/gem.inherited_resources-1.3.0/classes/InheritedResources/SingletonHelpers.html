@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>InheritedResources::SingletonHelpers</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            InheritedResources::SingletonHelpers 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/inherited_resources/singleton_helpers_rb.html">lib/inherited_resources/singleton_helpers.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>singleton</h1>
+<p>
+Singletons are usually used in associations which are related through
+has_one and belongs_to. You declare those associations like this:
+</p>
+<pre>
+  class ManagersController &lt; InheritedResources::Base
+    belongs_to :project, :singleton =&gt; true
+  end
+</pre>
+<p>
+But in some cases, like an AccountsController, you have a singleton object
+that is not necessarily associated with another:
+</p>
+<pre>
+  class AccountsController &lt; InheritedResources::Base
+    defaults :singleton =&gt; true
+  end
+</pre>
+<p>
+Besides that, you should overwrite the methods :resource and
+:build_resource to make it work properly:
+</p>
+<pre>
+  class AccountsController &lt; InheritedResources::Base
+    defaults :singleton =&gt; true
+
+    protected
+      def resource
+        @current_user.account
+      end
+
+      def build_resource(attributes = {})
+        Account.new(attributes)
+      end
+  end
+</pre>
+<p>
+When you have a singleton controller, the action index is removed.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000074">collection</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000075">resource</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000074">
+                    
+                    <a name="M000074"></a><b>collection</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Singleton methods does not deal with collections.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000074_source')" id="l_M000074_source">show</a>
+                        
+                    </p>
+                    <div id="M000074_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/inherited_resources/singleton_helpers.rb, line 43</span>
+43:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">collection</span>
+44:         <span class="ruby-keyword kw">nil</span>
+45:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000075">
+                    
+                    <a name="M000075"></a><b>resource</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Overwrites how singleton deals with resource.
+</p>
+<p>
+If you are going to overwrite it, you should notice that the
+end_of_association_chain here is not the same as in default belongs_to.
+</p>
+<pre>
+  class TasksController &lt; InheritedResources::Base
+    belongs_to :project
+  end
+</pre>
+<p>
+In this case, the association chain would be:
+</p>
+<pre>
+  Project.find(params[:project_id]).tasks
+</pre>
+<p>
+So you would just have to call find(:all) at the end of association chain.
+And this is what happened.
+</p>
+<p>
+In singleton controllers:
+</p>
+<pre>
+  class ManagersController &lt; InheritedResources::Base
+    belongs_to :project, :singleton =&gt; true
+  end
+</pre>
+<p>
+The association chain will be:
+</p>
+<pre>
+  Project.find(params[:project_id])
+</pre>
+<p>
+So we have to call manager on it, not find.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000075_source')" id="l_M000075_source">show</a>
+                        
+                    </p>
+                    <div id="M000075_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/inherited_resources/singleton_helpers.rb, line 75</span>
+75:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">resource</span>
+76:         <span class="ruby-identifier">get_resource_ivar</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">set_resource_ivar</span>(<span class="ruby-identifier">end_of_association_chain</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">resource_instance_name</span>))
+77:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

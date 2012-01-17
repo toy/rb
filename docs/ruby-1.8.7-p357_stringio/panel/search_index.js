@@ -1,0 +1,1 @@
+var search_data = {"index":{"info":[["README","files/ext/stringio/README.html","files/ext/stringio/README.html","","-*- rd -*- $Author$ $Date$  =begin  = StringIO Pseudo (({IO})) class from/to (({String})).  This library",3]],"searchIndex":["readme"],"longSearchIndex":["files/ext/stringio/readme.html"]}}

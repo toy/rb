@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>WEBrick::HTTPServlet::AbstractServlet</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            WEBrick::HTTPServlet::AbstractServlet 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/webrick/httpservlet/abstract_rb.html">lib/webrick/httpservlet/abstract.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="AbstractServlet.html">AbstractServlet</a> allows HTTP server
+modules to be reused across multiple servers and allows encapsulation of
+functionality.
+</p>
+<p>
+By default a servlet will respond to GET, HEAD (through an alias to GET)
+and OPTIONS requests.
+</p>
+<p>
+By default a new servlet is initialized for every request. A servlet
+instance can be reused by overriding ::<a
+href="AbstractServlet.html#M008095">get_instance</a> in the <a
+href="AbstractServlet.html">AbstractServlet</a> subclass.
+</p>
+<h2>A Simple Servlet</h2>
+<pre>
+ class Simple &lt; WEBrick::HTTPServlet::AbstractServlet
+   def do_GET request, response
+     status, content_type, body = do_stuff_with request
+
+     response.status = status
+     response['Content-Type'] = content_type
+     response.body = body
+   end
+
+   def do_stuff_with request
+     return 200, 'text/plain', 'you got a page'
+   end
+ end
+</pre>
+<p>
+This servlet can be mounted on a server at a given path:
+</p>
+<pre>
+  server.mount '/simple', Simple
+</pre>
+<h2>Servlet Configuration</h2>
+<p>
+Servlets can be configured via initialize. The first argument is the HTTP
+server the servlet is being initialized for.
+</p>
+<pre>
+ class Configureable &lt; Simple
+   def initialize server, color, size
+     super server
+     @color = color
+     @size = size
+   end
+
+   def do_stuff_with request
+     content = &quot;&lt;p &quot;      #                %q{style=&quot;color: #{@color}; font-size: #{@size}&quot;}      #                &quot;&gt;Hello, World!&quot;
+
+     return 200, &quot;text/html&quot;, content
+   end
+ end
+</pre>
+<p>
+This servlet must be provided two arguments at mount time:
+</p>
+<pre>
+  server.mount '/configurable', Configurable, 'red', '2em'
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008100">do_GET</a>,</li>
+                
+                <li><a href="#M008105">do_HEAD</a>,</li>
+                
+                <li><a href="#M008106">do_OPTIONS</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008095">get_instance</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008098">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008107">redirect_to_directory_uri</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008099">service</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008095">
+                    
+                    <a name="M008095"></a><b>get_instance</b>(server, *options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Factory for servlet instances that will handle a request from
+<tt>server</tt> using <tt>options</tt> from the mount point. By default a
+new servlet instance is created for every call.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008095_source')" id="l_M008095_source">show</a>
+                        
+                    </p>
+                    <div id="M008095_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 84</span>
+84:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">get_instance</span>(<span class="ruby-identifier">server</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">options</span>)
+85:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">server</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">options</span>)
+86:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008098">
+                    
+                    <a name="M008098"></a><b>new</b>(server, *options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Initializes a new servlet for <tt>server</tt> using <tt>options</tt> which
+are stored as-is in +@options+. +@logger+ is also provided.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008098_source')" id="l_M008098_source">show</a>
+                        
+                    </p>
+                    <div id="M008098_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 92</span>
+92:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">server</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">options</span>)
+93:         <span class="ruby-ivar">@server</span> = <span class="ruby-ivar">@config</span> = <span class="ruby-identifier">server</span>
+94:         <span class="ruby-ivar">@logger</span> = <span class="ruby-ivar">@server</span>[<span class="ruby-identifier">:Logger</span>]
+95:         <span class="ruby-ivar">@options</span> = <span class="ruby-identifier">options</span>
+96:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008100">
+                    
+                    <a name="M008100"></a><b>do_GET</b>(req, res)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Raises a NotFound exception
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008100_source')" id="l_M008100_source">show</a>
+                        
+                    </p>
+                    <div id="M008100_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 116</span>
+116:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_GET</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+117:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">NotFound</span>, <span class="ruby-value str">&quot;not found.&quot;</span>
+118:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008105">
+                    
+                    <a name="M008105"></a><b>do_HEAD</b>(req, res)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Dispatches to <a href="AbstractServlet.html#M008100">do_GET</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008105_source')" id="l_M008105_source">show</a>
+                        
+                    </p>
+                    <div id="M008105_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 123</span>
+123:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_HEAD</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+124:         <span class="ruby-identifier">do_GET</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+125:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008106">
+                    
+                    <a name="M008106"></a><b>do_OPTIONS</b>(req, res)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the allowed HTTP request methods
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008106_source')" id="l_M008106_source">show</a>
+                        
+                    </p>
+                    <div id="M008106_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 130</span>
+130:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_OPTIONS</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+131:         <span class="ruby-identifier">m</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">methods</span>.<span class="ruby-identifier">grep</span>(<span class="ruby-regexp re">/\Ado_([A-Z]+)\z/</span>) {<span class="ruby-identifier">$1</span>}
+132:         <span class="ruby-identifier">m</span>.<span class="ruby-identifier">sort!</span>
+133:         <span class="ruby-identifier">res</span>[<span class="ruby-value str">&quot;allow&quot;</span>] = <span class="ruby-identifier">m</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;,&quot;</span>)
+134:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008099">
+                    
+                    <a name="M008099"></a><b>service</b>(req, res)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Dispatches to a <tt>do_</tt> method based on <tt>req</tt> if such a method
+is available. (<tt><a href="AbstractServlet.html#M008100">do_GET</a></tt>
+for a GET request). Raises a MethodNotAllowed exception if the method is
+not implemented.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008099_source')" id="l_M008099_source">show</a>
+                        
+                    </p>
+                    <div id="M008099_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 103</span>
+103:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">service</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+104:         <span class="ruby-identifier">method_name</span> = <span class="ruby-value str">&quot;do_&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">request_method</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/-/</span>, <span class="ruby-value str">&quot;_&quot;</span>)
+105:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">method_name</span>)
+106:           <span class="ruby-identifier">__send__</span>(<span class="ruby-identifier">method_name</span>, <span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+107:         <span class="ruby-keyword kw">else</span>
+108:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">MethodNotAllowed</span>,
+109:                 <span class="ruby-node">&quot;unsupported method `#{req.request_method}'.&quot;</span>
+110:         <span class="ruby-keyword kw">end</span>
+111:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008107">
+                    
+                    <a name="M008107"></a><b>redirect_to_directory_uri</b>(req, res)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Redirects to a path ending in /
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008107_source')" id="l_M008107_source">show</a>
+                        
+                    </p>
+                    <div id="M008107_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpservlet/abstract.rb, line 141</span>
+141:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect_to_directory_uri</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+142:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">path</span>[<span class="ruby-value">-1</span>] <span class="ruby-operator">!=</span> <span class="ruby-value">?/</span>
+143:           <span class="ruby-identifier">location</span> = <span class="ruby-constant">WEBrick</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPUtils</span>.<span class="ruby-identifier">escape_path</span>(<span class="ruby-identifier">req</span>.<span class="ruby-identifier">path</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;/&quot;</span>)
+144:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">query_string</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">query_string</span>.<span class="ruby-identifier">bytesize</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+145:             <span class="ruby-identifier">location</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;?&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">query_string</span>
+146:           <span class="ruby-keyword kw">end</span>
+147:           <span class="ruby-identifier">res</span>.<span class="ruby-identifier">set_redirect</span>(<span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">MovedPermanently</span>, <span class="ruby-identifier">location</span>)
+148:         <span class="ruby-keyword kw">end</span>
+149:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

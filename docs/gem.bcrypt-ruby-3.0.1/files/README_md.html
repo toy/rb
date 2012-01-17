@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sat Oct 01 23:00:07 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# bcrypt-ruby
+</p>
+<p>
+An easy way to keep your users&#8217; passwords secure.
+</p>
+<ul>
+<li><a href="http://bcrypt-ruby.rubyforge.org/">bcrypt-ruby.rubyforge.org/</a>
+
+</li>
+<li><a
+href="http://github.com/codahale/bcrypt-ruby/tree/master">github.com/codahale/bcrypt-ruby/tree/master</a>
+
+</li>
+</ul>
+<p>
+## Why you should use `bcrypt()`
+</p>
+<p>
+If you store user passwords in the clear, then an attacker who steals a
+copy of your database has a giant list of emails and passwords. Some of
+your users will only have one password &#8212; for their email account, for
+their banking account, for your application. A simple hack could escalate
+into massive identity theft.
+</p>
+<p>
+It&#8217;s your responsibility as a web developer to make your web
+application secure &#8212; blaming your users for not being security
+experts is not a professional response to risk.
+</p>
+<p>
+`bcrypt()` allows you to easily harden your application against these kinds
+of attacks.
+</p>
+<p>
+<b>Note</b>: JRuby versions of bcrypt-ruby `<= 2.1.3` had a [security
+vulnerability](<a
+href="http://www.mindrot.org/files/jBCrypt/internat.adv">www.mindrot.org/files/jBCrypt/internat.adv</a>)
+that was fixed in `>= 2.1.4`. If you used a vulnerable version to hash
+passwords with international characters in them, you will need to re-hash
+those passwords. This vulernability only affected the JRuby gem.
+</p>
+<p>
+## How to install bcrypt
+</p>
+<pre>
+    sudo gem install bcrypt-ruby
+</pre>
+<p>
+The bcrypt-ruby gem is available on the following ruby platforms:
+</p>
+<ul>
+<li>JRuby
+
+</li>
+<li>RubyInstaller 1.8 and 1.9 builds on win32
+
+</li>
+<li>Any 1.8 or 1.9 ruby on a BSD/OSX/Linux system with a compiler
+
+</li>
+</ul>
+<p>
+## How to use `bcrypt()` in your Rails application
+</p>
+<p>
+### The <em>User</em> model
+</p>
+<pre>
+    require 'bcrypt'
+
+    class User &lt; ActiveRecord::Base
+      # users.password_hash in the database is a :string
+      include BCrypt
+
+      def password
+        @password ||= Password.new(password_hash)
+      end
+
+      def password=(new_password)
+        @password = Password.create(new_password)
+        self.password_hash = @password
+      end
+    end
+</pre>
+<p>
+### Creating an account
+</p>
+<pre>
+    def create
+      @user = User.new(params[:user])
+      @user.password = params[:password]
+      @user.save!
+    end
+</pre>
+<p>
+### Authenticating a user
+</p>
+<pre>
+    def login
+      @user = User.find_by_email(params[:email])
+      if @user.password == params[:password]
+        give_token
+      else
+        redirect_to home_url
+      end
+    end
+</pre>
+<p>
+### If a user forgets their password?
+</p>
+<pre>
+    # assign them a random one and mail it to them, asking them to change it
+    def forgot_password
+      @user = User.find_by_email(params[:email])
+      random_password = Array.new(10).map { (65 + rand(58)).chr }.join
+      @user.password = random_password
+      @user.save!
+      Mailer.create_and_deliver_password_change(@user, random_password)
+    end
+</pre>
+<p>
+## How to use bcrypt-ruby in general
+</p>
+<pre>
+    require 'bcrypt'
+
+    my_password = BCrypt::Password.create(&quot;my password&quot;)
+      #=&gt; &quot;$2a$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa&quot;
+
+    my_password.version              #=&gt; &quot;2a&quot;
+    my_password.cost                 #=&gt; 10
+    my_password == &quot;my password&quot;     #=&gt; true
+    my_password == &quot;not my password&quot; #=&gt; false
+
+    my_password = BCrypt::Password.new(&quot;$2a$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa&quot;)
+    my_password == &quot;my password&quot;     #=&gt; true
+    my_password == &quot;not my password&quot; #=&gt; false
+</pre>
+<p>
+Check the rdocs for more details &#8212; <a
+href="../classes/BCrypt.html">BCrypt</a>, <a
+href="../classes/BCrypt/Password.html">BCrypt::Password</a>.
+</p>
+<p>
+## How `bcrypt()` works
+</p>
+<p>
+`bcrypt()` is a hashing algorithm designed by Niels Provos and David
+Mazières of the OpenBSD Project.
+</p>
+<p>
+### Background
+</p>
+<p>
+Hash algorithms take a chunk of data (e.g., your user&#8217;s password) and
+create a &#8220;digital fingerprint,&#8221; or hash, of it. Because this
+process is not reversible, there&#8217;s no way to go from the hash back to
+the password.
+</p>
+<p>
+In other words:
+</p>
+<pre>
+    hash(p) #=&gt; &lt;unique gibberish&gt;
+</pre>
+<p>
+You can store the hash and check it against a hash made of a potentially
+valid password:
+</p>
+<pre>
+    &lt;unique gibberish&gt; =? hash(just_entered_password)
+</pre>
+<p>
+### Rainbow Tables
+</p>
+<p>
+But even this has weaknesses &#8212; attackers can just run lists of
+possible passwords through the same algorithm, store the results in a big
+database, and then look up the passwords by their hash:
+</p>
+<pre>
+    PrecomputedPassword.find_by_hash(&lt;unique gibberish&gt;).password #=&gt; &quot;secret1&quot;
+</pre>
+<p>
+### Salts
+</p>
+<p>
+The solution to this is to add a small chunk of random data &#8212; called
+a salt &#8212; to the password before it&#8217;s hashed:
+</p>
+<pre>
+    hash(salt + p) #=&gt; &lt;really unique gibberish&gt;
+</pre>
+<p>
+The salt is then stored along with the hash in the database, and used to
+check potentially valid passwords:
+</p>
+<pre>
+    &lt;really unique gibberish&gt; =? hash(salt + just_entered_password)
+</pre>
+<p>
+bcrypt-ruby automatically handles the storage and generation of these salts
+for you.
+</p>
+<p>
+Adding a salt means that an attacker has to have a gigantic database for
+each unique salt &#8212; for a salt made of 4 letters, that&#8217;s 456,976
+different databases. Pretty much no one has that much storage space, so
+attackers try a different, slower method &#8212; throw a list of potential
+passwords at each individual password:
+</p>
+<pre>
+    hash(salt + &quot;aadvark&quot;) =? &lt;really unique gibberish&gt;
+    hash(salt + &quot;abacus&quot;)  =? &lt;really unique gibberish&gt;
+    etc.
+</pre>
+<p>
+This is much slower than the big database approach, but most hash
+algorithms are pretty quick &#8212; and therein lies the problem. Hash
+algorithms aren&#8217;t usually designed to be slow, they&#8217;re designed
+to turn gigabytes of data into secure fingerprints as quickly as possible.
+`bcrypt()`, though, is designed to be computationally expensive:
+</p>
+<pre>
+    Ten thousand iterations:
+                 user     system      total        real
+    md5      0.070000   0.000000   0.070000 (  0.070415)
+    bcrypt  22.230000   0.080000  22.310000 ( 22.493822)
+</pre>
+<p>
+If an attacker was using Ruby to check each password, they could check
+~140,000 passwords a second with MD5 but only ~450 passwords a second with
+`bcrypt()`.
+</p>
+<p>
+### Cost Factors
+</p>
+<p>
+In addition, `bcrypt()` allows you to increase the amount of work required
+to hash a password as computers get faster. Old passwords will still work
+fine, but new passwords can keep up with the times.
+</p>
+<p>
+The default cost factor used by bcrypt-ruby is 10, which is fine for
+session-based authentication. If you are using a stateless authentication
+architecture (e.g., HTTP Basic Auth), you will want to lower the cost
+factor to reduce your server load and keep your request times down. This
+will lower the security provided you, but there are few alternatives.
+</p>
+<p>
+## More Information
+</p>
+<p>
+`bcrypt()` is currently used as the default password storage hash in
+OpenBSD, widely regarded as the most secure operating system available.
+</p>
+<p>
+For a more technical explanation of the algorithm and its design criteria,
+please read Niels Provos and David Mazières&#8217; Usenix99 paper: <a
+href="http://www.usenix.org/events/usenix99/provos.html">www.usenix.org/events/usenix99/provos.html</a>
+</p>
+<p>
+If you&#8217;d like more down-to-earth advice regarding cryptography, I
+suggest reading <em>Practical Cryptography</em> by Niels Ferguson and Bruce
+Schneier: <a
+href="http://www.schneier.com/book-practical.html">www.schneier.com/book-practical.html</a>
+</p>
+<p>
+# Etc
+</p>
+<ul>
+<li>Author :: Coda Hale <coda.hale@gmail.com>
+
+</li>
+<li>Website :: <a href="http://blog.codahale.com">blog.codahale.com</a>
+
+</li>
+</ul>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

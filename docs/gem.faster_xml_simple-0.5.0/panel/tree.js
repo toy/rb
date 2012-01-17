@@ -1,0 +1,1 @@
+var tree = [["","","files",[["COPYING","files/COPYING.html","",[]],["README","files/README.html","",[]],["","","lib",[["faster_xml_simple.rb","files/lib/faster_xml_simple_rb.html","",[]]]]]],["FasterXmlSimple","classes/FasterXmlSimple.html"," < Object",[]]]

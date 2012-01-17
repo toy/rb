@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>InheritedResources::UrlHelpers</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            InheritedResources::UrlHelpers 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/inherited_resources/url_helpers_rb.html">lib/inherited_resources/url_helpers.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>URLHelpers</h1>
+<p>
+When you use <a href="../InheritedResources.html">InheritedResources</a> it
+creates some <a href="UrlHelpers.html">UrlHelpers</a> for you. And they
+handle everything for you.
+</p>
+<pre>
+ # /posts/1/comments
+ resource_url          # =&gt; /posts/1/comments/#{@comment.to_param}
+ resource_url(comment) # =&gt; /posts/1/comments/#{comment.to_param}
+ new_resource_url      # =&gt; /posts/1/comments/new
+ edit_resource_url     # =&gt; /posts/1/comments/#{@comment.to_param}/edit
+ collection_url        # =&gt; /posts/1/comments
+ parent_url            # =&gt; /posts/1
+
+ # /projects/1/tasks
+ resource_url          # =&gt; /projects/1/tasks/#{@task.to_param}
+ resource_url(task)    # =&gt; /projects/1/tasks/#{task.to_param}
+ new_resource_url      # =&gt; /projects/1/tasks/new
+ edit_resource_url     # =&gt; /projects/1/tasks/#{@task.to_param}/edit
+ collection_url        # =&gt; /projects/1/tasks
+ parent_url            # =&gt; /projects/1
+
+ # /users
+ resource_url          # =&gt; /users/#{@user.to_param}
+ resource_url(user)    # =&gt; /users/#{user.to_param}
+ new_resource_url      # =&gt; /users/new
+ edit_resource_url     # =&gt; /users/#{@user.to_param}/edit
+ collection_url        # =&gt; /users
+ parent_url            # =&gt; /
+</pre>
+<p>
+The nice thing is that those urls are not guessed during runtime. They are
+all created when you inherit.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000078">create_resources_url_helpers!</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000078">
+                    
+                    <a name="M000078"></a><b>create_resources_url_helpers!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This method hard code url helpers in the class.
+</p>
+<p>
+We are doing this because is cheaper than guessing them when our action is
+being processed (and even more cheaper when we are using nested resources).
+</p>
+<p>
+When we are using polymorphic associations, those helpers rely on
+polymorphic_url <a href="../Rails.html">Rails</a> helper.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000078_source')" id="l_M000078_source">show</a>
+                        
+                    </p>
+                    <div id="M000078_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/inherited_resources/url_helpers.rb, line 46</span>
+ 46:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_resources_url_helpers!</span>
+ 47:       <span class="ruby-identifier">resource_segments</span>, <span class="ruby-identifier">resource_ivars</span> = [], []
+ 48:       <span class="ruby-identifier">resource_config</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">resources_configuration</span>[<span class="ruby-identifier">:self</span>]
+ 49: 
+ 50:       <span class="ruby-identifier">singleton</span>   = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">resources_configuration</span>[<span class="ruby-identifier">:self</span>][<span class="ruby-identifier">:singleton</span>]
+ 51:       <span class="ruby-identifier">polymorphic</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">parents_symbols</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">:polymorphic</span>)
+ 52: 
+ 53:       <span class="ruby-comment cmt"># Add route_prefix if any.</span>
+ 54:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_prefix</span>].<span class="ruby-identifier">blank?</span>
+ 55:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">polymorphic</span>
+ 56:           <span class="ruby-identifier">resource_ivars</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_prefix</span>].<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">inspect</span>
+ 57:         <span class="ruby-keyword kw">else</span>
+ 58:           <span class="ruby-identifier">resource_segments</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_prefix</span>]
+ 59:         <span class="ruby-keyword kw">end</span>
+ 60:       <span class="ruby-keyword kw">end</span>
+ 61: 
+ 62:       <span class="ruby-comment cmt"># Deal with belongs_to associations and polymorphic associations.</span>
+ 63:       <span class="ruby-comment cmt"># Remember that we don't have to build the segments in polymorphic cases,</span>
+ 64:       <span class="ruby-comment cmt"># because the url will be polymorphic_url.</span>
+ 65:       <span class="ruby-comment cmt">#</span>
+ 66:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">parents_symbols</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">symbol</span><span class="ruby-operator">|</span>
+ 67:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">symbol</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:polymorphic</span>
+ 68:           <span class="ruby-identifier">resource_ivars</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">:parent</span>
+ 69:         <span class="ruby-keyword kw">else</span>
+ 70:           <span class="ruby-identifier">config</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">resources_configuration</span>[<span class="ruby-identifier">symbol</span>]
+ 71:           <span class="ruby-identifier">resource_segments</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:route_name</span>]
+ 72:           <span class="ruby-identifier">resource_ivars</span>    <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">:&quot;@#{config[:instance_name]}&quot;</span>
+ 73:         <span class="ruby-keyword kw">end</span>
+ 74:       <span class="ruby-keyword kw">end</span>
+ 75: 
+ 76:       <span class="ruby-identifier">collection_ivars</span>    = <span class="ruby-identifier">resource_ivars</span>.<span class="ruby-identifier">dup</span>
+ 77:       <span class="ruby-identifier">collection_segments</span> = <span class="ruby-identifier">resource_segments</span>.<span class="ruby-identifier">dup</span>
+ 78: 
+ 79: 
+ 80:       <span class="ruby-comment cmt"># Generate parent url before we add resource instances.</span>
+ 81:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">parents_symbols</span>.<span class="ruby-identifier">empty?</span>
+ 82:         <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-keyword kw">nil</span>,   <span class="ruby-identifier">:parent</span>, <span class="ruby-identifier">resource_segments</span>, <span class="ruby-identifier">resource_ivars</span>
+ 83:         <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-identifier">:edit</span>, <span class="ruby-identifier">:parent</span>, <span class="ruby-identifier">resource_segments</span>, <span class="ruby-identifier">resource_ivars</span>
+ 84:       <span class="ruby-keyword kw">end</span>
+ 85: 
+ 86:       <span class="ruby-comment cmt"># This is the default route configuration, later we have to deal with</span>
+ 87:       <span class="ruby-comment cmt"># exception from polymorphic and singleton cases.</span>
+ 88:       <span class="ruby-comment cmt">#</span>
+ 89:       <span class="ruby-identifier">collection_segments</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_collection_name</span>]
+ 90:       <span class="ruby-identifier">resource_segments</span>   <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_instance_name</span>]
+ 91:       <span class="ruby-identifier">resource_ivars</span>      <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">:&quot;@#{resource_config[:instance_name]}&quot;</span>
+ 92: 
+ 93:       <span class="ruby-comment cmt"># In singleton cases, we do not send the current element instance variable</span>
+ 94:       <span class="ruby-comment cmt"># because the id is not in the URL. For example, we should call:</span>
+ 95:       <span class="ruby-comment cmt">#</span>
+ 96:       <span class="ruby-comment cmt">#   project_manager_url(@project)</span>
+ 97:       <span class="ruby-comment cmt">#</span>
+ 98:       <span class="ruby-comment cmt"># Instead of:</span>
+ 99:       <span class="ruby-comment cmt">#</span>
+100:       <span class="ruby-comment cmt">#   project_manager_url(@project, @manager)</span>
+101:       <span class="ruby-comment cmt">#</span>
+102:       <span class="ruby-comment cmt"># Another exception in singleton cases is that collection url does not</span>
+103:       <span class="ruby-comment cmt"># exist. In such cases, we create the parent collection url. So in the</span>
+104:       <span class="ruby-comment cmt"># manager case above, the collection url will be:</span>
+105:       <span class="ruby-comment cmt">#</span>
+106:       <span class="ruby-comment cmt">#    project_url(@project)</span>
+107:       <span class="ruby-comment cmt">#</span>
+108:       <span class="ruby-comment cmt"># If the singleton does not have a parent, it will default to root_url.</span>
+109:       <span class="ruby-comment cmt">#</span>
+110:       <span class="ruby-comment cmt"># Finally, polymorphic cases we have to give hints to the polymorphic url</span>
+111:       <span class="ruby-comment cmt"># builder. This works by attaching new ivars as symbols or records.</span>
+112:       <span class="ruby-comment cmt">#</span>
+113:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">singleton</span>
+114:         <span class="ruby-identifier">collection_segments</span>.<span class="ruby-identifier">pop</span>
+115:         <span class="ruby-identifier">resource_ivars</span>.<span class="ruby-identifier">pop</span>
+116: 
+117:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">polymorphic</span>
+118:           <span class="ruby-identifier">resource_ivars</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:instance_name</span>].<span class="ruby-identifier">inspect</span>
+119:           <span class="ruby-identifier">new_ivars</span>       = <span class="ruby-identifier">resource_ivars</span>
+120:         <span class="ruby-keyword kw">end</span>
+121:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">polymorphic</span>
+122:         <span class="ruby-identifier">collection_ivars</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'(@_resource_class_new ||= resource_class.new)'</span>
+123:       <span class="ruby-keyword kw">end</span>
+124: 
+125:       <span class="ruby-comment cmt"># If route is uncountable then add &quot;_index&quot; suffix to collection index route name</span>
+126:       <span class="ruby-comment cmt">#</span>
+127:       <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">singleton</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_collection_name</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:route_instance_name</span>]
+128:         <span class="ruby-identifier">collection_segments</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">:index</span>
+129:       <span class="ruby-keyword kw">end</span>
+130: 
+131:       <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-keyword kw">nil</span>,   <span class="ruby-identifier">:collection</span>, <span class="ruby-identifier">collection_segments</span>, <span class="ruby-identifier">collection_ivars</span>
+132:       <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-identifier">:new</span>,  <span class="ruby-identifier">:resource</span>,   <span class="ruby-identifier">resource_segments</span>,   <span class="ruby-identifier">new_ivars</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">collection_ivars</span>
+133:       <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-keyword kw">nil</span>,   <span class="ruby-identifier">:resource</span>,   <span class="ruby-identifier">resource_segments</span>,   <span class="ruby-identifier">resource_ivars</span>
+134:       <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-identifier">:edit</span>, <span class="ruby-identifier">:resource</span>,   <span class="ruby-identifier">resource_segments</span>,   <span class="ruby-identifier">resource_ivars</span>
+135: 
+136:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:custom_actions</span>]
+137:         [<span class="ruby-operator">*</span><span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:custom_actions</span>][<span class="ruby-identifier">:resource</span>]].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span> <span class="ruby-identifier">method</span> <span class="ruby-operator">|</span>
+138:           <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-identifier">method</span>, <span class="ruby-identifier">:resource</span>, <span class="ruby-identifier">resource_segments</span>, <span class="ruby-identifier">resource_ivars</span>
+139:         <span class="ruby-keyword kw">end</span>
+140:         [<span class="ruby-operator">*</span><span class="ruby-identifier">resource_config</span>[<span class="ruby-identifier">:custom_actions</span>][<span class="ruby-identifier">:collection</span>]].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span> <span class="ruby-identifier">method</span> <span class="ruby-operator">|</span>
+141:           <span class="ruby-identifier">generate_url_and_path_helpers</span> <span class="ruby-identifier">method</span>, <span class="ruby-identifier">:resources</span>, <span class="ruby-identifier">collection_segments</span>, <span class="ruby-identifier">collection_ivars</span>
+142:         <span class="ruby-keyword kw">end</span>
+143:       <span class="ruby-keyword kw">end</span>
+144:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

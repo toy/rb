@@ -1,0 +1,1092 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RDoc::Markup</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RDoc::Markup 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rdoc/markup/formatter_rb.html">lib/rdoc/markup/formatter.rb</a></li>
+            
+            <li><a href="../../files/lib/rdoc/markup/inline_rb.html">lib/rdoc/markup/inline.rb</a></li>
+            
+            <li><a href="../../files/lib/rdoc/markup_rb.html">lib/rdoc/markup.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="Markup.html">RDoc::Markup</a> parses plain text documents and
+attempts to decompose them into their constituent parts. Some of these
+parts are high-level: paragraphs, chunks of verbatim text, list entries and
+the like. Other parts happen at the character level: a piece of bold text,
+a word in code font. This markup is similar in spirit to that used on
+WikiWiki webs, where folks create web pages using a simple set of
+formatting rules.
+</p>
+<p>
+<a href="Markup.html">RDoc::Markup</a> itself does no output formatting:
+this is left to a different set of classes.
+</p>
+<p>
+<a href="Markup.html">RDoc::Markup</a> is extendable at runtime: you can
+add new markup elements to be recognised in the documents that <a
+href="Markup.html">RDoc::Markup</a> parses.
+</p>
+<p>
+<a href="Markup.html">RDoc::Markup</a> is intended to be the basis for a
+family of tools which share the common requirement that simple, plain-text
+should be rendered in a variety of different output formats and media. It
+is envisaged that <a href="Markup.html">RDoc::Markup</a> could be the basis
+for formatting <a href="RDoc.html">RDoc</a> style comment blocks, Wiki
+entries, and online FAQs.
+</p>
+<h2>Synopsis</h2>
+<p>
+This code converts <tt>input_string</tt> to HTML. The conversion takes
+place in the <tt>convert</tt> method, so you can use the same <a
+href="Markup.html">RDoc::Markup</a> converter to convert multiple input
+strings.
+</p>
+<pre>
+  require 'rdoc/markup/to_html'
+
+  h = RDoc::Markup::ToHtml.new
+
+  puts h.convert(input_string)
+</pre>
+<p>
+You can extend the <a href="Markup.html">RDoc::Markup</a> parser to
+recognise new markup sequences, and to add special processing for text that
+matches a regular expression. Here we make WikiWords significant to the
+parser, and also make the sequences {word} and <no>text...</no> signify
+strike-through text. We then subclass the HTML output class to deal with
+these:
+</p>
+<pre>
+  require 'rdoc/markup'
+  require 'rdoc/markup/to_html'
+
+  class WikiHtml &lt; RDoc::Markup::ToHtml
+    def handle_special_WIKIWORD(special)
+      &quot;&lt;font color=red&gt;&quot; + special.text + &quot;&lt;/font&gt;&quot;
+    end
+  end
+
+  markup = RDoc::Markup.new
+  markup.add_word_pair(&quot;{&quot;, &quot;}&quot;, :STRIKE)
+  markup.add_html(&quot;no&quot;, :STRIKE)
+
+  markup.add_special(/\b([A-Z][a-z]+[A-Z]\w+)/, :WIKIWORD)
+
+  wh = WikiHtml.new markup
+  wh.add_tag(:STRIKE, &quot;&lt;strike&gt;&quot;, &quot;&lt;/strike&gt;&quot;)
+
+  puts &quot;&lt;body&gt;#{wh.convert ARGF.read}&lt;/body&gt;&quot;
+</pre>
+<h2><a href="Encoding.html">Encoding</a></h2>
+<p>
+Where <a href="Encoding.html">Encoding</a> support is available, <a
+href="RDoc.html">RDoc</a> will automatically convert all documents to the
+same output encoding. The output encoding can be set via <a
+href="Options.html#encoding">RDoc::Options#encoding</a> and defaults to
+Encoding.default_external.
+</p>
+<h1>RDoc <a href="Markup.html">Markup</a> Reference</h1>
+<h2>Block <a href="Markup.html">Markup</a></h2>
+<h3>Paragraphs and <a href="Markup/Verbatim.html">Verbatim</a></h3>
+<p>
+The markup engine looks for a document&#8217;s natural left margin. This is
+used as the initial margin for the document.
+</p>
+<p>
+Consecutive lines starting at this margin are considered to be a paragraph.
+Empty lines separate paragraphs.
+</p>
+<p>
+Any line that starts to the right of the current margin is treated as
+verbatim text. This is useful for code listings:
+</p>
+<pre>
+  3.times { puts &quot;Ruby&quot; }
+</pre>
+<p>
+In verbatim text, two or more blank lines are collapsed into one, and
+trailing blank lines are removed:
+</p>
+<pre>
+  This is the first line
+
+  This is the second non-blank line,
+  after 2 blank lines in the source markup.
+</pre>
+<p>
+There were two trailing blank lines right above this paragraph, that have
+been removed. In addition, the verbatim text has been shifted left, so the
+amount of indentation of verbatim text is unimportant.
+</p>
+<h3>Headers and Rules</h3>
+<p>
+A line starting with an equal sign (=) is treated as a heading. Level one
+headings have one equals sign, level two headings have two, and so on until
+level six, which is the maximum (seven hyphens or more result in a level
+six heading).
+</p>
+<p>
+For example, the above header was obtained with:
+</p>
+<pre>
+  == Headers and Rules
+</pre>
+<p>
+A line starting with three or more hyphens (at the current indent)
+generates a horizontal rule. The more hyphens, the thicker the rule (within
+reason, and if supported by the output device).
+</p>
+<p>
+In the case of HTML output, three dashes generate a 1-pixel high rule, four
+dashes result in 2 pixels, and so on. The actual height is limited to 10
+pixels:
+</p>
+<pre>
+  ---
+  -----
+  -----------------------------------------------------
+</pre>
+<p>
+produces:
+</p>
+<hr size="1"></hr><h3>Simple Lists</h3>
+<p>
+If a paragraph starts with a &#8220;*&#8221;, &#8220;-&#8221;,
+&#8220;<digit>.&#8221; or &#8220;<letter>.&#8221;, then it is taken to be
+the start of a list. The margin is increased to be the first non-space
+following the list start flag. Subsequent lines should be indented to this
+new margin until the list ends. For example:
+</p>
+<pre>
+  * this is a list with three paragraphs in
+    the first item.  This is the first paragraph.
+
+    And this is the second paragraph.
+
+    1. This is an indented, numbered list.
+    2. This is the second item in that list
+
+    This is the third conventional paragraph in the
+    first list item.
+
+  * This is the second item in the original list
+</pre>
+<p>
+produces:
+</p>
+<ul>
+<li>this is a list with three paragraphs in the first item. This is the first
+paragraph.
+
+<p>
+And this is the second paragraph.
+</p>
+<ol>
+<li>This is an indented, numbered list.
+
+</li>
+<li>This is the second item in that list
+
+</li>
+</ol>
+<p>
+This is the third conventional paragraph in the first list item.
+</p>
+</li>
+<li>This is the second item in the original list
+
+</li>
+</ul>
+<h3>Labeled Lists</h3>
+<p>
+You can also construct labeled lists, sometimes called description or
+definition lists. Do this by putting the label in square brackets and
+indenting the list body:
+</p>
+<pre>
+  [cat]  a small furry mammal
+         that seems to sleep a lot
+
+  [ant]  a little insect that is known
+         to enjoy picnics
+</pre>
+<p>
+produces:
+</p>
+<dl>
+<dt>cat</dt><dd>a small furry mammal that seems to sleep a lot
+
+</dd>
+<dt>ant</dt><dd>a little insect that is known to enjoy picnics
+
+</dd>
+</dl>
+<p>
+If you want the list bodies to line up to the left of the labels, use two
+colons:
+</p>
+<pre>
+  cat::  a small furry mammal
+         that seems to sleep a lot
+
+  ant::  a little insect that is known
+         to enjoy picnics
+</pre>
+<p>
+produces:
+</p>
+<table>
+<tr><td valign="top">cat:</td><td>a small furry mammal that seems to sleep a lot
+
+</td></tr>
+<tr><td valign="top">ant:</td><td>a little insect that is known to enjoy picnics
+
+</td></tr>
+</table>
+<p>
+Notice that blank lines right after the label are ignored in labeled lists:
+</p>
+<pre>
+  [one]
+
+      definition 1
+
+  [two]
+
+      definition 2
+</pre>
+<p>
+produces the same output as
+</p>
+<pre>
+  [one]  definition 1
+  [two]  definition 2
+</pre>
+<h3>Lists and <a href="Markup/Verbatim.html">Verbatim</a></h3>
+<p>
+If you want to introduce a verbatim section right after a list, it has to
+be less indented than the list item bodies, but more indented than the list
+label, letter, digit or bullet. For instance:
+</p>
+<pre>
+  *   point 1
+
+  *   point 2, first paragraph
+
+      point 2, second paragraph
+        verbatim text inside point 2
+      point 2, third paragraph
+    verbatim text outside of the list (the list is therefore closed)
+  regular paragraph after the list
+</pre>
+<p>
+produces:
+</p>
+<ul>
+<li>point 1
+
+</li>
+<li>point 2, first paragraph
+
+<p>
+point 2, second paragraph
+</p>
+<pre>
+  verbatim text inside point 2
+</pre>
+<p>
+point 2, third paragraph
+</p>
+</li>
+</ul>
+<pre>
+  verbatim text outside of the list (the list is therefore closed)
+</pre>
+<p>
+regular paragraph after the list
+</p>
+<h2><a href="Text.html">Text</a> <a href="Markup.html">Markup</a></h2>
+<h3>Bold, Italic, Typewriter <a href="Text.html">Text</a></h3>
+<p>
+You can use markup within text (except verbatim) to change the appearance
+of parts of that text. Out of the box, <a
+href="Markup.html">RDoc::Markup</a> supports word-based and general markup.
+</p>
+<p>
+Word-based markup uses flag characters around individual words:
+</p>
+<table>
+<tr><td valign="top"><tt>*<em>word</em>*</tt>:</td><td>displays <em>word</em> in a <b>bold</b> font
+
+</td></tr>
+<tr><td valign="top"><tt>_<em>word_</em></tt>:</td><td>displays <em>word</em> in an <em>emphasized</em> font
+
+</td></tr>
+<tr><td valign="top"><tt>+<em>word</em>+</tt>:</td><td>displays <em>word</em> in a <tt>code</tt> font
+
+</td></tr>
+</table>
+<p>
+General markup affects text between a start delimiter and an end delimiter.
+Not surprisingly, these delimiters look like HTML markup.
+</p>
+<table>
+<tr><td valign="top"><tt>&lt;b&gt;<em>text</em>&lt;/b&gt;</tt>:</td><td>displays <em>text</em> in a <b>bold</b> font
+
+</td></tr>
+<tr><td valign="top"><tt>&lt;em&gt;<em>text</em>&lt;/em&gt;</tt>:</td><td>displays <em>text</em> in an <em>emphasized</em> font (alternate tag:
+<tt>&lt;i&gt;</tt>)
+
+</td></tr>
+<tr><td valign="top"><tt>&lt;tt&gt;<em>text</em>&lt;/tt&gt;</tt>:</td><td>displays <em>text</em> in a <tt>code</tt> font (alternate tag:
+<tt>&lt;code&gt;</tt>)
+
+</td></tr>
+</table>
+<p>
+Unlike conventional Wiki markup, general markup can cross line boundaries.
+You can turn off the interpretation of markup by preceding the first
+character with a backslash (see <em>Escaping <a href="Text.html">Text</a>
+Markup</em>, below).
+</p>
+<h3>Links</h3>
+<p>
+Links to starting with <tt>http:</tt>, <tt>https:</tt>, <tt>mailto:</tt>,
+<tt>ftp:</tt> or <tt>www.</tt> are recognized. An HTTP url that references
+an external image file is converted into an inline image element.
+</p>
+<p>
+Links starting with <tt>rdoc-ref:</tt> will link to the referenced class,
+module, method, file, etc. If the referenced item is not documented the
+text will be and no link will be generated.
+</p>
+<p>
+Links starting with <tt>link:</tt> refer to local files whose path is
+relative to the <tt>--op</tt> directory.
+</p>
+<p>
+Links can also be of the form <tt>label[url]</tt>, in which case
+<tt>label</tt> is used in the displayed text, and <tt>url</tt> is used as
+the target. If <tt>label</tt> contains multiple words, put it in braces:
+<tt>{multi word label}[url]</tt>. The <tt>url</tt> may be an <tt><a
+href="http:-type">-type</a></tt> link or a cross-reference to a class,
+module or method with a label.
+</p>
+<p>
+Links with the <tt>rdoc-ref:</tt> scheme will link to the referenced class,
+module, method, file, etc. If the referenced item is does not exist no link
+will be generated and <tt>rdoc-ref:</tt> will be removed from the resulting
+text.
+</p>
+<p>
+Links starting with <tt>link:</tt> refer to local files whose path is
+relative to the <tt>--op</tt> directory. Use <tt>rdoc-ref:</tt> instead of
+<tt>link:</tt> to link to files generated by <a href="RDoc.html">RDoc</a>
+as the link target may be different across <a href="RDoc.html">RDoc</a>
+generators.
+</p>
+<p>
+Example links:
+</p>
+<pre>
+  https://github.com/rdoc/rdoc
+  mailto:user@example.com
+  {RDoc Documentation}[http://rdoc.rubyforge.org]
+  {RDoc Markup}[rdoc-ref:RDoc::Markup]
+</pre>
+<h3>Escaping <a href="Text.html">Text</a> <a href="Markup.html">Markup</a></h3>
+<p>
+<a href="Text.html">Text</a> markup can be escaped with a backslash, as in
+<tt>, which was obtained with <tt>\&lt;tt&gt;</tt>. Except in verbatim
+sections and between <tt> tags, to produce a backslash you have to double
+it unless it is followed by a space, tab or newline. Otherwise, the HTML
+formatter will discard it, as it is used to escape potential links:
+</p>
+<pre>
+  * The \ must be doubled if not followed by white space: \\.
+  * But not in \&lt;tt&gt; tags: in a Regexp, &lt;tt&gt;\S&lt;/tt&gt; matches non-space.
+  * This is a link to {ruby-lang}[www.ruby-lang.org].
+  * This is not a link, however: \{ruby-lang.org}[www.ruby-lang.org].
+  * This will not be linked to \RDoc::RDoc#document
+</pre>
+<p>
+generates:
+</p>
+<ul>
+<li>The \ must be doubled if not followed by white space: \.
+
+</li>
+<li>But not in <tt> tags: in a <a href="../Regexp.html">Regexp</a>, <tt>S</tt>
+matches non-space.
+
+</li>
+<li>This is a link to <a href="http://www.ruby-lang.org">ruby-lang</a>
+
+</li>
+<li>This is not a link, however: {ruby-lang.org}[www.ruby-lang.org]
+
+</li>
+<li>This will not be linked to RDoc::RDoc#document
+
+</li>
+</ul>
+<p>
+Inside <tt> tags, more precisely, leading backslashes are removed only if
+followed by a markup character (<tt>&lt;*_+</tt>), a backslash, or a known
+link reference (a known class or method). So in the example above, the
+backslash of <tt>S</tt> would be removed if there was a class or module
+named <tt>S</tt> in the current context.
+</p>
+<p>
+This behavior is inherited from <a href="RDoc.html">RDoc</a> version 1, and
+has been kept for compatibility with existing <a href="RDoc.html">RDoc</a>
+documentation.
+</p>
+<h3>Conversion of characters</h3>
+<p>
+HTML will convert two/three dashes to an em-dash. Other common characters
+are converted as well:
+</p>
+<pre>
+  em-dash::  -- or ---
+  ellipsis:: ...
+
+  single quotes:: 'text' or `text'
+  double quotes:: &quot;text&quot; or ``text''
+
+  copyright:: (c)
+  registered trademark:: (r)
+</pre>
+<p>
+produces:
+</p>
+<table>
+<tr><td valign="top">em-dash:</td><td>&#8212; or &#8212;
+
+</td></tr>
+<tr><td valign="top">ellipsis:</td><td>&#8230;
+
+</td></tr>
+<tr><td valign="top">single quotes:</td><td>&#8216;text&#8217; or `text&#8217;
+
+</td></tr>
+<tr><td valign="top">double quotes:</td><td>&#8220;text&#8221; or ``text&#8217;&#8216;
+
+</td></tr>
+<tr><td valign="top">copyright:</td><td>&#169;
+
+</td></tr>
+<tr><td valign="top">registered trademark:</td><td>&#174;
+
+</td></tr>
+</table>
+<h2>Documenting Source Code</h2>
+<p>
+Comment blocks can be written fairly naturally, either using <tt>#</tt> on
+successive lines of the comment, or by including the comment in a
+<tt>=begin</tt>/<tt>=end</tt> block. If you use the latter form, the
+<tt>=begin</tt> line <em>must</em> be flagged with an <tt>rdoc</tt> tag:
+</p>
+<pre>
+  =begin rdoc
+  Documentation to be processed by RDoc.
+
+  ...
+  =end
+</pre>
+<p>
+<a href="RDoc.html">RDoc</a> stops processing comments if it finds a
+comment line starting with <tt>--</tt> right after the <tt>#</tt> character
+(otherwise, it will be treated as a rule if it has three dashes or more).
+This can be used to separate external from internal comments, or to stop a
+comment being associated with a method, class, or module. Commenting can be
+turned back on with a line that starts with <tt>++</tt>.
+</p>
+<pre>
+  ##
+  # Extract the age and calculate the date-of-birth.
+  #--
+  # FIXME: fails if the birthday falls on February 29th
+  #++
+  # The DOB is returned as a Time object.
+
+  def get_dob(person)
+    # ...
+  end
+</pre>
+<p>
+Names of classes, files, and any method names containing an underscore or
+preceded by a hash character are automatically linked from comment text to
+their description. This linking works inside the current class or module,
+and with ancestor methods (in included modules or in the superclass).
+</p>
+<p>
+<a href="../Method.html">Method</a> parameter lists are extracted and
+displayed with the method description. If a method calls <tt>yield</tt>,
+then the parameters passed to yield will also be displayed:
+</p>
+<pre>
+  def fred
+    ...
+    yield line, address
+</pre>
+<p>
+This will get documented as:
+</p>
+<pre>
+  fred() { |line, address| ... }
+</pre>
+<p>
+You can override this using a comment containing &#8217;:yields:
+&#8230;&#8217; immediately after the method definition
+</p>
+<pre>
+  def fred # :yields: index, position
+    # ...
+
+    yield line, address
+</pre>
+<p>
+which will get documented as
+</p>
+<pre>
+   fred() { |index, position| ... }
+</pre>
+<p>
+<tt>:yields:</tt> is an example of a documentation directive. These appear
+immediately after the start of the document element they are modifying.
+</p>
+<p>
+<a href="RDoc.html">RDoc</a> automatically cross-references words with
+underscores or camel-case. To suppress cross-references, prefix the word
+with a \ character. To include special characters like
+&#8220;<tt>n</tt>&#8220;, you&#8217;ll need to use two \ characters in
+normal text, but only one in <tt> text:
+</p>
+<pre>
+  &quot;\\n&quot; or &quot;&lt;tt&gt;\n&lt;/tt&gt;&quot;
+</pre>
+<p>
+produces:
+</p>
+<p>
+&#8220;\n&#8221; or &#8220;<tt>n</tt>&#8220;
+</p>
+<h2>Directives</h2>
+<p>
+Directives are keywords surrounded by &#8220;:&#8221; characters.
+</p>
+<h3>Controlling what is documented</h3>
+<dl>
+<dt><tt>:nodoc:</tt> / <tt>:nodoc: all</tt></dt><dd>This directive prevents documentation for the element from being generated.
+For classes and modules, methods, aliases, constants, and attributes
+directly within the affected class or module also will be omitted. By
+default, though, modules and classes within that class or module
+<em>will</em> be documented. This is turned off by adding the <tt>all</tt>
+modifier.
+
+<pre>
+  module MyModule # :nodoc:
+    class Input
+    end
+  end
+
+  module OtherModule # :nodoc: all
+    class Output
+    end
+  end
+</pre>
+<p>
+In the above code, only class <tt>MyModule::Input</tt> will be documented.
+</p>
+<p>
+The <tt>:nodoc:</tt> directive, like <tt>:enddoc:</tt>, <tt>:stopdoc:</tt>
+and <tt>:startdoc:</tt> presented below, is local to the current file: if
+you do not want to document a module that appears in several files, specify
+<tt>:nodoc:</tt> on each appearance, at least once per file.
+</p>
+</dd>
+<dt><tt>:stopdoc:</tt> / <tt>:startdoc:</tt></dt><dd>Stop and start adding new documentation elements to the current container.
+For example, if a class has a number of constants that you don&#8217;t want
+to document, put a <tt>:stopdoc:</tt> before the first, and a
+<tt>:startdoc:</tt> after the last. If you don&#8217;t specify a
+<tt>:startdoc:</tt> by the end of the container, disables documentation for
+the rest of the current file.
+
+</dd>
+<dt><tt>:doc:</tt></dt><dd>Forces a method or attribute to be documented even if it wouldn&#8217;t be
+otherwise. Useful if, for example, you want to include documentation of a
+particular private method.
+
+</dd>
+<dt><tt>:enddoc:</tt></dt><dd><a href="Markup/Document.html">Document</a> nothing further at the current
+level: directives <tt>:startdoc:</tt> and <tt>:doc:</tt> that appear after
+this will not be honored for the current container (file, class or module),
+in the current file.
+
+</dd>
+<dt><tt>:notnew:</tt> / <tt>:not_new:</tt> / <tt>:not-new:</tt> </dt><dd>Only applicable to the <tt>initialize</tt> instance method. Normally <a
+href="RDoc.html">RDoc</a> assumes that the documentation and parameters for
+<tt>initialize</tt> are actually for the <tt>new</tt> method, and so fakes
+out a <tt>new</tt> for the class. The <tt>:notnew:</tt> directive stops
+this. Remember that <tt>initialize</tt> is private, so you won&#8217;t see
+the documentation unless you use the <tt>-a</tt> command line option.
+
+</dd>
+</dl>
+<h3>Other directives</h3>
+<dl>
+<dt><tt>:include:</tt> <em>filename</em></dt><dd><a href="Include.html">Include</a> the contents of the named file at this
+point. This directive must appear alone on one line, possibly preceded by
+spaces. In this position, it can be escaped with a \ in front of the first
+colon.
+
+<p>
+The file will be searched for in the directories listed by the
+<tt>--include</tt> option, or in the current directory by default. The
+contents of the file will be shifted to have the same indentation as the
+&#8217;:&#8217; at the start of the <tt>:include:</tt> directive.
+</p>
+</dd>
+<dt><tt>:title:</tt> <em>text</em></dt><dd>Sets the title for the document. Equivalent to the <tt>--title</tt> command
+line parameter. (The command line parameter overrides any :title: directive
+in the source).
+
+</dd>
+<dt><tt>:main:</tt> <em>name</em></dt><dd>Equivalent to the <tt>--main</tt> command line parameter.
+
+</dd>
+<dt><tt>:category: section</tt></dt><dd>Adds this item to the named <tt>section</tt> overriding the current
+section. Use this to group methods by section in <a
+href="RDoc.html">RDoc</a> output while maintaining a sensible ordering
+(like alphabetical).
+
+<pre>
+  # :category: Utility Methods
+  #
+  # CGI escapes +text+
+
+  def convert_string text
+    CGI.escapeHTML text
+  end
+</pre>
+<p>
+An empty category will place the item in the default category:
+</p>
+<pre>
+  # :category:
+  #
+  # This method is in the default category
+
+  def some_method
+    # ...
+  end
+</pre>
+<p>
+Unlike the :section: directive, :category: is not sticky. The category only
+applies to the item immediately following the comment.
+</p>
+<p>
+Use the :section: directive to provide introductory text for a section of
+documentation.
+</p>
+</dd>
+<dt><tt>:section: title</tt></dt><dd>Provides section introductory text in <a href="RDoc.html">RDoc</a> output.
+The title following <tt>:section:</tt> is used as the section name and the
+remainder of the comment containing the section is used as introductory
+text. A section&#8217;s comment block must be separated from following
+comment blocks. Use an empty title to switch to the default section.
+
+<p>
+The :section: directive is sticky, so subsequent methods, aliases,
+attributes, and classes will be contained in this section until the section
+is changed. The :category: directive will override the :section: directive.
+</p>
+<p>
+A :section: comment block may have one or more lines before the :section:
+directive. These will be removed, and any identical lines at the end of the
+block are also removed. This allows you to add visual cues to the section.
+</p>
+<p>
+Example:
+</p>
+<pre>
+  # ----------------------------------------
+  # :section: My Section
+  # This is the section that I wrote.
+  # See it glisten in the noon-day sun.
+  # ----------------------------------------
+
+  ##
+  # Comment for some_method
+
+  def some_method
+    # ...
+  end
+</pre>
+</dd>
+<dt><tt>:call-seq:</tt></dt><dd>Lines up to the next blank line in the comment are treated as the
+method&#8217;s calling sequence, overriding the default parsing of method
+parameters and yield arguments.
+
+</dd>
+</dl>
+<p>
+Further directives can be found in <a
+href="Parser/Ruby.html">RDoc::Parser::Ruby</a> and <a
+href="Parser/C.html">RDoc::Parser::C</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004482">add_html</a>,</li>
+                
+                <li><a href="#M004483">add_special</a>,</li>
+                
+                <li><a href="#M004481">add_word_pair</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004484">convert</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004477">new</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/AttrChanger.html">RDoc::Markup::AttrChanger</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/AttrSpan.html">RDoc::Markup::AttrSpan</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Attribute.html">RDoc::Markup::Attribute</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/AttributeManager.html">RDoc::Markup::AttributeManager</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/BlankLine.html">RDoc::Markup::BlankLine</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Document.html">RDoc::Markup::Document</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Formatter.html">RDoc::Markup::Formatter</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/FormatterTestCase.html">RDoc::Markup::FormatterTestCase</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Heading.html">RDoc::Markup::Heading</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/IndentedParagraph.html">RDoc::Markup::IndentedParagraph</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/List.html">RDoc::Markup::List</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ListItem.html">RDoc::Markup::ListItem</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Paragraph.html">RDoc::Markup::Paragraph</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Parser.html">RDoc::Markup::Parser</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/PreProcess.html">RDoc::Markup::PreProcess</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Raw.html">RDoc::Markup::Raw</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Rule.html">RDoc::Markup::Rule</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Special.html">RDoc::Markup::Special</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/TextFormatterTestCase.html">RDoc::Markup::TextFormatterTestCase</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToAnsi.html">RDoc::Markup::ToAnsi</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToBs.html">RDoc::Markup::ToBs</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToHtml.html">RDoc::Markup::ToHtml</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToHtmlCrossref.html">RDoc::Markup::ToHtmlCrossref</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToRdoc.html">RDoc::Markup::ToRdoc</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToTest.html">RDoc::Markup::ToTest</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/ToTtOnly.html">RDoc::Markup::ToTtOnly</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Markup/Verbatim.html">RDoc::Markup::Verbatim</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>attribute_manager</td>
+            <td class='attr-desc'><p>
+An <a href="Markup/AttributeManager.html">AttributeManager</a> which
+handles inline markup.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M004477">
+                    
+                    <a name="M004477"></a><b>new</b>(attribute_manager = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Take a block of text and use various heuristics to determine its structure
+(paragraphs, lists, and so on). Invoke an event handler as we identify
+significant chunks.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004477_source')" id="l_M004477_source">show</a>
+                        
+                    </p>
+                    <div id="M004477_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/markup.rb, line 598</span>
+598:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span> <span class="ruby-identifier">attribute_manager</span> = <span class="ruby-keyword kw">nil</span>
+599:     <span class="ruby-ivar">@attribute_manager</span> = <span class="ruby-identifier">attribute_manager</span> <span class="ruby-operator">||</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Markup</span><span class="ruby-operator">::</span><span class="ruby-constant">AttributeManager</span>.<span class="ruby-identifier">new</span>
+600:     <span class="ruby-ivar">@output</span> = <span class="ruby-keyword kw">nil</span>
+601:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M004482">
+                    
+                    <a name="M004482"></a><b>add_html</b>(tag, name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Add to the sequences recognized as general markup.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004482_source')" id="l_M004482_source">show</a>
+                        
+                    </p>
+                    <div id="M004482_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/markup.rb, line 615</span>
+615:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_html</span>(<span class="ruby-identifier">tag</span>, <span class="ruby-identifier">name</span>)
+616:     <span class="ruby-ivar">@attribute_manager</span>.<span class="ruby-identifier">add_html</span>(<span class="ruby-identifier">tag</span>, <span class="ruby-identifier">name</span>)
+617:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004483">
+                    
+                    <a name="M004483"></a><b>add_special</b>(pattern, name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Add to other inline sequences. For example, we could add WikiWords using
+something like:
+</p>
+<pre>
+   parser.add_special(/\b([A-Z][a-z]+[A-Z]\w+)/, :WIKIWORD)
+</pre>
+<p>
+Each wiki word will be presented to the output formatter via the
+accept_special method.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004483_source')" id="l_M004483_source">show</a>
+                        
+                    </p>
+                    <div id="M004483_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/markup.rb, line 628</span>
+628:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_special</span>(<span class="ruby-identifier">pattern</span>, <span class="ruby-identifier">name</span>)
+629:     <span class="ruby-ivar">@attribute_manager</span>.<span class="ruby-identifier">add_special</span>(<span class="ruby-identifier">pattern</span>, <span class="ruby-identifier">name</span>)
+630:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004481">
+                    
+                    <a name="M004481"></a><b>add_word_pair</b>(start, stop, name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Add to the sequences used to add formatting to an individual word (such as
+<b>bold</b>). Matching entries will generate attributes that the output
+formatters can recognize by their <tt>name</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004481_source')" id="l_M004481_source">show</a>
+                        
+                    </p>
+                    <div id="M004481_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/markup.rb, line 608</span>
+608:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_word_pair</span>(<span class="ruby-identifier">start</span>, <span class="ruby-identifier">stop</span>, <span class="ruby-identifier">name</span>)
+609:     <span class="ruby-ivar">@attribute_manager</span>.<span class="ruby-identifier">add_word_pair</span>(<span class="ruby-identifier">start</span>, <span class="ruby-identifier">stop</span>, <span class="ruby-identifier">name</span>)
+610:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004484">
+                    
+                    <a name="M004484"></a><b>convert</b>(input, formatter)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+We take <tt>input</tt>, parse it if necessary, then invoke the output
+<tt>formatter</tt> using a Visitor to render the result.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004484_source')" id="l_M004484_source">show</a>
+                        
+                    </p>
+                    <div id="M004484_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/markup.rb, line 636</span>
+636:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">convert</span> <span class="ruby-identifier">input</span>, <span class="ruby-identifier">formatter</span>
+637:     <span class="ruby-identifier">document</span> = <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">input</span>
+638:                <span class="ruby-keyword kw">when</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Markup</span><span class="ruby-operator">::</span><span class="ruby-constant">Document</span> <span class="ruby-keyword kw">then</span>
+639:                  <span class="ruby-identifier">input</span>
+640:                <span class="ruby-keyword kw">else</span>
+641:                  <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Markup</span><span class="ruby-operator">::</span><span class="ruby-constant">Parser</span>.<span class="ruby-identifier">parse</span> <span class="ruby-identifier">input</span>
+642:                <span class="ruby-keyword kw">end</span>
+643: 
+644:     <span class="ruby-identifier">document</span>.<span class="ruby-identifier">accept</span> <span class="ruby-identifier">formatter</span>
+645:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>FFI::VariadicInvoker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            FFI::VariadicInvoker 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/ffi/variadic_rb.html">lib/ffi/variadic.rb</a></li>
+            
+            <li><a href="../../files/ext/ffi_c/ffi_c.html">ext/ffi_c/ffi.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+@fixed and @type_map are used by the parameter mangling ruby code
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000153">attach</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000151">call</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000150">init</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000153">
+                    
+                    <a name="M000153"></a><b>attach</b>(mod, mname)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attach the invoker to module <tt>mod</tt> as <tt>mname</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000153_source')" id="l_M000153_source">show</a>
+                        
+                    </p>
+                    <div id="M000153_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/variadic.rb, line 49</span>
+49:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">attach</span>(<span class="ruby-identifier">mod</span>, <span class="ruby-identifier">mname</span>)
+50:       <span class="ruby-identifier">invoker</span> = <span class="ruby-keyword kw">self</span>
+51:       <span class="ruby-identifier">params</span> = <span class="ruby-value str">&quot;*args&quot;</span>
+52:       <span class="ruby-identifier">call</span> = <span class="ruby-value str">&quot;call&quot;</span>
+53:       <span class="ruby-identifier">mod</span>.<span class="ruby-identifier">module_eval</span> <span class="ruby-value str">&quot;@@\#{mname} = invoker\ndef self.\#{mname}(\#{params})\n@@\#{mname}.\#{call}(\#{params})\nend\ndef \#{mname}(\#{params})\n@@\#{mname}.\#{call}(\#{params})\nend\n&quot;</span>
+54:       <span class="ruby-identifier">invoker</span>
+55:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000151">
+                    
+                    <a name="M000151"></a><b>call</b>(*args, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000151_source')" id="l_M000151_source">show</a>
+                        
+                    </p>
+                    <div id="M000151_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/variadic.rb, line 31</span>
+31:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+32:       <span class="ruby-identifier">param_types</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@fixed</span>)
+33:       <span class="ruby-identifier">param_values</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+34:       <span class="ruby-ivar">@fixed</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">t</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+35:         <span class="ruby-identifier">param_values</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">i</span>]
+36:       <span class="ruby-keyword kw">end</span>
+37:       <span class="ruby-identifier">i</span> = <span class="ruby-ivar">@fixed</span>.<span class="ruby-identifier">length</span>
+38:       <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">length</span>
+39:         <span class="ruby-identifier">param_types</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">FFI</span>.<span class="ruby-identifier">find_type</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">i</span>], <span class="ruby-ivar">@type_map</span>)
+40:         <span class="ruby-identifier">param_values</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>]
+41:         <span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">2</span>
+42:       <span class="ruby-keyword kw">end</span>
+43:       <span class="ruby-identifier">invoke</span>(<span class="ruby-identifier">param_types</span>, <span class="ruby-identifier">param_values</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+44:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000150">
+                    
+                    <a name="M000150"></a><b>init</b>(arg_types, type_map)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000150_source')" id="l_M000150_source">show</a>
+                        
+                    </p>
+                    <div id="M000150_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/variadic.rb, line 22</span>
+22:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">init</span>(<span class="ruby-identifier">arg_types</span>, <span class="ruby-identifier">type_map</span>)
+23:       <span class="ruby-ivar">@fixed</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+24:       <span class="ruby-ivar">@type_map</span> = <span class="ruby-identifier">type_map</span>
+25:       <span class="ruby-identifier">arg_types</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+26:         <span class="ruby-ivar">@fixed</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">type</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Type</span><span class="ruby-operator">::</span><span class="ruby-constant">VARARGS</span>
+27:       <span class="ruby-keyword kw">end</span>
+28:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Rack::Sendfile</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Rack::Sendfile 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rack/sendfile_rb.html">lib/rack/sendfile.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="Sendfile.html">Sendfile</a></h1>
+<p>
+The <a href="Sendfile.html">Sendfile</a> middleware intercepts responses
+whose body is being served from a file and replaces it with a server
+specific X-<a href="Sendfile.html">Sendfile</a> header. The web server is
+then responsible for writing the file contents to the client. This can
+dramatically reduce the amount of work required by the Ruby backend and
+takes advantage of the web server&#8217;s optimized file delivery code.
+</p>
+<p>
+In order to take advantage of this middleware, the response body must
+respond to <tt>to_path</tt> and the request must include an X-Sendfile-Type
+header. <a href="File.html">Rack::File</a> and other components implement
+<tt>to_path</tt> so there&#8217;s rarely anything you need to do in your
+application. The X-Sendfile-Type header is typically set in your web
+servers configuration. The following sections attempt to document
+</p>
+<h3>Nginx</h3>
+<p>
+Nginx supports the X-Accel-Redirect header. This is similar to X-<a
+href="Sendfile.html">Sendfile</a> but requires parts of the filesystem to
+be mapped into a private URL hierarachy.
+</p>
+<p>
+The following example shows the Nginx configuration required to create a
+private &#8220;/files/&#8221; area, enable X-Accel-Redirect, and pass the
+special X-Sendfile-Type and X-Accel-Mapping headers to the backend:
+</p>
+<pre>
+  location ~ /files/(.*) {
+    internal;
+    alias /var/www/$1;
+  }
+
+  location / {
+    proxy_redirect     off;
+
+    proxy_set_header   Host                $host;
+    proxy_set_header   X-Real-IP           $remote_addr;
+    proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
+
+    proxy_set_header   X-Sendfile-Type     X-Accel-Redirect;
+    proxy_set_header   X-Accel-Mapping     /var/www/=/files/;
+
+    proxy_pass         http://127.0.0.1:8080/;
+  }
+</pre>
+<p>
+Note that the X-Sendfile-Type header must be set exactly as shown above.
+The X-Accel-Mapping header should specify the location on the file system,
+followed by an equals sign (=), followed name of the private URL pattern
+that it maps to. The middleware performs a simple substitution on the
+resulting path.
+</p>
+<p>
+See Also: <a
+href="http://wiki.codemongers.com/NginxXSendfile">wiki.codemongers.com/NginxXSendfile</a>
+</p>
+<h3>lighttpd</h3>
+<p>
+Lighttpd has supported some variation of the X-<a
+href="Sendfile.html">Sendfile</a> header for some time, although only
+recent version support X-<a href="Sendfile.html">Sendfile</a> in a reverse
+proxy configuration.
+</p>
+<pre>
+  $HTTP[&quot;host&quot;] == &quot;example.com&quot; {
+     proxy-core.protocol = &quot;http&quot;
+     proxy-core.balancer = &quot;round-robin&quot;
+     proxy-core.backends = (
+       &quot;127.0.0.1:8000&quot;,
+       &quot;127.0.0.1:8001&quot;,
+       ...
+     )
+
+     proxy-core.allow-x-sendfile = &quot;enable&quot;
+     proxy-core.rewrite-request = (
+       &quot;X-Sendfile-Type&quot; =&gt; (&quot;.*&quot; =&gt; &quot;X-Sendfile&quot;)
+     )
+   }
+</pre>
+<p>
+See Also: <a
+href="http://redmine.lighttpd.net/wiki/lighttpd/Docs:ModProxyCore">redmine.lighttpd.net/wiki/lighttpd/Docs:ModProxyCore</a>
+</p>
+<h3>Apache</h3>
+<p>
+X-<a href="Sendfile.html">Sendfile</a> is supported under Apache 2.x using
+a separate module:
+</p>
+<p>
+<a href="https://tn123.org/mod_xsendfile/">tn123.org/mod_xsendfile/</a>
+</p>
+<p>
+Once the module is compiled and installed, you can enable it using
+XSendFile config directive:
+</p>
+<pre>
+  RequestHeader Set X-Sendfile-Type X-Sendfile
+  ProxyPassReverse / http://localhost:8001/
+  XSendFile on
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000320">call</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000322">map_accel_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000319">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000321">variation</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">F</td>
+            <td>=</td>
+            <td class="attr-value">::File</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000319">
+                    
+                    <a name="M000319"></a><b>new</b>(app, variation=nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000319_source')" id="l_M000319_source">show</a>
+                        
+                    </p>
+                    <div id="M000319_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rack/sendfile.rb, line 96</span>
+96:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">app</span>, <span class="ruby-identifier">variation</span>=<span class="ruby-keyword kw">nil</span>)
+97:       <span class="ruby-ivar">@app</span> = <span class="ruby-identifier">app</span>
+98:       <span class="ruby-ivar">@variation</span> = <span class="ruby-identifier">variation</span>
+99:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000320">
+                    
+                    <a name="M000320"></a><b>call</b>(env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000320_source')" id="l_M000320_source">show</a>
+                        
+                    </p>
+                    <div id="M000320_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rack/sendfile.rb, line 101</span>
+101:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+102:       <span class="ruby-identifier">status</span>, <span class="ruby-identifier">headers</span>, <span class="ruby-identifier">body</span> = <span class="ruby-ivar">@app</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+103:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">body</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:to_path</span>)
+104:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span> = <span class="ruby-identifier">variation</span>(<span class="ruby-identifier">env</span>)
+105:         <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'X-Accel-Redirect'</span>
+106:           <span class="ruby-identifier">path</span> = <span class="ruby-constant">F</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">body</span>.<span class="ruby-identifier">to_path</span>)
+107:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">url</span> = <span class="ruby-identifier">map_accel_path</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">path</span>)
+108:             <span class="ruby-identifier">headers</span>[<span class="ruby-value str">'Content-Length'</span>] = <span class="ruby-value str">'0'</span>
+109:             <span class="ruby-identifier">headers</span>[<span class="ruby-identifier">type</span>] = <span class="ruby-identifier">url</span>
+110:             <span class="ruby-identifier">body</span> = []
+111:           <span class="ruby-keyword kw">else</span>
+112:             <span class="ruby-identifier">env</span>[<span class="ruby-value str">'rack.errors'</span>].<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;X-Accel-Mapping header missing&quot;</span>
+113:           <span class="ruby-keyword kw">end</span>
+114:         <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'X-Sendfile'</span>, <span class="ruby-value str">'X-Lighttpd-Send-File'</span>
+115:           <span class="ruby-identifier">path</span> = <span class="ruby-constant">F</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">body</span>.<span class="ruby-identifier">to_path</span>)
+116:           <span class="ruby-identifier">headers</span>[<span class="ruby-value str">'Content-Length'</span>] = <span class="ruby-value str">'0'</span>
+117:           <span class="ruby-identifier">headers</span>[<span class="ruby-identifier">type</span>] = <span class="ruby-identifier">path</span>
+118:           <span class="ruby-identifier">body</span> = []
+119:         <span class="ruby-keyword kw">when</span> <span class="ruby-value str">''</span>, <span class="ruby-keyword kw">nil</span>
+120:         <span class="ruby-keyword kw">else</span>
+121:           <span class="ruby-identifier">env</span>[<span class="ruby-value str">'rack.errors'</span>].<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Unknown x-sendfile variation: '#{variation}'.\n&quot;</span>
+122:         <span class="ruby-keyword kw">end</span>
+123:       <span class="ruby-keyword kw">end</span>
+124:       [<span class="ruby-identifier">status</span>, <span class="ruby-identifier">headers</span>, <span class="ruby-identifier">body</span>]
+125:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000322">
+                    
+                    <a name="M000322"></a><b>map_accel_path</b>(env, file)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000322_source')" id="l_M000322_source">show</a>
+                        
+                    </p>
+                    <div id="M000322_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rack/sendfile.rb, line 134</span>
+134:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">map_accel_path</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">file</span>)
+135:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">mapping</span> = <span class="ruby-identifier">env</span>[<span class="ruby-value str">'HTTP_X_ACCEL_MAPPING'</span>]
+136:         <span class="ruby-identifier">internal</span>, <span class="ruby-identifier">external</span> = <span class="ruby-identifier">mapping</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'='</span>, <span class="ruby-value">2</span>).<span class="ruby-identifier">map</span>{ <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">strip</span> }
+137:         <span class="ruby-identifier">file</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-node">/^#{internal}/i</span>, <span class="ruby-identifier">external</span>)
+138:       <span class="ruby-keyword kw">end</span>
+139:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000321">
+                    
+                    <a name="M000321"></a><b>variation</b>(env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000321_source')" id="l_M000321_source">show</a>
+                        
+                    </p>
+                    <div id="M000321_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rack/sendfile.rb, line 128</span>
+128:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">variation</span>(<span class="ruby-identifier">env</span>)
+129:       <span class="ruby-ivar">@variation</span> <span class="ruby-operator">||</span>
+130:         <span class="ruby-identifier">env</span>[<span class="ruby-value str">'sendfile.type'</span>] <span class="ruby-operator">||</span>
+131:         <span class="ruby-identifier">env</span>[<span class="ruby-value str">'HTTP_X_SENDFILE_TYPE'</span>]
+132:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

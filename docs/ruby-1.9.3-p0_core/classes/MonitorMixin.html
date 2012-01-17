@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>MonitorMixin</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            MonitorMixin 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/monitor_rb.html">lib/monitor.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+In concurrent programming, a monitor is an object or module intended to be
+used safely by more than one thread. The defining characteristic of a
+monitor is that its methods are executed with mutual exclusion. That is, at
+each point in time, at most one thread may be executing any of its methods.
+This mutual exclusion greatly simplifies reasoning about the implementation
+of monitors compared to reasoning about parallel code that updates a data
+structure.
+</p>
+<p>
+You can read more about the general principles on the Wikipedia page for <a
+href="http://en.wikipedia.org/wiki/Monitor_%28synchronization%29">Monitors</a>
+</p>
+<h2>Examples</h2>
+<h3>Simple object.extend</h3>
+<pre>
+  require 'monitor.rb'
+
+  buf = []
+  buf.extend(MonitorMixin)
+  empty_cond = buf.new_cond
+
+  # consumer
+  Thread.start do
+    loop do
+      buf.synchronize do
+        empty_cond.wait_while { buf.empty? }
+        print buf.shift
+      end
+    end
+  end
+
+  # producer
+  while line = ARGF.gets
+    buf.synchronize do
+      buf.push(line)
+      empty_cond.signal
+    end
+  end
+</pre>
+<p>
+The consumer thread waits for the producer thread to push a line to buf
+while <tt>buf.empty?</tt>. The producer thread (main thread) reads a line
+from <a href="ARGF.html">ARGF</a> and pushes it into buf then calls
+<tt>empty_cond.signal</tt> to notify the consumer thread of new data.
+</p>
+<h3>Simple <a href="Class.html">Class</a> include</h3>
+<pre>
+  require 'monitor'
+
+  class SynchronizedArray &lt; Array
+
+    include MonitorMixin
+
+    def initialize(*args)
+      super(*args)
+    end
+
+    alias :old_shift :shift
+    alias :old_unshift :unshift
+
+    def shift(n=1)
+      self.synchronize do
+        self.old_shift(n)
+      end
+    end
+
+    def unshift(item)
+      self.synchronize do
+        self.old_unshift(item)
+      end
+    end
+
+    # other methods ...
+  end
+</pre>
+<p>
+<tt>SynchronizedArray</tt> implements an <a href="Array.html">Array</a>
+with synchronized access to items. This <a href="Class.html">Class</a> is
+implemented as subclass of <a href="Array.html">Array</a> which includes
+the <a href="MonitorMixin.html">MonitorMixin</a> module.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002982">extend_object</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002992">mon_check_owner</a>,</li>
+                
+                <li><a href="#M002985">mon_enter</a>,</li>
+                
+                <li><a href="#M002993">mon_enter_for_cond</a>,</li>
+                
+                <li><a href="#M002986">mon_exit</a>,</li>
+                
+                <li><a href="#M002994">mon_exit_for_cond</a>,</li>
+                
+                <li><a href="#M002991">mon_initialize</a>,</li>
+                
+                <li><a href="#M002987">mon_synchronize</a>,</li>
+                
+                <li><a href="#M002983">mon_try_enter</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002990">new</a>,</li>
+                
+                <li><a href="#M002989">new_cond</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002988">synchronize</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002984">try_mon_enter</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="MonitorMixin/ConditionVariable.html">MonitorMixin::ConditionVariable</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002982">
+                    
+                    <a name="M002982"></a><b>extend_object</b>(obj)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002982_source')" id="l_M002982_source">show</a>
+                        
+                    </p>
+                    <div id="M002982_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 159</span>
+159:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">extend_object</span>(<span class="ruby-identifier">obj</span>)
+160:     <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">obj</span>)
+161:     <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">__send__</span>(<span class="ruby-identifier">:mon_initialize</span>)
+162:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002990">
+                    
+                    <a name="M002990"></a><b>new</b>(*args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead
+of this constructor. Have look at the examples above to understand how to
+use this module.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002990_source')" id="l_M002990_source">show</a>
+                        
+                    </p>
+                    <div id="M002990_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 231</span>
+231:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+232:     <span class="ruby-keyword kw">super</span>
+233:     <span class="ruby-identifier">mon_initialize</span>
+234:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002985">
+                    
+                    <a name="M002985"></a><b>mon_enter</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enters exclusive section.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002985_source')" id="l_M002985_source">show</a>
+                        
+                    </p>
+                    <div id="M002985_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 183</span>
+183:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_enter</span>
+184:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@mon_owner</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+185:       <span class="ruby-ivar">@mon_mutex</span>.<span class="ruby-identifier">lock</span>
+186:       <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+187:     <span class="ruby-keyword kw">end</span>
+188:     <span class="ruby-ivar">@mon_count</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+189:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002986">
+                    
+                    <a name="M002986"></a><b>mon_exit</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Leaves exclusive section.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002986_source')" id="l_M002986_source">show</a>
+                        
+                    </p>
+                    <div id="M002986_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 194</span>
+194:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_exit</span>
+195:     <span class="ruby-identifier">mon_check_owner</span>
+196:     <span class="ruby-ivar">@mon_count</span> <span class="ruby-operator">-=</span><span class="ruby-value">1</span>
+197:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@mon_count</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+198:       <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-keyword kw">nil</span>
+199:       <span class="ruby-ivar">@mon_mutex</span>.<span class="ruby-identifier">unlock</span>
+200:     <span class="ruby-keyword kw">end</span>
+201:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002987">
+                    
+                    <a name="M002987"></a><b>mon_synchronize</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enters exclusive section and executes the block. Leaves the exclusive
+section automatically when the block exits. See example under
+<tt>MonitorMixin</tt>.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="MonitorMixin.html#M002988">synchronize</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002987_source')" id="l_M002987_source">show</a>
+                        
+                    </p>
+                    <div id="M002987_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 208</span>
+208:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_synchronize</span>
+209:     <span class="ruby-identifier">mon_enter</span>
+210:     <span class="ruby-keyword kw">begin</span>
+211:       <span class="ruby-keyword kw">yield</span>
+212:     <span class="ruby-keyword kw">ensure</span>
+213:       <span class="ruby-identifier">mon_exit</span>
+214:     <span class="ruby-keyword kw">end</span>
+215:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002983">
+                    
+                    <a name="M002983"></a><b>mon_try_enter</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to enter exclusive section. Returns <tt>false</tt> if lock fails.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="MonitorMixin.html#M002984">try_mon_enter</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002983_source')" id="l_M002983_source">show</a>
+                        
+                    </p>
+                    <div id="M002983_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 167</span>
+167:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_try_enter</span>
+168:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@mon_owner</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+169:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@mon_mutex</span>.<span class="ruby-identifier">try_lock</span>
+170:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
+171:       <span class="ruby-keyword kw">end</span>
+172:       <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+173:     <span class="ruby-keyword kw">end</span>
+174:     <span class="ruby-ivar">@mon_count</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+175:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+176:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002989">
+                    
+                    <a name="M002989"></a><b>new_cond</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a
+href="MonitorMixin/ConditionVariable.html">MonitorMixin::ConditionVariable</a>
+associated with the receiver.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002989_source')" id="l_M002989_source">show</a>
+                        
+                    </p>
+                    <div id="M002989_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 222</span>
+222:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">new_cond</span>
+223:     <span class="ruby-keyword kw">return</span> <span class="ruby-constant">ConditionVariable</span>.<span class="ruby-identifier">new</span>(<span class="ruby-keyword kw">self</span>)
+224:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002988">
+                    
+                    <a name="M002988"></a><b>synchronize</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="MonitorMixin.html#M002987">mon_synchronize</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002984">
+                    
+                    <a name="M002984"></a><b>try_mon_enter</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="MonitorMixin.html#M002983">mon_try_enter</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002992">
+                    
+                    <a name="M002992"></a><b>mon_check_owner</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002992_source')" id="l_M002992_source">show</a>
+                        
+                    </p>
+                    <div id="M002992_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 244</span>
+244:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_check_owner</span>
+245:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@mon_owner</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+246:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ThreadError</span>, <span class="ruby-value str">&quot;current thread not owner&quot;</span>
+247:     <span class="ruby-keyword kw">end</span>
+248:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002993">
+                    
+                    <a name="M002993"></a><b>mon_enter_for_cond</b>(count)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002993_source')" id="l_M002993_source">show</a>
+                        
+                    </p>
+                    <div id="M002993_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 250</span>
+250:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_enter_for_cond</span>(<span class="ruby-identifier">count</span>)
+251:     <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>
+252:     <span class="ruby-ivar">@mon_count</span> = <span class="ruby-identifier">count</span>
+253:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002994">
+                    
+                    <a name="M002994"></a><b>mon_exit_for_cond</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002994_source')" id="l_M002994_source">show</a>
+                        
+                    </p>
+                    <div id="M002994_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 255</span>
+255:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_exit_for_cond</span>
+256:     <span class="ruby-identifier">count</span> = <span class="ruby-ivar">@mon_count</span>
+257:     <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-keyword kw">nil</span>
+258:     <span class="ruby-ivar">@mon_count</span> = <span class="ruby-value">0</span>
+259:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">count</span>
+260:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002991">
+                    
+                    <a name="M002991"></a><b>mon_initialize</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Initializes the <a href="MonitorMixin.html">MonitorMixin</a> after being
+included in a class or when an object has been extended with the <a
+href="MonitorMixin.html">MonitorMixin</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002991_source')" id="l_M002991_source">show</a>
+                        
+                    </p>
+                    <div id="M002991_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/monitor.rb, line 238</span>
+238:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mon_initialize</span>
+239:     <span class="ruby-ivar">@mon_owner</span> = <span class="ruby-keyword kw">nil</span>
+240:     <span class="ruby-ivar">@mon_count</span> = <span class="ruby-value">0</span>
+241:     <span class="ruby-ivar">@mon_mutex</span> = <span class="ruby-constant">Mutex</span>.<span class="ruby-identifier">new</span>
+242:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

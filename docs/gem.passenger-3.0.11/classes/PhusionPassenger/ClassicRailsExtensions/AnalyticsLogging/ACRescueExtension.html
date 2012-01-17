@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>PhusionPassenger::ClassicRailsExtensions::AnalyticsLogging::ACRescueExtension</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            PhusionPassenger::ClassicRailsExtensions::AnalyticsLogging::ACRescueExtension 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/phusion_passenger/classic_rails_extensions/analytics_logging/ac_rescue_extension_rb.html">lib/phusion_passenger/classic_rails_extensions/analytics_logging/ac_rescue_extension.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000179">rescue_action_with_passenger</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000179">
+                    
+                    <a name="M000179"></a><b>rescue_action_with_passenger</b>(exception)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000179_source')" id="l_M000179_source">show</a>
+                        
+                    </p>
+                    <div id="M000179_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/phusion_passenger/classic_rails_extensions/analytics_logging/ac_rescue_extension.rb, line 32</span>
+32:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rescue_action_with_passenger</span>(<span class="ruby-identifier">exception</span>)
+33:     <span class="ruby-comment cmt"># When a controller action crashes, log the exception.</span>
+34:     <span class="ruby-comment cmt"># But ignore routing errors (404s and stuff).</span>
+35:     <span class="ruby-identifier">request</span>.<span class="ruby-identifier">env</span>[<span class="ruby-value str">&quot;PASSENGER_ACTION_FAILED&quot;</span>] = <span class="ruby-keyword kw">true</span>
+36:     <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">ActionController</span><span class="ruby-operator">::</span><span class="ruby-constant">RoutingError</span>) <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-identifier">exception</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">ActionController</span><span class="ruby-operator">::</span><span class="ruby-constant">RoutingError</span>)
+37:       <span class="ruby-constant">AnalyticsLogging</span>.<span class="ruby-identifier">new_transaction_log</span>(<span class="ruby-identifier">request</span>.<span class="ruby-identifier">env</span>, <span class="ruby-identifier">:exceptions</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">log</span><span class="ruby-operator">|</span>
+38:         <span class="ruby-identifier">request_txn_id</span> = <span class="ruby-identifier">request</span>.<span class="ruby-identifier">env</span>[<span class="ruby-constant">PASSENGER_TXN_ID</span>]
+39:         <span class="ruby-identifier">message</span> = <span class="ruby-identifier">exception</span>.<span class="ruby-identifier">message</span>
+40:         <span class="ruby-identifier">message</span> = <span class="ruby-identifier">exception</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">empty?</span>
+41:         <span class="ruby-identifier">message</span> = [<span class="ruby-identifier">message</span>].<span class="ruby-identifier">pack</span>(<span class="ruby-value str">'m'</span>)
+42:         <span class="ruby-identifier">message</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-value str">&quot;\n&quot;</span>, <span class="ruby-value str">&quot;&quot;</span>)
+43:         <span class="ruby-identifier">backtrace_string</span> = [<span class="ruby-identifier">exception</span>.<span class="ruby-identifier">backtrace</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)].<span class="ruby-identifier">pack</span>(<span class="ruby-value str">'m'</span>)
+44:         <span class="ruby-identifier">backtrace_string</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-value str">&quot;\n&quot;</span>, <span class="ruby-value str">&quot;&quot;</span>)
+45:         
+46:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">message</span>(<span class="ruby-node">&quot;Request transaction ID: #{request_txn_id}&quot;</span>)
+47:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">message</span>(<span class="ruby-node">&quot;Message: #{message}&quot;</span>)
+48:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">message</span>(<span class="ruby-node">&quot;Class: #{exception.class.name}&quot;</span>)
+49:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">message</span>(<span class="ruby-node">&quot;Backtrace: #{backtrace_string}&quot;</span>)
+50:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">message</span>(<span class="ruby-node">&quot;Controller action: #{controller_class_name}##{action_name}&quot;</span>)
+51:       <span class="ruby-keyword kw">end</span>
+52:     <span class="ruby-keyword kw">end</span>
+53:     <span class="ruby-identifier">rescue_action_without_passenger</span>(<span class="ruby-identifier">exception</span>)
+54:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

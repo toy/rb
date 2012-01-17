@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>missing.rb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            missing.rb
+        </h1>
+        <ul class="files">
+            <li>activesupport-2.3.14/lib/active_support/vendor/i18n-0.4.1/i18n/backend/active_record/missing.rb</li>
+            <li>Last modified: Sun Oct 02 03:22:56 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <pre>
+ This extension stores translation stub records for missing translations to
+ the database.
+
+ This is useful if you have a web based translation tool. It will populate
+ the database with untranslated keys as the application is being used. A
+ translator can then go through these and add missing translations.
+
+ Example usage:
+
+    I18n::Backend::Chain.send(:include, I18n::Backend::ActiveRecord::Missing)
+    I18n.backend = I18nChainBackend.new(I18n::Backend::ActiveRecord.new, I18n::Backend::Simple.new)
+
+ Stub records for pluralizations will also be created for each key defined
+ in i18n.plural.keys.
+
+ For example:
+
+   # en.yml
+   en:
+     i18n:
+       plural:
+         keys: [:zero, :one, :other]
+
+   # pl.yml
+   pl:
+     i18n:
+       plural:
+         keys: [:zero, :one, :few, :other]
+
+ It will also persist interpolation keys in Translation#interpolations so
+ translators will be able to review and use them.
+</pre>
+<hr size="1"></hr><p>
+This module allows you to easily cache all responses from the backend -
+thus speeding up the <a
+href="../../../../../../../../../classes/I18n.html">I18n</a> aspects of
+your application quite a bit.
+</p>
+<p>
+To enable caching you can simply include the Cache module to the Simple
+backend - or whatever other backend you are using:
+</p>
+<pre>
+ I18n::Backend::Simple.send(:include, I18n::Backend::Cache)
+</pre>
+<p>
+You will also need to set a cache store implementation that you want to
+use:
+</p>
+<pre>
+ I18n.cache_store = ActiveSupport::Cache.lookup_store(:memory_store)
+</pre>
+<p>
+You can use any cache implementation you want that provides the same API as
+<a
+href="../../../../../../../../../classes/ActiveSupport/Cache.html">ActiveSupport::Cache</a>
+(only the methods fetch and write are being used).
+</p>
+<p>
+The cache_key implementation assumes that you only pass values to <a
+href="../../../../../../../../../classes/I18n.html#M003576">I18n.translate</a>
+that return a valid key from hash (see <a
+href="http://www.ruby-doc.org/core/classes/Object.html#M000337">www.ruby-doc.org/core/classes/Object.html#M000337</a>).
+</p>
+<hr size="1"></hr><p>
+EXPERIMENTAL
+</p>
+<p>
+The Cascade module adds the ability to do cascading lookups to backends
+that are compatible to the Simple backend.
+</p>
+<p>
+By cascading lookups we mean that for any key that can not be found the
+Cascade module strips one segment off the scope part of the key and then
+tries to look up the key in that scope.
+</p>
+<p>
+E.g. when a lookup for the key :&#8220;foo.bar.baz&#8220; does not yield a
+result then the segment :bar will be stripped off the scope part
+:&#8220;foo.bar&#8220; and the new scope :foo will be used to look up the
+key :baz. If that does not succeed then the remaining scope segment :foo
+will be omitted, too, and again the key :baz will be looked up (now with no
+scope).
+</p>
+<p>
+To enable a cascading lookup one passes the :cascade option:
+</p>
+<pre>
+  I18n.t(:'foo.bar.baz', :cascade =&gt; true)
+</pre>
+<p>
+This will return the first translation found for
+:&#8220;foo.bar.baz&#8220;, :&#8220;foo.baz&#8220; or :baz in this order.
+</p>
+<p>
+The cascading lookup takes precedence over resolving any given defaults.
+I.e. defaults will kick in after the cascading lookups haven&#8217;t
+succeeded.
+</p>
+<p>
+This behavior is useful for libraries like ActiveRecord validations where
+the library wants to give users a bunch of more or less fine-grained
+options of scopes for a particular key.
+</p>
+<p>
+Thanks to Clemens Kofler for the initial idea and implementation! See <a
+href="http://github.com/clemens/i18n-cascading-backend">github.com/clemens/i18n-cascading-backend</a>
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<hr size="1"></hr><p>
+<a href="../../../../../../../../../classes/I18n.html">I18n</a> locale
+fallbacks are useful when you want your application to use translations
+from other locales when translations for the current locale are missing.
+E.g. you might want to use :en translations when translations in your
+applications main locale :de are missing.
+</p>
+<p>
+To enable locale fallbacks you can simply include the Fallbacks module to
+the Simple backend - or whatever other backend you are using:
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
+</pre>
+<hr size="1"></hr><p>
+Experimental support for using Gettext po files to store translations.
+</p>
+<p>
+To use this you can simply include the module to the Simple backend - or
+whatever other backend you are using.
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::Gettext)
+</pre>
+<p>
+Now you should be able to include your Gettext translation (*.po) files to
+the I18n.load_path so they&#8217;re loaded to the backend and you can use
+them as usual:
+</p>
+<pre>
+ I18n.load_path += Dir[&quot;path/to/locales/*.po&quot;]
+</pre>
+<p>
+Following the Gettext convention this implementation expects that your
+translation files are named by their locales. E.g. the file en.po would
+contain the translations for the English locale.
+</p>
+<hr size="1"></hr><p>
+The InterpolationCompiler module contains optimizations that can
+tremendously speed up the interpolation process on the Simple backend.
+</p>
+<p>
+It works by defining a pre-compiled method on stored translation Strings
+that already bring all the knowledge about contained interpolation
+variables etc. so that the actual recurring interpolation will be very
+fast.
+</p>
+<p>
+To enable pre-compiled interpolations you can simply include the
+InterpolationCompiler module to the Simple backend:
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::InterpolationCompiler)
+</pre>
+<p>
+Note that InterpolationCompiler does not yield meaningful results and
+consequently should not be used with Ruby 1.9 (YARV) but improves
+performance everywhere else (jRuby, Rubinius and 1.8.7).
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<p>
+Memoize module simply memoizes the values returned by lookup using a flat
+hash and can tremendously speed up the lookup process in a backend.
+</p>
+<p>
+To enable it you can simply include the Memoize module to your backend:
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::Memoize)
+</pre>
+<p>
+Notice that it&#8217;s the responsibility of the backend to define whenever
+the cache should be cleaned.
+</p>
+<hr size="1"></hr><p>
+<a href="../../../../../../../../../classes/I18n.html">I18n</a> translation
+metadata is useful when you want to access information about how a
+translation was looked up, pluralized or interpolated in your application.
+</p>
+<pre>
+  msg = I18n.t(:message, :default =&gt; 'Hi!', :scope =&gt; :foo)
+  msg.translation_metadata
+  # =&gt; { :key =&gt; :message, :scope =&gt; :foo, :default =&gt; 'Hi!' }
+</pre>
+<p>
+If a :count option was passed to translate it will be set to the metadata.
+Likewise, if any interpolation variables were passed they will also be set.
+</p>
+<p>
+To enable translation metadata you can simply include the Metadata module
+into the Simple backend class - or whatever other backend you are using:
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::Metadata)
+</pre>
+<hr size="1"></hr><p>
+<a href="../../../../../../../../../classes/I18n.html">I18n</a> locale
+fallbacks are useful when you want your application to use translations
+from other locales when translations for the current locale are missing.
+E.g. you might want to use :en translations when translations in your
+applications main locale :de are missing.
+</p>
+<p>
+To enable locale specific pluralizations you can simply include the
+Pluralization module to the Simple backend - or whatever other backend you
+are using.
+</p>
+<pre>
+  I18n::Backend::Simple.send(:include, I18n::Backend::Pluralization)
+</pre>
+<p>
+You also need to make sure to provide pluralization algorithms to the
+backend, i.e. include them to your I18n.load_path accordingly.
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<hr size="1"></hr><p>
+Locale Fallbacks
+</p>
+<p>
+Extends the <a href="../../../../../../../../../classes/I18n.html">I18n</a>
+module to hold a fallbacks instance which is set to an instance of <a
+href="../../../../../../../../../classes/I18n/Locale/Fallbacks.html">I18n::Locale::Fallbacks</a>
+by default but can be swapped with a different implementation.
+</p>
+<p>
+Locale fallbacks will compute a number of fallback locales for a given
+locale. For example:
+</p>
+<p>
+<pre><tt> <a
+href="../../../../../../../../../classes/I18n.html#M003432">I18n.fallbacks</a>[:&quot;es-MX&quot;]
+# =&gt; [:&quot;es-MX&quot;, :es, :en] </tt></pre>
+</p>
+<p>
+Locale fallbacks always fall back to
+</p>
+<pre>
+  * all parent locales of a given locale (e.g. :es for :&quot;es-MX&quot;) first,
+  * the current default locales and all of their parents second
+</pre>
+<p>
+The default locales are set to [I18n.default_locale] by default but can be
+set to something else.
+</p>
+<p>
+One can additionally add any number of additional fallback locales
+manually. These will be added before the default locales to the fallback
+chain. For example:
+</p>
+<pre>
+  # using the default locale as default fallback locale
+
+  I18n.default_locale = :&quot;en-US&quot;
+  I18n.fallbacks = I18n::Fallbacks.new(:&quot;de-AT&quot; =&gt; :&quot;de-DE&quot;)
+  I18n.fallbacks[:&quot;de-AT&quot;] # =&gt; [:&quot;de-AT&quot;, :&quot;de-DE&quot;, :de, :&quot;en-US&quot;, :en]
+
+  # using a custom locale as default fallback locale
+
+  I18n.fallbacks = I18n::Fallbacks.new(:&quot;en-GB&quot;, :&quot;de-AT&quot; =&gt; :de, :&quot;de-CH&quot; =&gt; :de)
+  I18n.fallbacks[:&quot;de-AT&quot;] # =&gt; [:&quot;de-AT&quot;, :de, :&quot;en-GB&quot;, :en]
+  I18n.fallbacks[:&quot;de-CH&quot;] # =&gt; [:&quot;de-CH&quot;, :de, :&quot;en-GB&quot;, :en]
+
+  # mapping fallbacks to an existing instance
+
+  # people speaking Catalan also speak Spanish as spoken in Spain
+  fallbacks = I18n.fallbacks
+  fallbacks.map(:ca =&gt; :&quot;es-ES&quot;)
+  fallbacks[:ca] # =&gt; [:ca, :&quot;es-ES&quot;, :es, :&quot;en-US&quot;, :en]
+
+  # people speaking Arabian as spoken in Palestine also speak Hebrew as spoken in Israel
+  fallbacks.map(:&quot;ar-PS&quot; =&gt; :&quot;he-IL&quot;)
+  fallbacks[:&quot;ar-PS&quot;] # =&gt; [:&quot;ar-PS&quot;, :ar, :&quot;he-IL&quot;, :he, :&quot;en-US&quot;, :en]
+  fallbacks[:&quot;ar-EG&quot;] # =&gt; [:&quot;ar-EG&quot;, :ar, :&quot;en-US&quot;, :en]
+
+  # people speaking Sami as spoken in Finnland also speak Swedish and Finnish as spoken in Finnland
+  fallbacks.map(:sms =&gt; [:&quot;se-FI&quot;, :&quot;fi-FI&quot;])
+  fallbacks[:sms] # =&gt; [:sms, :&quot;se-FI&quot;, :se, :&quot;fi-FI&quot;, :fi, :&quot;en-US&quot;, :en]
+</pre>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+<hr size="1"></hr><p>
+Simple Locale tag implementation that computes subtags by simply splitting
+the locale tag at &#8217;-&#8217; occurences.
+</p>
+<hr size="1"></hr><p>
+RFC 4646/47 compliant Locale tag implementation that parses locale tags to
+subtags such as language, script, region, variant etc.
+</p>
+<p>
+For more information see by <a
+href="http://en.wikipedia.org/wiki/IETF_language_tag">en.wikipedia.org/wiki/IETF_language_tag</a>
+</p>
+<p>
+Rfc4646::Parser does not implement grandfathered tags.
+</p>
+<hr size="1"></hr><p>
+encoding: utf-8
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="../../../../../../../../../classes/I18n.html">I18n</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

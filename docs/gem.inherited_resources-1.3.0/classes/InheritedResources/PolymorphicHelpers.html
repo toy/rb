@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>InheritedResources::PolymorphicHelpers</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            InheritedResources::PolymorphicHelpers 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/inherited_resources/polymorphic_helpers_rb.html">lib/inherited_resources/polymorphic_helpers.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>polymorphic associations</h1>
+<p>
+In some cases you have a resource that belongs to two different resources
+but not at the same time. For example, let&#8217;s suppose you have File,
+Message and Task as resources and they are all commentable.
+</p>
+<p>
+Polymorphic associations allows you to create just one controller that will
+deal with each case.
+</p>
+<pre>
+  class Comment &lt; InheritedResources::Base
+    belongs_to :file, :message, :task, :polymorphic =&gt; true
+  end
+</pre>
+<p>
+Your routes should be something like:
+</p>
+<pre>
+  m.resources :files,    :has_many =&gt; :comments #=&gt; /files/13/comments
+  m.resources :tasks,    :has_many =&gt; :comments #=&gt; /tasks/17/comments
+  m.resources :messages, :has_many =&gt; :comments #=&gt; /messages/11/comments
+</pre>
+<p>
+When using polymorphic associations, you get some free helpers:
+</p>
+<pre>
+  parent?         #=&gt; true
+  parent_type     #=&gt; :task
+  parent_class    #=&gt; Task
+  parent          #=&gt; @task
+</pre>
+<p>
+This polymorphic controllers thing is a great idea by James Golick and he
+built it in resource_controller. Here is just a re-implementation.
+</p>
+<h1>optional polymorphic associations</h1>
+<p>
+Let&#8217;s take another break from ProjectsController. Let&#8217;s suppose
+we are building a store, which sell products.
+</p>
+<p>
+On the website, we can show all products, but also products scoped to
+categories, brands, users. In this case case, the association is optional,
+and we deal with it in the following way:
+</p>
+<pre>
+  class ProductsController &lt; InheritedResources::Base
+    belongs_to :category, :brand, :user, :polymorphic =&gt; true, :optional =&gt; true
+  end
+</pre>
+<p>
+This will handle all those urls properly:
+</p>
+<pre>
+  /products/1
+  /categories/2/products/5
+  /brands/10/products/3
+  /user/13/products/11
+</pre>
+<h1>nested polymorphic associations</h1>
+<p>
+You can have polymorphic associations with nested resources. Let&#8217;s
+suppose that our File, Task and Message resources in the previous example
+belongs to a project.
+</p>
+<p>
+This way we can have:
+</p>
+<pre>
+  class CommentsController &lt; InheritedResources::Base
+    belongs_to :project {
+      belongs_to :file, :message, :task, :polymorphic =&gt; true
+    }
+  end
+</pre>
+<p>
+Or:
+</p>
+<pre>
+  class CommentsController &lt; InheritedResources::Base
+    nested_belongs_to :project
+    nested_belongs_to :file, :message, :task, :polymorphic =&gt; true
+  end
+</pre>
+<p>
+Choose the syntax that makes more sense to you. :)
+</p>
+<p>
+Finally your routes should be something like:
+</p>
+<pre>
+  map.resources :projects do |m|
+    m.resources :files,    :has_many =&gt; :comments #=&gt; /projects/1/files/13/comments
+    m.resources :tasks,    :has_many =&gt; :comments #=&gt; /projects/1/tasks/17/comments
+    m.resources :messages, :has_many =&gt; :comments #=&gt; /projects/1/messages/11/comments
+  end
+</pre>
+<p>
+The helpers work in the same way as above.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000057">parent</a>,</li>
+                
+                <li><a href="#M000058">parent?</a>,</li>
+                
+                <li><a href="#M000056">parent_class</a>,</li>
+                
+                <li><a href="#M000055">parent_type</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000057">
+                    
+                    <a name="M000057"></a><b>parent</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the parent object. They are also available with the instance
+variable name: @task, @file, @note...
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000057_source')" id="l_M000057_source">show</a>
+                        
+                    </p>
+                    <div id="M000057_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/inherited_resources/polymorphic_helpers.rb, line 103</span>
+103:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parent</span>
+104:         <span class="ruby-identifier">instance_variable_get</span>(<span class="ruby-node">&quot;@#{@parent_type}&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@parent_type</span>
+105:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000058">
+                    
+                    <a name="M000058"></a><b>parent?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If the polymorphic association is optional, we might not have a parent.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000058_source')" id="l_M000058_source">show</a>
+                        
+                    </p>
+                    <div id="M000058_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/inherited_resources/polymorphic_helpers.rb, line 109</span>
+109:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parent?</span>
+110:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">resources_configuration</span>[<span class="ruby-identifier">:polymorphic</span>][<span class="ruby-identifier">:optional</span>]
+111:           <span class="ruby-identifier">parents_symbols</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span> <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@parent_type</span>.<span class="ruby-identifier">nil?</span>
+112:         <span class="ruby-keyword kw">else</span>
+113:           <span class="ruby-keyword kw">true</span>
+114:         <span class="ruby-keyword kw">end</span>
+115:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000056">
+                    
+                    <a name="M000056"></a><b>parent_class</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000056_source')" id="l_M000056_source">show</a>
+                        
+                    </p>
+                    <div id="M000056_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/inherited_resources/polymorphic_helpers.rb, line 96</span>
+96:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parent_class</span>
+97:         <span class="ruby-identifier">parent</span>.<span class="ruby-identifier">class</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@parent_type</span>
+98:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000055">
+                    
+                    <a name="M000055"></a><b>parent_type</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the parent type. A Comments class can have :task, :file, :note as
+parent types.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000055_source')" id="l_M000055_source">show</a>
+                        
+                    </p>
+                    <div id="M000055_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/inherited_resources/polymorphic_helpers.rb, line 92</span>
+92:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parent_type</span>
+93:         <span class="ruby-ivar">@parent_type</span>
+94:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

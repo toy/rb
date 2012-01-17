@@ -1,0 +1,1 @@
+var tree = [["","","files",[["LICENSE","files/LICENSE.html","",[]],["README.md","files/README_md.html","",[]],["","","lib",[["coffee-script.rb","files/lib/coffee-script_rb.html","",[]],["coffee_script.rb","files/lib/coffee_script_rb.html","",[]]]]]],["CoffeeScript","classes/CoffeeScript.html","",[["Source","classes/CoffeeScript/Source.html","",[]]]]]

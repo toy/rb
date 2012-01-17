@@ -1,0 +1,814 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Thin::Server</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Thin::Server 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/thin/server_rb.html">lib/thin/server.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+The uterly famous <a href="../Thin.html">Thin</a> HTTP server. It listen
+for incoming request through a given <tt>backend</tt> and forward all
+request to <tt>app</tt>.
+</p>
+<h2>TCP server</h2>
+<p>
+Create a new TCP server on bound to <tt>host:port</tt> by specifiying
+<tt>host</tt> and <tt>port</tt> as the first 2 arguments.
+</p>
+<pre>
+  Thin::Server.start('0.0.0.0', 3000, app)
+</pre>
+<h2>UNIX domain server</h2>
+<p>
+Create a new UNIX domain socket bound to <tt>socket</tt> file by
+specifiying a filename as the first argument. Eg.: /tmp/thin.sock. If the
+first argument contains a <tt>/</tt> it will be assumed to be a UNIX
+socket.
+</p>
+<pre>
+  Thin::Server.start('/tmp/thin.sock', app)
+</pre>
+<h2>Using a custom backend</h2>
+<p>
+You can implement your own way to connect the server to its client by
+creating your own Backend class and pass it as the :backend option.
+</p>
+<pre>
+  Thin::Server.start('galaxy://faraway', 1345, app, :backend =&gt; Thin::Backends::MyFancyBackend)
+</pre>
+<h2><a href="../Rack.html">Rack</a> application (<tt>app</tt>)</h2>
+<p>
+All requests will be processed through <tt>app</tt> that must be a valid <a
+href="../Rack.html">Rack</a> adapter. A valid <a
+href="../Rack.html">Rack</a> adapter (application) must respond to
+<tt>call(envHash)</tt> and return an array of <tt>[status, headers,
+body]</tt>.
+</p>
+<h2>Building an app in place</h2>
+<p>
+If a block is passed, a <tt>Rack::Builder</tt> instance will be passed to
+build the <tt>app</tt>. So you can do cool stuff like this:
+</p>
+<pre>
+  Thin::Server.start('0.0.0.0', 3000) do
+    use Rack::CommonLogger
+    use Rack::ShowExceptions
+    map &quot;/lobster&quot; do
+      use Rack::Lint
+      run Rack::Lobster.new
+    end
+  end
+</pre>
+<h2>Controlling with signals</h2>
+<ul>
+<li>QUIT: Gracefull shutdown (see <a
+href="Server.html#M000170">Server#stop</a>)
+
+</li>
+<li>INT and TERM: Force shutdown (see <a
+href="Server.html#M000171">Server#stop!</a>)
+
+</li>
+</ul>
+<p>
+Disable signals by passing <tt>:signals =&gt; false</tt>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000172">config</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000178">load_cgi_multipart_eof_fix</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000173">name</a>,</li>
+                
+                <li><a href="#M000166">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000175">running?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000177">select_backend</a>,</li>
+                
+                <li><a href="#M000176">setup_signals</a>,</li>
+                
+                <li><a href="#M000167">start</a>,</li>
+                
+                <li><a href="#M000168">start</a>,</li>
+                
+                <li><a href="#M000169">start!</a>,</li>
+                
+                <li><a href="#M000170">stop</a>,</li>
+                
+                <li><a href="#M000171">stop!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000174">to_s</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="VERSION.html">Thin::VERSION</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="VERSION.html">Thin::VERSION</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_TIMEOUT</td>
+            <td>=</td>
+            <td class="attr-value">30</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Default values
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_HOST</td>
+            <td>=</td>
+            <td class="attr-value">'0.0.0.0'</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_PORT</td>
+            <td>=</td>
+            <td class="attr-value">3000</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_MAXIMUM_CONNECTIONS</td>
+            <td>=</td>
+            <td class="attr-value">1024</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_MAXIMUM_PERSISTENT_CONNECTIONS</td>
+            <td>=</td>
+            <td class="attr-value">512</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>app</td>
+            <td class='attr-desc'><p>
+Application (<a href="../Rack.html">Rack</a> adapter) called with the
+request that produces the response.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>tag</td>
+            <td class='attr-desc'><p>
+A tag that will show in the process listing
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>backend</td>
+            <td class='attr-desc'><p>
+Backend handling the connections to the clients.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000166">
+                    
+                    <a name="M000166"></a><b>new</b>(*args, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000166_source')" id="l_M000166_source">show</a>
+                        
+                    </p>
+                    <div id="M000166_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 97</span>
+ 97:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+ 98:       <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">options</span> = <span class="ruby-constant">DEFAULT_HOST</span>, <span class="ruby-constant">DEFAULT_PORT</span>, {}
+ 99:       
+100:       <span class="ruby-comment cmt"># Guess each parameter by its type so they can be</span>
+101:       <span class="ruby-comment cmt"># received in any order.</span>
+102:       <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">arg</span><span class="ruby-operator">|</span>
+103:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">arg</span>
+104:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Fixnum</span>, <span class="ruby-regexp re">/^\d+$/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">port</span>    = <span class="ruby-identifier">arg</span>.<span class="ruby-identifier">to_i</span>
+105:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">String</span>          <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">host</span>    = <span class="ruby-identifier">arg</span>
+106:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Hash</span>            <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">options</span> = <span class="ruby-identifier">arg</span>
+107:         <span class="ruby-keyword kw">else</span>
+108:           <span class="ruby-ivar">@app</span> = <span class="ruby-identifier">arg</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">arg</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+109:         <span class="ruby-keyword kw">end</span>
+110:       <span class="ruby-keyword kw">end</span>
+111:       
+112:       <span class="ruby-comment cmt"># Set tag if needed</span>
+113:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">tag</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:tag</span>]
+114: 
+115:       <span class="ruby-comment cmt"># Try to intelligently select which backend to use.</span>
+116:       <span class="ruby-ivar">@backend</span> = <span class="ruby-identifier">select_backend</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">options</span>)
+117:       
+118:       <span class="ruby-identifier">load_cgi_multipart_eof_fix</span>
+119:       
+120:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">server</span> = <span class="ruby-keyword kw">self</span>
+121:       
+122:       <span class="ruby-comment cmt"># Set defaults</span>
+123:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">maximum_connections</span>            = <span class="ruby-constant">DEFAULT_MAXIMUM_CONNECTIONS</span>
+124:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">maximum_persistent_connections</span> = <span class="ruby-constant">DEFAULT_MAXIMUM_PERSISTENT_CONNECTIONS</span>
+125:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">timeout</span>                        = <span class="ruby-constant">DEFAULT_TIMEOUT</span>
+126:       
+127:       <span class="ruby-comment cmt"># Allow using Rack builder as a block</span>
+128:       <span class="ruby-ivar">@app</span> = <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">Builder</span>.<span class="ruby-identifier">new</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>).<span class="ruby-identifier">to_app</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block</span>
+129:       
+130:       <span class="ruby-comment cmt"># If in debug mode, wrap in logger adapter</span>
+131:       <span class="ruby-ivar">@app</span> = <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">CommonLogger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@app</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Logging</span>.<span class="ruby-identifier">debug?</span>
+132:       
+133:       <span class="ruby-identifier">setup_signals</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:signals</span>].<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">FalseClass</span>
+134:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000167">
+                    
+                    <a name="M000167"></a><b>start</b>(*args, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Lil&#8217; shortcut to turn this:
+</p>
+<pre>
+  Server.new(...).start
+</pre>
+<p>
+into this:
+</p>
+<pre>
+  Server.start(...)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000167_source')" id="l_M000167_source">show</a>
+                        
+                    </p>
+                    <div id="M000167_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 144</span>
+144:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">start</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+145:       <span class="ruby-identifier">new</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>).<span class="ruby-identifier">start!</span>
+146:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000172">
+                    
+                    <a name="M000172"></a><b>config</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Configure the server</h2>
+<p>
+The process might need to have superuser privilege to configure server with
+optimal options.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000172_source')" id="l_M000172_source">show</a>
+                        
+                    </p>
+                    <div id="M000172_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 193</span>
+193:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">config</span>
+194:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">config</span>
+195:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000173">
+                    
+                    <a name="M000173"></a><b>name</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Name of the server and type of backend used. This is also the name of the
+process in which <a href="../Thin.html">Thin</a> is running as a daemon.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Server.html#M000174">to_s</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000173_source')" id="l_M000173_source">show</a>
+                        
+                    </p>
+                    <div id="M000173_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 199</span>
+199:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">name</span>
+200:       <span class="ruby-node">&quot;thin server (#{@backend})&quot;</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">tag</span> <span class="ruby-value">? </span><span class="ruby-node">&quot; [#{tag}]&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;&quot;</span>)
+201:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000175">
+                    
+                    <a name="M000175"></a><b>running?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return <tt>true</tt> if the server is running and ready to receive
+requests. Note that the server might still be running and return
+<tt>false</tt> when shuting down and waiting for active connections to
+complete.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000175_source')" id="l_M000175_source">show</a>
+                        
+                    </p>
+                    <div id="M000175_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 207</span>
+207:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">running?</span>
+208:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">running?</span>
+209:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000168">
+                    
+                    <a name="M000168"></a><b>start</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start the server and listen for connections.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Server.html#M000169">start!</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000168_source')" id="l_M000168_source">show</a>
+                        
+                    </p>
+                    <div id="M000168_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 149</span>
+149:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start</span>
+150:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'app required'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@app</span>
+151:       
+152:       <span class="ruby-identifier">log</span>   <span class="ruby-node">&quot;&gt;&gt; Thin web server (v#{VERSION::STRING} codename #{VERSION::CODENAME})&quot;</span>
+153:       <span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;&gt;&gt; Debugging ON&quot;</span>
+154:       <span class="ruby-identifier">trace</span> <span class="ruby-value str">&quot;&gt;&gt; Tracing ON&quot;</span>
+155:       
+156:       <span class="ruby-identifier">log</span> <span class="ruby-node">&quot;&gt;&gt; Maximum connections set to #{@backend.maximum_connections}&quot;</span>
+157:       <span class="ruby-identifier">log</span> <span class="ruby-node">&quot;&gt;&gt; Listening on #{@backend}, CTRL+C to stop&quot;</span>
+158:       
+159:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">start</span>
+160:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000169">
+                    
+                    <a name="M000169"></a><b>start!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="Server.html#M000167">start</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000170">
+                    
+                    <a name="M000170"></a><b>stop</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Gracefull shutdown</h2>
+<p>
+Stops the server after processing all current connections. As soon as this
+method is called, the server stops accepting new requests and wait for all
+current connections to finish. Calling twice is the equivalent of calling
+<tt>stop!</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000170_source')" id="l_M000170_source">show</a>
+                        
+                    </p>
+                    <div id="M000170_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 168</span>
+168:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stop</span>
+169:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">running?</span>
+170:         <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">stop</span>
+171:         <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">empty?</span>
+172:           <span class="ruby-identifier">log</span> <span class="ruby-node">&quot;&gt;&gt; Waiting for #{@backend.size} connection(s) to finish, &quot;</span> <span class="ruby-operator">+</span>
+173:                  <span class="ruby-node">&quot;can take up to #{timeout} sec, CTRL+C to stop now&quot;</span>
+174:         <span class="ruby-keyword kw">end</span>
+175:       <span class="ruby-keyword kw">else</span>
+176:         <span class="ruby-identifier">stop!</span>
+177:       <span class="ruby-keyword kw">end</span>
+178:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000171">
+                    
+                    <a name="M000171"></a><b>stop!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Force shutdown</h2>
+<p>
+Stops the server closing all current connections right away. This
+doesn&#8217;t wait for connection to finish their work and send data. All
+current requests will be dropped.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000171_source')" id="l_M000171_source">show</a>
+                        
+                    </p>
+                    <div id="M000171_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 184</span>
+184:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stop!</span>
+185:       <span class="ruby-identifier">log</span> <span class="ruby-value str">&quot;&gt;&gt; Stopping ...&quot;</span>
+186: 
+187:       <span class="ruby-ivar">@backend</span>.<span class="ruby-identifier">stop!</span>
+188:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000174">
+                    
+                    <a name="M000174"></a><b>to_s</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="Server.html#M000173">name</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000178">
+                    
+                    <a name="M000178"></a><b>load_cgi_multipart_eof_fix</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Taken from Mongrel cgi_multipart_eof_fix Ruby 1.8.5 has a security bug in
+cgi.rb, we need to patch it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000178_source')" id="l_M000178_source">show</a>
+                        
+                    </p>
+                    <div id="M000178_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 241</span>
+241:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_cgi_multipart_eof_fix</span>
+242:         <span class="ruby-identifier">version</span> = <span class="ruby-constant">RUBY_VERSION</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'.'</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">i</span>.<span class="ruby-identifier">to_i</span> }
+243:         
+244:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">version</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">&lt;=</span> <span class="ruby-value">1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">version</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">&lt;=</span> <span class="ruby-value">8</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">version</span>[<span class="ruby-value">2</span>] <span class="ruby-operator">&lt;=</span> <span class="ruby-value">5</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-constant">RUBY_PLATFORM</span> <span class="ruby-operator">!~</span> <span class="ruby-regexp re">/java/</span>
+245:           <span class="ruby-keyword kw">begin</span>
+246:             <span class="ruby-identifier">require</span> <span class="ruby-value str">'cgi_multipart_eof_fix'</span>
+247:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">LoadError</span>
+248:             <span class="ruby-identifier">log</span> <span class="ruby-value str">&quot;!! Ruby 1.8.5 is not secure please install cgi_multipart_eof_fix:&quot;</span>
+249:             <span class="ruby-identifier">log</span> <span class="ruby-value str">&quot;   gem install cgi_multipart_eof_fix&quot;</span>
+250:           <span class="ruby-keyword kw">end</span>
+251:         <span class="ruby-keyword kw">end</span>
+252:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000177">
+                    
+                    <a name="M000177"></a><b>select_backend</b>(host, port, options)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000177_source')" id="l_M000177_source">show</a>
+                        
+                    </p>
+                    <div id="M000177_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 225</span>
+225:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">select_backend</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">options</span>)
+226:         <span class="ruby-keyword kw">case</span>
+227:         <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:backend</span>)
+228:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;:backend must be a class&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:backend</span>].<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Class</span>)
+229:           <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:backend</span>].<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">options</span>)
+230:         <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:swiftiply</span>)
+231:           <span class="ruby-constant">Backends</span><span class="ruby-operator">::</span><span class="ruby-constant">SwiftiplyClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">options</span>)
+232:         <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">host</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-value str">'/'</span>)
+233:           <span class="ruby-constant">Backends</span><span class="ruby-operator">::</span><span class="ruby-constant">UnixServer</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>)
+234:         <span class="ruby-keyword kw">else</span>
+235:           <span class="ruby-constant">Backends</span><span class="ruby-operator">::</span><span class="ruby-constant">TcpServer</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>)
+236:         <span class="ruby-keyword kw">end</span>
+237:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000176">
+                    
+                    <a name="M000176"></a><b>setup_signals</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Register signals:
+</p>
+<ul>
+<li>TERM &amp; QUIT calls <tt>stop</tt> to shutdown gracefully.
+
+</li>
+<li>INT calls <tt>stop!</tt> to force shutdown.
+
+</li>
+<li>HUP calls <tt>restart</tt> to &#8230; surprise, restart!
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000176_source')" id="l_M000176_source">show</a>
+                        
+                    </p>
+                    <div id="M000176_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/thin/server.rb, line 216</span>
+216:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">setup_signals</span>
+217:         <span class="ruby-identifier">trap</span>(<span class="ruby-value str">'INT'</span>)  { <span class="ruby-identifier">stop!</span> }
+218:         <span class="ruby-identifier">trap</span>(<span class="ruby-value str">'TERM'</span>) { <span class="ruby-identifier">stop</span> }
+219:         <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">Thin</span>.<span class="ruby-identifier">win?</span>
+220:           <span class="ruby-identifier">trap</span>(<span class="ruby-value str">'QUIT'</span>) { <span class="ruby-identifier">stop</span> }
+221:           <span class="ruby-identifier">trap</span>(<span class="ruby-value str">'HUP'</span>)  { <span class="ruby-identifier">restart</span> }
+222:         <span class="ruby-keyword kw">end</span>
+223:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

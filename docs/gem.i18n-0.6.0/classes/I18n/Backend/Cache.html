@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>I18n::Backend::Cache</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            I18n::Backend::Cache 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/i18n/backend/cache_rb.html">lib/i18n/backend/cache.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+TODO Should the cache be cleared if new translations are stored?
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000016">_fetch</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000017">cache_key</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000014">fetch</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000012">translate</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">USE_INSPECT_HASH</td>
+            <td>=</td>
+            <td class="attr-value">RUBY_VERSION &lt;= &quot;1.9&quot;</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+In Ruby < 1.9 the following is true: { :foo => 1, :bar => 2 }.hash == {
+:foo => 2, :bar => 1 }.hash Therefore we must use the hash of the inspect
+string instead to avoid cache key colisions.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>translate</b>(locale, key, options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/i18n/backend/cache.rb, line 65</span>
+65:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">translate</span>(<span class="ruby-identifier">locale</span>, <span class="ruby-identifier">key</span>, <span class="ruby-identifier">options</span> = {})
+66:         <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">perform_caching?</span> <span class="ruby-value">? </span><span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">cache_key</span>(<span class="ruby-identifier">locale</span>, <span class="ruby-identifier">key</span>, <span class="ruby-identifier">options</span>)) { <span class="ruby-keyword kw">super</span> } <span class="ruby-operator">:</span> <span class="ruby-keyword kw">super</span>
+67:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000016">
+                    
+                    <a name="M000016"></a><b>_fetch</b>(cache_key, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000016_source')" id="l_M000016_source">show</a>
+                        
+                    </p>
+                    <div id="M000016_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/i18n/backend/cache.rb, line 78</span>
+78:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">_fetch</span>(<span class="ruby-identifier">cache_key</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+79:           <span class="ruby-identifier">result</span> = <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">cache_store</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">cache_key</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">result</span>
+80:           <span class="ruby-identifier">result</span> = <span class="ruby-identifier">catch</span>(<span class="ruby-identifier">:exception</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+81:           <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">cache_store</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">cache_key</span>, <span class="ruby-identifier">result</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">result</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Proc</span>)
+82:           <span class="ruby-identifier">result</span>
+83:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000017">
+                    
+                    <a name="M000017"></a><b>cache_key</b>(locale, key, options)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000017_source')" id="l_M000017_source">show</a>
+                        
+                    </p>
+                    <div id="M000017_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/i18n/backend/cache.rb, line 85</span>
+85:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cache_key</span>(<span class="ruby-identifier">locale</span>, <span class="ruby-identifier">key</span>, <span class="ruby-identifier">options</span>)
+86:           <span class="ruby-comment cmt"># This assumes that only simple, native Ruby values are passed to I18n.translate.</span>
+87:           <span class="ruby-node">&quot;i18n/#{I18n.cache_namespace}/#{locale}/#{key.hash}/#{USE_INSPECT_HASH ? options.inspect.hash : options.hash}&quot;</span>
+88:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000014">
+                    
+                    <a name="M000014"></a><b>fetch</b>(cache_key, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000014_source')" id="l_M000014_source">show</a>
+                        
+                    </p>
+                    <div id="M000014_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/i18n/backend/cache.rb, line 71</span>
+71:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">cache_key</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+72:           <span class="ruby-identifier">result</span> = <span class="ruby-identifier">_fetch</span>(<span class="ruby-identifier">cache_key</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+73:           <span class="ruby-identifier">throw</span>(<span class="ruby-identifier">:exception</span>, <span class="ruby-identifier">result</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">result</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">MissingTranslation</span>)
+74:           <span class="ruby-identifier">result</span> = <span class="ruby-identifier">result</span>.<span class="ruby-identifier">dup</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">result</span>.<span class="ruby-identifier">frozen?</span> <span class="ruby-keyword kw">rescue</span> <span class="ruby-identifier">result</span>
+75:           <span class="ruby-identifier">result</span>
+76:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

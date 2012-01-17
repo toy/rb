@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Pry::Indent</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Pry::Indent 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/pry/indent_rb.html">lib/pry/indent.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="Indent.html">Pry::Indent</a> is a class that can be used to indent
+a number of lines containing Ruby code similar as to how IRB does it (but
+better). The class works by tokenizing a string using CodeRay and then
+looping over those tokens. Based on the tokens in a line of code that line
+(or the next one) will be indented or un-indented by correctly.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000112">correct_indentation</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000110">end_of_statement?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000108">indent</a>,</li>
+                
+                <li><a href="#M000109">indentation_delta</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000106">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000107">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">SPACES</td>
+            <td>=</td>
+            <td class="attr-value">'  '</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The amount of spaces to insert for each indent level.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OPEN_TOKENS</td>
+            <td>=</td>
+            <td class="attr-value">{       'def'    =&gt; 'end',       'class'  =&gt; 'end',       'module' =&gt; 'end',       'do'     =&gt; 'end',       'if'     =&gt; 'end',       'unless' =&gt; 'end',       'while'  =&gt; 'end',       'until'  =&gt; 'end',       'for'    =&gt; 'end',       'case'   =&gt; 'end',       'begin'  =&gt; 'end',       '['      =&gt; ']',       '{'      =&gt; '}',       '('      =&gt; ')'     }</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Hash containing all the tokens that should increase the indentation level.
+The keys of this hash are open tokens, the values the matching tokens that
+should prevent a line from being indented if they appear on the same line.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SINGLELINE_TOKENS</td>
+            <td>=</td>
+            <td class="attr-value">%w(if while until unless rescue)</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Which tokens can either be open tokens, or appear as modifiers on a
+single-line.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">IGNORE_TOKENS</td>
+            <td>=</td>
+            <td class="attr-value">[:space, :content, :string, :delimiter, :method, :ident]</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Collection of token types that should be ignored. Without this list
+keywords such as &#8220;class&#8221; inside strings would cause the code to
+be indented incorrectly.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">STATEMENT_END_TOKENS</td>
+            <td>=</td>
+            <td class="attr-value">IGNORE_TOKENS + [:regexp, :integer, :float, :keyword, :reserved]</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Tokens that indicate the end of a statement (i.e. that, if they appear
+directly before an &#8220;if&#8221; indicates that that if applies to the
+same line, not the next line)
+</p>
+<p>
+:reserved and :keywords are the CodeRay 0.9.8 and 1.0.0 respectively
+classifications of &#8220;super&#8221;, &#8220;next&#8221;,
+&#8220;return&#8221;, etc.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MIDWAY_TOKENS</td>
+            <td>=</td>
+            <td class="attr-value">%w(when else elsif ensure rescue)</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Collection of tokens that should appear dedented even though they
+don&#8217;t affect the surrounding code.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>indent_level</td>
+            <td class='attr-desc'><p>
+String containing the spaces to be inserted before the next line.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000106">
+                    
+                    <a name="M000106"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000106_source')" id="l_M000106_source">show</a>
+                        
+                    </p>
+                    <div id="M000106_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 60</span>
+60:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+61:       <span class="ruby-identifier">reset</span>
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>correct_indentation</b>(full_line, overhang=0)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return a string which, when printed, will rewrite the previous line with
+the correct indentation. Mostly useful for fixing &#8216;end&#8217;.
+</p>
+<p>
+@param [String] full_line The full line of input, including the prompt.
+@param [Fixnum] overhang (0) The number of chars to erase afterwards (i.e.,
+</p>
+<pre>
+  the difference in length between the old line and the new one).
+</pre>
+<p>
+@return [String]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 190</span>
+190:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">correct_indentation</span>(<span class="ruby-identifier">full_line</span>, <span class="ruby-identifier">overhang</span>=<span class="ruby-value">0</span>)
+191:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Readline</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:get_screen_size</span>)
+192:         <span class="ruby-identifier">_</span>, <span class="ruby-identifier">cols</span> = <span class="ruby-constant">Readline</span>.<span class="ruby-identifier">get_screen_size</span>
+193:         <span class="ruby-identifier">lines</span> = <span class="ruby-identifier">full_line</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">cols</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+194:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'COLUMNS'</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'COLUMNS'</span>] <span class="ruby-operator">!=</span> <span class="ruby-value str">''</span>
+195:         <span class="ruby-identifier">cols</span> = <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'COLUMNS'</span>].<span class="ruby-identifier">to_i</span>
+196:         <span class="ruby-identifier">lines</span> = <span class="ruby-identifier">full_line</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">cols</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+197:       <span class="ruby-keyword kw">else</span>
+198:         <span class="ruby-identifier">lines</span> = <span class="ruby-value">1</span>
+199:       <span class="ruby-keyword kw">end</span>
+200: 
+201:       <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">Win32</span><span class="ruby-operator">::</span><span class="ruby-constant">Console</span>)
+202:         <span class="ruby-identifier">move_up</span>    = <span class="ruby-node">&quot;\e[#{lines}F&quot;</span>
+203:         <span class="ruby-identifier">move_down</span>  = <span class="ruby-node">&quot;\e[#{lines}E&quot;</span>
+204:       <span class="ruby-keyword kw">else</span>
+205:         <span class="ruby-identifier">move_up</span>    = <span class="ruby-node">&quot;\e[#{lines}A\e[0G&quot;</span>
+206:         <span class="ruby-identifier">move_down</span>  = <span class="ruby-node">&quot;\e[#{lines}B\e[0G&quot;</span>
+207:       <span class="ruby-keyword kw">end</span>
+208:       <span class="ruby-identifier">whitespace</span> = <span class="ruby-value str">' '</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">overhang</span>
+209: 
+210:       <span class="ruby-node">&quot;#{move_up}#{full_line}#{whitespace}#{move_down}&quot;</span>
+211:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000110">
+                    
+                    <a name="M000110"></a><b>end_of_statement?</b>(last_token, last_kind)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If the code just before an &#8220;if&#8221; or &#8220;while&#8221; token on
+a line looks like the end of a statement, then we want to treat that
+&#8220;if&#8221; as a singleline, not multiline statement.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000110_source')" id="l_M000110_source">show</a>
+                        
+                    </p>
+                    <div id="M000110_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 179</span>
+179:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">end_of_statement?</span>(<span class="ruby-identifier">last_token</span>, <span class="ruby-identifier">last_kind</span>)
+180:       (<span class="ruby-identifier">last_token</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^[)\]}\/]$/</span> <span class="ruby-operator">||</span> <span class="ruby-constant">STATEMENT_END_TOKENS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">last_kind</span>))
+181:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000108">
+                    
+                    <a name="M000108"></a><b>indent</b>(input)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Indents a string and returns it. This string can either be a single line or
+multiple ones.
+</p>
+<p>
+@example
+</p>
+<pre>
+ str = &lt;&lt;TXT
+ class User
+ attr_accessor :name
+ end
+ TXT
+
+ # This would result in the following being displayed:
+ #
+ # class User
+ #   attr_accessor :name
+ # end
+ #
+ puts Pry::Indent.new.indent(str)
+</pre>
+<p>
+@param [String] input The input string to indent. @return [String] The
+indented version of <tt>input</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000108_source')" id="l_M000108_source">show</a>
+                        
+                    </p>
+                    <div id="M000108_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 92</span>
+ 92:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">indent</span>(<span class="ruby-identifier">input</span>)
+ 93:       <span class="ruby-identifier">output</span>      = <span class="ruby-value str">''</span>
+ 94:       <span class="ruby-identifier">open_tokens</span> = <span class="ruby-constant">OPEN_TOKENS</span>.<span class="ruby-identifier">keys</span>
+ 95:       <span class="ruby-identifier">prefix</span> = <span class="ruby-identifier">indent_level</span>
+ 96: 
+ 97:       <span class="ruby-identifier">input</span>.<span class="ruby-identifier">lines</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+ 98:         <span class="ruby-identifier">tokens</span> = <span class="ruby-constant">CodeRay</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-identifier">line</span>, <span class="ruby-identifier">:ruby</span>)
+ 99:         <span class="ruby-identifier">tokens</span> = <span class="ruby-identifier">tokens</span>.<span class="ruby-identifier">tokens</span>.<span class="ruby-identifier">each_slice</span>(<span class="ruby-value">2</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tokens</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:tokens</span>) <span class="ruby-comment cmt"># Coderay 1.0.0</span>
+100: 
+101:         <span class="ruby-identifier">before</span>, <span class="ruby-identifier">after</span> = <span class="ruby-identifier">indentation_delta</span>(<span class="ruby-identifier">tokens</span>)
+102: 
+103:         <span class="ruby-identifier">before</span>.<span class="ruby-identifier">times</span>{ <span class="ruby-identifier">prefix</span>.<span class="ruby-identifier">sub!</span> <span class="ruby-constant">SPACES</span>, <span class="ruby-value str">''</span> }
+104:         <span class="ruby-identifier">output</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">prefix</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">line</span>.<span class="ruby-identifier">strip</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;\n&quot;</span>
+105:         <span class="ruby-identifier">prefix</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">SPACES</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">after</span>
+106:       <span class="ruby-keyword kw">end</span>
+107: 
+108:       <span class="ruby-ivar">@indent_level</span> = <span class="ruby-identifier">prefix</span>
+109: 
+110:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">output</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\s+$/</span>, <span class="ruby-value str">''</span>)
+111:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>indentation_delta</b>(tokens)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the change in indentation indicated by the line.
+</p>
+<p>
+By convention, you remove indent from the line containing end tokens, but
+add indent to the line <b>after</b> that which contains the start tokens.
+</p>
+<p>
+This method returns a pair, where the first number is the number of
+closings on this line (i.e. the number of indents to remove before the
+line) and the second is the number of openings (i.e. the number of indents
+to add after this line)
+</p>
+<p>
+@param [Array] tokens A list of tokens to scan. @return [Array[Integer]]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 126</span>
+126:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">indentation_delta</span>(<span class="ruby-identifier">tokens</span>)
+127: 
+128:       <span class="ruby-comment cmt"># We need to keep track of whether we've seen a &quot;for&quot; on this line because</span>
+129:       <span class="ruby-comment cmt"># if the line ends with &quot;do&quot; then that &quot;do&quot; should be discounted (i.e. we're</span>
+130:       <span class="ruby-comment cmt"># only opening one level not two) To do this robustly we want to keep track</span>
+131:       <span class="ruby-comment cmt"># of the indent level at which we saw the for, so we can differentiate</span>
+132:       <span class="ruby-comment cmt"># between &quot;for x in [1,2,3] do&quot; and &quot;for x in ([1,2,3].map do&quot; properly</span>
+133:       <span class="ruby-identifier">seen_for_at</span> = []
+134: 
+135:       <span class="ruby-comment cmt"># When deciding whether an &quot;if&quot; token is the start of a multiline statement,</span>
+136:       <span class="ruby-comment cmt"># or just the middle of a single-line if statement, we just look at the</span>
+137:       <span class="ruby-comment cmt"># preceding token, which is tracked here.</span>
+138:       <span class="ruby-identifier">last_token</span>, <span class="ruby-identifier">last_kind</span> = [<span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">nil</span>]
+139: 
+140:       <span class="ruby-comment cmt"># delta keeps track of the total difference from the start of each line after</span>
+141:       <span class="ruby-comment cmt"># the given token, 0 is just the level at which the current line started for</span>
+142:       <span class="ruby-comment cmt"># reference.</span>
+143:       <span class="ruby-identifier">remove_before</span>, <span class="ruby-identifier">add_after</span> = [<span class="ruby-value">0</span>, <span class="ruby-value">0</span>]
+144: 
+145:       <span class="ruby-comment cmt"># If the list of tokens contains a matching closing token the line should</span>
+146:       <span class="ruby-comment cmt"># not be indented (and thus we should return true).</span>
+147:       <span class="ruby-identifier">tokens</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">token</span>, <span class="ruby-identifier">kind</span><span class="ruby-operator">|</span>
+148:         <span class="ruby-identifier">is_singleline_if</span>  = (<span class="ruby-constant">SINGLELINE_TOKENS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">token</span>)) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">end_of_statement?</span>(<span class="ruby-identifier">last_token</span>, <span class="ruby-identifier">last_kind</span>)
+149:         <span class="ruby-identifier">is_optional_do</span> = (<span class="ruby-identifier">token</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;do&quot;</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">seen_for_at</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">add_after</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>))
+150: 
+151:         <span class="ruby-identifier">last_token</span>, <span class="ruby-identifier">last_kind</span> = <span class="ruby-identifier">token</span>, <span class="ruby-identifier">kind</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">kind</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:space</span>
+152:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">IGNORE_TOKENS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">kind</span>)
+153: 
+154:         <span class="ruby-identifier">seen_for_at</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">add_after</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">token</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;for&quot;</span>
+155: 
+156:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">OPEN_TOKENS</span>.<span class="ruby-identifier">keys</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">token</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">is_optional_do</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">is_singleline_if</span>
+157:           <span class="ruby-ivar">@stack</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">token</span>
+158:           <span class="ruby-identifier">add_after</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+159:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">token</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OPEN_TOKENS</span>[<span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">last</span>]
+160:           <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">pop</span>
+161:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">add_after</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+162:             <span class="ruby-identifier">remove_before</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+163:           <span class="ruby-keyword kw">else</span>
+164:             <span class="ruby-identifier">add_after</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+165:           <span class="ruby-keyword kw">end</span>
+166:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-constant">MIDWAY_TOKENS</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">token</span>)
+167:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">add_after</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+168:             <span class="ruby-identifier">remove_before</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+169:             <span class="ruby-identifier">add_after</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+170:           <span class="ruby-keyword kw">end</span>
+171:         <span class="ruby-keyword kw">end</span>
+172:       <span class="ruby-keyword kw">end</span>
+173: 
+174:       <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">remove_before</span>, <span class="ruby-identifier">add_after</span>]
+175:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000107">
+                    
+                    <a name="M000107"></a><b>reset</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+reset internal state
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000107_source')" id="l_M000107_source">show</a>
+                        
+                    </p>
+                    <div id="M000107_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/pry/indent.rb, line 65</span>
+65:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reset</span>
+66:       <span class="ruby-ivar">@stack</span> = []
+67:       <span class="ruby-ivar">@indent_level</span> = <span class="ruby-value str">''</span>
+68:       <span class="ruby-keyword kw">self</span>
+69:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

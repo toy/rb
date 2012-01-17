@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>NewRelic::Agent::StatsEngine::Transactions</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            NewRelic::Agent::StatsEngine::Transactions 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/new_relic/agent/stats_engine/transactions_rb.html">lib/new_relic/agent/stats_engine/transactions.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Handles pushing and popping elements onto an internal stack that tracks
+where time should be allocated in Transaction Traces
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000491">end_transaction</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000487">peek_scope</a>,</li>
+                
+                <li><a href="#M000486">pop_scope</a>,</li>
+                
+                <li><a href="#M000485">push_scope</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000484">remove_transaction_sampler</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000489">scope_name</a>,</li>
+                
+                <li><a href="#M000488">scope_name=</a>,</li>
+                
+                <li><a href="#M000492">scope_stack</a>,</li>
+                
+                <li><a href="#M000490">start_transaction</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000483">transaction_sampler=</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Transactions/Shim.html">NewRelic::Agent::StatsEngine::Transactions::Shim</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000491">
+                    
+                    <a name="M000491"></a><b>end_transaction</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to clean up gracefully, otherwise we leave things hanging around on
+thread locals. If it looks like a transaction is still in progress, then
+maybe this is an inner transaction and is ignored.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000491_source')" id="l_M000491_source">show</a>
+                        
+                    </p>
+                    <div id="M000491_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 107</span>
+107:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">end_transaction</span>
+108:         <span class="ruby-identifier">stack</span> = <span class="ruby-identifier">scope_stack</span>
+109: 
+110:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">stack</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">empty?</span>
+111:           <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_stack</span>] = <span class="ruby-keyword kw">nil</span>
+112:           <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_name</span>] = <span class="ruby-keyword kw">nil</span>
+113:         <span class="ruby-keyword kw">end</span>
+114:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000487">
+                    
+                    <a name="M000487"></a><b>peek_scope</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the latest <a href="ScopeStackElement.html">ScopeStackElement</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000487_source')" id="l_M000487_source">show</a>
+                        
+                    </p>
+                    <div id="M000487_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 76</span>
+76:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">peek_scope</span>
+77:         <span class="ruby-identifier">scope_stack</span>.<span class="ruby-identifier">last</span>
+78:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000486">
+                    
+                    <a name="M000486"></a><b>pop_scope</b>(expected_scope, duration, time=Time.now.to_f)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Pops a scope off the transaction stack - this updates the transaction
+sampler that we&#8217;ve finished execution of a traced method
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000486_source')" id="l_M000486_source">show</a>
+                        
+                    </p>
+                    <div id="M000486_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 58</span>
+58:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pop_scope</span>(<span class="ruby-identifier">expected_scope</span>, <span class="ruby-identifier">duration</span>, <span class="ruby-identifier">time</span>=<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_f</span>)
+59:         <span class="ruby-constant">GCProfiler</span>.<span class="ruby-identifier">capture</span>
+60:         <span class="ruby-identifier">stack</span> = <span class="ruby-identifier">scope_stack</span>
+61:         <span class="ruby-identifier">scope</span> = <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">pop</span>
+62:         <span class="ruby-identifier">fail</span> <span class="ruby-node">&quot;unbalanced pop from blame stack, got #{scope ? scope.name : 'nil'}, expected #{expected_scope ? expected_scope.name : 'nil'}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">scope</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">expected_scope</span>
+63: 
+64:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">stack</span>.<span class="ruby-identifier">empty?</span>
+65:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">scope</span>.<span class="ruby-identifier">deduct_call_time_from_parent</span>
+66:             <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">children_time</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">duration</span>
+67:           <span class="ruby-keyword kw">else</span>
+68:             <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">children_time</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">scope</span>.<span class="ruby-identifier">children_time</span>
+69:           <span class="ruby-keyword kw">end</span>
+70:         <span class="ruby-keyword kw">end</span>
+71:         <span class="ruby-ivar">@transaction_sampler</span>.<span class="ruby-identifier">notice_pop_scope</span>(<span class="ruby-identifier">scope</span>.<span class="ruby-identifier">name</span>, <span class="ruby-identifier">time</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@transaction_sampler</span>
+72:         <span class="ruby-identifier">scope</span>
+73:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000485">
+                    
+                    <a name="M000485"></a><b>push_scope</b>(metric, time = Time.now.to_f, deduct_call_time_from_parent = true)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Pushes a scope onto the transaction stack - this generates a <a
+href="../../TransactionSample/Segment.html">TransactionSample::Segment</a>
+at the end of transaction execution
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000485_source')" id="l_M000485_source">show</a>
+                        
+                    </p>
+                    <div id="M000485_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 47</span>
+47:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">push_scope</span>(<span class="ruby-identifier">metric</span>, <span class="ruby-identifier">time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_f</span>, <span class="ruby-identifier">deduct_call_time_from_parent</span> = <span class="ruby-keyword kw">true</span>)
+48:         <span class="ruby-identifier">stack</span> = <span class="ruby-identifier">scope_stack</span>
+49:         <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-value">? </span><span class="ruby-constant">GCProfiler</span>.<span class="ruby-identifier">init</span> <span class="ruby-operator">:</span> <span class="ruby-constant">GCProfiler</span>.<span class="ruby-identifier">capture</span>
+50:         <span class="ruby-ivar">@transaction_sampler</span>.<span class="ruby-identifier">notice_push_scope</span> <span class="ruby-identifier">metric</span>, <span class="ruby-identifier">time</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@transaction_sampler</span>
+51:         <span class="ruby-identifier">scope</span> = <span class="ruby-constant">ScopeStackElement</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">metric</span>, <span class="ruby-identifier">deduct_call_time_from_parent</span>)
+52:         <span class="ruby-identifier">stack</span>.<span class="ruby-identifier">push</span> <span class="ruby-identifier">scope</span>
+53:         <span class="ruby-identifier">scope</span>
+54:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000484">
+                    
+                    <a name="M000484"></a><b>remove_transaction_sampler</b>(l)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+removes a transaction sampler
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000484_source')" id="l_M000484_source">show</a>
+                        
+                    </p>
+                    <div id="M000484_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 41</span>
+41:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove_transaction_sampler</span>(<span class="ruby-identifier">l</span>)
+42:         <span class="ruby-ivar">@transaction_sampler</span> = <span class="ruby-keyword kw">nil</span>
+43:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000489">
+                    
+                    <a name="M000489"></a><b>scope_name</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the current scope name from the thread local
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000489_source')" id="l_M000489_source">show</a>
+                        
+                    </p>
+                    <div id="M000489_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 93</span>
+93:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scope_name</span>
+94:         <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_name</span>]
+95:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000488">
+                    
+                    <a name="M000488"></a><b>scope_name=</b>(transaction)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+set the name of the transaction for the current thread, which will be used
+to define the scope of all traced methods called on this thread until the
+scope stack is empty.
+</p>
+<p>
+currently the transaction name is the name of the controller action that is
+invoked via the dispatcher, but conceivably we could use other transaction
+names in the future if the traced application does more than service http
+request via controller actions
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000488_source')" id="l_M000488_source">show</a>
+                        
+                    </p>
+                    <div id="M000488_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 88</span>
+88:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scope_name=</span>(<span class="ruby-identifier">transaction</span>)
+89:         <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_name</span>] = <span class="ruby-identifier">transaction</span>
+90:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000490">
+                    
+                    <a name="M000490"></a><b>start_transaction</b>(name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start a new transaction, unless one is already in progress
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000490_source')" id="l_M000490_source">show</a>
+                        
+                    </p>
+                    <div id="M000490_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 98</span>
+ 98:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_transaction</span>(<span class="ruby-identifier">name</span> = <span class="ruby-keyword kw">nil</span>)
+ 99:         <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_stack</span>] <span class="ruby-operator">||=</span> []
+100:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">scope_name</span> = <span class="ruby-identifier">name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">name</span>
+101:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000483">
+                    
+                    <a name="M000483"></a><b>transaction_sampler=</b>(sampler)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+add a new transaction sampler, unless we&#8217;re currently in a
+transaction (then we fail)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000483_source')" id="l_M000483_source">show</a>
+                        
+                    </p>
+                    <div id="M000483_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 35</span>
+35:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">transaction_sampler=</span> <span class="ruby-identifier">sampler</span>
+36:         <span class="ruby-identifier">fail</span> <span class="ruby-value str">&quot;Can't add a scope listener midflight in a transaction&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">scope_stack</span>.<span class="ruby-identifier">any?</span>
+37:         <span class="ruby-ivar">@transaction_sampler</span> = <span class="ruby-identifier">sampler</span>
+38:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000492">
+                    
+                    <a name="M000492"></a><b>scope_stack</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the current scope stack, memoized to a thread local variable
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000492_source')" id="l_M000492_source">show</a>
+                        
+                    </p>
+                    <div id="M000492_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/stats_engine/transactions.rb, line 119</span>
+119:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scope_stack</span>
+120:         <span class="ruby-constant">Thread</span><span class="ruby-operator">::</span><span class="ruby-identifier">current</span>[<span class="ruby-identifier">:newrelic_scope_stack</span>] <span class="ruby-operator">||=</span> []
+121:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,1 @@
+var search_data = {"index":{"info":[["README","files/ext/gdbm/README.html","files/ext/gdbm/README.html","","gdbm ext-library for Ruby 1.3 or later ",3]],"searchIndex":["readme"],"longSearchIndex":["files/ext/gdbm/readme.html"]}}

@@ -1,0 +1,1749 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>DRb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            DRb 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/drb/drb_rb.html">lib/drb/drb.rb</a></li>
+            
+            <li><a href="../files/lib/drb/eq_rb.html">lib/drb/eq.rb</a></li>
+            
+            <li><a href="../files/lib/drb/extserv_rb.html">lib/drb/extserv.rb</a></li>
+            
+            <li><a href="../files/lib/drb/extservm_rb.html">lib/drb/extservm.rb</a></li>
+            
+            <li><a href="../files/lib/drb/gw_rb.html">lib/drb/gw.rb</a></li>
+            
+            <li><a href="../files/lib/drb/invokemethod_rb.html">lib/drb/invokemethod.rb</a></li>
+            
+            <li><a href="../files/lib/drb/observer_rb.html">lib/drb/observer.rb</a></li>
+            
+            <li><a href="../files/lib/drb/ssl_rb.html">lib/drb/ssl.rb</a></li>
+            
+            <li><a href="../files/lib/drb/timeridconv_rb.html">lib/drb/timeridconv.rb</a></li>
+            
+            <li><a href="../files/lib/drb/unix_rb.html">lib/drb/unix.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+for ruby-1.8.0
+</p>
+<hr size="1"></hr><h2>Overview</h2>
+<p>
+dRuby is a distributed object system for Ruby. It is written in pure Ruby
+and uses its own protocol. No add-in services are needed beyond those
+provided by the Ruby runtime, such as TCP sockets. It does not rely on or
+interoperate with other distributed object systems such as CORBA, RMI, or
+.NET.
+</p>
+<p>
+dRuby allows methods to be called in one Ruby process upon a Ruby object
+located in another Ruby process, even on another machine. References to
+objects can be passed between processes. <a href="Method.html">Method</a>
+arguments and return values are dumped and loaded in marshalled format. All
+of this is done transparently to both the caller of the remote method and
+the object that it is called upon.
+</p>
+<p>
+An object in a remote process is locally represented by a <a
+href="DRb/DRbObject.html">DRb::DRbObject</a> instance. This acts as a sort
+of proxy for the remote object. Methods called upon this <a
+href="DRb/DRbObject.html">DRbObject</a> instance are forwarded to its
+remote object. This is arranged dynamically at run time. There are no
+statically declared interfaces for remote objects, such as CORBA&#8217;s
+IDL.
+</p>
+<p>
+dRuby calls made into a process are handled by a <a
+href="DRb/DRbServer.html">DRb::DRbServer</a> instance within that process.
+This reconstitutes the method call, invokes it upon the specified local
+object, and returns the value to the remote caller. Any object can receive
+calls over dRuby. There is no need to implement a special interface, or
+mixin special functionality. Nor, in the general case, does an object need
+to explicitly register itself with a <a
+href="DRb/DRbServer.html">DRbServer</a> in order to receive dRuby calls.
+</p>
+<p>
+One process wishing to make dRuby calls upon another process must somehow
+obtain an initial reference to an object in the remote process by some
+means other than as the return value of a remote method call, as there is
+initially no remote object reference it can invoke a method upon. This is
+done by attaching to the server by <a href="URI.html">URI</a>. Each <a
+href="DRb/DRbServer.html">DRbServer</a> binds itself to a <a
+href="URI.html">URI</a> such as &#8216;druby://example.com:8787&#8217;. A
+<a href="DRb/DRbServer.html">DRbServer</a> can have an object attached to
+it that acts as the server&#8217;s <b>front</b> <b>object</b>. A <a
+href="DRb/DRbObject.html">DRbObject</a> can be explicitly created from the
+server&#8217;s <a href="URI.html">URI</a>. This DRbObject&#8217;s remote
+object will be the server&#8217;s front object. This front object can then
+return references to other Ruby objects in the DRbServer&#8217;s process.
+</p>
+<p>
+<a href="Method.html">Method</a> calls made over dRuby behave largely the
+same as normal Ruby method calls made within a process. <a
+href="Method.html">Method</a> calls with blocks are supported, as are
+raising exceptions. In addition to a method&#8217;s standard errors, a
+dRuby call may also raise one of the dRuby-specific errors, all of which
+are subclasses of <a href="DRb/DRbError.html">DRb::DRbError</a>.
+</p>
+<p>
+Any type of object can be passed as an argument to a dRuby call or returned
+as its return value. By default, such objects are dumped or marshalled at
+the local end, then loaded or unmarshalled at the remote end. The remote
+end therefore receives a copy of the local object, not a distributed
+reference to it; methods invoked upon this copy are executed entirely in
+the remote process, not passed on to the local original. This has semantics
+similar to pass-by-value.
+</p>
+<p>
+However, if an object cannot be marshalled, a dRuby reference to it is
+passed or returned instead. This will turn up at the remote end as a <a
+href="DRb/DRbObject.html">DRbObject</a> instance. All methods invoked upon
+this remote proxy are forwarded to the local object, as described in the
+discussion of DRbObjects. This has semantics similar to the normal Ruby
+pass-by-reference.
+</p>
+<p>
+The easiest way to signal that we want an otherwise marshallable object to
+be passed or returned as a <a href="DRb/DRbObject.html">DRbObject</a>
+reference, rather than marshalled and sent as a copy, is to include the <a
+href="DRb/DRbUndumped.html">DRb::DRbUndumped</a> mixin module.
+</p>
+<p>
+dRuby supports calling remote methods with blocks. As blocks (or rather the
+<a href="Proc.html">Proc</a> objects that represent them) are not
+marshallable, the block executes in the local, not the remote, context.
+Each value yielded to the block is passed from the remote object to the
+local block, then the value returned by each block invocation is passed
+back to the remote execution context to be collected, before the collected
+values are finally returned to the local context as the return value of the
+method invocation.
+</p>
+<h2>Examples of usage</h2>
+<p>
+For more dRuby samples, see the <tt>samples</tt> directory in the full
+dRuby distribution.
+</p>
+<h3>dRuby in client/server mode</h3>
+<p>
+This illustrates setting up a simple client-server drb system. Run the
+server and client code in different terminals, starting the server code
+first.
+</p>
+<h4>Server code</h4>
+<pre>
+  require 'drb/drb'
+
+  # The URI for the server to connect to
+  URI=&quot;druby://localhost:8787&quot;
+
+  class TimeServer
+
+    def get_current_time
+      return Time.now
+    end
+
+  end
+
+  # The object that handles requests on the server
+  FRONT_OBJECT=TimeServer.new
+
+  $SAFE = 1   # disable eval() and friends
+
+  DRb.start_service(URI, FRONT_OBJECT)
+  # Wait for the drb server thread to finish before exiting.
+  DRb.thread.join
+</pre>
+<h4>Client code</h4>
+<pre>
+  require 'drb/drb'
+
+  # The URI to connect to
+  SERVER_URI=&quot;druby://localhost:8787&quot;
+
+  # Start a local DRbServer to handle callbacks.
+  #
+  # Not necessary for this small example, but will be required
+  # as soon as we pass a non-marshallable object as an argument
+  # to a dRuby call.
+  DRb.start_service
+
+  timeserver = DRbObject.new_with_uri(SERVER_URI)
+  puts timeserver.get_current_time
+</pre>
+<h3>Remote objects under dRuby</h3>
+<p>
+This example illustrates returning a reference to an object from a dRuby
+call. The <a href="Logger.html">Logger</a> instances live in the server
+process. References to them are returned to the client process, where
+methods can be invoked upon them. These methods are executed in the server
+process.
+</p>
+<h4>Server code</h4>
+<pre>
+  require 'drb/drb'
+
+  URI=&quot;druby://localhost:8787&quot;
+
+  class Logger
+
+      # Make dRuby send Logger instances as dRuby references,
+      # not copies.
+      include DRb::DRbUndumped
+
+      def initialize(n, fname)
+          @name = n
+          @filename = fname
+      end
+
+      def log(message)
+          File.open(@filename, &quot;a&quot;) do |f|
+              f.puts(&quot;#{Time.now}: #{@name}: #{message}&quot;)
+          end
+      end
+
+  end
+
+  # We have a central object for creating and retrieving loggers.
+  # This retains a local reference to all loggers created.  This
+  # is so an existing logger can be looked up by name, but also
+  # to prevent loggers from being garbage collected.  A dRuby
+  # reference to an object is not sufficient to prevent it being
+  # garbage collected!
+  class LoggerFactory
+
+      def initialize(bdir)
+          @basedir = bdir
+          @loggers = {}
+      end
+
+      def get_logger(name)
+          if !@loggers.has_key? name
+              # make the filename safe, then declare it to be so
+              fname = name.gsub(/[.\/]/, &quot;_&quot;).untaint
+              @loggers[name] = Logger.new(name, @basedir + &quot;/&quot; + fname)
+          end
+          return @loggers[name]
+      end
+
+  end
+
+  FRONT_OBJECT=LoggerFactory.new(&quot;/tmp/dlog&quot;)
+
+  $SAFE = 1   # disable eval() and friends
+
+  DRb.start_service(URI, FRONT_OBJECT)
+  DRb.thread.join
+</pre>
+<h4>Client code</h4>
+<pre>
+  require 'drb/drb'
+
+  SERVER_URI=&quot;druby://localhost:8787&quot;
+
+  DRb.start_service
+
+  log_service=DRbObject.new_with_uri(SERVER_URI)
+
+  [&quot;loga&quot;, &quot;logb&quot;, &quot;logc&quot;].each do |logname|
+
+      logger=log_service.get_logger(logname)
+
+      logger.log(&quot;Hello, world!&quot;)
+      logger.log(&quot;Goodbye, world!&quot;)
+      logger.log(&quot;=== EOT ===&quot;)
+
+  end
+</pre>
+<h2>Security</h2>
+<p>
+As with all network services, security needs to be considered when using
+dRuby. By allowing external access to a Ruby object, you are not only
+allowing outside clients to call the methods you have defined for that
+object, but by default to execute arbitrary Ruby code on your server.
+Consider the following:
+</p>
+<pre>
+   # !!! UNSAFE CODE !!!
+   ro = DRbObject::new_with_uri(&quot;druby://your.server.com:8989&quot;)
+   class &lt;&lt; ro
+     undef :instance_eval  # force call to be passed to remote object
+   end
+   ro.instance_eval(&quot;`rm -rf *`&quot;)
+</pre>
+<p>
+The dangers posed by instance_eval and friends are such that a <a
+href="DRb/DRbServer.html">DRbServer</a> should generally be run with $SAFE
+set to at least level 1. This will disable eval() and related calls on
+strings passed across the wire. The sample usage code given above follows
+this practice.
+</p>
+<p>
+A <a href="DRb/DRbServer.html">DRbServer</a> can be configured with an
+access control list to selectively allow or deny access from specified IP
+addresses. The main druby distribution provides the <a
+href="ACL.html">ACL</a> class for this purpose. In general, this mechanism
+should only be used alongside, rather than as a replacement for, a good
+firewall.
+</p>
+<h2>dRuby internals</h2>
+<p>
+dRuby is implemented using three main components: a remote method call
+marshaller/unmarshaller; a transport protocol; and an ID-to-object mapper.
+The latter two can be directly, and the first indirectly, replaced, in
+order to provide different behaviour and capabilities.
+</p>
+<p>
+Marshalling and unmarshalling of remote method calls is performed by a <a
+href="DRb/DRbMessage.html">DRb::DRbMessage</a> instance. This uses the <a
+href="Marshal.html">Marshal</a> module to dump the method call before
+sending it over the transport layer, then reconstitute it at the other end.
+There is normally no need to replace this component, and no direct way is
+provided to do so. However, it is possible to implement an alternative
+marshalling scheme as part of an implementation of the transport layer.
+</p>
+<p>
+The transport layer is responsible for opening client and server network
+connections and forwarding dRuby request across them. Normally, it uses <a
+href="DRb/DRbMessage.html">DRb::DRbMessage</a> internally to manage
+marshalling and unmarshalling. The transport layer is managed by <a
+href="DRb/DRbProtocol.html">DRb::DRbProtocol</a>. Multiple protocols can be
+installed in <a href="DRb/DRbProtocol.html">DRbProtocol</a> at the one
+time; selection between them is determined by the scheme of a dRuby <a
+href="URI.html">URI</a>. The default transport protocol is selected by the
+scheme &#8216;druby:&#8217;, and implemented by <a
+href="DRb/DRbTCPSocket.html">DRb::DRbTCPSocket</a>. This uses plain TCP/IP
+sockets for communication. An alternative protocol, using UNIX domain
+sockets, is implemented by <a
+href="DRb/DRbUNIXSocket.html">DRb::DRbUNIXSocket</a> in the file
+drb/unix.rb, and selected by the scheme &#8216;drbunix:&#8217;. A sample
+implementation over HTTP can be found in the samples accompanying the main
+dRuby distribution.
+</p>
+<p>
+The ID-to-object mapping component maps dRuby object ids to the objects
+they refer to, and vice versa. The implementation to use can be specified
+as part of a DRb::DRbServer&#8217;s configuration. The default
+implementation is provided by <a
+href="DRb/DRbIdConv.html">DRb::DRbIdConv</a>. It uses an object&#8217;s <a
+href="ObjectSpace.html">ObjectSpace</a> id as its dRuby id. This means that
+the dRuby reference to that object only remains meaningful for the lifetime
+of the object&#8217;s process and the lifetime of the object within that
+process. A modified implementation is provided by <a
+href="DRb/TimerIdConv.html">DRb::TimerIdConv</a> in the file
+drb/timeridconv.rb. This implementation retains a local reference to all
+objects exported over dRuby for a configurable period of time (defaulting
+to ten minutes), to prevent them being garbage-collected within this time.
+Another sample implementation is provided in sample/name.rb in the main
+dRuby distribution. This allows objects to specify their own id or
+&#8220;name&#8221;. A dRuby reference can be made persistent across
+processes by having each process register an object using the same dRuby
+name.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002113">config</a>,</li>
+                
+                <li><a href="#M002113">config</a>,</li>
+                
+                <li><a href="#M002109">current_server</a>,</li>
+                
+                <li><a href="#M002109">current_server</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002127">fetch_server</a>,</li>
+                
+                <li><a href="#M002127">fetch_server</a>,</li>
+                
+                <li><a href="#M002114">front</a>,</li>
+                
+                <li><a href="#M002114">front</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002112">here?</a>,</li>
+                
+                <li><a href="#M002112">here?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002121">install_acl</a>,</li>
+                
+                <li><a href="#M002121">install_acl</a>,</li>
+                
+                <li><a href="#M002120">install_id_conv</a>,</li>
+                
+                <li><a href="#M002120">install_id_conv</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002122">mutex</a>,</li>
+                
+                <li><a href="#M002122">mutex</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002123">regist_server</a>,</li>
+                
+                <li><a href="#M002123">regist_server</a>,</li>
+                
+                <li><a href="#M002126">remove_server</a>,</li>
+                
+                <li><a href="#M002126">remove_server</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002108">start_service</a>,</li>
+                
+                <li><a href="#M002108">start_service</a>,</li>
+                
+                <li><a href="#M002110">stop_service</a>,</li>
+                
+                <li><a href="#M002110">stop_service</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002117">thread</a>,</li>
+                
+                <li><a href="#M002117">thread</a>,</li>
+                
+                <li><a href="#M002116">to_id</a>,</li>
+                
+                <li><a href="#M002116">to_id</a>,</li>
+                
+                <li><a href="#M002115">to_obj</a>,</li>
+                
+                <li><a href="#M002115">to_obj</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002111">uri</a>,</li>
+                
+                <li><a href="#M002111">uri</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="DRb/DRbObservable.html">DRb::DRbObservable</a></li>
+        
+        <li><span class="type">MODULE</span> <a href="DRb/DRbProtocol.html">DRb::DRbProtocol</a></li>
+        
+        <li><span class="type">MODULE</span> <a href="DRb/DRbUndumped.html">DRb::DRbUndumped</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbArray.html">DRb::DRbArray</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbBadScheme.html">DRb::DRbBadScheme</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbBadURI.html">DRb::DRbBadURI</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbConn.html">DRb::DRbConn</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbConnError.html">DRb::DRbConnError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbError.html">DRb::DRbError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbIdConv.html">DRb::DRbIdConv</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbMessage.html">DRb::DRbMessage</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbObject.html">DRb::DRbObject</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbRemoteError.html">DRb::DRbRemoteError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbSSLSocket.html">DRb::DRbSSLSocket</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbServer.html">DRb::DRbServer</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbServerNotFound.html">DRb::DRbServerNotFound</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbTCPSocket.html">DRb::DRbTCPSocket</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbUNIXSocket.html">DRb::DRbUNIXSocket</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbURIOption.html">DRb::DRbURIOption</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbUnknown.html">DRb::DRbUnknown</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/DRbUnknownError.html">DRb::DRbUnknownError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/ExtServ.html">DRb::ExtServ</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/ExtServManager.html">DRb::ExtServManager</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/GW.html">DRb::GW</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/GWIdConv.html">DRb::GWIdConv</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="DRb/TimerIdConv.html">DRb::TimerIdConv</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>primary_server</td>
+            <td class='attr-desc'><p>
+The primary local dRuby server.
+</p>
+<p>
+This is the server created by the <a
+href="DRb.html#M002108">start_service</a> call.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>primary_server</td>
+            <td class='attr-desc'><p>
+The primary local dRuby server.
+</p>
+<p>
+This is the server created by the <a
+href="DRb.html#M002108">start_service</a> call.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002113">
+                    
+                    <a name="M002113"></a><b>config</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the configuration of the current server.
+</p>
+<p>
+If there is no current server, this returns the default configuration. See
+<a href="DRb.html#M002109">current_server</a> and DRbServer::make_config.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002113_source')" id="l_M002113_source">show</a>
+                        
+                    </p>
+                    <div id="M002113_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1687</span>
+1687:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">config</span>
+1688:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">config</span>
+1689:   <span class="ruby-keyword kw">rescue</span>
+1690:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">make_config</span>
+1691:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002109">
+                    
+                    <a name="M002109"></a><b>current_server</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the &#8216;current&#8217; server.
+</p>
+<p>
+In the context of execution taking place within the main thread of a dRuby
+server (typically, as a result of a remote call on the server or one of its
+objects), the current server is that server. Otherwise, the current server
+is the primary server.
+</p>
+<p>
+If the above rule fails to find a server, a <a
+href="DRb/DRbServerNotFound.html">DRbServerNotFound</a> error is raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002109_source')" id="l_M002109_source">show</a>
+                        
+                    </p>
+                    <div id="M002109_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1644</span>
+1644:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">current_server</span>
+1645:     <span class="ruby-identifier">drb</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-value str">'DRb'</span>]
+1646:     <span class="ruby-identifier">server</span> = (<span class="ruby-identifier">drb</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'server'</span>]) <span class="ruby-operator">?</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'server'</span>] <span class="ruby-operator">:</span> <span class="ruby-ivar">@primary_server</span>
+1647:     <span class="ruby-identifier">raise</span> <span class="ruby-constant">DRbServerNotFound</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">server</span>
+1648:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">server</span>
+1649:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002127">
+                    
+                    <a name="M002127"></a><b>fetch_server</b>(uri)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002127_source')" id="l_M002127_source">show</a>
+                        
+                    </p>
+                    <div id="M002127_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1765</span>
+1765:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_server</span>(<span class="ruby-identifier">uri</span>)
+1766:     <span class="ruby-ivar">@server</span>[<span class="ruby-identifier">uri</span>]
+1767:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002114">
+                    
+                    <a name="M002114"></a><b>front</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the front object of the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002114_source')" id="l_M002114_source">show</a>
+                        
+                    </p>
+                    <div id="M002114_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1698</span>
+1698:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">front</span>
+1699:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">front</span>
+1700:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002112">
+                    
+                    <a name="M002112"></a><b>here?</b>(uri)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Is <tt>uri</tt> the <a href="URI.html">URI</a> for the current local
+server?
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002112_source')" id="l_M002112_source">show</a>
+                        
+                    </p>
+                    <div id="M002112_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1677</span>
+1677:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">here?</span>(<span class="ruby-identifier">uri</span>)
+1678:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">here?</span>(<span class="ruby-identifier">uri</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">false</span>
+1679:     <span class="ruby-comment cmt"># (current_server.uri rescue nil) == uri</span>
+1680:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002121">
+                    
+                    <a name="M002121"></a><b>install_acl</b>(acl)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Set.html">Set</a> the default acl.
+</p>
+<p>
+See <a href="DRb/DRbServer.html#M002075">DRb::DRbServer.default_acl</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002121_source')" id="l_M002121_source">show</a>
+                        
+                    </p>
+                    <div id="M002121_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1740</span>
+1740:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">install_acl</span>(<span class="ruby-identifier">acl</span>)
+1741:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">default_acl</span>(<span class="ruby-identifier">acl</span>)
+1742:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002120">
+                    
+                    <a name="M002120"></a><b>install_id_conv</b>(idconv)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Set.html">Set</a> the default id conv object.
+</p>
+<p>
+See <a href="DRb/DRbServer.html#M002076">DRbServer#default_id_conv</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002120_source')" id="l_M002120_source">show</a>
+                        
+                    </p>
+                    <div id="M002120_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1732</span>
+1732:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">install_id_conv</span>(<span class="ruby-identifier">idconv</span>)
+1733:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">default_id_conv</span>(<span class="ruby-identifier">idconv</span>)
+1734:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002122">
+                    
+                    <a name="M002122"></a><b>mutex</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002122_source')" id="l_M002122_source">show</a>
+                        
+                    </p>
+                    <div id="M002122_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1746</span>
+1746:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mutex</span>
+1747:     <span class="ruby-ivar">@mutex</span>
+1748:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002123">
+                    
+                    <a name="M002123"></a><b>regist_server</b>(server)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002123_source')" id="l_M002123_source">show</a>
+                        
+                    </p>
+                    <div id="M002123_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1752</span>
+1752:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">regist_server</span>(<span class="ruby-identifier">server</span>)
+1753:     <span class="ruby-ivar">@server</span>[<span class="ruby-identifier">server</span>.<span class="ruby-identifier">uri</span>] = <span class="ruby-identifier">server</span>
+1754:     <span class="ruby-identifier">mutex</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+1755:       <span class="ruby-ivar">@primary_server</span> = <span class="ruby-identifier">server</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@primary_server</span>
+1756:     <span class="ruby-keyword kw">end</span>
+1757:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002126">
+                    
+                    <a name="M002126"></a><b>remove_server</b>(server)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002126_source')" id="l_M002126_source">show</a>
+                        
+                    </p>
+                    <div id="M002126_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1760</span>
+1760:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove_server</span>(<span class="ruby-identifier">server</span>)
+1761:     <span class="ruby-ivar">@server</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">server</span>.<span class="ruby-identifier">uri</span>)
+1762:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002108">
+                    
+                    <a name="M002108"></a><b>start_service</b>(uri=nil, front=nil, config=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start a dRuby server locally.
+</p>
+<p>
+The new dRuby server will become the primary server, even if another server
+is currently the primary server.
+</p>
+<p>
+<tt>uri</tt> is the <a href="URI.html">URI</a> for the server to bind to.
+If nil, the server will bind to random port on the default local host name
+and use the default dRuby protocol.
+</p>
+<p>
+<tt>front</tt> is the server&#8217;s front object. This may be nil.
+</p>
+<p>
+<tt>config</tt> is the configuration for the new server. This may be nil.
+</p>
+<p>
+See DRbServer::new.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002108_source')" id="l_M002108_source">show</a>
+                        
+                    </p>
+                    <div id="M002108_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1623</span>
+1623:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_service</span>(<span class="ruby-identifier">uri</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">front</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">config</span>=<span class="ruby-keyword kw">nil</span>)
+1624:     <span class="ruby-ivar">@primary_server</span> = <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">front</span>, <span class="ruby-identifier">config</span>)
+1625:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002110">
+                    
+                    <a name="M002110"></a><b>stop_service</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Stop the local dRuby server.
+</p>
+<p>
+This operates on the primary server. If there is no primary server
+currently running, it is a noop.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002110_source')" id="l_M002110_source">show</a>
+                        
+                    </p>
+                    <div id="M002110_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1656</span>
+1656:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stop_service</span>
+1657:     <span class="ruby-ivar">@primary_server</span>.<span class="ruby-identifier">stop_service</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@primary_server</span>
+1658:     <span class="ruby-ivar">@primary_server</span> = <span class="ruby-keyword kw">nil</span>
+1659:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002117">
+                    
+                    <a name="M002117"></a><b>thread</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the thread of the primary server.
+</p>
+<p>
+This returns nil if there is no primary server. See <a
+href="DRb.html#primary_server">primary_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002117_source')" id="l_M002117_source">show</a>
+                        
+                    </p>
+                    <div id="M002117_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1724</span>
+1724:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">thread</span>
+1725:     <span class="ruby-ivar">@primary_server</span> <span class="ruby-operator">?</span> <span class="ruby-ivar">@primary_server</span>.<span class="ruby-identifier">thread</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+1726:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002116">
+                    
+                    <a name="M002116"></a><b>to_id</b>(obj)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get a reference id for an object using the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002116_source')" id="l_M002116_source">show</a>
+                        
+                    </p>
+                    <div id="M002116_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1715</span>
+1715:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_id</span>(<span class="ruby-identifier">obj</span>)
+1716:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">to_id</span>(<span class="ruby-identifier">obj</span>)
+1717:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002115">
+                    
+                    <a name="M002115"></a><b>to_obj</b>(ref)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Convert a reference into an object using the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002115_source')" id="l_M002115_source">show</a>
+                        
+                    </p>
+                    <div id="M002115_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1707</span>
+1707:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_obj</span>(<span class="ruby-identifier">ref</span>)
+1708:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">to_obj</span>(<span class="ruby-identifier">ref</span>)
+1709:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002111">
+                    
+                    <a name="M002111"></a><b>uri</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the <a href="URI.html">URI</a> defining the local dRuby space.
+</p>
+<p>
+This is the <a href="URI.html">URI</a> of the current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002111_source')" id="l_M002111_source">show</a>
+                        
+                    </p>
+                    <div id="M002111_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1665</span>
+1665:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">uri</span>
+1666:     <span class="ruby-identifier">drb</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-value str">'DRb'</span>]
+1667:     <span class="ruby-identifier">client</span> = (<span class="ruby-identifier">drb</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'client'</span>])
+1668:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">client</span>
+1669:       <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">client</span>.<span class="ruby-identifier">uri</span>
+1670:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">uri</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>
+1671:     <span class="ruby-keyword kw">end</span>
+1672:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">uri</span>
+1673:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002113">
+                    
+                    <a name="M002113"></a><b>config</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the configuration of the current server.
+</p>
+<p>
+If there is no current server, this returns the default configuration. See
+<a href="DRb.html#M002109">current_server</a> and DRbServer::make_config.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002113_source')" id="l_M002113_source">show</a>
+                        
+                    </p>
+                    <div id="M002113_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1687</span>
+1687:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">config</span>
+1688:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">config</span>
+1689:   <span class="ruby-keyword kw">rescue</span>
+1690:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">make_config</span>
+1691:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002109">
+                    
+                    <a name="M002109"></a><b>current_server</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the &#8216;current&#8217; server.
+</p>
+<p>
+In the context of execution taking place within the main thread of a dRuby
+server (typically, as a result of a remote call on the server or one of its
+objects), the current server is that server. Otherwise, the current server
+is the primary server.
+</p>
+<p>
+If the above rule fails to find a server, a <a
+href="DRb/DRbServerNotFound.html">DRbServerNotFound</a> error is raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002109_source')" id="l_M002109_source">show</a>
+                        
+                    </p>
+                    <div id="M002109_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1644</span>
+1644:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">current_server</span>
+1645:     <span class="ruby-identifier">drb</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-value str">'DRb'</span>]
+1646:     <span class="ruby-identifier">server</span> = (<span class="ruby-identifier">drb</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'server'</span>]) <span class="ruby-operator">?</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'server'</span>] <span class="ruby-operator">:</span> <span class="ruby-ivar">@primary_server</span>
+1647:     <span class="ruby-identifier">raise</span> <span class="ruby-constant">DRbServerNotFound</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">server</span>
+1648:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">server</span>
+1649:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002127">
+                    
+                    <a name="M002127"></a><b>fetch_server</b>(uri)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002127_source')" id="l_M002127_source">show</a>
+                        
+                    </p>
+                    <div id="M002127_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1765</span>
+1765:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_server</span>(<span class="ruby-identifier">uri</span>)
+1766:     <span class="ruby-ivar">@server</span>[<span class="ruby-identifier">uri</span>]
+1767:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002114">
+                    
+                    <a name="M002114"></a><b>front</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the front object of the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002114_source')" id="l_M002114_source">show</a>
+                        
+                    </p>
+                    <div id="M002114_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1698</span>
+1698:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">front</span>
+1699:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">front</span>
+1700:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002112">
+                    
+                    <a name="M002112"></a><b>here?</b>(uri)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Is <tt>uri</tt> the <a href="URI.html">URI</a> for the current local
+server?
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002112_source')" id="l_M002112_source">show</a>
+                        
+                    </p>
+                    <div id="M002112_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1677</span>
+1677:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">here?</span>(<span class="ruby-identifier">uri</span>)
+1678:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">here?</span>(<span class="ruby-identifier">uri</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">false</span>
+1679:     <span class="ruby-comment cmt"># (current_server.uri rescue nil) == uri</span>
+1680:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002121">
+                    
+                    <a name="M002121"></a><b>install_acl</b>(acl)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Set.html">Set</a> the default acl.
+</p>
+<p>
+See <a href="DRb/DRbServer.html#M002075">DRb::DRbServer.default_acl</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002121_source')" id="l_M002121_source">show</a>
+                        
+                    </p>
+                    <div id="M002121_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1740</span>
+1740:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">install_acl</span>(<span class="ruby-identifier">acl</span>)
+1741:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">default_acl</span>(<span class="ruby-identifier">acl</span>)
+1742:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002120">
+                    
+                    <a name="M002120"></a><b>install_id_conv</b>(idconv)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Set.html">Set</a> the default id conv object.
+</p>
+<p>
+See <a href="DRb/DRbServer.html#M002076">DRbServer#default_id_conv</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002120_source')" id="l_M002120_source">show</a>
+                        
+                    </p>
+                    <div id="M002120_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1732</span>
+1732:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">install_id_conv</span>(<span class="ruby-identifier">idconv</span>)
+1733:     <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">default_id_conv</span>(<span class="ruby-identifier">idconv</span>)
+1734:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002122">
+                    
+                    <a name="M002122"></a><b>mutex</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002122_source')" id="l_M002122_source">show</a>
+                        
+                    </p>
+                    <div id="M002122_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1746</span>
+1746:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mutex</span>
+1747:     <span class="ruby-ivar">@mutex</span>
+1748:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002123">
+                    
+                    <a name="M002123"></a><b>regist_server</b>(server)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002123_source')" id="l_M002123_source">show</a>
+                        
+                    </p>
+                    <div id="M002123_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1752</span>
+1752:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">regist_server</span>(<span class="ruby-identifier">server</span>)
+1753:     <span class="ruby-ivar">@server</span>[<span class="ruby-identifier">server</span>.<span class="ruby-identifier">uri</span>] = <span class="ruby-identifier">server</span>
+1754:     <span class="ruby-identifier">mutex</span>.<span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+1755:       <span class="ruby-ivar">@primary_server</span> = <span class="ruby-identifier">server</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@primary_server</span>
+1756:     <span class="ruby-keyword kw">end</span>
+1757:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002126">
+                    
+                    <a name="M002126"></a><b>remove_server</b>(server)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002126_source')" id="l_M002126_source">show</a>
+                        
+                    </p>
+                    <div id="M002126_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1760</span>
+1760:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove_server</span>(<span class="ruby-identifier">server</span>)
+1761:     <span class="ruby-ivar">@server</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">server</span>.<span class="ruby-identifier">uri</span>)
+1762:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002108">
+                    
+                    <a name="M002108"></a><b>start_service</b>(uri=nil, front=nil, config=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start a dRuby server locally.
+</p>
+<p>
+The new dRuby server will become the primary server, even if another server
+is currently the primary server.
+</p>
+<p>
+<tt>uri</tt> is the <a href="URI.html">URI</a> for the server to bind to.
+If nil, the server will bind to random port on the default local host name
+and use the default dRuby protocol.
+</p>
+<p>
+<tt>front</tt> is the server&#8217;s front object. This may be nil.
+</p>
+<p>
+<tt>config</tt> is the configuration for the new server. This may be nil.
+</p>
+<p>
+See DRbServer::new.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002108_source')" id="l_M002108_source">show</a>
+                        
+                    </p>
+                    <div id="M002108_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1623</span>
+1623:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_service</span>(<span class="ruby-identifier">uri</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">front</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">config</span>=<span class="ruby-keyword kw">nil</span>)
+1624:     <span class="ruby-ivar">@primary_server</span> = <span class="ruby-constant">DRbServer</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">front</span>, <span class="ruby-identifier">config</span>)
+1625:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002110">
+                    
+                    <a name="M002110"></a><b>stop_service</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Stop the local dRuby server.
+</p>
+<p>
+This operates on the primary server. If there is no primary server
+currently running, it is a noop.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002110_source')" id="l_M002110_source">show</a>
+                        
+                    </p>
+                    <div id="M002110_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1656</span>
+1656:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stop_service</span>
+1657:     <span class="ruby-ivar">@primary_server</span>.<span class="ruby-identifier">stop_service</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@primary_server</span>
+1658:     <span class="ruby-ivar">@primary_server</span> = <span class="ruby-keyword kw">nil</span>
+1659:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002117">
+                    
+                    <a name="M002117"></a><b>thread</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the thread of the primary server.
+</p>
+<p>
+This returns nil if there is no primary server. See <a
+href="DRb.html#primary_server">primary_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002117_source')" id="l_M002117_source">show</a>
+                        
+                    </p>
+                    <div id="M002117_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1724</span>
+1724:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">thread</span>
+1725:     <span class="ruby-ivar">@primary_server</span> <span class="ruby-operator">?</span> <span class="ruby-ivar">@primary_server</span>.<span class="ruby-identifier">thread</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+1726:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002116">
+                    
+                    <a name="M002116"></a><b>to_id</b>(obj)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get a reference id for an object using the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002116_source')" id="l_M002116_source">show</a>
+                        
+                    </p>
+                    <div id="M002116_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1715</span>
+1715:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_id</span>(<span class="ruby-identifier">obj</span>)
+1716:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">to_id</span>(<span class="ruby-identifier">obj</span>)
+1717:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002115">
+                    
+                    <a name="M002115"></a><b>to_obj</b>(ref)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Convert a reference into an object using the current server.
+</p>
+<p>
+This raises a <a href="DRb/DRbServerNotFound.html">DRbServerNotFound</a>
+error if there is no current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002115_source')" id="l_M002115_source">show</a>
+                        
+                    </p>
+                    <div id="M002115_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1707</span>
+1707:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_obj</span>(<span class="ruby-identifier">ref</span>)
+1708:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">to_obj</span>(<span class="ruby-identifier">ref</span>)
+1709:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002111">
+                    
+                    <a name="M002111"></a><b>uri</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the <a href="URI.html">URI</a> defining the local dRuby space.
+</p>
+<p>
+This is the <a href="URI.html">URI</a> of the current server. See <a
+href="DRb.html#M002109">current_server</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002111_source')" id="l_M002111_source">show</a>
+                        
+                    </p>
+                    <div id="M002111_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/drb/drb.rb, line 1665</span>
+1665:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">uri</span>
+1666:     <span class="ruby-identifier">drb</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-value str">'DRb'</span>]
+1667:     <span class="ruby-identifier">client</span> = (<span class="ruby-identifier">drb</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">drb</span>[<span class="ruby-value str">'client'</span>])
+1668:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">client</span>
+1669:       <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">client</span>.<span class="ruby-identifier">uri</span>
+1670:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">uri</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>
+1671:     <span class="ruby-keyword kw">end</span>
+1672:     <span class="ruby-identifier">current_server</span>.<span class="ruby-identifier">uri</span>
+1673:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

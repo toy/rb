@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::Channel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::Channel 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/channel_rb.html">lib/em/channel.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Provides a simple thread-safe way to transfer data between (typically) long
+running tasks in {<a
+href="../EventMachine.html#M000524">EventMachine.defer</a>} and event loop
+thread.
+</p>
+<p>
+@example
+</p>
+<pre>
+ channel = EventMachine::Channel.new
+ sid     = channel.subscribe { |msg| p [:got, msg] }
+
+ channel.push('hello world')
+ channel.unsubscribe(sid)
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000009"><<</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000011">gen_id</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000004">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000010">pop</a>,</li>
+                
+                <li><a href="#M000008">push</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000005">subscribe</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000007">unsubscribe</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 15</span>
+15:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+16:       <span class="ruby-ivar">@subs</span> = {}
+17:       <span class="ruby-ivar">@uid</span>  = <span class="ruby-value">0</span>
+18:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000009">
+                    
+                    <a name="M000009"></a><b>&lt;&lt;</b>(*items)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="Channel.html#M000008">push</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>pop</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Fetches one message from the channel.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 48</span>
+48:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pop</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+49:       <span class="ruby-constant">EM</span>.<span class="ruby-identifier">schedule</span> {
+50:         <span class="ruby-identifier">name</span> = <span class="ruby-identifier">subscribe</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-operator">*</span><span class="ruby-identifier">args</span><span class="ruby-operator">|</span>
+51:           <span class="ruby-identifier">unsubscribe</span>(<span class="ruby-identifier">name</span>)
+52:           <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>).<span class="ruby-identifier">call</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+53:         <span class="ruby-keyword kw">end</span>
+54:       }
+55:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000008">
+                    
+                    <a name="M000008"></a><b>push</b>(*items)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Add items to the channel, which are pushed out to all subscribers.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Channel.html#M000009">&lt;&lt;</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
+                        
+                    </p>
+                    <div id="M000008_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 41</span>
+41:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">push</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">items</span>)
+42:       <span class="ruby-identifier">items</span> = <span class="ruby-identifier">items</span>.<span class="ruby-identifier">dup</span>
+43:       <span class="ruby-constant">EM</span>.<span class="ruby-identifier">schedule</span> { <span class="ruby-identifier">items</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@subs</span>.<span class="ruby-identifier">values</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">call</span> <span class="ruby-identifier">i</span> } } }
+44:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b>subscribe</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Takes any arguments suitable for EM::Callback() and returns a subscriber id
+for use when unsubscribing.
+</p>
+<p>
+@return [Integer] Subscribe identifier @see <a
+href="Channel.html#M000007">unsubscribe</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 25</span>
+25:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">subscribe</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+26:       <span class="ruby-identifier">name</span> = <span class="ruby-identifier">gen_id</span>
+27:       <span class="ruby-constant">EM</span>.<span class="ruby-identifier">schedule</span> { <span class="ruby-ivar">@subs</span>[<span class="ruby-identifier">name</span>] = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>) }
+28: 
+29:       <span class="ruby-identifier">name</span>
+30:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000007">
+                    
+                    <a name="M000007"></a><b>unsubscribe</b>(name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes subscriber from the list.
+</p>
+<p>
+@param [Integer] Subscriber identifier @see <a
+href="Channel.html#M000005">subscribe</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
+                        
+                    </p>
+                    <div id="M000007_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 36</span>
+36:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unsubscribe</span>(<span class="ruby-identifier">name</span>)
+37:       <span class="ruby-constant">EM</span>.<span class="ruby-identifier">schedule</span> { <span class="ruby-ivar">@subs</span>.<span class="ruby-identifier">delete</span> <span class="ruby-identifier">name</span> }
+38:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>gen_id</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/channel.rb, line 60</span>
+60:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">gen_id</span>
+61:       <span class="ruby-ivar">@uid</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

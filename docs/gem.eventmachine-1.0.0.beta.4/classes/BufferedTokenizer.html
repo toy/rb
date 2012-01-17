@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>BufferedTokenizer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            BufferedTokenizer 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/em/buftok_rb.html">lib/em/buftok.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="BufferedTokenizer.html">BufferedTokenizer</a> takes a delimiter
+upon instantiation, or acts line-based by default. It allows input to be
+spoon-fed from some outside source which receives arbitrary length
+datagrams which may-or-may-not contain the token by which entities are
+delimited.
+</p>
+<p>
+By default, new BufferedTokenizers will operate on lines delimited by
+&#8220;n&#8220; by default or allow you to specify any delimiter token you
+so choose, which will then be used by String#split to tokenize the input
+data
+</p>
+<p>
+@example Using BufferedTokernizer to parse lines out of incoming data
+</p>
+<pre>
+  module LineBufferedConnection
+    def receive_data(data)
+      (@buffer ||= BufferedTokenizer.new).extract(data).each do |line|
+        receive_line(line)
+      end
+    end
+  end
+</pre>
+<p>
+@author Tony Arcieri @author Martin Emde
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000003">empty?</a>,</li>
+                
+                <li><a href="#M000001">extract</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000002">flush</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000000">new</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000000">
+                    
+                    <a name="M000000"></a><b>new</b>(delimiter = &quot;\n&quot;, size_limit = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@param [String] delimiter @param [Integer] size_limit
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
+                        
+                    </p>
+                    <div id="M000000_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/buftok.rb, line 25</span>
+25:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">delimiter</span> = <span class="ruby-value str">&quot;\n&quot;</span>, <span class="ruby-identifier">size_limit</span> = <span class="ruby-keyword kw">nil</span>)
+26:     <span class="ruby-ivar">@delimiter</span>  = <span class="ruby-identifier">delimiter</span>
+27:     <span class="ruby-ivar">@size_limit</span> = <span class="ruby-identifier">size_limit</span>
+28: 
+29:     <span class="ruby-comment cmt"># The input buffer is stored as an array.  This is by far the most efficient</span>
+30:     <span class="ruby-comment cmt"># approach given language constraints (in C a linked list would be a more</span>
+31:     <span class="ruby-comment cmt"># appropriate data structure).  Segments of input data are stored in a list</span>
+32:     <span class="ruby-comment cmt"># which is only joined when a token is reached, substantially reducing the</span>
+33:     <span class="ruby-comment cmt"># number of objects required for the operation.</span>
+34:     <span class="ruby-ivar">@input</span> = []
+35: 
+36:     <span class="ruby-comment cmt"># Size of the input buffer</span>
+37:     <span class="ruby-ivar">@input_size</span> = <span class="ruby-value">0</span>
+38:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b>empty?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@return [Boolean]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/buftok.rb, line 107</span>
+107:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">empty?</span>
+108:     <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">empty?</span>
+109:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000001">
+                    
+                    <a name="M000001"></a><b>extract</b>(data)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Extract takes an arbitrary string of input data and returns an array of
+tokenized entities, provided there were any available to extract.
+</p>
+<p>
+@example
+</p>
+<pre>
+  tokenizer.extract(data).
+    map { |entity| Decode(entity) }.each { ... }
+</pre>
+<p>
+@param [String] data
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000001_source')" id="l_M000001_source">show</a>
+                        
+                    </p>
+                    <div id="M000001_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/buftok.rb, line 49</span>
+49:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">extract</span>(<span class="ruby-identifier">data</span>)
+50:     <span class="ruby-comment cmt"># Extract token-delimited entities from the input string with the split command.</span>
+51:     <span class="ruby-comment cmt"># There's a bit of craftiness here with the -1 parameter.  Normally split would</span>
+52:     <span class="ruby-comment cmt"># behave no differently regardless of if the token lies at the very end of the</span>
+53:     <span class="ruby-comment cmt"># input buffer or not (i.e. a literal edge case)  Specifying -1 forces split to</span>
+54:     <span class="ruby-comment cmt"># return &quot;&quot; in this case, meaning that the last entry in the list represents a</span>
+55:     <span class="ruby-comment cmt"># new segment of data where the token has not been encountered</span>
+56:     <span class="ruby-identifier">entities</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">split</span> <span class="ruby-ivar">@delimiter</span>, <span class="ruby-value">-1</span>
+57: 
+58:     <span class="ruby-comment cmt"># Check to see if the buffer has exceeded capacity, if we're imposing a limit</span>
+59:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@size_limit</span>
+60:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">'input buffer full'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@input_size</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@size_limit</span>
+61:       <span class="ruby-ivar">@input_size</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">size</span>
+62:     <span class="ruby-keyword kw">end</span>
+63: 
+64:     <span class="ruby-comment cmt"># Move the first entry in the resulting array into the input buffer.  It represents</span>
+65:     <span class="ruby-comment cmt"># the last segment of a token-delimited entity unless it's the only entry in the list.</span>
+66:     <span class="ruby-ivar">@input</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">shift</span>
+67: 
+68:     <span class="ruby-comment cmt"># If the resulting array from the split is empty, the token was not encountered</span>
+69:     <span class="ruby-comment cmt"># (not even at the end of the buffer).  Since we've encountered no token-delimited</span>
+70:     <span class="ruby-comment cmt"># entities this go-around, return an empty array.</span>
+71:     <span class="ruby-keyword kw">return</span> [] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">empty?</span>
+72: 
+73:     <span class="ruby-comment cmt"># At this point, we've hit a token, or potentially multiple tokens.  Now we can bring</span>
+74:     <span class="ruby-comment cmt"># together all the data we've buffered from earlier calls without hitting a token,</span>
+75:     <span class="ruby-comment cmt"># and add it to our list of discovered entities.</span>
+76:     <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">join</span>
+77: 
+78:     <span class="ruby-comment cmt"># Now that we've hit a token, joined the input buffer and added it to the entities</span>
+79:     <span class="ruby-comment cmt"># list, we can go ahead and clear the input buffer.  All of the segments that were</span>
+80:     <span class="ruby-comment cmt"># stored before the join can now be garbage collected.</span>
+81:     <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">clear</span>
+82: 
+83:     <span class="ruby-comment cmt"># The last entity in the list is not token delimited, however, thanks to the -1</span>
+84:     <span class="ruby-comment cmt"># passed to split.  It represents the beginning of a new list of as-yet-untokenized</span>
+85:     <span class="ruby-comment cmt"># data, so we add it to the start of the list.</span>
+86:     <span class="ruby-ivar">@input</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">entities</span>.<span class="ruby-identifier">pop</span>
+87: 
+88:     <span class="ruby-comment cmt"># Set the new input buffer size, provided we're keeping track</span>
+89:     <span class="ruby-ivar">@input_size</span> = <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">size</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@size_limit</span>
+90: 
+91:     <span class="ruby-comment cmt"># Now we're left with the list of extracted token-delimited entities we wanted</span>
+92:     <span class="ruby-comment cmt"># in the first place.  Hooray!</span>
+93:     <span class="ruby-identifier">entities</span>
+94:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000002">
+                    
+                    <a name="M000002"></a><b>flush</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Flush the contents of the input buffer, i.e. return the input buffer even
+though a token has not yet been encountered.
+</p>
+<p>
+@return [String]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000002_source')" id="l_M000002_source">show</a>
+                        
+                    </p>
+                    <div id="M000002_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/buftok.rb, line 100</span>
+100:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">flush</span>
+101:     <span class="ruby-identifier">buffer</span> = <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">join</span>
+102:     <span class="ruby-ivar">@input</span>.<span class="ruby-identifier">clear</span>
+103:     <span class="ruby-identifier">buffer</span>
+104:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

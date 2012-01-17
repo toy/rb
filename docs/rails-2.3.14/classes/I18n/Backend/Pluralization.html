@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>I18n::Backend::Pluralization</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            I18n::Backend::Pluralization 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/activesupport-2_3_14/lib/active_support/vendor/i18n-0_4_1/i18n/backend/pluralization_rb.html">activesupport-2.3.14/lib/active_support/vendor/i18n-0.4.1/i18n/backend/pluralization.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003495">pluralize</a>,</li>
+                
+                <li><a href="#M003502">pluralizer</a>,</li>
+                
+                <li><a href="#M003497">pluralizers</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003495">
+                    
+                    <a name="M003495"></a><b>pluralize</b>(locale, entry, count)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Overwrites the <a href="Base.html">Base</a> backend translate method so
+that it will check the translation meta data space (:i18n) for a locale
+specific pluralization rule and use it to pluralize the given entry. I.e.
+the library expects pluralization rules to be stored at
+I18n.t(:&#8217;i18n.plural.rule&#8217;)
+</p>
+<p>
+<a href="Pluralization.html">Pluralization</a> rules are expected to
+respond to call(entry, count) and return a pluralization key. Valid keys
+depend on the translation data hash (entry) but it is generally recommended
+to follow CLDR&#8217;s style, i.e., return one of the keys :zero, :one,
+:few, :many, :other.
+</p>
+<p>
+The :zero key is always picked directly when count equals 0 AND the
+translation data has the key :zero. This way translators are free to either
+pick a special :zero translation even for languages where the pluralizer
+does not return a :zero key.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003495_source')" id="l_M003495_source">show</a>
+                        
+                    </p>
+                    <div id="M003495_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-2.3.14/lib/active_support/vendor/i18n-0.4.1/i18n/backend/pluralization.rb, line 33</span>
+33:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pluralize</span>(<span class="ruby-identifier">locale</span>, <span class="ruby-identifier">entry</span>, <span class="ruby-identifier">count</span>)
+34:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">entry</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">count</span>
+35: 
+36:         <span class="ruby-identifier">pluralizer</span> = <span class="ruby-identifier">pluralizer</span>(<span class="ruby-identifier">locale</span>)
+37:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pluralizer</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+38:           <span class="ruby-identifier">key</span> = <span class="ruby-identifier">count</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:zero</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">:zero</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">pluralizer</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">count</span>)
+39:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidPluralizationData</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">entry</span>, <span class="ruby-identifier">count</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">key</span>)
+40:           <span class="ruby-identifier">entry</span>[<span class="ruby-identifier">key</span>]
+41:         <span class="ruby-keyword kw">else</span>
+42:           <span class="ruby-keyword kw">super</span>
+43:         <span class="ruby-keyword kw">end</span>
+44:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003502">
+                    
+                    <a name="M003502"></a><b>pluralizer</b>(locale)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003502_source')" id="l_M003502_source">show</a>
+                        
+                    </p>
+                    <div id="M003502_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-2.3.14/lib/active_support/vendor/i18n-0.4.1/i18n/backend/pluralization.rb, line 52</span>
+52:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pluralizer</span>(<span class="ruby-identifier">locale</span>)
+53:           <span class="ruby-identifier">pluralizers</span>[<span class="ruby-identifier">locale</span>] <span class="ruby-operator">||=</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-identifier">:'i18n.plural.rule'</span>, <span class="ruby-identifier">:locale</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">locale</span>, <span class="ruby-identifier">:resolve</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>)
+54:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003497">
+                    
+                    <a name="M003497"></a><b>pluralizers</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003497_source')" id="l_M003497_source">show</a>
+                        
+                    </p>
+                    <div id="M003497_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-2.3.14/lib/active_support/vendor/i18n-0.4.1/i18n/backend/pluralization.rb, line 48</span>
+48:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pluralizers</span>
+49:           <span class="ruby-ivar">@pluralizers</span> <span class="ruby-operator">||=</span> {}
+50:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

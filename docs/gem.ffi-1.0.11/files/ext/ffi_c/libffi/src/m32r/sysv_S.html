@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>sysv.S</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            sysv.S
+        </h1>
+        <ul class="files">
+            <li>ext/ffi_c/libffi/src/m32r/sysv.S</li>
+            <li>Last modified: Sun Nov 27 22:44:59 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+/*
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;
+</p>
+<pre>
+   sysv.S - Copyright (c) 2004 Renesas Technology
+
+   M32R Foreign Function Interface
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   ``Software''), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL RENESAS TECHNOLOGY BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+   OTHER DEALINGS IN THE SOFTWARE.
+   ----------------------------------------------------------------------- */
+</pre>
+<p>
+define LIBFFI_ASM include <fficonfig.h> include <ffi.h> ifdef
+HAVE_MACHINE_ASM_H include <machine/asm.h> else /* XXX these lose for some
+platforms, I&#8217;m sure. */ define CNAME(x) x define ENTRY(x) .globl
+CNAME(x)! .type CNAME(x),%function! CNAME(x): endif
+</p>
+<p>
+.text
+</p>
+<pre>
+        /* R0:   ffi_prep_args */
+        /* R1:   &amp;ecif */
+        /* R2:   cif-&gt;bytes */
+        /* R3:   fig-&gt;flags */
+        /* sp+0: ecif.rvalue */
+        /* sp+4: fn */
+
+        /* This assumes we are using gas.  */
+</pre>
+<p>
+ENTRY(ffi_call_SYSV)
+</p>
+<pre>
+        /* Save registers.  */
+        push   fp
+        push   lr
+        push   r3
+        push   r2
+        push   r1
+        push   r0
+        mv     fp, sp
+
+        /* Make room for all of the new args.  */
+        sub    sp, r2
+
+        /* Place all of the ffi_prep_args in position.  */
+        mv     lr, r0
+        mv     r0, sp
+        /* R1 already set.  */
+
+        /* And call.  */
+        jl     lr
+
+        /* Move first 4 parameters in registers...  */
+        ld     r0, @(0,sp)
+        ld     r1, @(4,sp)
+        ld     r2, @(8,sp)
+        ld      r3, @(12,sp)
+
+        /* ...and adjust the stack.  */
+        ld     lr, @(8,fp)
+        cmpi    lr, #16
+        bc     adjust_stack
+        ldi    lr, #16
+</pre>
+<p>
+adjust_stack:
+</p>
+<pre>
+        add     sp, lr
+
+        /* Call the function.  */
+        ld     lr, @(28,fp)
+        jl     lr
+
+        /* Remove the space we pushed for the args.  */
+        mv     sp, fp
+
+        /* Load R2 with the pointer to storage for the return value.  */
+        ld     r2, @(24,sp)
+
+        /* Load R3 with the return type code.  */
+        ld     r3, @(12,sp)
+
+        /* If the return value pointer is NULL, assume no return value.  */
+        beqz   r2, epilogue
+
+        /* Return INT.  */
+        ldi    r4, #FFI_TYPE_INT
+        bne    r3, r4, return_double
+        st     r0, @r2
+        bra    epilogue
+</pre>
+<p>
+return_double:
+</p>
+<pre>
+        /* Return DOUBLE or LONGDOUBLE.  */
+        ldi    r4, #FFI_TYPE_DOUBLE
+        bne    r3, r4, epilogue
+        st     r0, @r2
+        st     r1, @(4,r2)
+</pre>
+<p>
+epilogue:
+</p>
+<pre>
+        pop    r0
+        pop    r1
+        pop    r2
+        pop    r3
+        pop    lr
+        pop    fp
+        jmp lr
+</pre>
+<p>
+.ffi_call_SYSV_end:
+</p>
+<pre>
+        .size    CNAME(ffi_call_SYSV),.ffi_call_SYSV_end-CNAME(ffi_call_SYSV)
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Matrix::EigenvalueDecomposition</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Matrix::EigenvalueDecomposition 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/matrix/eigenvalue_decomposition_rb.html">lib/matrix/eigenvalue_decomposition.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Eigenvalues and eigenvectors of a real matrix.
+</p>
+<p>
+Computes the eigenvalues and eigenvectors of a matrix A.
+</p>
+<p>
+If A is diagonalizable, this provides matrices V and D such that A =
+V*D*V.inv, where D is the diagonal matrix with entries equal to the
+eigenvalues and V is formed by the eigenvectors.
+</p>
+<p>
+If A is symmetric, then V is orthogonal and thus A = V*D*V.t
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002676">build_eigenvectors</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002677">cdiv</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002673">d</a>,</li>
+                
+                <li><a href="#M002680">diagonalize</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002672">eigenvalue_matrix</a>,</li>
+                
+                <li><a href="#M002670">eigenvalues</a>,</li>
+                
+                <li><a href="#M002664">eigenvector_matrix</a>,</li>
+                
+                <li><a href="#M002668">eigenvector_matrix_inv</a>,</li>
+                
+                <li><a href="#M002671">eigenvectors</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002682">hessenberg_to_real_schur</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002660">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002681">reduce_to_hessenberg</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002675">to_a</a>,</li>
+                
+                <li><a href="#M002674">to_ary</a>,</li>
+                
+                <li><a href="#M002678">tridiagonalize</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002665">v</a>,</li>
+                
+                <li><a href="#M002669">v_inv</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002660">
+                    
+                    <a name="M002660"></a><b>new</b>(a)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Constructs the eigenvalue decomposition for a square matrix <tt>A</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002660_source')" id="l_M002660_source">show</a>
+                        
+                    </p>
+                    <div id="M002660_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 18</span>
+18:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">a</span>)
+19:       <span class="ruby-comment cmt"># @d, @e: Arrays for internal storage of eigenvalues.</span>
+20:       <span class="ruby-comment cmt"># @v: Array for internal storage of eigenvectors.</span>
+21:       <span class="ruby-comment cmt"># @h: Array for internal storage of nonsymmetric Hessenberg form.</span>
+22:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">TypeError</span>, <span class="ruby-node">&quot;Expected Matrix but got #{a.class}&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Matrix</span>)
+23:       <span class="ruby-ivar">@size</span> = <span class="ruby-identifier">a</span>.<span class="ruby-identifier">row_size</span>
+24:       <span class="ruby-ivar">@d</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>, <span class="ruby-value">0</span>)
+25:       <span class="ruby-ivar">@e</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>, <span class="ruby-value">0</span>)
+26: 
+27:       <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@symmetric</span> = <span class="ruby-identifier">a</span>.<span class="ruby-identifier">symmetric?</span>)
+28:         <span class="ruby-ivar">@v</span> = <span class="ruby-identifier">a</span>.<span class="ruby-identifier">to_a</span>
+29:         <span class="ruby-identifier">tridiagonalize</span>
+30:         <span class="ruby-identifier">diagonalize</span>
+31:       <span class="ruby-keyword kw">else</span>
+32:         <span class="ruby-ivar">@v</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>) { <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>, <span class="ruby-value">0</span>) }
+33:         <span class="ruby-ivar">@h</span> = <span class="ruby-identifier">a</span>.<span class="ruby-identifier">to_a</span>
+34:         <span class="ruby-ivar">@ort</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>, <span class="ruby-value">0</span>)
+35:         <span class="ruby-identifier">reduce_to_hessenberg</span>
+36:         <span class="ruby-identifier">hessenberg_to_real_schur</span>
+37:       <span class="ruby-keyword kw">end</span>
+38:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002673">
+                    
+                    <a name="M002673"></a><b>d</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a
+href="EigenvalueDecomposition.html#M002672">eigenvalue_matrix</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002672">
+                    
+                    <a name="M002672"></a><b>eigenvalue_matrix</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the block diagonal eigenvalue matrix <tt>D</tt>
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="EigenvalueDecomposition.html#M002673">d</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002672_source')" id="l_M002672_source">show</a>
+                        
+                    </p>
+                    <div id="M002672_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 72</span>
+72:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eigenvalue_matrix</span>
+73:       <span class="ruby-constant">Matrix</span>.<span class="ruby-identifier">diagonal</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">eigenvalues</span>)
+74:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002670">
+                    
+                    <a name="M002670"></a><b>eigenvalues</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the eigenvalues in an array
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002670_source')" id="l_M002670_source">show</a>
+                        
+                    </p>
+                    <div id="M002670_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 58</span>
+58:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eigenvalues</span>
+59:       <span class="ruby-identifier">values</span> = <span class="ruby-ivar">@d</span>.<span class="ruby-identifier">dup</span>
+60:       <span class="ruby-ivar">@e</span>.<span class="ruby-identifier">each_with_index</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">imag</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">values</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-constant">Complex</span>(<span class="ruby-identifier">values</span>[<span class="ruby-identifier">i</span>], <span class="ruby-identifier">imag</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">imag</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>}
+61:       <span class="ruby-identifier">values</span>
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002664">
+                    
+                    <a name="M002664"></a><b>eigenvector_matrix</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the eigenvector matrix <tt>V</tt>
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="EigenvalueDecomposition.html#M002665">v</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002664_source')" id="l_M002664_source">show</a>
+                        
+                    </p>
+                    <div id="M002664_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 42</span>
+42:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eigenvector_matrix</span>
+43:       <span class="ruby-constant">Matrix</span>.<span class="ruby-identifier">send</span> <span class="ruby-identifier">:new</span>, <span class="ruby-identifier">build_eigenvectors</span>.<span class="ruby-identifier">transpose</span>
+44:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002668">
+                    
+                    <a name="M002668"></a><b>eigenvector_matrix_inv</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the inverse of the eigenvector matrix <tt>V</tt>
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="EigenvalueDecomposition.html#M002669">v_inv</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002668_source')" id="l_M002668_source">show</a>
+                        
+                    </p>
+                    <div id="M002668_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 49</span>
+49:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eigenvector_matrix_inv</span>
+50:       <span class="ruby-identifier">r</span> = <span class="ruby-constant">Matrix</span>.<span class="ruby-identifier">send</span> <span class="ruby-identifier">:new</span>, <span class="ruby-identifier">build_eigenvectors</span>
+51:       <span class="ruby-identifier">r</span> = <span class="ruby-identifier">r</span>.<span class="ruby-identifier">transpose</span>.<span class="ruby-identifier">inverse</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@symmetric</span>
+52:       <span class="ruby-identifier">r</span>
+53:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002671">
+                    
+                    <a name="M002671"></a><b>eigenvectors</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns an array of the eigenvectors
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002671_source')" id="l_M002671_source">show</a>
+                        
+                    </p>
+                    <div id="M002671_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 66</span>
+66:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eigenvectors</span>
+67:       <span class="ruby-identifier">build_eigenvectors</span>.<span class="ruby-identifier">map</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">ev</span><span class="ruby-operator">|</span> <span class="ruby-constant">Vector</span>.<span class="ruby-identifier">send</span> <span class="ruby-identifier">:new</span>, <span class="ruby-identifier">ev</span>}
+68:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002675">
+                    
+                    <a name="M002675"></a><b>to_a</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="EigenvalueDecomposition.html#M002674">to_ary</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002674">
+                    
+                    <a name="M002674"></a><b>to_ary</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns [<a
+href="EigenvalueDecomposition.html#M002664">eigenvector_matrix</a>, <a
+href="EigenvalueDecomposition.html#M002672">eigenvalue_matrix</a>, <a
+href="EigenvalueDecomposition.html#M002668">eigenvector_matrix_inv</a>]
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="EigenvalueDecomposition.html#M002675">to_a</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002674_source')" id="l_M002674_source">show</a>
+                        
+                    </p>
+                    <div id="M002674_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 79</span>
+79:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_ary</span>
+80:       [<span class="ruby-identifier">v</span>, <span class="ruby-identifier">d</span>, <span class="ruby-identifier">v_inv</span>]
+81:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002665">
+                    
+                    <a name="M002665"></a><b>v</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a
+href="EigenvalueDecomposition.html#M002664">eigenvector_matrix</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002669">
+                    
+                    <a name="M002669"></a><b>v_inv</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a
+href="EigenvalueDecomposition.html#M002668">eigenvector_matrix_inv</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002676">
+                    
+                    <a name="M002676"></a><b>build_eigenvectors</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002676_source')" id="l_M002676_source">show</a>
+                        
+                    </p>
+                    <div id="M002676_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 85</span>
+85:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">build_eigenvectors</span>
+86:       <span class="ruby-comment cmt"># JAMA stores complex eigenvectors in a strange way</span>
+87:       <span class="ruby-comment cmt"># See http://cio.nist.gov/esd/emaildir/lists/jama/msg01021.html</span>
+88:       <span class="ruby-ivar">@e</span>.<span class="ruby-identifier">each_with_index</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">imag</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+89:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">imag</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+90:           <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>){<span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>]}
+91:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">imag</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+92:           <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>){<span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span> <span class="ruby-constant">Complex</span>(<span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>], <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>])}
+93:         <span class="ruby-keyword kw">else</span>
+94:           <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@size</span>){<span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span> <span class="ruby-constant">Complex</span>(<span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>], <span class="ruby-operator">-</span><span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>])}
+95:         <span class="ruby-keyword kw">end</span>
+96:       <span class="ruby-keyword kw">end</span>
+97:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002677">
+                    
+                    <a name="M002677"></a><b>cdiv</b>(xr, xi, yr, yi)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="../Complex.html">Complex</a> scalar division.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002677_source')" id="l_M002677_source">show</a>
+                        
+                    </p>
+                    <div id="M002677_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 100</span>
+100:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cdiv</span>(<span class="ruby-identifier">xr</span>, <span class="ruby-identifier">xi</span>, <span class="ruby-identifier">yr</span>, <span class="ruby-identifier">yi</span>)
+101:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">yr</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">yi</span>.<span class="ruby-identifier">abs</span>)
+102:         <span class="ruby-identifier">r</span> = <span class="ruby-identifier">yi</span><span class="ruby-operator">/</span><span class="ruby-identifier">yr</span>
+103:         <span class="ruby-identifier">d</span> = <span class="ruby-identifier">yr</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">yi</span>
+104:         [(<span class="ruby-identifier">xr</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">xi</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">d</span>, (<span class="ruby-identifier">xi</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">xr</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">d</span>]
+105:       <span class="ruby-keyword kw">else</span>
+106:         <span class="ruby-identifier">r</span> = <span class="ruby-identifier">yr</span><span class="ruby-operator">/</span><span class="ruby-identifier">yi</span>
+107:         <span class="ruby-identifier">d</span> = <span class="ruby-identifier">yi</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">yr</span>
+108:         [(<span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">xr</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">xi</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">d</span>, (<span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">xi</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">xr</span>)<span class="ruby-operator">/</span><span class="ruby-identifier">d</span>]
+109:       <span class="ruby-keyword kw">end</span>
+110:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002680">
+                    
+                    <a name="M002680"></a><b>diagonalize</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Symmetric tridiagonal QL algorithm.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002680_source')" id="l_M002680_source">show</a>
+                        
+                    </p>
+                    <div id="M002680_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 233</span>
+233:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">diagonalize</span>
+234:       <span class="ruby-comment cmt">#  This is derived from the Algol procedures tql2, by</span>
+235:       <span class="ruby-comment cmt">#  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for</span>
+236:       <span class="ruby-comment cmt">#  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding</span>
+237:       <span class="ruby-comment cmt">#  Fortran subroutine in EISPACK.</span>
+238: 
+239:       <span class="ruby-value">1</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+240:         <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>]
+241:       <span class="ruby-keyword kw">end</span>
+242:       <span class="ruby-ivar">@e</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+243: 
+244:       <span class="ruby-identifier">f</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+245:       <span class="ruby-identifier">tst1</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+246:       <span class="ruby-identifier">eps</span> = <span class="ruby-constant">Float</span><span class="ruby-operator">::</span><span class="ruby-constant">EPSILON</span>
+247:       <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">l</span><span class="ruby-operator">|</span>
+248: 
+249:         <span class="ruby-comment cmt"># Find small subdiagonal element</span>
+250: 
+251:         <span class="ruby-identifier">tst1</span> = [<span class="ruby-identifier">tst1</span>, <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>].<span class="ruby-identifier">abs</span>].<span class="ruby-identifier">max</span>
+252:         <span class="ruby-identifier">m</span> = <span class="ruby-identifier">l</span>
+253:         <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">m</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@size</span>) <span class="ruby-keyword kw">do</span>
+254:           <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">m</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-identifier">eps</span><span class="ruby-operator">*</span><span class="ruby-identifier">tst1</span>)
+255:             <span class="ruby-keyword kw">break</span>
+256:           <span class="ruby-keyword kw">end</span>
+257:           <span class="ruby-identifier">m</span><span class="ruby-operator">+=</span><span class="ruby-value">1</span>
+258:         <span class="ruby-keyword kw">end</span>
+259: 
+260:         <span class="ruby-comment cmt"># If m == l, @d[l] is an eigenvalue,</span>
+261:         <span class="ruby-comment cmt"># otherwise, iterate.</span>
+262: 
+263:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">m</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">l</span>)
+264:           <span class="ruby-identifier">iter</span> = <span class="ruby-value">0</span>
+265:           <span class="ruby-keyword kw">begin</span>
+266:             <span class="ruby-identifier">iter</span> = <span class="ruby-identifier">iter</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>  <span class="ruby-comment cmt"># (Could check iteration count here.)</span>
+267: 
+268:             <span class="ruby-comment cmt"># Compute implicit shift</span>
+269: 
+270:             <span class="ruby-identifier">g</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>]
+271:             <span class="ruby-identifier">p</span> = (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">g</span>) <span class="ruby-operator">/</span> (<span class="ruby-value">2.0</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>])
+272:             <span class="ruby-identifier">r</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">hypot</span>(<span class="ruby-identifier">p</span>, <span class="ruby-value">1.0</span>)
+273:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">p</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>)
+274:               <span class="ruby-identifier">r</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">r</span>
+275:             <span class="ruby-keyword kw">end</span>
+276:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>] = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>] <span class="ruby-operator">/</span> (<span class="ruby-identifier">p</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span>)
+277:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>] <span class="ruby-operator">*</span> (<span class="ruby-identifier">p</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span>)
+278:             <span class="ruby-identifier">dl1</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+279:             <span class="ruby-identifier">h</span> = <span class="ruby-identifier">g</span> <span class="ruby-operator">-</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>]
+280:             (<span class="ruby-identifier">l</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+281:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">h</span>
+282:             <span class="ruby-keyword kw">end</span>
+283:             <span class="ruby-identifier">f</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">h</span>
+284: 
+285:             <span class="ruby-comment cmt"># Implicit QL transformation.</span>
+286: 
+287:             <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">m</span>]
+288:             <span class="ruby-identifier">c</span> = <span class="ruby-value">1.0</span>
+289:             <span class="ruby-identifier">c2</span> = <span class="ruby-identifier">c</span>
+290:             <span class="ruby-identifier">c3</span> = <span class="ruby-identifier">c</span>
+291:             <span class="ruby-identifier">el1</span> = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+292:             <span class="ruby-identifier">s</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+293:             <span class="ruby-identifier">s2</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+294:             (<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">l</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+295:               <span class="ruby-identifier">c3</span> = <span class="ruby-identifier">c2</span>
+296:               <span class="ruby-identifier">c2</span> = <span class="ruby-identifier">c</span>
+297:               <span class="ruby-identifier">s2</span> = <span class="ruby-identifier">s</span>
+298:               <span class="ruby-identifier">g</span> = <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>]
+299:               <span class="ruby-identifier">h</span> = <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span>
+300:               <span class="ruby-identifier">r</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">hypot</span>(<span class="ruby-identifier">p</span>, <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>])
+301:               <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">r</span>
+302:               <span class="ruby-identifier">s</span> = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">r</span>
+303:               <span class="ruby-identifier">c</span> = <span class="ruby-identifier">p</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">r</span>
+304:               <span class="ruby-identifier">p</span> = <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">g</span>
+305:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">h</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">g</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>])
+306: 
+307:               <span class="ruby-comment cmt"># Accumulate transformation.</span>
+308: 
+309:               <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+310:                 <span class="ruby-identifier">h</span> = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+311:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">h</span>
+312:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">h</span>
+313:               <span class="ruby-keyword kw">end</span>
+314:             <span class="ruby-keyword kw">end</span>
+315:             <span class="ruby-identifier">p</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s2</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">c3</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">el1</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">dl1</span>
+316:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>] = <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span>
+317:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>] = <span class="ruby-identifier">c</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span>
+318: 
+319:             <span class="ruby-comment cmt"># Check for convergence.</span>
+320: 
+321:           <span class="ruby-keyword kw">end</span> <span class="ruby-keyword kw">while</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">eps</span><span class="ruby-operator">*</span><span class="ruby-identifier">tst1</span>)
+322:         <span class="ruby-keyword kw">end</span>
+323:         <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>] = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">l</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">f</span>
+324:         <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">l</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+325:       <span class="ruby-keyword kw">end</span>
+326: 
+327:       <span class="ruby-comment cmt"># Sort eigenvalues and corresponding vectors.</span>
+328: 
+329:       <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">2</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+330:         <span class="ruby-identifier">k</span> = <span class="ruby-identifier">i</span>
+331:         <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>]
+332:         (<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+333:           <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>] <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">p</span>)
+334:             <span class="ruby-identifier">k</span> = <span class="ruby-identifier">j</span>
+335:             <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>]
+336:           <span class="ruby-keyword kw">end</span>
+337:         <span class="ruby-keyword kw">end</span>
+338:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">k</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">i</span>)
+339:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>] = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>]
+340:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-identifier">p</span>
+341:           <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+342:             <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>]
+343:             <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">k</span>]
+344:             <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">k</span>] = <span class="ruby-identifier">p</span>
+345:           <span class="ruby-keyword kw">end</span>
+346:         <span class="ruby-keyword kw">end</span>
+347:       <span class="ruby-keyword kw">end</span>
+348:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002682">
+                    
+                    <a name="M002682"></a><b>hessenberg_to_real_schur</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Nonsymmetric reduction from Hessenberg to real Schur form.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002682_source')" id="l_M002682_source">show</a>
+                        
+                    </p>
+                    <div id="M002682_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 446</span>
+446:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">hessenberg_to_real_schur</span>
+447: 
+448:       <span class="ruby-comment cmt">#  This is derived from the Algol procedure hqr2,</span>
+449:       <span class="ruby-comment cmt">#  by Martin and Wilkinson, Handbook for Auto. Comp.,</span>
+450:       <span class="ruby-comment cmt">#  Vol.ii-Linear Algebra, and the corresponding</span>
+451:       <span class="ruby-comment cmt">#  Fortran subroutine in EISPACK.</span>
+452: 
+453:       <span class="ruby-comment cmt"># Initialize</span>
+454: 
+455:       <span class="ruby-identifier">nn</span> = <span class="ruby-ivar">@size</span>
+456:       <span class="ruby-identifier">n</span> = <span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>
+457:       <span class="ruby-identifier">low</span> = <span class="ruby-value">0</span>
+458:       <span class="ruby-identifier">high</span> = <span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>
+459:       <span class="ruby-identifier">eps</span> = <span class="ruby-constant">Float</span><span class="ruby-operator">::</span><span class="ruby-constant">EPSILON</span>
+460:       <span class="ruby-identifier">exshift</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+461:       <span class="ruby-identifier">p</span>=<span class="ruby-identifier">q</span>=<span class="ruby-identifier">r</span>=<span class="ruby-identifier">s</span>=<span class="ruby-identifier">z</span>=<span class="ruby-value">0</span>
+462: 
+463:       <span class="ruby-comment cmt"># Store roots isolated by balanc and compute matrix norm</span>
+464: 
+465:       <span class="ruby-identifier">norm</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+466:       <span class="ruby-identifier">nn</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+467:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">low</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">high</span>)
+468:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>]
+469:           <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+470:         <span class="ruby-keyword kw">end</span>
+471:         ([<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>, <span class="ruby-value">0</span>].<span class="ruby-identifier">max</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+472:           <span class="ruby-identifier">norm</span> = <span class="ruby-identifier">norm</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>].<span class="ruby-identifier">abs</span>
+473:         <span class="ruby-keyword kw">end</span>
+474:       <span class="ruby-keyword kw">end</span>
+475: 
+476:       <span class="ruby-comment cmt"># Outer loop over eigenvalue index</span>
+477: 
+478:       <span class="ruby-identifier">iter</span> = <span class="ruby-value">0</span>
+479:       <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">n</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-identifier">low</span>) <span class="ruby-keyword kw">do</span>
+480: 
+481:         <span class="ruby-comment cmt"># Look for single small sub-diagonal element</span>
+482: 
+483:         <span class="ruby-identifier">l</span> = <span class="ruby-identifier">n</span>
+484:         <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">l</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">low</span>) <span class="ruby-keyword kw">do</span>
+485:           <span class="ruby-identifier">s</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">l</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">l</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">l</span>][<span class="ruby-identifier">l</span>].<span class="ruby-identifier">abs</span>
+486:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">s</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+487:             <span class="ruby-identifier">s</span> = <span class="ruby-identifier">norm</span>
+488:           <span class="ruby-keyword kw">end</span>
+489:           <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">l</span>][<span class="ruby-identifier">l</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span>)
+490:             <span class="ruby-keyword kw">break</span>
+491:           <span class="ruby-keyword kw">end</span>
+492:           <span class="ruby-identifier">l</span><span class="ruby-operator">-=</span><span class="ruby-value">1</span>
+493:         <span class="ruby-keyword kw">end</span>
+494: 
+495:         <span class="ruby-comment cmt"># Check for convergence</span>
+496:         <span class="ruby-comment cmt"># One root found</span>
+497: 
+498:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">l</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">n</span>)
+499:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">exshift</span>
+500:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>]
+501:           <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+502:           <span class="ruby-identifier">n</span><span class="ruby-operator">-=</span><span class="ruby-value">1</span>
+503:           <span class="ruby-identifier">iter</span> = <span class="ruby-value">0</span>
+504: 
+505:         <span class="ruby-comment cmt"># Two roots found</span>
+506: 
+507:         <span class="ruby-keyword kw">elsif</span> (<span class="ruby-identifier">l</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>)
+508:           <span class="ruby-identifier">w</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>]
+509:           <span class="ruby-identifier">p</span> = (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">-</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>]) <span class="ruby-operator">/</span> <span class="ruby-value">2.0</span>
+510:           <span class="ruby-identifier">q</span> = <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">w</span>
+511:           <span class="ruby-identifier">z</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span>)
+512:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">exshift</span>
+513:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">exshift</span>
+514:           <span class="ruby-identifier">x</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>]
+515: 
+516:           <span class="ruby-comment cmt"># Real pair</span>
+517: 
+518:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">q</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>)
+519:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">p</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">0</span>)
+520:               <span class="ruby-identifier">z</span> = <span class="ruby-identifier">p</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">z</span>
+521:             <span class="ruby-keyword kw">else</span>
+522:               <span class="ruby-identifier">z</span> = <span class="ruby-identifier">p</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">z</span>
+523:             <span class="ruby-keyword kw">end</span>
+524:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">x</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">z</span>
+525:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+526:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">z</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+527:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">x</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">z</span>
+528:             <span class="ruby-keyword kw">end</span>
+529:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+530:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+531:             <span class="ruby-identifier">x</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+532:             <span class="ruby-identifier">s</span> = <span class="ruby-identifier">x</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">z</span>.<span class="ruby-identifier">abs</span>
+533:             <span class="ruby-identifier">p</span> = <span class="ruby-identifier">x</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">s</span>
+534:             <span class="ruby-identifier">q</span> = <span class="ruby-identifier">z</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">s</span>
+535:             <span class="ruby-identifier">r</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span><span class="ruby-operator">+</span><span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span>)
+536:             <span class="ruby-identifier">p</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">r</span>
+537:             <span class="ruby-identifier">q</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">r</span>
+538: 
+539:             <span class="ruby-comment cmt"># Row modification</span>
+540: 
+541:             (<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+542:               <span class="ruby-identifier">z</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+543:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">j</span>]
+544:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span>
+545:             <span class="ruby-keyword kw">end</span>
+546: 
+547:             <span class="ruby-comment cmt"># Column modification</span>
+548: 
+549:             <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+550:               <span class="ruby-identifier">z</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+551:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>]
+552:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span>
+553:             <span class="ruby-keyword kw">end</span>
+554: 
+555:             <span class="ruby-comment cmt"># Accumulate transformations</span>
+556: 
+557:             <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+558:               <span class="ruby-identifier">z</span> = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+559:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>]
+560:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span>
+561:             <span class="ruby-keyword kw">end</span>
+562: 
+563:           <span class="ruby-comment cmt"># Complex pair</span>
+564: 
+565:           <span class="ruby-keyword kw">else</span>
+566:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">x</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">p</span>
+567:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">x</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">p</span>
+568:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">z</span>
+569:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span>] = <span class="ruby-operator">-</span><span class="ruby-identifier">z</span>
+570:           <span class="ruby-keyword kw">end</span>
+571:           <span class="ruby-identifier">n</span> <span class="ruby-operator">-=</span> <span class="ruby-value">2</span>
+572:           <span class="ruby-identifier">iter</span> = <span class="ruby-value">0</span>
+573: 
+574:         <span class="ruby-comment cmt"># No convergence yet</span>
+575: 
+576:         <span class="ruby-keyword kw">else</span>
+577: 
+578:           <span class="ruby-comment cmt"># Form shift</span>
+579: 
+580:           <span class="ruby-identifier">x</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>]
+581:           <span class="ruby-identifier">y</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+582:           <span class="ruby-identifier">w</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+583:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">l</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">n</span>)
+584:             <span class="ruby-identifier">y</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+585:             <span class="ruby-identifier">w</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>]
+586:           <span class="ruby-keyword kw">end</span>
+587: 
+588:           <span class="ruby-comment cmt"># Wilkinson's original ad hoc shift</span>
+589: 
+590:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">iter</span> <span class="ruby-operator">==</span> <span class="ruby-value">10</span>)
+591:             <span class="ruby-identifier">exshift</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">x</span>
+592:             <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+593:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">x</span>
+594:             <span class="ruby-keyword kw">end</span>
+595:             <span class="ruby-identifier">s</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">2</span>].<span class="ruby-identifier">abs</span>
+596:             <span class="ruby-identifier">x</span> = <span class="ruby-identifier">y</span> = <span class="ruby-value">0</span><span class="ruby-value">.75</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span>
+597:             <span class="ruby-identifier">w</span> = <span class="ruby-value">-0</span><span class="ruby-value">.4375</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span>
+598:           <span class="ruby-keyword kw">end</span>
+599: 
+600:           <span class="ruby-comment cmt"># MATLAB's new ad hoc shift</span>
+601: 
+602:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">iter</span> <span class="ruby-operator">==</span> <span class="ruby-value">30</span>)
+603:              <span class="ruby-identifier">s</span> = (<span class="ruby-identifier">y</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">x</span>) <span class="ruby-operator">/</span> <span class="ruby-value">2.0</span>
+604:              <span class="ruby-identifier">s</span> <span class="ruby-operator">*=</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">w</span>
+605:              <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">s</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>)
+606:                 <span class="ruby-identifier">s</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">s</span>)
+607:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">y</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">x</span>)
+608:                   <span class="ruby-identifier">s</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">s</span>
+609:                 <span class="ruby-keyword kw">end</span>
+610:                 <span class="ruby-identifier">s</span> = <span class="ruby-identifier">x</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">/</span> ((<span class="ruby-identifier">y</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">x</span>) <span class="ruby-operator">/</span> <span class="ruby-value">2.0</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">s</span>)
+611:                 <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+612:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">s</span>
+613:                 <span class="ruby-keyword kw">end</span>
+614:                 <span class="ruby-identifier">exshift</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">s</span>
+615:                 <span class="ruby-identifier">x</span> = <span class="ruby-identifier">y</span> = <span class="ruby-identifier">w</span> = <span class="ruby-value">0</span><span class="ruby-value">.964</span>
+616:              <span class="ruby-keyword kw">end</span>
+617:           <span class="ruby-keyword kw">end</span>
+618: 
+619:           <span class="ruby-identifier">iter</span> = <span class="ruby-identifier">iter</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>  <span class="ruby-comment cmt"># (Could check iteration count here.)</span>
+620: 
+621:           <span class="ruby-comment cmt"># Look for two consecutive small sub-diagonal elements</span>
+622: 
+623:           <span class="ruby-identifier">m</span> = <span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">2</span>
+624:           <span class="ruby-keyword kw">while</span> (<span class="ruby-identifier">m</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-identifier">l</span>) <span class="ruby-keyword kw">do</span>
+625:             <span class="ruby-identifier">z</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span>]
+626:             <span class="ruby-identifier">r</span> = <span class="ruby-identifier">x</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">z</span>
+627:             <span class="ruby-identifier">s</span> = <span class="ruby-identifier">y</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">z</span>
+628:             <span class="ruby-identifier">p</span> = (<span class="ruby-identifier">r</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span>) <span class="ruby-operator">/</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">m</span>] <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+629:             <span class="ruby-identifier">q</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">r</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">s</span>
+630:             <span class="ruby-identifier">r</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+631:             <span class="ruby-identifier">s</span> = <span class="ruby-identifier">p</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span>.<span class="ruby-identifier">abs</span>
+632:             <span class="ruby-identifier">p</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">s</span>
+633:             <span class="ruby-identifier">q</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">s</span>
+634:             <span class="ruby-identifier">r</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">s</span>
+635:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">m</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">l</span>)
+636:               <span class="ruby-keyword kw">break</span>
+637:             <span class="ruby-keyword kw">end</span>
+638:             <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span>.<span class="ruby-identifier">abs</span>) <span class="ruby-operator">&lt;</span>
+639:               <span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">p</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">*</span> (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">z</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span>
+640:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span>)))
+641:                 <span class="ruby-keyword kw">break</span>
+642:             <span class="ruby-keyword kw">end</span>
+643:             <span class="ruby-identifier">m</span><span class="ruby-operator">-=</span><span class="ruby-value">1</span>
+644:           <span class="ruby-keyword kw">end</span>
+645: 
+646:           (<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+647:             <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">2</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+648:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">i</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>)
+649:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">3</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+650:             <span class="ruby-keyword kw">end</span>
+651:           <span class="ruby-keyword kw">end</span>
+652: 
+653:           <span class="ruby-comment cmt"># Double QR step involving rows l:n and columns m:n</span>
+654: 
+655:           <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+656:             <span class="ruby-identifier">notlast</span> = (<span class="ruby-identifier">k</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>)
+657:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">k</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">m</span>)
+658:               <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+659:               <span class="ruby-identifier">q</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+660:               <span class="ruby-identifier">r</span> = (<span class="ruby-identifier">notlast</span> <span class="ruby-value">? </span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">:</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+661:               <span class="ruby-identifier">x</span> = <span class="ruby-identifier">p</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span>.<span class="ruby-identifier">abs</span>
+662:               <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">x</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+663:                 <span class="ruby-identifier">p</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">x</span>
+664:                 <span class="ruby-identifier">q</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">x</span>
+665:                 <span class="ruby-identifier">r</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">x</span>
+666:               <span class="ruby-keyword kw">end</span>
+667:             <span class="ruby-keyword kw">end</span>
+668:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">x</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+669:               <span class="ruby-keyword kw">break</span>
+670:             <span class="ruby-keyword kw">end</span>
+671:             <span class="ruby-identifier">s</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">r</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">r</span>)
+672:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">p</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>)
+673:               <span class="ruby-identifier">s</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">s</span>
+674:             <span class="ruby-keyword kw">end</span>
+675:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">s</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>)
+676:               <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">k</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">m</span>)
+677:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-operator">-</span><span class="ruby-identifier">s</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">x</span>
+678:               <span class="ruby-keyword kw">elsif</span> (<span class="ruby-identifier">l</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">m</span>)
+679:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-operator">-</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+680:               <span class="ruby-keyword kw">end</span>
+681:               <span class="ruby-identifier">p</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">s</span>
+682:               <span class="ruby-identifier">x</span> = <span class="ruby-identifier">p</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">s</span>
+683:               <span class="ruby-identifier">y</span> = <span class="ruby-identifier">q</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">s</span>
+684:               <span class="ruby-identifier">z</span> = <span class="ruby-identifier">r</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">s</span>
+685:               <span class="ruby-identifier">q</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">p</span>
+686:               <span class="ruby-identifier">r</span> <span class="ruby-operator">/=</span> <span class="ruby-identifier">p</span>
+687: 
+688:               <span class="ruby-comment cmt"># Row modification</span>
+689: 
+690:               <span class="ruby-identifier">k</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+691:                 <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+692:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">notlast</span>)
+693:                   <span class="ruby-identifier">p</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">r</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>][<span class="ruby-identifier">j</span>]
+694:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">z</span>
+695:                 <span class="ruby-keyword kw">end</span>
+696:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">x</span>
+697:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">y</span>
+698:               <span class="ruby-keyword kw">end</span>
+699: 
+700:               <span class="ruby-comment cmt"># Column modification</span>
+701: 
+702:               <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>([<span class="ruby-identifier">n</span>, <span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">3</span>].<span class="ruby-identifier">min</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+703:                 <span class="ruby-identifier">p</span> = <span class="ruby-identifier">x</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">y</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+704:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">notlast</span>)
+705:                   <span class="ruby-identifier">p</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>]
+706:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">r</span>
+707:                 <span class="ruby-keyword kw">end</span>
+708:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>
+709:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span>
+710:               <span class="ruby-keyword kw">end</span>
+711: 
+712:               <span class="ruby-comment cmt"># Accumulate transformations</span>
+713: 
+714:               <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+715:                 <span class="ruby-identifier">p</span> = <span class="ruby-identifier">x</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">y</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+716:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">notlast</span>)
+717:                   <span class="ruby-identifier">p</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>]
+718:                   <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">2</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">r</span>
+719:                 <span class="ruby-keyword kw">end</span>
+720:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>
+721:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span>
+722:               <span class="ruby-keyword kw">end</span>
+723:             <span class="ruby-keyword kw">end</span>  <span class="ruby-comment cmt"># (s != 0)</span>
+724:           <span class="ruby-keyword kw">end</span>  <span class="ruby-comment cmt"># k loop</span>
+725:         <span class="ruby-keyword kw">end</span>  <span class="ruby-comment cmt"># check convergence</span>
+726:       <span class="ruby-keyword kw">end</span>  <span class="ruby-comment cmt"># while (n &gt;= low)</span>
+727: 
+728:       <span class="ruby-comment cmt"># Backsubstitute to find vectors of upper triangular form</span>
+729: 
+730:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">norm</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+731:         <span class="ruby-keyword kw">return</span>
+732:       <span class="ruby-keyword kw">end</span>
+733: 
+734:       (<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-value">0</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">n</span><span class="ruby-operator">|</span>
+735:         <span class="ruby-identifier">p</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">n</span>]
+736:         <span class="ruby-identifier">q</span> = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">n</span>]
+737: 
+738:         <span class="ruby-comment cmt"># Real vector</span>
+739: 
+740:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">q</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>)
+741:           <span class="ruby-identifier">l</span> = <span class="ruby-identifier">n</span>
+742:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-value">1.0</span>
+743:           (<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-value">0</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+744:             <span class="ruby-identifier">w</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>
+745:             <span class="ruby-identifier">r</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+746:             <span class="ruby-identifier">l</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+747:               <span class="ruby-identifier">r</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>]
+748:             <span class="ruby-keyword kw">end</span>
+749:             <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+750:               <span class="ruby-identifier">z</span> = <span class="ruby-identifier">w</span>
+751:               <span class="ruby-identifier">s</span> = <span class="ruby-identifier">r</span>
+752:             <span class="ruby-keyword kw">else</span>
+753:               <span class="ruby-identifier">l</span> = <span class="ruby-identifier">i</span>
+754:               <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+755:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">w</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+756:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-operator">-</span><span class="ruby-identifier">r</span> <span class="ruby-operator">/</span> <span class="ruby-identifier">w</span>
+757:                 <span class="ruby-keyword kw">else</span>
+758:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-operator">-</span><span class="ruby-identifier">r</span> <span class="ruby-operator">/</span> (<span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">norm</span>)
+759:                 <span class="ruby-keyword kw">end</span>
+760: 
+761:               <span class="ruby-comment cmt"># Solve real equations</span>
+762: 
+763:               <span class="ruby-keyword kw">else</span>
+764:                 <span class="ruby-identifier">x</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+765:                 <span class="ruby-identifier">y</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">i</span>]
+766:                 <span class="ruby-identifier">q</span> = (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">*</span> (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">+</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>]
+767:                 <span class="ruby-identifier">t</span> = (<span class="ruby-identifier">x</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">z</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">r</span>) <span class="ruby-operator">/</span> <span class="ruby-identifier">q</span>
+768:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">t</span>
+769:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">x</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">z</span>.<span class="ruby-identifier">abs</span>)
+770:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = (<span class="ruby-operator">-</span><span class="ruby-identifier">r</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span>) <span class="ruby-operator">/</span> <span class="ruby-identifier">x</span>
+771:                 <span class="ruby-keyword kw">else</span>
+772:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = (<span class="ruby-operator">-</span><span class="ruby-identifier">s</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">y</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span>) <span class="ruby-operator">/</span> <span class="ruby-identifier">z</span>
+773:                 <span class="ruby-keyword kw">end</span>
+774:               <span class="ruby-keyword kw">end</span>
+775: 
+776:               <span class="ruby-comment cmt"># Overflow control</span>
+777: 
+778:               <span class="ruby-identifier">t</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>].<span class="ruby-identifier">abs</span>
+779:               <span class="ruby-keyword kw">if</span> ((<span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span>) <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>)
+780:                 <span class="ruby-identifier">i</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+781:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">t</span>
+782:                 <span class="ruby-keyword kw">end</span>
+783:               <span class="ruby-keyword kw">end</span>
+784:             <span class="ruby-keyword kw">end</span>
+785:           <span class="ruby-keyword kw">end</span>
+786: 
+787:         <span class="ruby-comment cmt"># Complex vector</span>
+788: 
+789:         <span class="ruby-keyword kw">elsif</span> (<span class="ruby-identifier">q</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>)
+790:           <span class="ruby-identifier">l</span> = <span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>
+791: 
+792:           <span class="ruby-comment cmt"># Last vector component imaginary so matrix is triangular</span>
+793: 
+794:           <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>].<span class="ruby-identifier">abs</span>)
+795:             <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">q</span> <span class="ruby-operator">/</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+796:             <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-operator">-</span>(<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">/</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+797:           <span class="ruby-keyword kw">else</span>
+798:             <span class="ruby-identifier">cdivr</span>, <span class="ruby-identifier">cdivi</span> = <span class="ruby-identifier">cdiv</span>(<span class="ruby-value">0</span><span class="ruby-value">.0</span>, <span class="ruby-operator">-</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>], <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]<span class="ruby-operator">-</span><span class="ruby-identifier">p</span>, <span class="ruby-identifier">q</span>)
+799:             <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">cdivr</span>
+800:             <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">cdivi</span>
+801:           <span class="ruby-keyword kw">end</span>
+802:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+803:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">n</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-value">1.0</span>
+804:           (<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">2</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-value">0</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+805:             <span class="ruby-identifier">ra</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+806:             <span class="ruby-identifier">sa</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+807:             <span class="ruby-identifier">l</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+808:               <span class="ruby-identifier">ra</span> = <span class="ruby-identifier">ra</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+809:               <span class="ruby-identifier">sa</span> = <span class="ruby-identifier">sa</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>]
+810:             <span class="ruby-keyword kw">end</span>
+811:             <span class="ruby-identifier">w</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>
+812: 
+813:             <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+814:               <span class="ruby-identifier">z</span> = <span class="ruby-identifier">w</span>
+815:               <span class="ruby-identifier">r</span> = <span class="ruby-identifier">ra</span>
+816:               <span class="ruby-identifier">s</span> = <span class="ruby-identifier">sa</span>
+817:             <span class="ruby-keyword kw">else</span>
+818:               <span class="ruby-identifier">l</span> = <span class="ruby-identifier">i</span>
+819:               <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">==</span> <span class="ruby-value">0</span>)
+820:                 <span class="ruby-identifier">cdivr</span>, <span class="ruby-identifier">cdivi</span> = <span class="ruby-identifier">cdiv</span>(<span class="ruby-operator">-</span><span class="ruby-identifier">ra</span>, <span class="ruby-operator">-</span><span class="ruby-identifier">sa</span>, <span class="ruby-identifier">w</span>, <span class="ruby-identifier">q</span>)
+821:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">cdivr</span>
+822:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">cdivi</span>
+823:               <span class="ruby-keyword kw">else</span>
+824: 
+825:                 <span class="ruby-comment cmt"># Solve complex equations</span>
+826: 
+827:                 <span class="ruby-identifier">x</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+828:                 <span class="ruby-identifier">y</span> = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">i</span>]
+829:                 <span class="ruby-identifier">vr</span> = (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">*</span> (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">+</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span>
+830:                 <span class="ruby-identifier">vi</span> = (<span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">p</span>) <span class="ruby-operator">*</span> <span class="ruby-value">2.0</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">q</span>
+831:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">vr</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">vi</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+832:                   <span class="ruby-identifier">vr</span> = <span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">norm</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">w</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span>
+833:                   <span class="ruby-identifier">x</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">y</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">z</span>.<span class="ruby-identifier">abs</span>)
+834:                 <span class="ruby-keyword kw">end</span>
+835:                 <span class="ruby-identifier">cdivr</span>, <span class="ruby-identifier">cdivi</span> = <span class="ruby-identifier">cdiv</span>(<span class="ruby-identifier">x</span><span class="ruby-operator">*</span><span class="ruby-identifier">r</span><span class="ruby-operator">-</span><span class="ruby-identifier">z</span><span class="ruby-operator">*</span><span class="ruby-identifier">ra</span><span class="ruby-operator">+</span><span class="ruby-identifier">q</span><span class="ruby-operator">*</span><span class="ruby-identifier">sa</span>, <span class="ruby-identifier">x</span><span class="ruby-operator">*</span><span class="ruby-identifier">s</span><span class="ruby-operator">-</span><span class="ruby-identifier">z</span><span class="ruby-operator">*</span><span class="ruby-identifier">sa</span><span class="ruby-operator">-</span><span class="ruby-identifier">q</span><span class="ruby-operator">*</span><span class="ruby-identifier">ra</span>, <span class="ruby-identifier">vr</span>, <span class="ruby-identifier">vi</span>)
+836:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">cdivr</span>
+837:                 <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">cdivi</span>
+838:                 <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">x</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">&gt;</span> (<span class="ruby-identifier">z</span>.<span class="ruby-identifier">abs</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span>.<span class="ruby-identifier">abs</span>))
+839:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = (<span class="ruby-operator">-</span><span class="ruby-identifier">ra</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>]) <span class="ruby-operator">/</span> <span class="ruby-identifier">x</span>
+840:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = (<span class="ruby-operator">-</span><span class="ruby-identifier">sa</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">q</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]) <span class="ruby-operator">/</span> <span class="ruby-identifier">x</span>
+841:                 <span class="ruby-keyword kw">else</span>
+842:                   <span class="ruby-identifier">cdivr</span>, <span class="ruby-identifier">cdivi</span> = <span class="ruby-identifier">cdiv</span>(<span class="ruby-operator">-</span><span class="ruby-identifier">r</span><span class="ruby-operator">-</span><span class="ruby-identifier">y</span><span class="ruby-operator">*</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>], <span class="ruby-operator">-</span><span class="ruby-identifier">s</span><span class="ruby-operator">-</span><span class="ruby-identifier">y</span><span class="ruby-operator">*</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>], <span class="ruby-identifier">z</span>, <span class="ruby-identifier">q</span>)
+843:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">cdivr</span>
+844:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-identifier">cdivi</span>
+845:                 <span class="ruby-keyword kw">end</span>
+846:               <span class="ruby-keyword kw">end</span>
+847: 
+848:               <span class="ruby-comment cmt"># Overflow control</span>
+849: 
+850:               <span class="ruby-identifier">t</span> = [<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span>, <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">n</span>].<span class="ruby-identifier">abs</span>].<span class="ruby-identifier">max</span>
+851:               <span class="ruby-keyword kw">if</span> ((<span class="ruby-identifier">eps</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span>) <span class="ruby-operator">*</span> <span class="ruby-identifier">t</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>)
+852:                 <span class="ruby-identifier">i</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+853:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">t</span>
+854:                   <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">n</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">t</span>
+855:                 <span class="ruby-keyword kw">end</span>
+856:               <span class="ruby-keyword kw">end</span>
+857:             <span class="ruby-keyword kw">end</span>
+858:           <span class="ruby-keyword kw">end</span>
+859:         <span class="ruby-keyword kw">end</span>
+860:       <span class="ruby-keyword kw">end</span>
+861: 
+862:       <span class="ruby-comment cmt"># Vectors of isolated roots</span>
+863: 
+864:       <span class="ruby-identifier">nn</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+865:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">low</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">high</span>)
+866:           <span class="ruby-identifier">i</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+867:             <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>]
+868:           <span class="ruby-keyword kw">end</span>
+869:         <span class="ruby-keyword kw">end</span>
+870:       <span class="ruby-keyword kw">end</span>
+871: 
+872:       <span class="ruby-comment cmt"># Back transformation to get eigenvectors of original matrix</span>
+873: 
+874:       (<span class="ruby-identifier">nn</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">low</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+875:         <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+876:           <span class="ruby-identifier">z</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+877:           <span class="ruby-identifier">low</span>.<span class="ruby-identifier">upto</span>([<span class="ruby-identifier">j</span>, <span class="ruby-identifier">high</span>].<span class="ruby-identifier">min</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+878:             <span class="ruby-identifier">z</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">k</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>]
+879:           <span class="ruby-keyword kw">end</span>
+880:           <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-identifier">z</span>
+881:         <span class="ruby-keyword kw">end</span>
+882:       <span class="ruby-keyword kw">end</span>
+883:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002681">
+                    
+                    <a name="M002681"></a><b>reduce_to_hessenberg</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Nonsymmetric reduction to Hessenberg form.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002681_source')" id="l_M002681_source">show</a>
+                        
+                    </p>
+                    <div id="M002681_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 352</span>
+352:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reduce_to_hessenberg</span>
+353:       <span class="ruby-comment cmt">#  This is derived from the Algol procedures orthes and ortran,</span>
+354:       <span class="ruby-comment cmt">#  by Martin and Wilkinson, Handbook for Auto. Comp.,</span>
+355:       <span class="ruby-comment cmt">#  Vol.ii-Linear Algebra, and the corresponding</span>
+356:       <span class="ruby-comment cmt">#  Fortran subroutines in EISPACK.</span>
+357: 
+358:       <span class="ruby-identifier">low</span> = <span class="ruby-value">0</span>
+359:       <span class="ruby-identifier">high</span> = <span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>
+360: 
+361:       (<span class="ruby-identifier">low</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span>
+362: 
+363:         <span class="ruby-comment cmt"># Scale column.</span>
+364: 
+365:         <span class="ruby-identifier">scale</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+366:         <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+367:           <span class="ruby-identifier">scale</span> = <span class="ruby-identifier">scale</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>].<span class="ruby-identifier">abs</span>
+368:         <span class="ruby-keyword kw">end</span>
+369:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">scale</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+370: 
+371:           <span class="ruby-comment cmt"># Compute Householder transformation.</span>
+372: 
+373:           <span class="ruby-identifier">h</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+374:           <span class="ruby-identifier">high</span>.<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">m</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+375:             <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]<span class="ruby-operator">/</span><span class="ruby-identifier">scale</span>
+376:             <span class="ruby-identifier">h</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>]
+377:           <span class="ruby-keyword kw">end</span>
+378:           <span class="ruby-identifier">g</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">h</span>)
+379:           <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>] <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>)
+380:             <span class="ruby-identifier">g</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">g</span>
+381:           <span class="ruby-keyword kw">end</span>
+382:           <span class="ruby-identifier">h</span> <span class="ruby-operator">-=</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>] <span class="ruby-operator">*</span> <span class="ruby-identifier">g</span>
+383:           <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>] = <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">g</span>
+384: 
+385:           <span class="ruby-comment cmt"># Apply Householder similarity transformation</span>
+386:           <span class="ruby-comment cmt"># @h = (I-u*u'/h)*@h*(I-u*u')/h)</span>
+387: 
+388:           <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+389:             <span class="ruby-identifier">f</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+390:             <span class="ruby-identifier">high</span>.<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">m</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+391:               <span class="ruby-identifier">f</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>]<span class="ruby-operator">*</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>]
+392:             <span class="ruby-keyword kw">end</span>
+393:             <span class="ruby-identifier">f</span> = <span class="ruby-identifier">f</span><span class="ruby-operator">/</span><span class="ruby-identifier">h</span>
+394:             <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+395:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">f</span><span class="ruby-operator">*</span><span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>]
+396:             <span class="ruby-keyword kw">end</span>
+397:           <span class="ruby-keyword kw">end</span>
+398: 
+399:           <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+400:             <span class="ruby-identifier">f</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+401:             <span class="ruby-identifier">high</span>.<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">m</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+402:               <span class="ruby-identifier">f</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">j</span>]<span class="ruby-operator">*</span><span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>]
+403:             <span class="ruby-keyword kw">end</span>
+404:             <span class="ruby-identifier">f</span> = <span class="ruby-identifier">f</span><span class="ruby-operator">/</span><span class="ruby-identifier">h</span>
+405:             <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+406:               <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">f</span><span class="ruby-operator">*</span><span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">j</span>]
+407:             <span class="ruby-keyword kw">end</span>
+408:           <span class="ruby-keyword kw">end</span>
+409:           <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>] = <span class="ruby-identifier">scale</span><span class="ruby-operator">*</span><span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>]
+410:           <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">scale</span><span class="ruby-operator">*</span><span class="ruby-identifier">g</span>
+411:         <span class="ruby-keyword kw">end</span>
+412:       <span class="ruby-keyword kw">end</span>
+413: 
+414:       <span class="ruby-comment cmt"># Accumulate transformations (Algol's ortran).</span>
+415: 
+416:       <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+417:         <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+418:           <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] = (<span class="ruby-identifier">i</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">j</span> <span class="ruby-value">? </span><span class="ruby-value">1.0</span> <span class="ruby-operator">:</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+419:         <span class="ruby-keyword kw">end</span>
+420:       <span class="ruby-keyword kw">end</span>
+421: 
+422:       (<span class="ruby-identifier">high</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-identifier">low</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span>
+423:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+424:           (<span class="ruby-identifier">m</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+425:             <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+426:           <span class="ruby-keyword kw">end</span>
+427:           <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+428:             <span class="ruby-identifier">g</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+429:             <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+430:               <span class="ruby-identifier">g</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>]
+431:             <span class="ruby-keyword kw">end</span>
+432:             <span class="ruby-comment cmt"># Double division avoids possible underflow</span>
+433:             <span class="ruby-identifier">g</span> = (<span class="ruby-identifier">g</span> <span class="ruby-operator">/</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">m</span>]) <span class="ruby-operator">/</span> <span class="ruby-ivar">@h</span>[<span class="ruby-identifier">m</span>][<span class="ruby-identifier">m</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+434:             <span class="ruby-identifier">m</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">high</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+435:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">+=</span> <span class="ruby-identifier">g</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@ort</span>[<span class="ruby-identifier">i</span>]
+436:             <span class="ruby-keyword kw">end</span>
+437:           <span class="ruby-keyword kw">end</span>
+438:         <span class="ruby-keyword kw">end</span>
+439:       <span class="ruby-keyword kw">end</span>
+440:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002678">
+                    
+                    <a name="M002678"></a><b>tridiagonalize</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Symmetric Householder reduction to tridiagonal form.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002678_source')" id="l_M002678_source">show</a>
+                        
+                    </p>
+                    <div id="M002678_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/matrix/eigenvalue_decomposition.rb, line 115</span>
+115:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tridiagonalize</span>
+116: 
+117:       <span class="ruby-comment cmt">#  This is derived from the Algol procedures tred2 by</span>
+118:       <span class="ruby-comment cmt">#  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for</span>
+119:       <span class="ruby-comment cmt">#  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding</span>
+120:       <span class="ruby-comment cmt">#  Fortran subroutine in EISPACK.</span>
+121: 
+122:         <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+123:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+124:         <span class="ruby-keyword kw">end</span>
+125: 
+126:         <span class="ruby-comment cmt"># Householder reduction to tridiagonal form.</span>
+127: 
+128:         (<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>).<span class="ruby-identifier">downto</span>(<span class="ruby-value">0</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+129: 
+130:           <span class="ruby-comment cmt"># Scale to avoid under/overflow.</span>
+131: 
+132:           <span class="ruby-identifier">scale</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+133:           <span class="ruby-identifier">h</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+134:           <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+135:             <span class="ruby-identifier">scale</span> = <span class="ruby-identifier">scale</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>].<span class="ruby-identifier">abs</span>
+136:           <span class="ruby-keyword kw">end</span>
+137:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">scale</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+138:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+139:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+140:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+141:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+142:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+143:             <span class="ruby-keyword kw">end</span>
+144:           <span class="ruby-keyword kw">else</span>
+145: 
+146:             <span class="ruby-comment cmt"># Generate Householder vector.</span>
+147: 
+148:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+149:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>] <span class="ruby-operator">/=</span> <span class="ruby-identifier">scale</span>
+150:               <span class="ruby-identifier">h</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>]
+151:             <span class="ruby-keyword kw">end</span>
+152:             <span class="ruby-identifier">f</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>]
+153:             <span class="ruby-identifier">g</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">h</span>)
+154:             <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">f</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>)
+155:               <span class="ruby-identifier">g</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">g</span>
+156:             <span class="ruby-keyword kw">end</span>
+157:             <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-identifier">scale</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">g</span>
+158:             <span class="ruby-identifier">h</span> <span class="ruby-operator">-=</span> <span class="ruby-identifier">f</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">g</span>
+159:             <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-identifier">f</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">g</span>
+160:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+161:               <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+162:             <span class="ruby-keyword kw">end</span>
+163: 
+164:             <span class="ruby-comment cmt"># Apply similarity transformation to remaining columns.</span>
+165: 
+166:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+167:               <span class="ruby-identifier">f</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>]
+168:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-identifier">f</span>
+169:               <span class="ruby-identifier">g</span> = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] <span class="ruby-operator">+</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">j</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-identifier">f</span>
+170:               (<span class="ruby-identifier">j</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>).<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+171:                 <span class="ruby-identifier">g</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>]
+172:                 <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">k</span>] <span class="ruby-operator">+=</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-identifier">f</span>
+173:               <span class="ruby-keyword kw">end</span>
+174:               <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-identifier">g</span>
+175:             <span class="ruby-keyword kw">end</span>
+176:             <span class="ruby-identifier">f</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+177:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+178:               <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] <span class="ruby-operator">/=</span> <span class="ruby-identifier">h</span>
+179:               <span class="ruby-identifier">f</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>]
+180:             <span class="ruby-keyword kw">end</span>
+181:             <span class="ruby-identifier">hh</span> = <span class="ruby-identifier">f</span> <span class="ruby-operator">/</span> (<span class="ruby-identifier">h</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">h</span>)
+182:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+183:               <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">hh</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>]
+184:             <span class="ruby-keyword kw">end</span>
+185:             <span class="ruby-identifier">i</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+186:               <span class="ruby-identifier">f</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>]
+187:               <span class="ruby-identifier">g</span> = <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">j</span>]
+188:               <span class="ruby-identifier">j</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+189:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-=</span> (<span class="ruby-identifier">f</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@e</span>[<span class="ruby-identifier">k</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">g</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>])
+190:               <span class="ruby-keyword kw">end</span>
+191:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+192:               <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+193:             <span class="ruby-keyword kw">end</span>
+194:           <span class="ruby-keyword kw">end</span>
+195:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-identifier">h</span>
+196:         <span class="ruby-keyword kw">end</span>
+197: 
+198:         <span class="ruby-comment cmt"># Accumulate transformations.</span>
+199: 
+200:         <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+201:           <span class="ruby-ivar">@v</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>]
+202:           <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">i</span>][<span class="ruby-identifier">i</span>] = <span class="ruby-value">1.0</span>
+203:           <span class="ruby-identifier">h</span> = <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>]
+204:           <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">h</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span><span class="ruby-value">.0</span>)
+205:             <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+206:               <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">/</span> <span class="ruby-identifier">h</span>
+207:             <span class="ruby-keyword kw">end</span>
+208:             <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+209:               <span class="ruby-identifier">g</span> = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+210:               <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+211:                 <span class="ruby-identifier">g</span> <span class="ruby-operator">+=</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] <span class="ruby-operator">*</span> <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>]
+212:               <span class="ruby-keyword kw">end</span>
+213:               <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+214:                 <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">j</span>] <span class="ruby-operator">-=</span> <span class="ruby-identifier">g</span> <span class="ruby-operator">*</span> <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">k</span>]
+215:               <span class="ruby-keyword kw">end</span>
+216:             <span class="ruby-keyword kw">end</span>
+217:           <span class="ruby-keyword kw">end</span>
+218:           <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span>
+219:             <span class="ruby-ivar">@v</span>[<span class="ruby-identifier">k</span>][<span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+220:           <span class="ruby-keyword kw">end</span>
+221:         <span class="ruby-keyword kw">end</span>
+222:         <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">j</span><span class="ruby-operator">|</span>
+223:           <span class="ruby-ivar">@d</span>[<span class="ruby-identifier">j</span>] = <span class="ruby-ivar">@v</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>]
+224:           <span class="ruby-ivar">@v</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-identifier">j</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+225:         <span class="ruby-keyword kw">end</span>
+226:         <span class="ruby-ivar">@v</span>[<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>][<span class="ruby-ivar">@size</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>] = <span class="ruby-value">1.0</span>
+227:         <span class="ruby-ivar">@e</span>[<span class="ruby-value">0</span>] = <span class="ruby-value">0</span><span class="ruby-value">.0</span>
+228:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

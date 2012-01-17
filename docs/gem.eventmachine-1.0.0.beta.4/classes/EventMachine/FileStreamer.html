@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::FileStreamer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::FileStreamer 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/streamer_rb.html">lib/em/streamer.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Streams a file over a given connection. Streaming begins once the object is
+instantiated. Typically <a href="FileStreamer.html">FileStreamer</a>
+instances are not reused.
+</p>
+<p>
+Streaming uses buffering for files larger than 16K and uses so-called fast
+file reader (a C++ extension) if available (it is part of eventmachine gem
+itself).
+</p>
+<p>
+@example
+</p>
+<pre>
+ module FileSender
+   def post_init
+     streamer = EventMachine::FileStreamer.new(self, '/tmp/bigfile.tar')
+     streamer.callback{
+       # file was sent successfully
+       close_connection_after_writing
+     }
+   end
+ end
+</pre>
+<p>
+@author Francis Cianfrocca
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000403">ensure_mapping_extension_is_present</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000394">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000398">stream_one_chunk</a>,</li>
+                
+                <li><a href="#M000397">stream_with_mapping</a>,</li>
+                
+                <li><a href="#M000395">stream_without_mapping</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="UuidGenerator.html">EventMachine::UuidGenerator</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">MappingThreshold</td>
+            <td>=</td>
+            <td class="attr-value">16384</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Use mapped streamer for files bigger than 16k
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">BackpressureLevel</td>
+            <td>=</td>
+            <td class="attr-value">50000</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Wait until next tick to send more data when 50k is still in the outgoing
+buffer
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ChunkSize</td>
+            <td>=</td>
+            <td class="attr-value">16384</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Send 16k chunks at a time
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000394">
+                    
+                    <a name="M000394"></a><b>new</b>(connection, filename, args = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@param [EventMachine::Connection] connection @param [String] filename File
+path
+</p>
+<p>
+@option args [Boolean] :http_chunks (false) Use HTTP 1.1 style
+chunked-encoding semantics.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000394_source')" id="l_M000394_source">show</a>
+                        
+                    </p>
+                    <div id="M000394_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/streamer.rb, line 36</span>
+36:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span> <span class="ruby-identifier">connection</span>, <span class="ruby-identifier">filename</span>, <span class="ruby-identifier">args</span> = {}
+37:       <span class="ruby-ivar">@connection</span> = <span class="ruby-identifier">connection</span>
+38:       <span class="ruby-ivar">@http_chunks</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:http_chunks</span>]
+39: 
+40:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">filename</span>)
+41:         <span class="ruby-ivar">@size</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">size</span>(<span class="ruby-identifier">filename</span>)
+42:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@size</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">MappingThreshold</span>
+43:           <span class="ruby-identifier">stream_without_mapping</span> <span class="ruby-identifier">filename</span>
+44:         <span class="ruby-keyword kw">else</span>
+45:           <span class="ruby-identifier">stream_with_mapping</span> <span class="ruby-identifier">filename</span>
+46:         <span class="ruby-keyword kw">end</span>
+47:       <span class="ruby-keyword kw">else</span>
+48:         <span class="ruby-identifier">fail</span> <span class="ruby-value str">&quot;file not found&quot;</span>
+49:       <span class="ruby-keyword kw">end</span>
+50:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000398">
+                    
+                    <a name="M000398"></a><b>stream_one_chunk</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Used internally to stream one chunk at a time over multiple reactor ticks
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000398_source')" id="l_M000398_source">show</a>
+                        
+                    </p>
+                    <div id="M000398_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/streamer.rb, line 77</span>
+ 77:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stream_one_chunk</span>
+ 78:       <span class="ruby-identifier">loop</span> {
+ 79:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@position</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@size</span>
+ 80:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">get_outbound_data_size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">BackpressureLevel</span>
+ 81:             <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">next_tick</span> {<span class="ruby-identifier">stream_one_chunk</span>}
+ 82:             <span class="ruby-keyword kw">break</span>
+ 83:           <span class="ruby-keyword kw">else</span>
+ 84:             <span class="ruby-identifier">len</span> = <span class="ruby-ivar">@size</span> <span class="ruby-operator">-</span> <span class="ruby-ivar">@position</span>
+ 85:             <span class="ruby-identifier">len</span> = <span class="ruby-constant">ChunkSize</span> <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">len</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">ChunkSize</span>)
+ 86: 
+ 87:             <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span>( <span class="ruby-node">&quot;#{len.to_s(16)}\r\n&quot;</span> ) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@http_chunks</span>
+ 88:             <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span>( <span class="ruby-ivar">@mapping</span>.<span class="ruby-identifier">get_chunk</span>( <span class="ruby-ivar">@position</span>, <span class="ruby-identifier">len</span> ))
+ 89:             <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span>(<span class="ruby-value str">&quot;\r\n&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@http_chunks</span>
+ 90: 
+ 91:             <span class="ruby-ivar">@position</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">len</span>
+ 92:           <span class="ruby-keyword kw">end</span>
+ 93:         <span class="ruby-keyword kw">else</span>
+ 94:           <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-value str">&quot;0\r\n\r\n&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@http_chunks</span>
+ 95:           <span class="ruby-ivar">@mapping</span>.<span class="ruby-identifier">close</span>
+ 96:           <span class="ruby-identifier">succeed</span>
+ 97:           <span class="ruby-keyword kw">break</span>
+ 98:         <span class="ruby-keyword kw">end</span>
+ 99:       }
+100:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000403">
+                    
+                    <a name="M000403"></a><b>ensure_mapping_extension_is_present</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+We use an outboard extension class to get memory-mapped files. It&#8217;s
+outboard to avoid polluting the core distro, but that means there&#8217;s a
+&#8220;hidden&#8221; dependency on it. The first time we get here in any
+run, try to load up the dependency extension. User code will see a
+LoadError if it&#8217;s not available, but code that doesn&#8217;t require
+mapped files will work fine without it. This is a somewhat difficult
+compromise between usability and proper modularization.
+</p>
+<p>
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000403_source')" id="l_M000403_source">show</a>
+                        
+                    </p>
+                    <div id="M000403_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/streamer.rb, line 112</span>
+112:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ensure_mapping_extension_is_present</span>
+113:       <span class="ruby-ivar">@@fastfilereader</span> <span class="ruby-operator">||=</span> (<span class="ruby-identifier">require</span> <span class="ruby-value str">'fastfilereaderext'</span>)
+114:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000397">
+                    
+                    <a name="M000397"></a><b>stream_with_mapping</b>(filename)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000397_source')" id="l_M000397_source">show</a>
+                        
+                    </p>
+                    <div id="M000397_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/streamer.rb, line 66</span>
+66:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stream_with_mapping</span> <span class="ruby-identifier">filename</span>
+67:       <span class="ruby-identifier">ensure_mapping_extension_is_present</span>
+68: 
+69:       <span class="ruby-ivar">@position</span> = <span class="ruby-value">0</span>
+70:       <span class="ruby-ivar">@mapping</span> = <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-constant">FastFileReader</span><span class="ruby-operator">::</span><span class="ruby-constant">Mapper</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">filename</span>
+71:       <span class="ruby-identifier">stream_one_chunk</span>
+72:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000395">
+                    
+                    <a name="M000395"></a><b>stream_without_mapping</b>(filename)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000395_source')" id="l_M000395_source">show</a>
+                        
+                    </p>
+                    <div id="M000395_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/streamer.rb, line 53</span>
+53:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stream_without_mapping</span> <span class="ruby-identifier">filename</span>
+54:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@http_chunks</span>
+55:         <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-node">&quot;#{@size.to_s(16)}\r\n&quot;</span>
+56:         <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_file_data</span> <span class="ruby-identifier">filename</span>
+57:         <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-value str">&quot;\r\n0\r\n\r\n&quot;</span>
+58:       <span class="ruby-keyword kw">else</span>
+59:         <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">send_file_data</span> <span class="ruby-identifier">filename</span>
+60:       <span class="ruby-keyword kw">end</span>
+61:       <span class="ruby-identifier">succeed</span>
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ThinkingSphinx::Field</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ThinkingSphinx::Field 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Property.html">ThinkingSphinx::Property</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/thinking_sphinx/field_rb.html">lib/thinking_sphinx/field.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Fields - holding the string data which Sphinx indexes for your searches.
+This class isn&#8217;t really useful to you unless you&#8217;re hacking
+around with the internals of Thinking Sphinx - but hey, don&#8217;t let
+that stop you.
+</p>
+<p>
+One key thing to remember - if you&#8217;re using the field manually to
+generate SQL statements, you&#8217;ll need to set the base model, and all
+the associations. Which can get messy. Use Index.link!, it really helps.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000288">file?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000283">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000286">to_select_sql</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000289">with_attribute?</a>,</li>
+                
+                <li><a href="#M000290">with_wordcount?</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>sortable</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>infixes</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>prefixes</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000283">
+                    
+                    <a name="M000283"></a><b>new</b>(source, columns, options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+To create a new field, you&#8217;ll need to pass in either a single Column
+or an array of them, and some (optional) options. The columns are
+references to the data that will make up the field.
+</p>
+<p>
+Valid options are:
+</p>
+<ul>
+<li>:as => :alias_name
+
+</li>
+<li>:sortable => true
+
+</li>
+<li>:infixes => true
+
+</li>
+<li>:prefixes => true
+
+</li>
+<li>:file => true
+
+</li>
+<li>:with => :attribute # or :wordcount
+
+</li>
+</ul>
+<p>
+Alias is only required in three circumstances: when there&#8217;s another
+attribute or field with the same name, when the column name is
+&#8216;id&#8217;, or when there&#8217;s more than one column.
+</p>
+<p>
+Sortable defaults to false - but is quite useful when set to true, as it
+creates an attribute with the same string value (which Sphinx converts to
+an integer value), which can be sorted by. Thinking Sphinx is smart enough
+to realise that when you specify fields in sort statements, you mean their
+respective attributes.
+</p>
+<p>
+If you have partial matching enabled (ie: enable_star), then you can
+specify certain fields to have their prefixes and infixes indexed. Keep in
+mind, though, that Sphinx&#8217;s default is <em>all</em> fields - so once
+you highlight a particular field, no other fields in the index will have
+these partial indexes.
+</p>
+<p>
+Here&#8217;s some examples:
+</p>
+<pre>
+  Field.new(
+    Column.new(:name)
+  )
+
+  Field.new(
+    [Column.new(:first_name), Column.new(:last_name)],
+    :as =&gt; :name, :sortable =&gt; true
+  )
+
+  Field.new(
+    [Column.new(:posts, :subject), Column.new(:posts, :content)],
+    :as =&gt; :posts, :prefixes =&gt; true
+  )
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000283_source')" id="l_M000283_source">show</a>
+                        
+                    </p>
+                    <div id="M000283_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/thinking_sphinx/field.rb, line 57</span>
+57:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">source</span>, <span class="ruby-identifier">columns</span>, <span class="ruby-identifier">options</span> = {})
+58:       <span class="ruby-keyword kw">super</span>
+59:       
+60:       <span class="ruby-ivar">@sortable</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:sortable</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+61:       <span class="ruby-ivar">@infixes</span>  = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:infixes</span>]  <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+62:       <span class="ruby-ivar">@prefixes</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:prefixes</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+63:       <span class="ruby-ivar">@file</span>     = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:file</span>]     <span class="ruby-operator">||</span> <span class="ruby-keyword kw">false</span>
+64:       <span class="ruby-ivar">@with</span>     = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:with</span>]
+65:       
+66:       <span class="ruby-identifier">source</span>.<span class="ruby-identifier">fields</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-keyword kw">self</span>
+67:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000288">
+                    
+                    <a name="M000288"></a><b>file?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000288_source')" id="l_M000288_source">show</a>
+                        
+                    </p>
+                    <div id="M000288_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/thinking_sphinx/field.rb, line 86</span>
+86:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">file?</span>
+87:       <span class="ruby-ivar">@file</span>
+88:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000286">
+                    
+                    <a name="M000286"></a><b>to_select_sql</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the part of the SELECT clause related to this field. Don&#8217;t forget
+to set your model and associations first though.
+</p>
+<p>
+This will concatenate strings if there&#8217;s more than one data source or
+multiple data values (has_many or has_and_belongs_to_many associations).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000286_source')" id="l_M000286_source">show</a>
+                        
+                    </p>
+                    <div id="M000286_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/thinking_sphinx/field.rb, line 75</span>
+75:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_select_sql</span>
+76:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">available?</span>
+77:       
+78:       <span class="ruby-identifier">clause</span> = <span class="ruby-identifier">columns_with_prefixes</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">', '</span>)
+79:       
+80:       <span class="ruby-identifier">clause</span> = <span class="ruby-identifier">adapter</span>.<span class="ruby-identifier">concatenate</span>(<span class="ruby-identifier">clause</span>)       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">concat_ws?</span>
+81:       <span class="ruby-identifier">clause</span> = <span class="ruby-identifier">adapter</span>.<span class="ruby-identifier">group_concatenate</span>(<span class="ruby-identifier">clause</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">is_many?</span>
+82:       
+83:       <span class="ruby-node">&quot;#{clause} AS #{quote_column(unique_name)}&quot;</span>
+84:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000289">
+                    
+                    <a name="M000289"></a><b>with_attribute?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000289_source')" id="l_M000289_source">show</a>
+                        
+                    </p>
+                    <div id="M000289_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/thinking_sphinx/field.rb, line 90</span>
+90:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_attribute?</span>
+91:       <span class="ruby-ivar">@with</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:attribute</span>
+92:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000290">
+                    
+                    <a name="M000290"></a><b>with_wordcount?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000290_source')" id="l_M000290_source">show</a>
+                        
+                    </p>
+                    <div id="M000290_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/thinking_sphinx/field.rb, line 94</span>
+94:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_wordcount?</span>
+95:       <span class="ruby-ivar">@with</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:wordcount</span>
+96:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

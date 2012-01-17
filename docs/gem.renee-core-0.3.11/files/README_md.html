@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sun Dec 25 21:58:10 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# <a href="../classes/Renee.html">Renee</a> Core
+</p>
+<p>
+## Routing
+</p>
+<p>
+Routing in `Renee` is different from any web framework you are likely to
+have used in the past. The syntax is most familiar to Sinatra but allows
+for far more flexibility and freedom in the way that routes and actions are
+defined. In a <a href="../classes/Renee.html">Renee</a>, routes are defined
+using the `path`, `var`, `query_string`, `extension`, `remainder` and
+request methods.
+</p>
+<p>
+**Request Methods**
+</p>
+<p>
+The bread and butter of <a href="../classes/Renee.html">Renee</a> are the
+request verbs reminiscent of Sinatra:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html#M000073">Renee.core</a> {
+</p>
+<pre>
+  get    { halt &quot;a get!&quot;  }
+  post   { halt &quot;a post!&quot; }
+  put    { halt &quot;a put!&quot;  }
+  delete { halt &quot;a delete!&quot; }
+</pre>
+<p>
+} ```
+</p>
+<p>
+These will declare the response to &#8220;/&#8221; for each of the common
+request types. Notice the use of the request method to specify the http
+verb and the use of `halt` inside the block to send back the body of the
+response.
+</p>
+<p>
+*<b>Path</b>*
+</p>
+<p>
+Path is how <a href="../classes/Renee.html">Renee</a> describes the basic
+uri path for a route:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html#M000073">Renee.core</a> {
+</p>
+<pre>
+  path('blog') { ... }
+</pre>
+<p>
+} ```
+</p>
+<p>
+All declarations inside that block will start with `/blog`. Paths can also
+be nested within one another:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html#M000073">Renee.core</a> {
+</p>
+<pre>
+  path('blog') {
+    path('foo') { get { halt &quot;path is /blog/foo&quot; } }
+  }
+</pre>
+<p>
+} ```
+</p>
+<p>
+You can also use `exact_path` for more precise path matching and/or `part`
+which doesn&#8217;t look for leading slashes.
+</p>
+<p>
+**Query String**
+</p>
+<p>
+In addition to defining paths, you may find yourself wanting to describe
+the state of the query string for a request within the path:
+</p>
+<p>
+```ruby path &#8216;foo&#8217; do
+</p>
+<pre>
+  query_string 'bar' do
+    get { halt 'BAR!' }
+  end
+
+  query_string 'baz' do
+    get { halt 'BAZ!' }
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+This will respond to `/foo?bar` with &#8220;BAR!&#8221; and `/foo?baz` with
+&#8220;BAZ!&#8221;. You can also specify query_string in a variety of other
+ways:
+</p>
+<p>
+```ruby # Check key and value of query param query_string
+&#8216;foo=bar&#8217; do
+</p>
+<pre>
+  post { halt [200,{},'foo'] }
+</pre>
+<p>
+end
+</p>
+<p>
+# Declare query params as a hash query :foo => &#8220;bar&#8221; do
+</p>
+<pre>
+  halt 200
+</pre>
+<p>
+end
+</p>
+<p>
+# Switch based on a query parameter query :foo do |var|
+</p>
+<pre>
+  case var
+  when 'bar' then halt 200
+  when 'bar2' then halt 500
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+*<b>Variables</b>*
+</p>
+<p>
+In <a href="../classes/Renee.html">Renee</a>, you specify parameters for
+your request as explicit variables. Variables are declared like this:
+</p>
+<p>
+```ruby path(&#8216;blog&#8217;) {
+</p>
+<pre>
+  var { |id| get { halt &quot;path is /blog/#{id}&quot; } }
+</pre>
+<p>
+} ```
+</p>
+<p>
+You can access the variables (passed into the request) using the local
+variables yielded to the block. Variables are a powerful way to express
+expected parameters for a given set of requests. You can specify variables
+that match a regex:
+</p>
+<p>
+```ruby path(&#8216;blog&#8217;) {
+</p>
+<pre>
+  var(/\d+/) { |id| get { halt &quot;path is /blog/#{id}&quot; } }
+</pre>
+<p>
+} ```
+</p>
+<p>
+and even explicitly cast your variable types:
+</p>
+<p>
+```ruby path(&#8216;blog&#8217;) {
+</p>
+<pre>
+  var :integer do |id|
+    get { halt &quot;path is /blog/#{id} and id is an integer&quot; }
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+*<b>Extensions</b>*
+</p>
+<p>
+You can also use `extension` as a way to define formats:
+</p>
+<p>
+```ruby path &#8217;/test&#8217; do
+</p>
+<pre>
+  extension 'html' do
+    halt 'html'
+  end
+  extension 'json' do
+    halt 'json'
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+This will have `test.html` respond with &#8216;html&#8217; and `test.json`
+respond with &#8216;json&#8217;.
+</p>
+<p>
+*<b>Remainder</b>*
+</p>
+<p>
+In the event that no route has been matched, the `remainder` keyword makes
+defining the else case rather easy:
+</p>
+<p>
+```ruby path &#8216;foo&#8217; do
+</p>
+<pre>
+  path 'bar' do
+    halt &quot;BAR!&quot;
+  end
+
+  remainder do |rest|
+    halt &quot;Rest was #{rest}&quot;
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+Notice this allows you to handle the cases within a particular route scope
+and manage them based on the &#8220;rest&#8221; of the uri yielded in the
+`remainder` block. You can handle different remainders in all the different
+path blocks.
+</p>
+<p>
+**Named Routes**
+</p>
+<p>
+Once you have defined your routes, you can then &#8220;register&#8221; a
+particular path mapping that to a symbol. This is useful for referencing
+routes without having to specify the entire path:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html#M000073">Renee.core</a> {
+</p>
+<pre>
+  register(:test, '/test/time')
+  register(:test_var, '/test/:id')
+</pre>
+<p>
+} ```
+</p>
+<p>
+You can then access these using the `path` method in a route or template:
+</p>
+<p>
+```ruby path(:test) # => &#8216;/test/time&#8217; path(:test_var, :id =>
+123) # => &#8216;/test/123&#8217; ```
+</p>
+<p>
+Using named routes makes referencing and modifying routes within an
+application much simpler to manage.
+</p>
+<p>
+## Responding
+</p>
+<p>
+Responding to a request within a route can be managed with the `respond`,
+`halt`, `redirect` commands:
+</p>
+<p>
+*<b>Respond</b>*
+</p>
+<p>
+The `respond` command makes returning a rack response very explicit, you
+can respond as if you were constructing a Rack::Response
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html">Renee</a> {
+</p>
+<pre>
+  get { respond!(&quot;hello!&quot;, 403, &quot;foo&quot; =&gt; &quot;bar&quot;) }
+</pre>
+<p>
+} ```
+</p>
+<p>
+or use the block DSL for convenience:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html">Renee</a> {
+</p>
+<pre>
+  get { respond! { status 403; headers :foo =&gt; &quot;bar&quot;; body &quot;hello!&quot; } }
+</pre>
+<p>
+} ```
+</p>
+<p>
+*<b>Halt</b>*
+</p>
+<p>
+Halting is the easiest way to render data within a route:
+</p>
+<p>
+```ruby run <a href="../classes/Renee.html#M000073">Renee.core</a> {
+</p>
+<pre>
+  get { halt 'easy' }
+</pre>
+<p>
+} ```
+</p>
+<p>
+This will return a 200 status code and &#8216;easy&#8217; as the body. You
+can also specify status code and header explicitly in the halt response:
+</p>
+<p>
+```ruby get { halt [200, {}, &#8216;body&#8217;] } ```
+</p>
+<p>
+This will set the status code to 200, pass no headers and return
+&#8216;body&#8217;. You can also use several variations of halt:
+</p>
+<p>
+```ruby # Return just status code halt 200
+</p>
+<p>
+# Return status with symbol halt :not_found
+</p>
+<p>
+# Return 200 with body halt &#8220;hello!&#8220;
+</p>
+<p>
+# Return 500 with body halt 500, &#8220;hello!&#8221; ```
+</p>
+<p>
+Halt is the most straightforward way to control the response for a request.
+</p>
+<p>
+*<b>Redirect</b>*
+</p>
+<p>
+A redirect is a common action within a web route and can be achieved with
+the convenience method `redirect` command:
+</p>
+<p>
+```ruby get {
+</p>
+<pre>
+  halt redirect('/hello')
+</pre>
+<p>
+} ```
+</p>
+<p>
+You can also specify the status code for the redirect:
+</p>
+<p>
+```ruby get {
+</p>
+<pre>
+  halt redirect('/hello', 303)
+</pre>
+<p>
+} ```
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

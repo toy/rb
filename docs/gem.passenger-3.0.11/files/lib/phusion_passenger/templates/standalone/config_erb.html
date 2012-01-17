@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>config.erb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            config.erb
+        </h1>
+        <ul class="files">
+            <li>lib/phusion_passenger/templates/standalone/config.erb</li>
+            <li>Last modified: Tue Nov 29 08:29:08 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+##################################################### # # !!!!!!! WARNING,
+READ THIS !!!!!!! # # # The fact that Phusion Passenger uses Nginx #
+internally is considered to be an implementation # detail that the user
+should not bother with. # We may arbitrarily replace the Nginx core with #
+something else in the future. # # As such, we do not support any kind of
+custom # Nginx configuration in Phusion Passenger Standalone. # If you need
+additional Nginx modules or if you need # special Nginx configuration or
+whatever then you # should use Phusion Passenger for Nginx, NOT # Phusion
+Passenger Standalone. # # You are strongly discouraged from editing this
+file # and treating Phusion Passenger Standalone as an easy # way to start
+Nginx. We will not provide any support # for this. #
+#####################################################
+</p>
+<p>
+master_process on; worker_processes 1; daemon on; error_log &#8217;<%=
+@options[:log_file] %>&#8217;; pid &#8217;<%= @options[:pid_file]
+%>&#8217;; <% if @options[:user] %>user <%= @options[:user] %> <%=
+default_group_for(@options[:user]) %>;<% end %>
+</p>
+<p>
+events {
+</p>
+<pre>
+    worker_connections 1024;
+</pre>
+<p>
+}
+</p>
+<p>
+http {
+</p>
+<pre>
+    include '&lt;%= PhusionPassenger::RESOURCES_DIR %&gt;/mime.types';
+    passenger_ruby &lt;%= PlatformInfo.ruby_command %&gt;;
+    passenger_root '&lt;%= passenger_root %&gt;';
+    passenger_abort_on_startup_error on;
+    passenger_user_switching off;
+    passenger_max_pool_size &lt;%= @options[:max_pool_size] %&gt;;
+    passenger_min_instances &lt;%= @options[:min_instances] %&gt;;
+    &lt;% if @options[:user] %&gt;passenger_default_user &lt;%= @options[:user] %&gt;;&lt;% end %&gt;
+    &lt;% if debugging? %&gt;passenger_log_level 2;&lt;% end %&gt;
+
+    &lt;% if @options[:union_station_gateway_address] %&gt;
+        union_station_gateway_address &lt;%= @options[:union_station_gateway_address] %&gt;;
+        union_station_gateway_port &lt;%= @options[:union_station_gateway_port] %&gt;;
+        union_station_gateway_cert -;
+    &lt;% end %&gt;
+
+    default_type application/octet-stream;
+    client_max_body_size 50m;
+    access_log off;
+    keepalive_timeout 60;
+    gzip on;
+    gzip_comp_level 3;
+    gzip_min_length 150;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/javascript application/x-javascript;
+
+    &lt;% if @apps.size &gt; 1 %&gt;
+    # Default server entry.
+    server {
+        listen &lt;%= nginx_listen_address %&gt;;
+        root '&lt;%= LIBDIR %&gt;/phusion_passenger/templates/standalone_default_root';
+    }
+    &lt;% end %&gt;
+
+    &lt;% if @options[:ping_port] %&gt;
+    server {
+        listen &lt;%= nginx_listen_address(@options, true) %&gt;;
+        root '&lt;%= LIBDIR %&gt;/phusion_passenger/templates/standalone_default_root';
+    }
+    &lt;% end %&gt;
+
+    &lt;% for app in @apps %&gt;
+    server {
+        listen &lt;%= nginx_listen_address(app) %&gt;;
+        server_name &lt;%= app[:server_names].join(' ') %&gt;;
+        root '&lt;%= app[:root] %&gt;/public';
+        passenger_enabled on;
+        rails_env &lt;%= app[:env] %&gt;;
+        passenger_spawn_method &lt;%= app[:spawn_method] %&gt;;
+        &lt;% if app[:min_instances] %&gt;passenger_min_instances &lt;%= app[:min_instances] %&gt;;&lt;% end %&gt;
+        &lt;% if app[:union_station_key] %&gt;
+            union_station_support on;
+            union_station_key &lt;%= app[:union_station_key] %&gt;;
+        &lt;% end %&gt;
+    }
+    passenger_pre_start http://&lt;%= nginx_listen_address(app) %&gt;;
+    &lt;% end %&gt;
+</pre>
+<p>
+}
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

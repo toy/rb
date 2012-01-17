@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::AutosaveAssociation::ClassMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ActiveRecord::AutosaveAssociation::ClassMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/activerecord-2_3_14/lib/active_record/autosave_association_rb.html">activerecord-2.3.14/lib/active_record/autosave_association.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000395">add_autosave_association_callbacks</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000395">
+                    
+                    <a name="M000395"></a><b>add_autosave_association_callbacks</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Adds a validate and save callback for the association as specified by the
+<tt>reflection</tt>.
+</p>
+<p>
+For performance reasons, we don&#8217;t check whether to validate at
+runtime, but instead only define the method and callback when needed.
+However, this can change, for instance, when using nested attributes, which
+is called <em>after</em> the association has been defined. Since we
+don&#8217;t want the callbacks to get defined multiple times, there are
+guards that check if the save or validation methods have already been
+defined before actually defining them.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000395_source')" id="l_M000395_source">show</a>
+                        
+                    </p>
+                    <div id="M000395_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 168</span>
+168:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_autosave_association_callbacks</span>(<span class="ruby-identifier">reflection</span>)
+169:         <span class="ruby-identifier">save_method</span> = <span class="ruby-identifier">:&quot;autosave_associated_records_for_#{reflection.name}&quot;</span>
+170:         <span class="ruby-identifier">validation_method</span> = <span class="ruby-identifier">:&quot;validate_associated_records_for_#{reflection.name}&quot;</span>
+171:         <span class="ruby-identifier">collection</span> = <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">collection?</span>
+172: 
+173:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">method_defined?</span>(<span class="ruby-identifier">save_method</span>)
+174:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">collection</span>
+175:             <span class="ruby-identifier">before_save</span> <span class="ruby-identifier">:before_save_collection_association</span>
+176: 
+177:             <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">save_method</span>) { <span class="ruby-identifier">save_collection_association</span>(<span class="ruby-identifier">reflection</span>) }
+178:             <span class="ruby-comment cmt"># Doesn't use after_save as that would save associations added in after_create/after_update twice</span>
+179:             <span class="ruby-identifier">after_create</span> <span class="ruby-identifier">save_method</span>
+180:             <span class="ruby-identifier">after_update</span> <span class="ruby-identifier">save_method</span>
+181:           <span class="ruby-keyword kw">else</span>
+182:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">macro</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:has_one</span>
+183:               <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">save_method</span>) { <span class="ruby-identifier">save_has_one_association</span>(<span class="ruby-identifier">reflection</span>) }
+184:               <span class="ruby-identifier">after_save</span> <span class="ruby-identifier">save_method</span>
+185:             <span class="ruby-keyword kw">else</span>
+186:               <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">save_method</span>) { <span class="ruby-identifier">save_belongs_to_association</span>(<span class="ruby-identifier">reflection</span>) }
+187:               <span class="ruby-identifier">before_save</span> <span class="ruby-identifier">save_method</span>
+188:             <span class="ruby-keyword kw">end</span>
+189:           <span class="ruby-keyword kw">end</span>
+190:         <span class="ruby-keyword kw">end</span>
+191: 
+192:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">validate?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">method_defined?</span>(<span class="ruby-identifier">validation_method</span>)
+193:           <span class="ruby-identifier">method</span> = (<span class="ruby-identifier">collection</span> <span class="ruby-value">? </span><span class="ruby-operator">:</span><span class="ruby-identifier">validate_collection_association</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">:validate_single_association</span>)
+194:           <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">validation_method</span>) { <span class="ruby-identifier">send</span>(<span class="ruby-identifier">method</span>, <span class="ruby-identifier">reflection</span>) }
+195:           <span class="ruby-identifier">validate</span> <span class="ruby-identifier">validation_method</span>
+196:         <span class="ruby-keyword kw">end</span>
+197:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

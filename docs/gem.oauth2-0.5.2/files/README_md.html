@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sat Jan 07 02:35:23 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# <a href="../classes/OAuth2.html">OAuth2</a> [![Build Status](<a
+href="https://secure.travis-ci.org/intridea/oauth2.png?branch=master)][travis">secure.travis-ci.org/intridea/oauth2.png?branch=master)][travis</a>]
+[![Dependency Status](<a
+href="https://gemnasium.com/intridea/oauth2.png?travis)][gemnasium">gemnasium.com/intridea/oauth2.png?travis)][gemnasium</a>]
+A Ruby wrapper for the OAuth 2.0 specification. This is a work in progress,
+being built first to solve the pragmatic process of connecting to existing
+OAuth 2.0 endpoints (a.k.a. Facebook) with the goal of building it up to
+meet the entire specification over time.
+</p>
+<p>
+[travis]: <a
+href="http://travis-ci.org/intridea/oauth2">travis-ci.org/intridea/oauth2</a>
+[gemnasium]: <a
+href="https://gemnasium.com/intridea/oauth2">gemnasium.com/intridea/oauth2</a>
+</p>
+<p>
+## <a name=&#8220;installation&#8221;></a>Installation
+</p>
+<pre>
+    gem install oauth2
+</pre>
+<p>
+## <a name=&#8220;resources&#8221;></a>Resources
+</p>
+<ul>
+<li>[View Source on GitHub][code]
+
+</li>
+<li>[Report Issues on GitHub][issues]
+
+</li>
+<li>[Read More at the Wiki][wiki]
+
+</li>
+</ul>
+<p>
+[code]: <a
+href="https://github.com/intridea/oauth2">github.com/intridea/oauth2</a>
+[issues]: <a
+href="https://github.com/intridea/oauth2/issues">github.com/intridea/oauth2/issues</a>
+[wiki]: <a
+href="https://wiki.github.com/intridea/oauth2">wiki.github.com/intridea/oauth2</a>
+</p>
+<p>
+## <a name=&#8220;examples&#8221;></a>Usage Examples
+</p>
+<pre>
+    require 'oauth2'
+    client = OAuth2::Client.new('client_id', 'client_secret', :site =&gt; 'https://example.org')
+
+    client.auth_code.authorize_url(:redirect_uri =&gt; 'http://localhost:8080/oauth2/callback')
+    # =&gt; &quot;https://example.org/oauth/authorization?response_type=code&amp;client_id=client_id&amp;redirect_uri=http://localhost:8080/oauth2/callback&quot;
+
+    token = client.auth_code.get_token('authorization_code_value', :redirect_uri =&gt; 'http://localhost:8080/oauth2/callback')
+    response = token.get('/api/resource', :params =&gt; { 'query_foo' =&gt; 'bar' })
+    response.class.name
+    # =&gt; OAuth2::Response
+</pre>
+<p>
+## <a name=&#8220;response&#8221;></a><a
+href="../classes/OAuth2/Response.html">OAuth2::Response</a> The AccessToken
+methods get, post, put and delete and the generic request will return an
+instance of the <a
+href="../classes/OAuth2/Response.html">OAuth2::Response</a> class.
+</p>
+<p>
+This instance contains a parsed method that will parse the response body
+and return a Hash if the Content-Type is application/x-www-form-urlencoded
+or if the body is a JSON object. It will return an Array if the body is a
+JSON array. Otherwise, it will return the original body string.
+</p>
+<p>
+The original response body, headers, and status can be accessed via their
+respective methods.
+</p>
+<p>
+## <a name=&#8220;access_token&#8220;></a><a
+href="../classes/OAuth2/AccessToken.html">OAuth2::AccessToken</a> If you
+have an existing Access Token for a user, you can initialize an instance
+using various class methods including the standard new, from_hash (if you
+have a hash of the values), or from_kvform (if you have an
+application/x-www-form-urlencoded encoded string of the values).
+</p>
+<p>
+## <a name=&#8220;error&#8221;></a><a
+href="../classes/OAuth2/Error.html">OAuth2::Error</a> On 400+ status code
+responses, an <a href="../classes/OAuth2/Error.html">OAuth2::Error</a> will
+be raised. If it is a standard <a href="../classes/OAuth2.html">OAuth2</a>
+error response, the body will be parsed and code and description will
+contain the values provided from the error and error_description
+parameters. The response property of <a
+href="../classes/OAuth2/Error.html">OAuth2::Error</a> will always contain
+the <a href="../classes/OAuth2/Response.html">OAuth2::Response</a>
+instance.
+</p>
+<p>
+If you do not want an error to be raised, you may use :raise_errors =>
+false option on initialization of the client. In this case the <a
+href="../classes/OAuth2/Response.html">OAuth2::Response</a> instance will
+be returned as usual and on 400+ status code responses, the Response
+instance will contain the <a
+href="../classes/OAuth2/Error.html">OAuth2::Error</a> instance.
+</p>
+<p>
+## <a name=&#8220;authorization_grants&#8220;></a>Authorization Grants
+Currently the Authorization Code and Resource Owner Password Credentials
+authentication grant types have helper strategy classes that simplify
+client use. They are available via the auth_code and password methods
+respectively.
+</p>
+<pre>
+    auth_url = client.auth_code.authorize_url(:redirect_uri =&gt; 'http://localhost:8080/oauth/callback')
+    token = client.auth_code.get_token('code_value', :redirect_uri =&gt; 'http://localhost:8080/oauth/callback')
+
+    token = client.password.get_token('username', 'password')
+</pre>
+<p>
+You can always use the request method on the <a
+href="../classes/OAuth2/Client.html">OAuth2::Client</a> instance to make
+requests for tokens for any Authentication grant type.
+</p>
+<p>
+## <a name=&#8220;pulls&#8221;></a>Submitting a Pull Request
+</p>
+<ol>
+<li>Fork the project.
+
+</li>
+<li>Create a topic branch.
+
+</li>
+<li>Implement your feature or bug fix.
+
+</li>
+<li>Add documentation for your feature or bug fix.
+
+</li>
+<li>Add specs for your feature or bug fix.
+
+</li>
+<li>Run `bundle exec rake spec`. If your changes are not 100% covered, go back
+to step 5.
+
+</li>
+<li>Commit and push your changes.
+
+</li>
+<li>Submit a pull request. Please do not include changes to the [gemspec][],
+[version][], or [changelog][]. (If you want to create your own version for
+some reason, please do so in a separate commit.)
+
+</li>
+</ol>
+<p>
+[gemspec]: <a
+href="https://github.com/intridea/oauth2/blob/master/oauth2.gemspec">github.com/intridea/oauth2/blob/master/oauth2.gemspec</a>
+[version]: <a
+href="https://github.com/intridea/oauth2/blob/master/lib/oauth2/version.rb">github.com/intridea/oauth2/blob/master/lib/oauth2/version.rb</a>
+[changelog]: <a
+href="https://github.com/intridea/oauth2/wiki/Changelog">github.com/intridea/oauth2/wiki/Changelog</a>
+</p>
+<p>
+## <a name=&#8220;versions&#8221;></a>Supported Ruby Versions This library
+aims to support and is [tested against][travis] the following Ruby
+implementations:
+</p>
+<ul>
+<li>Ruby 1.8.7
+
+</li>
+<li>Ruby 1.9.2
+
+</li>
+<li>Ruby 1.9.3
+
+</li>
+<li>[JRuby][]
+
+</li>
+<li>[Rubinius][]
+
+</li>
+<li>[Ruby Enterprise Edition][ree]
+
+</li>
+</ul>
+<p>
+[jruby]: <a href="http://www.jruby.org/">www.jruby.org/</a> [rubinius]: <a
+href="http://rubini.us/">rubini.us/</a> [ree]: <a
+href="http://www.rubyenterpriseedition.com/">www.rubyenterpriseedition.com/</a>
+</p>
+<p>
+If something doesn&#8217;t work on one of these interpreters, it should be
+considered a bug.
+</p>
+<p>
+This library may inadvertently work (or seem to work) on other Ruby
+implementations, however support will only be provided for the versions
+listed above.
+</p>
+<p>
+If you would like this library to support another Ruby version, you may
+volunteer to be a maintainer. Being a maintainer entails making sure all
+tests run and pass on that implementation. When something breaks on your
+implementation, you will be personally responsible for providing patches in
+a timely fashion. If critical issues for a particular implementation exist
+at the time of a major release, support for that Ruby version may be
+dropped.
+</p>
+<p>
+## <a name=&#8220;copyright&#8221;></a>Copyright Copyright &#169; 2011
+Intridea, Inc. and Michael Bleigh. See [LICENSE][] for details. [license]:
+<a
+href="https://github.com/intridea/oauth2/blob/master/LICENSE.md">github.com/intridea/oauth2/blob/master/LICENSE.md</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

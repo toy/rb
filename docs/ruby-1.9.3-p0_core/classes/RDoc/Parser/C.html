@@ -1,0 +1,1988 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RDoc::Parser::C</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RDoc::Parser::C 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Parser.html">RDoc::Parser</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/rdoc/parser/c_rb.html">lib/rdoc/parser/c.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="C.html">RDoc::Parser::C</a> attempts to parse <a
+href="C.html">C</a> extension files. It looks for the standard patterns
+that you find in extensions: <tt>rb_define_class, rb_define_method</tt> and
+so on. It tries to find the corresponding <a href="C.html">C</a> source for
+the methods and extract comments, but if we fail we don&#8217;t worry too
+much.
+</p>
+<p>
+The comments associated with a <a href="Ruby.html">Ruby</a> method are
+extracted from the <a href="C.html">C</a> comment block associated with the
+routine that <em>implements</em> that method, that is to say the method
+whose name is given in the <tt>rb_define_method</tt> call. For example, you
+might write:
+</p>
+<pre>
+  /*
+   * Returns a new array that is a one-dimensional flattening of this
+   * array (recursively). That is, for every element that is an array,
+   * extract its elements into the new array.
+   *
+   *    s = [ 1, 2, 3 ]           #=&gt; [1, 2, 3]
+   *    t = [ 4, 5, 6, [7, 8] ]   #=&gt; [4, 5, 6, [7, 8]]
+   *    a = [ s, t, 9, 10 ]       #=&gt; [[1, 2, 3], [4, 5, 6, [7, 8]], 9, 10]
+   *    a.flatten                 #=&gt; [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+   */
+   static VALUE
+   rb_ary_flatten(ary)
+       VALUE ary;
+   {
+       ary = rb_obj_dup(ary);
+       rb_ary_flatten_bang(ary);
+       return ary;
+   }
+
+   ...
+
+   void
+   Init_Array()
+   {
+     ...
+     rb_define_method(rb_cArray, &quot;flatten&quot;, rb_ary_flatten, 0);
+</pre>
+<p>
+Here <a href="../RDoc.html">RDoc</a> will determine from the
+rb_define_method line that there&#8217;s a method called
+&#8220;flatten&#8221; in class <a href="../../Array.html">Array</a>, and
+will look for the implementation in the method rb_ary_flatten. It will then
+use the comment from that method in the HTML output. This method must be in
+the same source file as the rb_define_method.
+</p>
+<p>
+The comment blocks may include special directives:
+</p>
+<dl>
+<dt>Document-class: <tt>name</tt></dt><dd>Documentation for the named class.
+
+</dd>
+<dt>Document-module: <tt>name</tt></dt><dd>Documentation for the named module.
+
+</dd>
+<dt>Document-const: <tt>name</tt></dt><dd>Documentation for the named <tt>rb_define_const</tt>.
+
+</dd>
+<dt>Document-global: <tt>name</tt></dt><dd>Documentation for the named <tt>rb_define_global_const</tt>
+
+</dd>
+<dt>Document-variable: <tt>name</tt></dt><dd>Documentation for the named <tt>rb_define_variable</tt>
+
+</dd>
+<dt>Document-method: <tt>method_name</tt></dt><dd>Documentation for the named method. Use this when the method name is
+unambiguous.
+
+</dd>
+<dt>Document-method: <tt>ClassName::method_name<tt></dt><dd>Documentation for a singleton method in the given class. Use this when the
+method name alone is ambiguous.
+
+</dd>
+<dt>Document-method: <tt>ClassName#method_name<tt></dt><dd>Documentation for a instance method in the given class. Use this when the
+method name alone is ambiguous.
+
+</dd>
+<dt>Document-attr: <tt>name</tt></dt><dd>Documentation for the named attribute.
+
+</dd>
+<dt>call-seq:  <em>text up to an empty line</em></dt><dd>Because <a href="C.html">C</a> source doesn&#8217;t give descriptive names
+to Ruby-level parameters, you need to document the calling sequence
+explicitly
+
+</dd>
+</dl>
+<p>
+In addition, <a href="../RDoc.html">RDoc</a> assumes by default that the <a
+href="C.html">C</a> method implementing a <a href="Ruby.html">Ruby</a>
+function is in the same source file as the rb_define_method call. If this
+isn&#8217;t the case, add the comment:
+</p>
+<pre>
+  rb_define_method(....);  // in filename
+</pre>
+<p>
+As an example, we might have an extension that defines multiple classes in
+its Init_xxx method. We could document them using
+</p>
+<pre>
+  /*
+   * Document-class:  MyClass
+   *
+   * Encapsulate the writing and reading of the configuration
+   * file. ...
+   */
+
+  /*
+   * Document-method: read_value
+   *
+   * call-seq:
+   *   cfg.read_value(key)            -&gt; value
+   *   cfg.read_value(key} { |key| }  -&gt; value
+   *
+   * Return the value corresponding to +key+ from the configuration.
+   * In the second form, if the key isn't found, invoke the
+   * block and return its value.
+   */
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004513">do_aliases</a>,</li>
+                
+                <li><a href="#M004515">do_attrs</a>,</li>
+                
+                <li><a href="#M004516">do_classes</a>,</li>
+                
+                <li><a href="#M004517">do_constants</a>,</li>
+                
+                <li><a href="#M004518">do_includes</a>,</li>
+                
+                <li><a href="#M004519">do_methods</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004520">find_alias_comment</a>,</li>
+                
+                <li><a href="#M004521">find_attr_comment</a>,</li>
+                
+                <li><a href="#M004522">find_body</a>,</li>
+                
+                <li><a href="#M004523">find_class</a>,</li>
+                
+                <li><a href="#M004524">find_class_comment</a>,</li>
+                
+                <li><a href="#M004525">find_const_comment</a>,</li>
+                
+                <li><a href="#M004528">find_modifiers</a>,</li>
+                
+                <li><a href="#M004531">find_override_comment</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004532">handle_attr</a>,</li>
+                
+                <li><a href="#M004533">handle_class_module</a>,</li>
+                
+                <li><a href="#M004534">handle_constants</a>,</li>
+                
+                <li><a href="#M004535">handle_ifdefs_in</a>,</li>
+                
+                <li><a href="#M004536">handle_method</a>,</li>
+                
+                <li><a href="#M004537">handle_singleton</a>,</li>
+                
+                <li><a href="#M004538">handle_tab_width</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004539">look_for_directives_in</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004511">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004540">rb_scan_args</a>,</li>
+                
+                <li><a href="#M004542">remove_commented_out_lines</a>,</li>
+                
+                <li><a href="#M004543">remove_private_comments</a>,</li>
+                
+                <li><a href="#M004510">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M004545">scan</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="../../JSON.html">JSON</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>content</td>
+            <td class='attr-desc'><p>
+<a href="C.html">C</a> file the parser is parsing
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>known_classes</td>
+            <td class='attr-desc'><p>
+Maps <a href="C.html">C</a> variable names to names of ruby classes
+(andsingleton classes)
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>singleton_classes</td>
+            <td class='attr-desc'><p>
+Maps <a href="C.html">C</a> variable names to names of ruby singleton
+classes
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M004511">
+                    
+                    <a name="M004511"></a><b>new</b>(top_level, file_name, content, options, stats)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Prepare to parse a <a href="C.html">C</a> file
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004511_source')" id="l_M004511_source">show</a>
+                        
+                    </p>
+                    <div id="M004511_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 150</span>
+150:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">top_level</span>, <span class="ruby-identifier">file_name</span>, <span class="ruby-identifier">content</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">stats</span>)
+151:     <span class="ruby-keyword kw">super</span>
+152: 
+153:     <span class="ruby-ivar">@known_classes</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">KNOWN_CLASSES</span>.<span class="ruby-identifier">dup</span>
+154:     <span class="ruby-ivar">@content</span> = <span class="ruby-identifier">handle_tab_width</span> <span class="ruby-identifier">handle_ifdefs_in</span>(<span class="ruby-ivar">@content</span>)
+155:     <span class="ruby-ivar">@classes</span> = {}
+156:     <span class="ruby-ivar">@singleton_classes</span> = {}
+157:     <span class="ruby-ivar">@file_dir</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-ivar">@file_name</span>)
+158:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004510">
+                    
+                    <a name="M004510"></a><b>reset</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Resets cross-file state. Call when parsing different projects that need
+separate documentation.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004510_source')" id="l_M004510_source">show</a>
+                        
+                    </p>
+                    <div id="M004510_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 140</span>
+140:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">reset</span>
+141:     <span class="ruby-ivar">@@enclosure_classes</span> = {}
+142:     <span class="ruby-ivar">@@known_bodies</span> = {}
+143:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M004513">
+                    
+                    <a name="M004513"></a><b>do_aliases</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_define_alias
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004513_source')" id="l_M004513_source">show</a>
+                        
+                    </p>
+                    <div id="M004513_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 163</span>
+163:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_aliases</span>
+164:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/rb_define_alias\s*\(
+165:                    \s*(\w+),
+166:                    \s*&quot;(.+?)&quot;,
+167:                    \s*&quot;(.+?)&quot;
+168:                    \s*\)/</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">old_name</span><span class="ruby-operator">|</span>
+169:       <span class="ruby-identifier">class_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">var_name</span>]
+170: 
+171:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_name</span> <span class="ruby-keyword kw">then</span>
+172:         <span class="ruby-identifier">warn</span> <span class="ruby-value str">&quot;Enclosing class/module %p for alias %s %s not known&quot;</span> <span class="ruby-operator">%</span> [
+173:           <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">old_name</span>]
+174:         <span class="ruby-keyword kw">next</span>
+175:       <span class="ruby-keyword kw">end</span>
+176: 
+177:       <span class="ruby-identifier">class_obj</span> = <span class="ruby-identifier">find_class</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>
+178: 
+179:       <span class="ruby-identifier">al</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Alias</span>.<span class="ruby-identifier">new</span> <span class="ruby-value str">''</span>, <span class="ruby-identifier">old_name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-value str">''</span>
+180:       <span class="ruby-identifier">al</span>.<span class="ruby-identifier">singleton</span> = <span class="ruby-ivar">@singleton_classes</span>.<span class="ruby-identifier">key?</span> <span class="ruby-identifier">var_name</span>
+181: 
+182:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">find_alias_comment</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">old_name</span>
+183:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+184:       <span class="ruby-identifier">al</span>.<span class="ruby-identifier">comment</span> = <span class="ruby-identifier">comment</span>
+185: 
+186:       <span class="ruby-identifier">al</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+187: 
+188:       <span class="ruby-identifier">class_obj</span>.<span class="ruby-identifier">add_alias</span> <span class="ruby-identifier">al</span>
+189:       <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_alias</span> <span class="ruby-identifier">al</span>
+190:     <span class="ruby-keyword kw">end</span>
+191:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004515">
+                    
+                    <a name="M004515"></a><b>do_attrs</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_attr and rb_define_attr
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004515_source')" id="l_M004515_source">show</a>
+                        
+                    </p>
+                    <div id="M004515_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 196</span>
+196:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_attrs</span>
+197:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/rb_attr\s*\(
+198:                    \s*(\w+),
+199:                    \s*([\w&quot;()]+),
+200:                    \s*([01]),
+201:                    \s*([01]),
+202:                    \s*\w+\);/</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span>, <span class="ruby-identifier">write</span><span class="ruby-operator">|</span>
+203:       <span class="ruby-identifier">handle_attr</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span>, <span class="ruby-identifier">write</span>
+204:     <span class="ruby-keyword kw">end</span>
+205: 
+206:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">%r%rb_define_attr\(
+207:                              \s*([\w\.]+),
+208:                              \s*&quot;([^&quot;]+)&quot;,
+209:                              \s*(\d+),
+210:                              \s*(\d+)\s*\);
+211:                 %</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span>, <span class="ruby-identifier">write</span><span class="ruby-operator">|</span>
+212:       <span class="ruby-identifier">handle_attr</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span>, <span class="ruby-identifier">write</span>
+213:     <span class="ruby-keyword kw">end</span>
+214:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004516">
+                    
+                    <a name="M004516"></a><b>do_classes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_define_module,
+rb_define_class, boot_defclass, rb_define_module_under,
+rb_define_class_under and rb_singleton_class
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004516_source')" id="l_M004516_source">show</a>
+                        
+                    </p>
+                    <div id="M004516_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 220</span>
+220:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_classes</span>
+221:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(\w+)\s* = \s*rb_define_module\s*\(\s*&quot;(\w+)&quot;\s*\)/</span><span class="ruby-identifier">mx</span>) <span class="ruby-keyword kw">do</span>
+222:       <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span><span class="ruby-operator">|</span>
+223:       <span class="ruby-identifier">handle_class_module</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-value str">&quot;module&quot;</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">nil</span>)
+224:     <span class="ruby-keyword kw">end</span>
+225: 
+226:     <span class="ruby-comment cmt"># The '.' lets us handle SWIG-generated files</span>
+227:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/([\w\.]+)\s* = \s*rb_define_class\s*
+228:               \(
+229:                  \s*&quot;(\w+)&quot;,
+230:                  \s*(\w+)\s*
+231:               \)/</span><span class="ruby-identifier">mx</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span><span class="ruby-operator">|</span>
+232:       <span class="ruby-identifier">handle_class_module</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-value str">&quot;class&quot;</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span>, <span class="ruby-keyword kw">nil</span>)
+233:     <span class="ruby-keyword kw">end</span>
+234: 
+235:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(\w+)\s*=\s*boot_defclass\s*\(\s*&quot;(\w+?)&quot;,\s*(\w+?)\s*\)/</span>) <span class="ruby-keyword kw">do</span>
+236:       <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span><span class="ruby-operator">|</span>
+237:       <span class="ruby-identifier">parent</span> = <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">parent</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;0&quot;</span>
+238:       <span class="ruby-identifier">handle_class_module</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-value str">&quot;class&quot;</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span>, <span class="ruby-keyword kw">nil</span>)
+239:     <span class="ruby-keyword kw">end</span>
+240: 
+241:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(\w+)\s* = \s*rb_define_module_under\s*
+242:               \(
+243:                  \s*(\w+),
+244:                  \s*&quot;(\w+)&quot;
+245:               \s*\)/</span><span class="ruby-identifier">mx</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">in_module</span>, <span class="ruby-identifier">class_name</span><span class="ruby-operator">|</span>
+246:       <span class="ruby-identifier">handle_class_module</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-value str">&quot;module&quot;</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">in_module</span>)
+247:     <span class="ruby-keyword kw">end</span>
+248: 
+249:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/([\w\.]+)\s* =                  # var_name
+250:                    \s*rb_define_class_under\s*
+251:                    \(
+252:                      \s* (\w+),                    # under
+253:                      \s* &quot;(\w+)&quot;,                  # class_name
+254:                      \s*
+255:                      (?:
+256:                        ([\w\*\s\(\)\.\-&gt;]+) |      # parent_name
+257:                        rb_path2class\(&quot;([\w:]+)&quot;\) # path
+258:                      )
+259:                      \s*
+260:                    \)
+261:                   /</span><span class="ruby-identifier">mx</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">under</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent_name</span>, <span class="ruby-identifier">path</span><span class="ruby-operator">|</span>
+262:       <span class="ruby-identifier">parent</span> = <span class="ruby-identifier">path</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">parent_name</span>
+263: 
+264:       <span class="ruby-identifier">handle_class_module</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-value str">'class'</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span>, <span class="ruby-identifier">under</span>
+265:     <span class="ruby-keyword kw">end</span>
+266: 
+267:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/([\w\.]+)\s* = \s*rb_singleton_class\s*
+268:                   \(
+269:                     \s*(\w+)
+270:                   \s*\)/</span><span class="ruby-identifier">mx</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sclass_var</span>, <span class="ruby-identifier">class_var</span><span class="ruby-operator">|</span>
+271:       <span class="ruby-identifier">handle_singleton</span> <span class="ruby-identifier">sclass_var</span>, <span class="ruby-identifier">class_var</span>
+272:     <span class="ruby-keyword kw">end</span>
+273:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004517">
+                    
+                    <a name="M004517"></a><b>do_constants</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_define_variable,
+rb_define_readonly_variable, rb_define_const and rb_define_global_const
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004517_source')" id="l_M004517_source">show</a>
+                        
+                    </p>
+                    <div id="M004517_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 279</span>
+279:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_constants</span>
+280:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">%r%\Wrb_define_
+281:                    ( variable          |
+282:                      readonly_variable |
+283:                      const             |
+284:                      global_const        )
+285:                \s*\(
+286:                  (?:\s*(\w+),)?
+287:                  \s*&quot;(\w+)&quot;,
+288:                  \s*(.*?)\s*\)\s*;
+289:                  %</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">definition</span><span class="ruby-operator">|</span>
+290:       <span class="ruby-identifier">var_name</span> = <span class="ruby-value str">&quot;rb_cObject&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">var_name</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">var_name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;rb_mKernel&quot;</span>
+291:       <span class="ruby-identifier">handle_constants</span> <span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">definition</span>
+292:     <span class="ruby-keyword kw">end</span>
+293: 
+294:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">%r%
+295:                   \Wrb_curses_define_const
+296:                   \s*\(
+297:                     \s*
+298:                     (\w+)
+299:                     \s*
+300:                   \)
+301:                   \s*;%</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">consts</span><span class="ruby-operator">|</span>
+302:       <span class="ruby-identifier">const</span> = <span class="ruby-identifier">consts</span>.<span class="ruby-identifier">first</span>
+303:       <span class="ruby-identifier">handle_constants</span> <span class="ruby-value str">'const'</span>, <span class="ruby-value str">'mCurses'</span>, <span class="ruby-identifier">const</span>, <span class="ruby-node">&quot;UINT2NUM(#{const})&quot;</span>
+304:     <span class="ruby-keyword kw">end</span>
+305:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004518">
+                    
+                    <a name="M004518"></a><b>do_includes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_include_module
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004518_source')" id="l_M004518_source">show</a>
+                        
+                    </p>
+                    <div id="M004518_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 310</span>
+310:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_includes</span>
+311:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/rb_include_module\s*\(\s*(\w+?),\s*(\w+?)\s*\)/</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">c</span>,<span class="ruby-identifier">m</span><span class="ruby-operator">|</span>
+312:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cls</span> = <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">c</span>]
+313:         <span class="ruby-identifier">m</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">m</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">m</span>
+314:         <span class="ruby-identifier">incl</span> = <span class="ruby-identifier">cls</span>.<span class="ruby-identifier">add_include</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Include</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">m</span>, <span class="ruby-value str">&quot;&quot;</span>)
+315:         <span class="ruby-identifier">incl</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+316:       <span class="ruby-keyword kw">end</span>
+317:     <span class="ruby-keyword kw">end</span>
+318:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004519">
+                    
+                    <a name="M004519"></a><b>do_methods</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Scans <a href="C.html#content">content</a> for rb_define_method,
+rb_define_singleton_method, rb_define_module_function,
+rb_define_private_method, rb_define_global_function and
+define_filetest_function
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004519_source')" id="l_M004519_source">show</a>
+                        
+                    </p>
+                    <div id="M004519_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 325</span>
+325:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_methods</span>
+326:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">%r%rb_define_
+327:                    (
+328:                       singleton_method |
+329:                       method           |
+330:                       module_function  |
+331:                       private_method
+332:                    )
+333:                    \s*\(\s*([\w\.]+),
+334:                      \s*&quot;([^&quot;]+)&quot;,
+335:                      \s*(?:RUBY_METHOD_FUNC\(|VALUEFUNC\()?(\w+)\)?,
+336:                      \s*(-?\w+)\s*\)
+337:                    (?:;\s*/[*/]\s+in\s+(\w+?\.(?:cpp|c|y)))?
+338:                  %</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>, <span class="ruby-identifier">source_file</span><span class="ruby-operator">|</span>
+339: 
+340:       <span class="ruby-comment cmt"># Ignore top-object and weird struct.c dynamic stuff</span>
+341:       <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">var_name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;ruby_top_self&quot;</span>
+342:       <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">var_name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;nstr&quot;</span>
+343: 
+344:       <span class="ruby-identifier">var_name</span> = <span class="ruby-value str">&quot;rb_cObject&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">var_name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;rb_mKernel&quot;</span>
+345:       <span class="ruby-identifier">handle_method</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>,
+346:                     <span class="ruby-identifier">source_file</span>)
+347:     <span class="ruby-keyword kw">end</span>
+348: 
+349:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">%r%rb_define_global_function\s*\(
+350:                              \s*&quot;([^&quot;]+)&quot;,
+351:                              \s*(?:RUBY_METHOD_FUNC\(|VALUEFUNC\()?(\w+)\)?,
+352:                              \s*(-?\w+)\s*\)
+353:                 (?:;\s*/[*/]\s+in\s+(\w+?\.[cy]))?
+354:                 %</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>, <span class="ruby-identifier">source_file</span><span class="ruby-operator">|</span>
+355:       <span class="ruby-identifier">handle_method</span>(<span class="ruby-value str">&quot;method&quot;</span>, <span class="ruby-value str">&quot;rb_mKernel&quot;</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>,
+356:                     <span class="ruby-identifier">source_file</span>)
+357:     <span class="ruby-keyword kw">end</span>
+358: 
+359:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/define_filetest_function\s*\(
+360:                      \s*&quot;([^&quot;]+)&quot;,
+361:                      \s*(?:RUBY_METHOD_FUNC\(|VALUEFUNC\()?(\w+)\)?,
+362:                      \s*(-?\w+)\s*\)/</span><span class="ruby-identifier">xm</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span><span class="ruby-operator">|</span>
+363: 
+364:       <span class="ruby-identifier">handle_method</span>(<span class="ruby-value str">&quot;method&quot;</span>, <span class="ruby-value str">&quot;rb_mFileTest&quot;</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>)
+365:       <span class="ruby-identifier">handle_method</span>(<span class="ruby-value str">&quot;singleton_method&quot;</span>, <span class="ruby-value str">&quot;rb_cFile&quot;</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>,
+366:                     <span class="ruby-identifier">param_count</span>)
+367:     <span class="ruby-keyword kw">end</span>
+368:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004520">
+                    
+                    <a name="M004520"></a><b>find_alias_comment</b>(class_name, new_name, old_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds the comment for an alias on <tt>class_name</tt> from
+<tt>new_name</tt> to <tt>old_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004520_source')" id="l_M004520_source">show</a>
+                        
+                    </p>
+                    <div id="M004520_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 374</span>
+374:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_alias_comment</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">new_name</span>, <span class="ruby-identifier">old_name</span>
+375:     <span class="ruby-identifier">content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s+))
+376:                   rb_define_alias\(\s*#{Regexp.escape class_name}\s*,
+377:                                    \s*&quot;#{Regexp.escape new_name}&quot;\s*,
+378:                                    \s*&quot;#{Regexp.escape old_name}&quot;\s*\);%</span><span class="ruby-identifier">xm</span>
+379: 
+380:     <span class="ruby-identifier">$1</span> <span class="ruby-operator">||</span> <span class="ruby-value str">''</span>
+381:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004521">
+                    
+                    <a name="M004521"></a><b>find_attr_comment</b>(var_name, attr_name, read = nil, write = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds a comment for rb_define_attr, rb_attr or Document-attr.
+</p>
+<p>
+<tt>var_name</tt> is the <a href="C.html">C</a> class variable the
+attribute is defined on. <tt>attr_name</tt> is the attribute&#8217;s name.
+</p>
+<p>
+<tt>read</tt> and <tt>write</tt> are the read/write flags (&#8216;1&#8217;
+or &#8216;0&#8217;). Either both or neither must be provided.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004521_source')" id="l_M004521_source">show</a>
+                        
+                    </p>
+                    <div id="M004521_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 392</span>
+392:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_attr_comment</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">write</span> = <span class="ruby-keyword kw">nil</span>
+393:     <span class="ruby-identifier">attr_name</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span> <span class="ruby-identifier">attr_name</span>
+394: 
+395:     <span class="ruby-identifier">rw</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">read</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">write</span> <span class="ruby-keyword kw">then</span>
+396:            <span class="ruby-node">/\s*#{read}\s*,\s*#{write}\s*/</span><span class="ruby-identifier">xm</span>
+397:          <span class="ruby-keyword kw">else</span>
+398:            <span class="ruby-regexp re">/.*?/</span><span class="ruby-identifier">m</span>
+399:          <span class="ruby-keyword kw">end</span>
+400: 
+401:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s+))
+402:                       rb_define_attr\((?:\s*#{var_name},)?\s*
+403:                                       &quot;#{attr_name}&quot;\s*,
+404:                                       #{rw}\)\s*;%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+405:       <span class="ruby-identifier">$1</span>
+406:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s+))
+407:                          rb_attr\(\s*#{var_name}\s*,
+408:                                   \s*#{attr_name}\s*,
+409:                                   #{rw},.*?\)\s*;%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+410:       <span class="ruby-identifier">$1</span>
+411:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-attr:\s#{attr_name}\s*?\n
+412:                          ((?&gt;.*?\*/))%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+413:       <span class="ruby-identifier">$1</span>
+414:     <span class="ruby-keyword kw">else</span>
+415:       <span class="ruby-value str">''</span>
+416:     <span class="ruby-keyword kw">end</span>
+417:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004522">
+                    
+                    <a name="M004522"></a><b>find_body</b>(class_name, meth_name, meth_obj, file_content, quiet = false)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="../../Find.html">Find</a> the <a href="C.html">C</a> code
+corresponding to a <a href="Ruby.html">Ruby</a> method
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004522_source')" id="l_M004522_source">show</a>
+                        
+                    </p>
+                    <div id="M004522_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 422</span>
+422:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_body</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">meth_obj</span>, <span class="ruby-identifier">file_content</span>, <span class="ruby-identifier">quiet</span> = <span class="ruby-keyword kw">false</span>
+423:     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">file_content</span>
+424:     <span class="ruby-keyword kw">when</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s*)?)
+425:             ((?:(?:static|SWIGINTERN)\s+)?
+426:              (?:intern\s+)?VALUE\s+#{meth_name}
+427:              \s*(\([^)]*\))([^;]|$))%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+428:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">$1</span>
+429:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">$2</span>
+430:       <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">2</span>).<span class="ruby-identifier">first</span>
+431: 
+432:       <span class="ruby-identifier">remove_private_comments</span> <span class="ruby-identifier">comment</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">comment</span>
+433: 
+434:       <span class="ruby-comment cmt"># try to find the whole body</span>
+435:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">$&amp;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-node">/#{Regexp.escape body}[^(]*?\{.*?^\}/</span><span class="ruby-identifier">m</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">file_content</span>
+436: 
+437:       <span class="ruby-comment cmt"># The comment block may have been overridden with a 'Document-method'</span>
+438:       <span class="ruby-comment cmt"># block. This happens in the interpreter when multiple methods are</span>
+439:       <span class="ruby-comment cmt"># vectored through to the same C method but those methods are logically</span>
+440:       <span class="ruby-comment cmt"># distinct (for example Kernel.hash and Kernel.object_id share the same</span>
+441:       <span class="ruby-comment cmt"># implementation</span>
+442: 
+443:       <span class="ruby-identifier">override_comment</span> = <span class="ruby-identifier">find_override_comment</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">meth_obj</span>
+444:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">override_comment</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">override_comment</span>
+445: 
+446:       <span class="ruby-identifier">find_modifiers</span> <span class="ruby-identifier">comment</span>, <span class="ruby-identifier">meth_obj</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">comment</span>
+447: 
+448:       <span class="ruby-comment cmt">#meth_obj.params = params</span>
+449:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">start_collecting_tokens</span>
+450:       <span class="ruby-identifier">tk</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">RubyToken</span><span class="ruby-operator">::</span><span class="ruby-constant">Token</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">nil</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>
+451:       <span class="ruby-identifier">tk</span>.<span class="ruby-identifier">set_text</span> <span class="ruby-identifier">body</span>
+452:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">add_token</span> <span class="ruby-identifier">tk</span>
+453:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+454:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">offset</span>  = <span class="ruby-identifier">offset</span>
+455:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">line</span>    = <span class="ruby-identifier">file_content</span>[<span class="ruby-value">0</span>, <span class="ruby-identifier">offset</span>].<span class="ruby-identifier">count</span>(<span class="ruby-value str">&quot;\n&quot;</span>) <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+456: 
+457:       <span class="ruby-identifier">body</span>
+458:     <span class="ruby-keyword kw">when</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s*))^\s*(\#\s*define\s+#{meth_name}\s+(\w+))%</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+459:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">$1</span>
+460:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">$2</span>
+461:       <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">2</span>).<span class="ruby-identifier">first</span>
+462: 
+463:       <span class="ruby-identifier">find_body</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">$3</span>, <span class="ruby-identifier">meth_obj</span>, <span class="ruby-identifier">file_content</span>, <span class="ruby-keyword kw">true</span>
+464:       <span class="ruby-identifier">find_modifiers</span> <span class="ruby-identifier">comment</span>, <span class="ruby-identifier">meth_obj</span>
+465: 
+466:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">start_collecting_tokens</span>
+467:       <span class="ruby-identifier">tk</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">RubyToken</span><span class="ruby-operator">::</span><span class="ruby-constant">Token</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">nil</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>
+468:       <span class="ruby-identifier">tk</span>.<span class="ruby-identifier">set_text</span> <span class="ruby-identifier">body</span>
+469:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">add_token</span> <span class="ruby-identifier">tk</span>
+470:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span>(<span class="ruby-identifier">comment</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">comment</span>.<span class="ruby-identifier">to_s</span>
+471:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">offset</span>  = <span class="ruby-identifier">offset</span>
+472:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">line</span>    = <span class="ruby-identifier">file_content</span>[<span class="ruby-value">0</span>, <span class="ruby-identifier">offset</span>].<span class="ruby-identifier">count</span>(<span class="ruby-value str">&quot;\n&quot;</span>) <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+473: 
+474:       <span class="ruby-identifier">body</span>
+475:     <span class="ruby-keyword kw">when</span> <span class="ruby-node">%r%^\s*\#\s*define\s+#{meth_name}\s+(\w+)%</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+476:       <span class="ruby-comment cmt"># with no comment we hope the aliased definition has it and use it's</span>
+477:       <span class="ruby-comment cmt"># definition</span>
+478: 
+479:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">find_body</span>(<span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">$1</span>, <span class="ruby-identifier">meth_obj</span>, <span class="ruby-identifier">file_content</span>, <span class="ruby-keyword kw">true</span>)
+480: 
+481:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">body</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">body</span>
+482: 
+483:       <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;No definition for #{meth_name}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">verbosity</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>
+484:       <span class="ruby-keyword kw">false</span>
+485:     <span class="ruby-keyword kw">else</span> <span class="ruby-comment cmt"># No body, but might still have an override comment</span>
+486:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">find_override_comment</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">meth_obj</span>
+487: 
+488:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">comment</span> <span class="ruby-keyword kw">then</span>
+489:         <span class="ruby-identifier">find_modifiers</span> <span class="ruby-identifier">comment</span>, <span class="ruby-identifier">meth_obj</span>
+490:         <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+491: 
+492:         <span class="ruby-value str">''</span>
+493:       <span class="ruby-keyword kw">else</span>
+494:         <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;No definition for #{meth_name}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">verbosity</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span>
+495:         <span class="ruby-keyword kw">false</span>
+496:       <span class="ruby-keyword kw">end</span>
+497:     <span class="ruby-keyword kw">end</span>
+498:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004523">
+                    
+                    <a name="M004523"></a><b>find_class</b>(raw_name, name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds a <a href="../NormalClass.html">RDoc::NormalClass</a> or <a
+href="../NormalModule.html">RDoc::NormalModule</a> for <tt>raw_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004523_source')" id="l_M004523_source">show</a>
+                        
+                    </p>
+                    <div id="M004523_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 503</span>
+503:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_class</span>(<span class="ruby-identifier">raw_name</span>, <span class="ruby-identifier">name</span>)
+504:     <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">raw_name</span>]
+505:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">raw_name</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^rb_m/</span>
+506:         <span class="ruby-identifier">container</span> = <span class="ruby-ivar">@top_level</span>.<span class="ruby-identifier">add_module</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalModule</span>, <span class="ruby-identifier">name</span>
+507:       <span class="ruby-keyword kw">else</span>
+508:         <span class="ruby-identifier">container</span> = <span class="ruby-ivar">@top_level</span>.<span class="ruby-identifier">add_class</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalClass</span>, <span class="ruby-identifier">name</span>
+509:       <span class="ruby-keyword kw">end</span>
+510: 
+511:       <span class="ruby-identifier">container</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+512:       <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">raw_name</span>] = <span class="ruby-identifier">container</span>
+513:     <span class="ruby-keyword kw">end</span>
+514:     <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">raw_name</span>]
+515:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004524">
+                    
+                    <a name="M004524"></a><b>find_class_comment</b>(class_name, class_mod)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Look for class or module documentation above Init_+class_name+(void), in a
+Document-class <tt>class_name</tt> (or module) comment or above an
+rb_define_class (or module). If a comment is supplied above a matching
+Init_ and a rb_define_class the Init_ comment is used.
+</p>
+<pre>
+  /*
+   * This is a comment for Foo
+   */
+  Init_Foo(void) {
+      VALUE cFoo = rb_define_class(&quot;Foo&quot;, rb_cObject);
+  }
+
+  /*
+   * Document-class: Foo
+   * This is a comment for Foo
+   */
+  Init_foo(void) {
+      VALUE cFoo = rb_define_class(&quot;Foo&quot;, rb_cObject);
+  }
+
+  /*
+   * This is a comment for Foo
+   */
+  VALUE cFoo = rb_define_class(&quot;Foo&quot;, rb_cObject);
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004524_source')" id="l_M004524_source">show</a>
+                        
+                    </p>
+                    <div id="M004524_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 543</span>
+543:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_class_comment</span>(<span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">class_mod</span>)
+544:     <span class="ruby-identifier">comment</span> = <span class="ruby-keyword kw">nil</span>
+545: 
+546:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%
+547:         ((?&gt;/\*.*?\*/\s+))
+548:         (static\s+)?
+549:         void\s+
+550:         Init_#{class_name}\s*(?:_\(\s*)?\(\s*(?:void\s*)?\)%</span><span class="ruby-identifier">xmi</span> <span class="ruby-keyword kw">then</span>
+551:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-node">%r%Document-(?:class|module):\s+#{class_name}%</span>, <span class="ruby-value str">''</span>)
+552:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-(?:class|module):\s+#{class_name}\s*?
+553:                          (?:&lt;\s+[:,\w]+)?\n((?&gt;.*?\*/))%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+554:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">$1</span>
+555:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%((?&gt;/\*.*?\*/\s+))
+556:                          ([\w\.\s]+\s* = \s+)?rb_define_(class|module).*?&quot;(#{class_name})&quot;%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+557:       <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">$1</span>
+558:     <span class="ruby-keyword kw">end</span>
+559: 
+560:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">comment</span>
+561: 
+562:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+563: 
+564:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">look_for_directives_in</span> <span class="ruby-identifier">class_mod</span>, <span class="ruby-identifier">comment</span>
+565: 
+566:     <span class="ruby-identifier">class_mod</span>.<span class="ruby-identifier">add_comment</span> <span class="ruby-identifier">comment</span>, <span class="ruby-ivar">@top_level</span>
+567:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004525">
+                    
+                    <a name="M004525"></a><b>find_const_comment</b>(type, const_name, class_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds a comment matching <tt>type</tt> and <tt>const_name</tt> either above
+the comment or in the matching Document- section.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004525_source')" id="l_M004525_source">show</a>
+                        
+                    </p>
+                    <div id="M004525_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 573</span>
+573:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_const_comment</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">class_name</span> = <span class="ruby-keyword kw">nil</span>)
+574:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%((?&gt;^\s*/\*.*?\*/\s+))
+575:                    rb_define_#{type}\((?:\s*(\w+),)?\s*
+576:                                       &quot;#{const_name}&quot;\s*,
+577:                                       .*?\)\s*;%</span><span class="ruby-identifier">xmi</span> <span class="ruby-keyword kw">then</span>
+578:       <span class="ruby-identifier">$1</span>
+579:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">class_name</span> <span class="ruby-keyword kw">and</span>
+580:           <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-(?:const|global|variable):\s
+581:                          #{class_name}::#{const_name}
+582:                          \s*?\n((?&gt;.*?\*/))%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+583:       <span class="ruby-identifier">$1</span>
+584:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-(?:const|global|variable):\s#{const_name}
+585:                          \s*?\n((?&gt;.*?\*/))%</span><span class="ruby-identifier">xm</span> <span class="ruby-keyword kw">then</span>
+586:       <span class="ruby-identifier">$1</span>
+587:     <span class="ruby-keyword kw">else</span>
+588:       <span class="ruby-value str">''</span>
+589:     <span class="ruby-keyword kw">end</span>
+590:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004528">
+                    
+                    <a name="M004528"></a><b></tt> section like:
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Handles modifiers in <tt>comment</tt> and updates <tt>meth_obj</tt> as
+appropriate.
+</p>
+<p>
+If <tt>:nodoc:</tt> is found, documentation on <tt>meth_obj</tt> is
+suppressed.
+</p>
+<p>
+If <tt>:yields:</tt> is followed by an argument list it is used for the
+block_params of <tt>meth_obj</tt>.
+</p>
+<p>
+If the comment block contains a <tt>
+</p>
+<pre>
+  call-seq:
+     ARGF.readlines(sep=$/)     -&gt; array
+     ARGF.readlines(limit)      -&gt; array
+     ARGF.readlines(sep, limit) -&gt; array
+
+     ARGF.to_a(sep=$/)     -&gt; array
+     ARGF.to_a(limit)      -&gt; array
+     ARGF.to_a(sep, limit) -&gt; array
+</pre>
+<p>
+it is used for the parameters of <tt>meth_obj</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004528_source')" id="l_M004528_source">show</a>
+                        
+                    </p>
+                    <div id="M004528_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 613</span>
+613:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_modifiers</span> <span class="ruby-identifier">comment</span>, <span class="ruby-identifier">meth_obj</span>
+614:     <span class="ruby-comment cmt"># we must handle situations like the above followed by an unindented first</span>
+615:     <span class="ruby-comment cmt"># comment.  The difficulty is to make sure not to match lines starting</span>
+616:     <span class="ruby-comment cmt"># with ARGF at the same indent, but that are after the first description</span>
+617:     <span class="ruby-comment cmt"># paragraph.</span>
+618: 
+619:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">comment</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/call-seq:(.*?(?:\S|\*\/?).*?)^\s*(?:\*\/?)?\s*$/</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+620:       <span class="ruby-identifier">all_start</span>, <span class="ruby-identifier">all_stop</span> = <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">0</span>)
+621:       <span class="ruby-identifier">seq_start</span>, <span class="ruby-identifier">seq_stop</span> = <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">1</span>)
+622: 
+623:       <span class="ruby-comment cmt"># we get the following lines that start with the leading word at the</span>
+624:       <span class="ruby-comment cmt"># same indent, even if they have blank lines before</span>
+625:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$1</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/(^\s*\*?\s*\n)+^(\s*\*?\s*\w+)/</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+626:         <span class="ruby-identifier">leading</span> = <span class="ruby-identifier">$2</span> <span class="ruby-comment cmt"># ' *    ARGF' in the example above</span>
+627:         <span class="ruby-identifier">re</span> = <span class="ruby-node">%r%
+628:           \A(
+629:              (^\s*\*?\s*\n)+
+630:              (^#{Regexp.escape leading}.*?\n)+
+631:             )+
+632:           ^\s*\*?\s*$
+633:         %</span><span class="ruby-identifier">xm</span>
+634:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">comment</span>[<span class="ruby-identifier">seq_stop</span><span class="ruby-operator">..</span><span class="ruby-value">-1</span>] <span class="ruby-operator">=~</span> <span class="ruby-identifier">re</span> <span class="ruby-keyword kw">then</span>
+635:           <span class="ruby-identifier">all_stop</span> = <span class="ruby-identifier">seq_stop</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">0</span>).<span class="ruby-identifier">last</span>
+636:           <span class="ruby-identifier">seq_stop</span> = <span class="ruby-identifier">seq_stop</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">$~</span>.<span class="ruby-identifier">offset</span>(<span class="ruby-value">1</span>).<span class="ruby-identifier">last</span>
+637:         <span class="ruby-keyword kw">end</span>
+638:       <span class="ruby-keyword kw">end</span>
+639: 
+640:       <span class="ruby-identifier">seq</span> = <span class="ruby-identifier">comment</span>[<span class="ruby-identifier">seq_start</span><span class="ruby-operator">..</span><span class="ruby-identifier">seq_stop</span>]
+641:       <span class="ruby-identifier">seq</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/^(\s*\*?\s*?)(\S|\n)/</span><span class="ruby-identifier">m</span>, <span class="ruby-value str">'\2'</span>)
+642:       <span class="ruby-identifier">comment</span>.<span class="ruby-identifier">slice!</span> <span class="ruby-identifier">all_start</span><span class="ruby-operator">...</span><span class="ruby-identifier">all_stop</span>
+643:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">call_seq</span> = <span class="ruby-identifier">seq</span>
+644:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">comment</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/\A\/\*\s*call-seq:(.*?)\*\/\Z/</span>, <span class="ruby-value str">''</span>) <span class="ruby-keyword kw">then</span>
+645:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">call_seq</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">strip</span>
+646:     <span class="ruby-keyword kw">end</span>
+647: 
+648:     <span class="ruby-identifier">look_for_directives_in</span> <span class="ruby-identifier">meth_obj</span>, <span class="ruby-identifier">comment</span>
+649:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004531">
+                    
+                    <a name="M004531"></a><b>find_override_comment</b>(class_name, meth_obj)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds a <tt>Document-method</tt> override for <tt>meth_obj</tt> on
+<tt>class_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004531_source')" id="l_M004531_source">show</a>
+                        
+                    </p>
+                    <div id="M004531_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 654</span>
+654:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_override_comment</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">meth_obj</span>
+655:     <span class="ruby-identifier">name</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span> <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">name</span>
+656:     <span class="ruby-identifier">prefix</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span> <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">name_prefix</span>
+657: 
+658:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-method:\s+#{class_name}#{prefix}#{name}\s*?\n((?&gt;.*?\*/))%</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+659:       <span class="ruby-identifier">$1</span>
+660:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-method:\s#{name}\s*?\n((?&gt;.*?\*/))%</span><span class="ruby-identifier">m</span> <span class="ruby-keyword kw">then</span>
+661:       <span class="ruby-identifier">$1</span>
+662:     <span class="ruby-keyword kw">end</span>
+663:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004532">
+                    
+                    <a name="M004532"></a><b>handle_attr</b>(var_name, attr_name, read, write)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="../Attr.html">RDoc::Attr</a> <tt>attr_name</tt> on
+class <tt>var_name</tt> that is either <tt>read</tt>, <tt>write</tt> or
+both
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004532_source')" id="l_M004532_source">show</a>
+                        
+                    </p>
+                    <div id="M004532_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 669</span>
+669:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_attr</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>, <span class="ruby-identifier">read</span>, <span class="ruby-identifier">write</span>)
+670:     <span class="ruby-identifier">rw</span> = <span class="ruby-value str">''</span>
+671:     <span class="ruby-identifier">rw</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'R'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-value str">'1'</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">read</span>
+672:     <span class="ruby-identifier">rw</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'W'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-value str">'1'</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">write</span>
+673: 
+674:     <span class="ruby-identifier">class_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">var_name</span>]
+675: 
+676:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_name</span>
+677: 
+678:     <span class="ruby-identifier">class_obj</span> = <span class="ruby-identifier">find_class</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>
+679: 
+680:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_obj</span>
+681: 
+682:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">find_attr_comment</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">attr_name</span>
+683:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+684: 
+685:     <span class="ruby-identifier">name</span> = <span class="ruby-identifier">attr_name</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/rb_intern\(&quot;([^&quot;]+)&quot;\)/</span>, <span class="ruby-value str">'\1'</span>)
+686: 
+687:     <span class="ruby-identifier">attr</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Attr</span>.<span class="ruby-identifier">new</span> <span class="ruby-value str">''</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">rw</span>, <span class="ruby-identifier">comment</span>
+688: 
+689:     <span class="ruby-identifier">attr</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+690:     <span class="ruby-identifier">class_obj</span>.<span class="ruby-identifier">add_attribute</span> <span class="ruby-identifier">attr</span>
+691:     <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_attribute</span> <span class="ruby-identifier">attr</span>
+692:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004533">
+                    
+                    <a name="M004533"></a><b>handle_class_module</b>(var_name, type, class_name, parent, in_module)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="../NormalClass.html">RDoc::NormalClass</a> or <a
+href="../NormalModule.html">RDoc::NormalModule</a> based on <tt>type</tt>
+named <tt>class_name</tt> in <tt>parent</tt> which was assigned to the <a
+href="C.html">C</a> <tt>var_name</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004533_source')" id="l_M004533_source">show</a>
+                        
+                    </p>
+                    <div id="M004533_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 698</span>
+698:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_class_module</span>(<span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent</span>, <span class="ruby-identifier">in_module</span>)
+699:     <span class="ruby-identifier">parent_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">parent</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">parent</span>
+700: 
+701:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">in_module</span> <span class="ruby-keyword kw">then</span>
+702:       <span class="ruby-identifier">enclosure</span> = <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">in_module</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@@enclosure_classes</span>[<span class="ruby-identifier">in_module</span>]
+703: 
+704:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">enclosure</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">enclosure</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">in_module</span>] <span class="ruby-keyword kw">then</span>
+705:         <span class="ruby-identifier">enc_type</span> = <span class="ruby-regexp re">/^rb_m/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">in_module</span> <span class="ruby-value">? </span><span class="ruby-value str">&quot;module&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;class&quot;</span>
+706:         <span class="ruby-identifier">handle_class_module</span> <span class="ruby-identifier">in_module</span>, <span class="ruby-identifier">enc_type</span>, <span class="ruby-identifier">enclosure</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">nil</span>
+707:         <span class="ruby-identifier">enclosure</span> = <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">in_module</span>]
+708:       <span class="ruby-keyword kw">end</span>
+709: 
+710:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">enclosure</span> <span class="ruby-keyword kw">then</span>
+711:         <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;Enclosing class/module '#{in_module}' for #{type} #{class_name} not known&quot;</span>
+712:         <span class="ruby-keyword kw">return</span>
+713:       <span class="ruby-keyword kw">end</span>
+714:     <span class="ruby-keyword kw">else</span>
+715:       <span class="ruby-identifier">enclosure</span> = <span class="ruby-ivar">@top_level</span>
+716:     <span class="ruby-keyword kw">end</span>
+717: 
+718:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;class&quot;</span> <span class="ruby-keyword kw">then</span>
+719:       <span class="ruby-identifier">full_name</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">ClassModule</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">enclosure</span> <span class="ruby-keyword kw">then</span>
+720:                     <span class="ruby-identifier">enclosure</span>.<span class="ruby-identifier">full_name</span> <span class="ruby-operator">+</span> <span class="ruby-node">&quot;::#{class_name}&quot;</span>
+721:                   <span class="ruby-keyword kw">else</span>
+722:                     <span class="ruby-identifier">class_name</span>
+723:                   <span class="ruby-keyword kw">end</span>
+724: 
+725:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r%Document-class:\s+#{full_name}\s*&lt;\s+([:,\w]+)%</span> <span class="ruby-keyword kw">then</span>
+726:         <span class="ruby-identifier">parent_name</span> = <span class="ruby-identifier">$1</span>
+727:       <span class="ruby-keyword kw">end</span>
+728: 
+729:       <span class="ruby-identifier">cm</span> = <span class="ruby-identifier">enclosure</span>.<span class="ruby-identifier">add_class</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalClass</span>, <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">parent_name</span>
+730:     <span class="ruby-keyword kw">else</span>
+731:       <span class="ruby-identifier">cm</span> = <span class="ruby-identifier">enclosure</span>.<span class="ruby-identifier">add_module</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalModule</span>, <span class="ruby-identifier">class_name</span>
+732:     <span class="ruby-keyword kw">end</span>
+733: 
+734:     <span class="ruby-identifier">cm</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-identifier">enclosure</span>.<span class="ruby-identifier">top_level</span>
+735: 
+736:     <span class="ruby-identifier">find_class_comment</span> <span class="ruby-identifier">cm</span>.<span class="ruby-identifier">full_name</span>, <span class="ruby-identifier">cm</span>
+737: 
+738:     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">cm</span>
+739:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalClass</span>
+740:       <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_class</span> <span class="ruby-identifier">cm</span>
+741:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">NormalModule</span>
+742:       <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_module</span> <span class="ruby-identifier">cm</span>
+743:     <span class="ruby-keyword kw">end</span>
+744: 
+745:     <span class="ruby-ivar">@classes</span>[<span class="ruby-identifier">var_name</span>] = <span class="ruby-identifier">cm</span>
+746:     <span class="ruby-ivar">@@enclosure_classes</span>[<span class="ruby-identifier">var_name</span>] = <span class="ruby-identifier">cm</span>
+747:     <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">var_name</span>] = <span class="ruby-identifier">cm</span>.<span class="ruby-identifier">full_name</span>
+748:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004534">
+                    
+                    <a name="M004534"></a><b>handle_constants</b>(type, var_name, const_name, definition)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Adds constants. By providing some_value: at the start of the comment you
+can override the <a href="C.html">C</a> value of the comment to give a
+friendly definition.
+</p>
+<pre>
+  /* 300: The perfect score in bowling */
+  rb_define_const(cFoo, &quot;PERFECT&quot;, INT2FIX(300);
+</pre>
+<p>
+Will override <tt>INT2FIX(300)</tt> with the value <tt>300</tt> in the
+output <a href="../RDoc.html">RDoc</a>. Values may include quotes and
+escaped colons (:).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004534_source')" id="l_M004534_source">show</a>
+                        
+                    </p>
+                    <div id="M004534_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 760</span>
+760:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_constants</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">definition</span>)
+761:     <span class="ruby-identifier">class_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">var_name</span>]
+762: 
+763:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_name</span>
+764: 
+765:     <span class="ruby-identifier">class_obj</span> = <span class="ruby-identifier">find_class</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>
+766: 
+767:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_obj</span> <span class="ruby-keyword kw">then</span>
+768:       <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;Enclosing class/module #{const_name.inspect} not known&quot;</span>
+769:       <span class="ruby-keyword kw">return</span>
+770:     <span class="ruby-keyword kw">end</span>
+771: 
+772:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">find_const_comment</span> <span class="ruby-identifier">type</span>, <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">class_name</span>
+773:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">strip_stars</span> <span class="ruby-identifier">comment</span>
+774:     <span class="ruby-identifier">comment</span> = <span class="ruby-identifier">normalize_comment</span> <span class="ruby-identifier">comment</span>
+775: 
+776:     <span class="ruby-comment cmt"># In the case of rb_define_const, the definition and comment are in</span>
+777:     <span class="ruby-comment cmt"># &quot;/* definition: comment */&quot; form.  The literal ':' and '\' characters</span>
+778:     <span class="ruby-comment cmt"># can be escaped with a backslash.</span>
+779:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span>.<span class="ruby-identifier">downcase</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'const'</span> <span class="ruby-keyword kw">then</span>
+780:       <span class="ruby-identifier">elements</span> = <span class="ruby-identifier">comment</span>.<span class="ruby-identifier">split</span> <span class="ruby-value str">':'</span>
+781: 
+782:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">elements</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">elements</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">then</span>
+783:         <span class="ruby-identifier">con</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Constant</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">definition</span>, <span class="ruby-identifier">comment</span>
+784:       <span class="ruby-keyword kw">else</span>
+785:         <span class="ruby-identifier">new_definition</span> = <span class="ruby-identifier">elements</span>[<span class="ruby-value">0</span><span class="ruby-operator">..</span><span class="ruby-value">-2</span>].<span class="ruby-identifier">join</span>(<span class="ruby-value str">':'</span>)
+786: 
+787:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">new_definition</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">then</span> <span class="ruby-comment cmt"># Default to literal C definition</span>
+788:           <span class="ruby-identifier">new_definition</span> = <span class="ruby-identifier">definition</span>
+789:         <span class="ruby-keyword kw">else</span>
+790:           <span class="ruby-identifier">new_definition</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-value str">&quot;\:&quot;</span>, <span class="ruby-value str">&quot;:&quot;</span>)
+791:           <span class="ruby-identifier">new_definition</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-value str">&quot;\\&quot;</span>, <span class="ruby-value str">'\\'</span>)
+792:         <span class="ruby-keyword kw">end</span>
+793: 
+794:         <span class="ruby-identifier">new_definition</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/\A(\s+)/</span>, <span class="ruby-value str">''</span>)
+795: 
+796:         <span class="ruby-identifier">new_comment</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">then</span>
+797:                         <span class="ruby-identifier">elements</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">lstrip</span>
+798:                       <span class="ruby-keyword kw">else</span>
+799:                         <span class="ruby-node">&quot;#{$1}#{elements.last.lstrip}&quot;</span>
+800:                       <span class="ruby-keyword kw">end</span>
+801: 
+802:         <span class="ruby-identifier">con</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Constant</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">new_definition</span>, <span class="ruby-identifier">new_comment</span>
+803:       <span class="ruby-keyword kw">end</span>
+804:     <span class="ruby-keyword kw">else</span>
+805:       <span class="ruby-identifier">con</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">Constant</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">const_name</span>, <span class="ruby-identifier">definition</span>, <span class="ruby-identifier">comment</span>
+806:     <span class="ruby-keyword kw">end</span>
+807: 
+808:     <span class="ruby-identifier">con</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+809:     <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_constant</span> <span class="ruby-identifier">con</span>
+810:     <span class="ruby-identifier">class_obj</span>.<span class="ruby-identifier">add_constant</span> <span class="ruby-identifier">con</span>
+811:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004535">
+                    
+                    <a name="M004535"></a><b>handle_ifdefs_in</b>(body)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes ifdefs that would otherwise confuse us
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004535_source')" id="l_M004535_source">show</a>
+                        
+                    </p>
+                    <div id="M004535_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 816</span>
+816:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_ifdefs_in</span>(<span class="ruby-identifier">body</span>)
+817:     <span class="ruby-identifier">body</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/^#ifdef HAVE_PROTOTYPES.*?#else.*?\n(.*?)#endif.*?\n/</span><span class="ruby-identifier">m</span>, <span class="ruby-value str">'\1'</span>)
+818:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004536">
+                    
+                    <a name="M004536"></a><b>handle_method</b>(type, var_name, meth_name, function, param_count, source_file = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Adds an <a href="../AnyMethod.html">RDoc::AnyMethod</a> <tt>meth_name</tt>
+defined on a class or module assigned to <tt>var_name</tt>. <tt>type</tt>
+is the type of method definition function used. <tt>singleton_method</tt>
+and <tt>module_function</tt> create a singleton method.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004536_source')" id="l_M004536_source">show</a>
+                        
+                    </p>
+                    <div id="M004536_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 825</span>
+825:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_method</span>(<span class="ruby-identifier">type</span>, <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">meth_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">param_count</span>,
+826:                     <span class="ruby-identifier">source_file</span> = <span class="ruby-keyword kw">nil</span>)
+827:     <span class="ruby-identifier">class_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">var_name</span>]
+828:     <span class="ruby-identifier">singleton</span>  = <span class="ruby-ivar">@singleton_classes</span>.<span class="ruby-identifier">key?</span> <span class="ruby-identifier">var_name</span>
+829: 
+830:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">class_name</span>
+831: 
+832:     <span class="ruby-identifier">class_obj</span> = <span class="ruby-identifier">find_class</span> <span class="ruby-identifier">var_name</span>, <span class="ruby-identifier">class_name</span>
+833: 
+834:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">class_obj</span> <span class="ruby-keyword kw">then</span>
+835:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">meth_name</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'initialize'</span> <span class="ruby-keyword kw">then</span>
+836:         <span class="ruby-identifier">meth_name</span> = <span class="ruby-value str">'new'</span>
+837:         <span class="ruby-identifier">singleton</span> = <span class="ruby-keyword kw">true</span>
+838:         <span class="ruby-identifier">type</span> = <span class="ruby-value str">'method'</span> <span class="ruby-comment cmt"># force public</span>
+839:       <span class="ruby-keyword kw">end</span>
+840: 
+841:       <span class="ruby-identifier">meth_obj</span> = <span class="ruby-constant">RDoc</span><span class="ruby-operator">::</span><span class="ruby-constant">AnyMethod</span>.<span class="ruby-identifier">new</span> <span class="ruby-value str">''</span>, <span class="ruby-identifier">meth_name</span>
+842:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">c_function</span> = <span class="ruby-identifier">function</span>
+843:       <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">singleton</span> =
+844:         <span class="ruby-identifier">singleton</span> <span class="ruby-operator">||</span> <span class="ruby-node">%w[singleton_method module_function]</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">type</span>)
+845: 
+846:       <span class="ruby-identifier">p_count</span> = <span class="ruby-constant">Integer</span>(<span class="ruby-identifier">param_count</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-value">-1</span>
+847: 
+848:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">source_file</span> <span class="ruby-keyword kw">then</span>
+849:         <span class="ruby-identifier">file_name</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-ivar">@file_dir</span>, <span class="ruby-identifier">source_file</span>
+850: 
+851:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span> <span class="ruby-identifier">file_name</span> <span class="ruby-keyword kw">then</span>
+852:           <span class="ruby-identifier">file_content</span> = (<span class="ruby-ivar">@@known_bodies</span>[<span class="ruby-identifier">file_name</span>] <span class="ruby-operator">||=</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">file_name</span>))
+853:         <span class="ruby-keyword kw">else</span>
+854:           <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;unknown source #{source_file} for #{meth_name} in #{@file_name}&quot;</span>
+855:         <span class="ruby-keyword kw">end</span>
+856:       <span class="ruby-keyword kw">else</span>
+857:         <span class="ruby-identifier">file_content</span> = <span class="ruby-ivar">@content</span>
+858:       <span class="ruby-keyword kw">end</span>
+859: 
+860:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">find_body</span> <span class="ruby-identifier">class_name</span>, <span class="ruby-identifier">function</span>, <span class="ruby-identifier">meth_obj</span>, <span class="ruby-identifier">file_content</span>
+861: 
+862:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">body</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">document_self</span> <span class="ruby-keyword kw">then</span>
+863:         <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">params</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p_count</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">-1</span> <span class="ruby-keyword kw">then</span> <span class="ruby-comment cmt"># -2 is Array</span>
+864:                             <span class="ruby-value str">'(*args)'</span>
+865:                           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">p_count</span> <span class="ruby-operator">==</span> <span class="ruby-value">-1</span> <span class="ruby-keyword kw">then</span> <span class="ruby-comment cmt"># argc, argv</span>
+866:                             <span class="ruby-identifier">rb_scan_args</span> <span class="ruby-identifier">body</span>
+867:                           <span class="ruby-keyword kw">else</span>
+868:                             <span class="ruby-node">&quot;(#{(1..p_count).map { |i| &quot;p#{i}&quot; }.join ', '})&quot;</span>
+869:                           <span class="ruby-keyword kw">end</span>
+870: 
+871: 
+872:         <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">record_location</span> <span class="ruby-ivar">@top_level</span>
+873:         <span class="ruby-identifier">class_obj</span>.<span class="ruby-identifier">add_method</span> <span class="ruby-identifier">meth_obj</span>
+874:         <span class="ruby-ivar">@stats</span>.<span class="ruby-identifier">add_method</span> <span class="ruby-identifier">meth_obj</span>
+875:         <span class="ruby-identifier">meth_obj</span>.<span class="ruby-identifier">visibility</span> = <span class="ruby-identifier">:private</span> <span class="ruby-keyword kw">if</span> <span class="ruby-value str">'private_method'</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">type</span>
+876:       <span class="ruby-keyword kw">end</span>
+877:     <span class="ruby-keyword kw">end</span>
+878:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004537">
+                    
+                    <a name="M004537"></a><b>handle_singleton</b>(sclass_var, class_var)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Registers a singleton class <tt>sclass_var</tt> as a singleton of
+<tt>class_var</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004537_source')" id="l_M004537_source">show</a>
+                        
+                    </p>
+                    <div id="M004537_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 883</span>
+883:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_singleton</span> <span class="ruby-identifier">sclass_var</span>, <span class="ruby-identifier">class_var</span>
+884:     <span class="ruby-identifier">class_name</span> = <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">class_var</span>]
+885: 
+886:     <span class="ruby-ivar">@known_classes</span>[<span class="ruby-identifier">sclass_var</span>]     = <span class="ruby-identifier">class_name</span>
+887:     <span class="ruby-ivar">@singleton_classes</span>[<span class="ruby-identifier">sclass_var</span>] = <span class="ruby-identifier">class_name</span>
+888:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004538">
+                    
+                    <a name="M004538"></a><b>handle_tab_width</b>(body)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Normalizes tabs in <tt>body</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004538_source')" id="l_M004538_source">show</a>
+                        
+                    </p>
+                    <div id="M004538_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 893</span>
+893:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_tab_width</span>(<span class="ruby-identifier">body</span>)
+894:     <span class="ruby-keyword kw">if</span> <span class="ruby-regexp re">/\t/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">body</span>
+895:       <span class="ruby-identifier">tab_width</span> = <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">tab_width</span>
+896:       <span class="ruby-identifier">body</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\n/</span>).<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+897:         <span class="ruby-value">1</span> <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">line</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\t+/</span>) <span class="ruby-keyword kw">do</span>
+898:           <span class="ruby-value str">' '</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">tab_width</span> <span class="ruby-operator">*</span> <span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">$`</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">tab_width</span>)
+899:         <span class="ruby-keyword kw">end</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$~</span>
+900:         <span class="ruby-identifier">line</span>
+901:       <span class="ruby-keyword kw">end</span>.<span class="ruby-identifier">join</span> <span class="ruby-value str">&quot;\n&quot;</span>
+902:     <span class="ruby-keyword kw">else</span>
+903:       <span class="ruby-identifier">body</span>
+904:     <span class="ruby-keyword kw">end</span>
+905:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004539">
+                    
+                    <a name="M004539"></a><b>look_for_directives_in</b>(context, comment)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Look for directives in a normal comment block:
+</p>
+<pre>
+  /*
+   * :title: My Awesome Project
+   */
+</pre>
+<p>
+This method modifies the <tt>comment</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004539_source')" id="l_M004539_source">show</a>
+                        
+                    </p>
+                    <div id="M004539_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 916</span>
+916:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">look_for_directives_in</span> <span class="ruby-identifier">context</span>, <span class="ruby-identifier">comment</span>
+917:     <span class="ruby-ivar">@preprocess</span>.<span class="ruby-identifier">handle</span> <span class="ruby-identifier">comment</span>, <span class="ruby-identifier">context</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">directive</span>, <span class="ruby-identifier">param</span><span class="ruby-operator">|</span>
+918:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">directive</span>
+919:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'main'</span> <span class="ruby-keyword kw">then</span>
+920:         <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">main_page</span> = <span class="ruby-identifier">param</span>
+921:         <span class="ruby-value str">''</span>
+922:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'title'</span> <span class="ruby-keyword kw">then</span>
+923:         <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">default_title</span> = <span class="ruby-identifier">param</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:default_title=</span>
+924:         <span class="ruby-value str">''</span>
+925:       <span class="ruby-keyword kw">end</span>
+926:     <span class="ruby-keyword kw">end</span>
+927: 
+928:     <span class="ruby-identifier">comment</span>
+929:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004540">
+                    
+                    <a name="M004540"></a><b>rb_scan_args</b>(method_body)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Extracts parameters from the <tt>method_body</tt> and returns a method
+parameter string. Follows 1.9.3dev&#8217;s scan-arg-spec, see <a
+href="../../../files/README_EXT.html">README.EXT</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004540_source')" id="l_M004540_source">show</a>
+                        
+                    </p>
+                    <div id="M004540_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 935</span>
+ 935:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rb_scan_args</span> <span class="ruby-identifier">method_body</span>
+ 936:     <span class="ruby-identifier">method_body</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/rb_scan_args\((.*?)\)/</span><span class="ruby-identifier">m</span>
+ 937:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">'(*args)'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">$1</span>
+ 938: 
+ 939:     <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,/</span>)[<span class="ruby-value">2</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/&quot;(.*?)&quot;/</span> <span class="ruby-comment cmt"># format argument</span>
+ 940:     <span class="ruby-identifier">format</span> = <span class="ruby-identifier">$1</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">//</span>)
+ 941: 
+ 942:     <span class="ruby-identifier">lead</span> = <span class="ruby-identifier">opt</span> = <span class="ruby-identifier">trail</span> = <span class="ruby-value">0</span>
+ 943: 
+ 944:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\d/</span> <span class="ruby-keyword kw">then</span>
+ 945:       <span class="ruby-identifier">lead</span> = <span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">to_i</span>
+ 946:       <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 947:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\d/</span> <span class="ruby-keyword kw">then</span>
+ 948:         <span class="ruby-identifier">opt</span> = <span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">to_i</span>
+ 949:         <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 950:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\d/</span> <span class="ruby-keyword kw">then</span>
+ 951:           <span class="ruby-identifier">trail</span> = <span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">to_i</span>
+ 952:           <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 953:           <span class="ruby-identifier">block_arg</span> = <span class="ruby-keyword kw">true</span>
+ 954:         <span class="ruby-keyword kw">end</span>
+ 955:       <span class="ruby-keyword kw">end</span>
+ 956:     <span class="ruby-keyword kw">end</span>
+ 957: 
+ 958:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'*'</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">block_arg</span> <span class="ruby-keyword kw">then</span>
+ 959:       <span class="ruby-identifier">var</span> = <span class="ruby-keyword kw">true</span>
+ 960:       <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 961:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\d/</span> <span class="ruby-keyword kw">then</span>
+ 962:         <span class="ruby-identifier">trail</span> = <span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">to_i</span>
+ 963:         <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 964:       <span class="ruby-keyword kw">end</span>
+ 965:     <span class="ruby-keyword kw">end</span>
+ 966: 
+ 967:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">==</span> <span class="ruby-value str">':'</span> <span class="ruby-keyword kw">then</span>
+ 968:       <span class="ruby-identifier">hash</span> = <span class="ruby-keyword kw">true</span>
+ 969:       <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 970:     <span class="ruby-keyword kw">end</span>
+ 971: 
+ 972:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">format</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'&amp;'</span> <span class="ruby-keyword kw">then</span>
+ 973:       <span class="ruby-identifier">block</span> = <span class="ruby-keyword kw">true</span>
+ 974:       <span class="ruby-identifier">format</span>.<span class="ruby-identifier">shift</span>
+ 975:     <span class="ruby-keyword kw">end</span>
+ 976: 
+ 977:     <span class="ruby-comment cmt"># if the format string is not empty there's a bug in the C code, ignore it</span>
+ 978: 
+ 979:     <span class="ruby-identifier">args</span> = []
+ 980:     <span class="ruby-identifier">position</span> = <span class="ruby-value">1</span>
+ 981: 
+ 982:     (<span class="ruby-value">1</span><span class="ruby-operator">...</span>(<span class="ruby-identifier">position</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">lead</span>)).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">index</span><span class="ruby-operator">|</span>
+ 983:       <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;p#{index}&quot;</span>
+ 984:     <span class="ruby-keyword kw">end</span>
+ 985: 
+ 986:     <span class="ruby-identifier">position</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">lead</span>
+ 987: 
+ 988:     (<span class="ruby-identifier">position</span><span class="ruby-operator">...</span>(<span class="ruby-identifier">position</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">opt</span>)).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">index</span><span class="ruby-operator">|</span>
+ 989:       <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;p#{index} = v#{index}&quot;</span>
+ 990:     <span class="ruby-keyword kw">end</span>
+ 991: 
+ 992:     <span class="ruby-identifier">position</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">opt</span>
+ 993: 
+ 994:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">var</span> <span class="ruby-keyword kw">then</span>
+ 995:       <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'*args'</span>
+ 996:       <span class="ruby-identifier">position</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+ 997:     <span class="ruby-keyword kw">end</span>
+ 998: 
+ 999:     (<span class="ruby-identifier">position</span><span class="ruby-operator">...</span>(<span class="ruby-identifier">position</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">trail</span>)).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">index</span><span class="ruby-operator">|</span>
+1000:       <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;p#{index}&quot;</span>
+1001:     <span class="ruby-keyword kw">end</span>
+1002: 
+1003:     <span class="ruby-identifier">position</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">trail</span>
+1004: 
+1005:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">hash</span> <span class="ruby-keyword kw">then</span>
+1006:       <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;p#{position} = {}&quot;</span>
+1007:       <span class="ruby-identifier">position</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+1008:     <span class="ruby-keyword kw">end</span>
+1009: 
+1010:     <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'&amp;block'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block</span>
+1011: 
+1012:     <span class="ruby-node">&quot;(#{args.join ', '})&quot;</span>
+1013:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004542">
+                    
+                    <a name="M004542"></a><b>remove_commented_out_lines</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes lines that are commented out that might otherwise get picked up
+when scanning for classes and methods
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004542_source')" id="l_M004542_source">show</a>
+                        
+                    </p>
+                    <div id="M004542_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 1019</span>
+1019:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove_commented_out_lines</span>
+1020:     <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">%r%//.*rb_define_%</span>, <span class="ruby-value str">'//'</span>)
+1021:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004543">
+                    
+                    <a name="M004543"></a><b>remove_private_comments</b>(comment)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes private comments from <tt>comment</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004543_source')" id="l_M004543_source">show</a>
+                        
+                    </p>
+                    <div id="M004543_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 1026</span>
+1026:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove_private_comments</span>(<span class="ruby-identifier">comment</span>)
+1027:     <span class="ruby-identifier">comment</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\/?\*--\n(.*?)\/?\*\+\+/</span><span class="ruby-identifier">m</span>, <span class="ruby-value str">''</span>)
+1028:     <span class="ruby-identifier">comment</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/\/?\*--\n.*/</span><span class="ruby-identifier">m</span>, <span class="ruby-value str">''</span>)
+1029:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M004545">
+                    
+                    <a name="M004545"></a><b>scan</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Extracts the classes, modules, methods, attributes, constants and aliases
+from a <a href="C.html">C</a> file and returns an <a
+href="../TopLevel.html">RDoc::TopLevel</a> for this file
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M004545_source')" id="l_M004545_source">show</a>
+                        
+                    </p>
+                    <div id="M004545_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/rdoc/parser/c.rb, line 1035</span>
+1035:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scan</span>
+1036:     <span class="ruby-identifier">remove_commented_out_lines</span>
+1037:     <span class="ruby-identifier">do_classes</span>
+1038:     <span class="ruby-identifier">do_constants</span>
+1039:     <span class="ruby-identifier">do_methods</span>
+1040:     <span class="ruby-identifier">do_includes</span>
+1041:     <span class="ruby-identifier">do_aliases</span>
+1042:     <span class="ruby-identifier">do_attrs</span>
+1043:     <span class="ruby-ivar">@top_level</span>
+1044:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

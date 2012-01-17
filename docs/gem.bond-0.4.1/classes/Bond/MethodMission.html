@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Bond::MethodMission</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Bond::MethodMission 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Mission.html">Bond::Mission</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/bond/missions/method_mission_rb.html">lib/bond/missions/method_mission.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A mission which completes arguments for any module/class method that
+isn&#8217;t an operator method. To create this mission or <a
+href="OperatorMethodMission.html">OperatorMethodMission</a>, :method or
+:methods must be passed to <a
+href="../Bond.html#M000106">Bond.complete</a>. A completion for a given
+module/class effects any object that has it as an ancestor. If an object
+has two ancestors that have completions for the same method, the ancestor
+closer to the object is picked. For example, if Array#collect and
+Enumerable#collect have completions, argument completion on
+&#8217;[].collect &#8217; would use Array#collect.
+</p>
+<h4><a href="../Bond.html#M000106">Bond.complete</a> Options:</h4>
+<dl>
+<dt>:action</dt><dd>If a string, value is assumed to be a :method and that method&#8217;s
+action is copied. Otherwise defaults to normal :action behavior.
+
+</dd>
+<dt>:search</dt><dd>If :action is a :method string, defaults to copying its search. Otherwise
+defaults to normal :search behavior.
+
+</dd>
+<dt>:name, :place</dt><dd>These options aren&#8217;t supported by a
+MethodMission/OperatorMethodMission completion.
+
+</dd>
+</dl>
+<h4>Examples:</h4>
+<pre>
+  Bond.complete(:methods =&gt; %w{delete index rindex}, :class =&gt; &quot;Array#&quot;) {|e| e.object }
+  Bond.complete(:method =&gt; &quot;Hash#index&quot;) {|e| e.object.values }
+</pre>
+<h4>Argument Format</h4>
+<p>
+All method arguments can autocomplete as symbols or strings and the first
+argument can be prefixed with &#8217;(&#8217;:
+</p>
+<pre>
+  &gt;&gt; Bond.complete(:method =&gt; 'example') { %w{some example eh} }
+  =&gt; true
+  &gt;&gt; example '[TAB]
+  eh    example    some
+  &gt;&gt; example :[TAB]
+  :eh   :example   :some
+
+ &gt;&gt; example(&quot;[TAB]
+  eh    example    some
+</pre>
+<h4>Multiple Arguments</h4>
+<p>
+Every time a comma appears after a method, <a href="../Bond.html">Bond</a>
+starts a new completion. This allows a method to complete multiple
+arguments as well as complete keys for a hash. <b>Each</b> argument can be
+have a unique set of completions since a completion action is aware of what
+argument it is currently completing:
+</p>
+<pre>
+  &gt;&gt; Bond.complete(:method =&gt; 'FileUtils.chown') {|e|
+       e.argument &gt; 3 ? %w{noop verbose} : %w{root admin me} }
+  =&gt; true
+  &gt;&gt; FileUtils.chown 'r[TAB]
+  &gt;&gt; FileUtils.chown 'root'
+  &gt;&gt; FileUtils.chown 'root', 'a[TAB]
+  &gt;&gt; FileUtils.chown 'root', 'admin'
+  &gt;&gt; FileUtils.chown 'root', 'admin', 'some_file', :v[TAB]
+  &gt;&gt; FileUtils.chown 'root', 'admin', 'some_file', :verbose
+  &gt;&gt; FileUtils.chown 'root', 'admin', 'some_file', :verbose =&gt; true
+</pre>
+<h4>Developer Notes</h4>
+<p>
+Unlike other missions, creating these missions with <a
+href="../Bond.html#M000106">Bond.complete</a> doesn&#8217;t add more
+completion rules for an <a href="Agent.html">Agent</a> to look through.
+Instead, all :method(s) completions are handled by one <a
+href="MethodMission.html">MethodMission</a> object which looks them up with
+its own hashes. In the same way, all operator methods are handled by one <a
+href="OperatorMethodMission.html">OperatorMethodMission</a> object.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000060">action_methods</a>,</li>
+                
+                <li><a href="#M000080">after_match</a>,</li>
+                
+                <li><a href="#M000065">all_methods</a>,</li>
+                
+                <li><a href="#M000068">any_const_get</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000057">create</a>,</li>
+                
+                <li><a href="#M000069">current_actions</a>,</li>
+                
+                <li><a href="#M000076">current_methods</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000077">default_action</a>,</li>
+                
+                <li><a href="#M000075">default_on</a>,</li>
+                
+                <li><a href="#M000074">do_match</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000066">find</a>,</li>
+                
+                <li><a href="#M000071">find_with</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000072">get_class</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000073">match_message</a>,</li>
+                
+                <li><a href="#M000078">matched_method</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000059">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000079">set_action_and_search</a>,</li>
+                
+                <li><a href="#M000070">split_method</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">OBJECTS</td>
+            <td>=</td>
+            <td class="attr-value">Mission::OBJECTS + %w{\S*?}</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">CONDITION</td>
+            <td>=</td>
+            <td class="attr-value">%q{(OBJECTS)\.?(METHODS)(?:\s+|\()(['&quot;:])?(.*)$}</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>actions</td>
+            <td class='attr-desc'><p>
+Hash of instance method completions which maps methods to hashes of modules
+to arrays ([action, search])
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>class_actions</td>
+            <td class='attr-desc'><p>
+Same as :actions but for class methods
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>last_find</td>
+            <td class='attr-desc'><p>
+Stores last search result from <a
+href="MethodMission.html#M000066">MethodMission.find</a>
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>last_class</td>
+            <td class='attr-desc'><p>
+Stores class from last search in <a
+href="MethodMission.html#M000066">MethodMission.find</a>
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000060">
+                    
+                    <a name="M000060"></a><b>action_methods</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Lists method names
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000060_source')" id="l_M000060_source">show</a>
+                        
+                    </p>
+                    <div id="M000060_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 96</span>
+96:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">action_methods</span>
+97:       (<span class="ruby-identifier">actions</span>.<span class="ruby-identifier">keys</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">class_actions</span>.<span class="ruby-identifier">keys</span>).<span class="ruby-identifier">uniq</span>
+98:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000065">
+                    
+                    <a name="M000065"></a><b>all_methods</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Lists full method names, prefixed with class/module
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000065_source')" id="l_M000065_source">show</a>
+                        
+                    </p>
+                    <div id="M000065_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 101</span>
+101:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_methods</span>
+102:       (<span class="ruby-identifier">class_actions</span>.<span class="ruby-identifier">map</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">m</span>,<span class="ruby-identifier">h</span><span class="ruby-operator">|</span> <span class="ruby-identifier">h</span>.<span class="ruby-identifier">map</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-node">&quot;#{k}.#{m}&quot;</span> } } <span class="ruby-operator">+</span>
+103:         <span class="ruby-identifier">actions</span>.<span class="ruby-identifier">map</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">m</span>,<span class="ruby-identifier">h</span><span class="ruby-operator">|</span> <span class="ruby-identifier">h</span>.<span class="ruby-identifier">map</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-node">&quot;#{k}##{m}&quot;</span> } }).<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">sort</span>
+104:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000068">
+                    
+                    <a name="M000068"></a><b>any_const_get</b>(name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a constant like Module#const_get no matter what namespace
+it&#8217;s nested in. Returns nil if the constant is not found.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000068_source')" id="l_M000068_source">show</a>
+                        
+                    </p>
+                    <div id="M000068_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 118</span>
+118:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">any_const_get</span>(<span class="ruby-identifier">name</span>)
+119:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">name</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Module</span>)
+120:       <span class="ruby-identifier">klass</span> = <span class="ruby-constant">Object</span>
+121:       <span class="ruby-identifier">name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'::'</span>).<span class="ruby-identifier">each</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span> <span class="ruby-identifier">klass</span> = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">const_get</span>(<span class="ruby-identifier">e</span>) }
+122:       <span class="ruby-identifier">klass</span>
+123:     <span class="ruby-keyword kw">rescue</span>
+124:        <span class="ruby-keyword kw">nil</span>
+125:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000057">
+                    
+                    <a name="M000057"></a><b>create</b>(options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a method action given the same options as <a
+href="../Bond.html#M000106">Bond.complete</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000057_source')" id="l_M000057_source">show</a>
+                        
+                    </p>
+                    <div id="M000057_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 64</span>
+64:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create</span>(<span class="ruby-identifier">options</span>)
+65:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:action</span>].<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">String</span>)
+66:         <span class="ruby-identifier">klass</span>, <span class="ruby-identifier">klass_meth</span> = <span class="ruby-identifier">split_method</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:action</span>])
+67:         <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">arr</span> = (<span class="ruby-identifier">current_actions</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:action</span>])[<span class="ruby-identifier">klass_meth</span>] <span class="ruby-operator">||</span> {})[<span class="ruby-identifier">klass</span>])
+68:           <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:action</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:search</span>] = [<span class="ruby-identifier">arr</span>[<span class="ruby-value">0</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:search</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">arr</span>[<span class="ruby-value">1</span>]]
+69:         <span class="ruby-keyword kw">else</span>
+70:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidMissionError</span>, <span class="ruby-value str">&quot;string :action&quot;</span>
+71:         <span class="ruby-keyword kw">end</span>
+72:       <span class="ruby-keyword kw">end</span>
+73: 
+74:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidMissionError</span>, <span class="ruby-value str">&quot;array :method&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:method</span>].<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Array</span>)
+75:       <span class="ruby-identifier">meths</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:methods</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">Array</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:method</span>])
+76:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidMissionError</span>, <span class="ruby-value str">&quot;non-string :method(s)&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">meths</span>.<span class="ruby-identifier">all?</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">String</span>) }
+77:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:class</span>].<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">String</span>)
+78:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:class</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">'#'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:class</span>][<span class="ruby-regexp re">/[#.]$/</span>]
+79:         <span class="ruby-identifier">meths</span>.<span class="ruby-identifier">map!</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:class</span>] <span class="ruby-operator">+</span> <span class="ruby-identifier">e</span> }
+80:       <span class="ruby-keyword kw">end</span>
+81: 
+82:       <span class="ruby-identifier">meths</span>.<span class="ruby-identifier">each</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">meth</span><span class="ruby-operator">|</span>
+83:         <span class="ruby-identifier">klass</span>, <span class="ruby-identifier">klass_meth</span> = <span class="ruby-identifier">split_method</span>(<span class="ruby-identifier">meth</span>)
+84:         (<span class="ruby-identifier">current_actions</span>(<span class="ruby-identifier">meth</span>)[<span class="ruby-identifier">klass_meth</span>] <span class="ruby-operator">||=</span> {})[<span class="ruby-identifier">klass</span>] = [<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:action</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:search</span>]].<span class="ruby-identifier">compact</span>
+85:       }
+86:       <span class="ruby-keyword kw">nil</span>
+87:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000066">
+                    
+                    <a name="M000066"></a><b>find</b>(obj, meth)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the first completion by looking up the object&#8217;s ancestors and
+finding the closest one that has a completion definition for the given
+method. Completion is returned as an array containing action proc and
+optional search to go with it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000066_source')" id="l_M000066_source">show</a>
+                        
+                    </p>
+                    <div id="M000066_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 109</span>
+109:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find</span>(<span class="ruby-identifier">obj</span>, <span class="ruby-identifier">meth</span>)
+110:       <span class="ruby-identifier">last_find</span> = <span class="ruby-identifier">find_with</span>(<span class="ruby-identifier">obj</span>, <span class="ruby-identifier">meth</span>, <span class="ruby-identifier">:&lt;=</span>, <span class="ruby-ivar">@class_actions</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Module</span>)
+111:       <span class="ruby-identifier">last_find</span> = <span class="ruby-identifier">find_with</span>(<span class="ruby-identifier">obj</span>, <span class="ruby-identifier">meth</span>, <span class="ruby-identifier">:is_a?</span>, <span class="ruby-ivar">@actions</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">last_find</span>
+112:       <span class="ruby-ivar">@last_class</span> = <span class="ruby-identifier">last_find</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Array</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">last_find</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+113:       <span class="ruby-ivar">@last_find</span> = <span class="ruby-identifier">last_find</span> <span class="ruby-value">? </span><span class="ruby-identifier">last_find</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">:</span> <span class="ruby-identifier">last_find</span>
+114:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000059">
+                    
+                    <a name="M000059"></a><b>reset</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Resets all instance and class method actions.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000059_source')" id="l_M000059_source">show</a>
+                        
+                    </p>
+                    <div id="M000059_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 90</span>
+90:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reset</span>
+91:       <span class="ruby-ivar">@actions</span> = {}
+92:       <span class="ruby-ivar">@class_actions</span> = {}
+93:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000069">
+                    
+                    <a name="M000069"></a><b>current_actions</b>(meth)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000069_source')" id="l_M000069_source">show</a>
+                        
+                    </p>
+                    <div id="M000069_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 128</span>
+128:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">current_actions</span>(<span class="ruby-identifier">meth</span>)
+129:       <span class="ruby-identifier">meth</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-value str">'.'</span>) <span class="ruby-operator">?</span> <span class="ruby-ivar">@class_actions</span> <span class="ruby-operator">:</span> <span class="ruby-ivar">@actions</span>
+130:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000071">
+                    
+                    <a name="M000071"></a><b>find_with</b>(obj, meth, find_meth, actions)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000071_source')" id="l_M000071_source">show</a>
+                        
+                    </p>
+                    <div id="M000071_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 137</span>
+137:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_with</span>(<span class="ruby-identifier">obj</span>, <span class="ruby-identifier">meth</span>, <span class="ruby-identifier">find_meth</span>, <span class="ruby-identifier">actions</span>)
+138:       (<span class="ruby-identifier">actions</span>[<span class="ruby-identifier">meth</span>] <span class="ruby-operator">||</span> {}).<span class="ruby-identifier">select</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">get_class</span>(<span class="ruby-identifier">k</span>) }.
+139:         <span class="ruby-identifier">sort</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">a</span>,<span class="ruby-identifier">b</span><span class="ruby-operator">|</span> <span class="ruby-identifier">get_class</span>(<span class="ruby-identifier">a</span>[<span class="ruby-value">0</span>]) <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">get_class</span>(<span class="ruby-identifier">b</span>[<span class="ruby-value">0</span>]) <span class="ruby-operator">||</span> <span class="ruby-value">-1</span> }.
+140:         <span class="ruby-identifier">find</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">find_meth</span>, <span class="ruby-identifier">get_class</span>(<span class="ruby-identifier">k</span>)) }
+141:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000072">
+                    
+                    <a name="M000072"></a><b>get_class</b>(klass)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000072_source')" id="l_M000072_source">show</a>
+                        
+                    </p>
+                    <div id="M000072_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 143</span>
+143:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_class</span>(<span class="ruby-identifier">klass</span>)
+144:       (<span class="ruby-ivar">@klasses</span> <span class="ruby-operator">||=</span> {})[<span class="ruby-identifier">klass</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">any_const_get</span>(<span class="ruby-identifier">klass</span>)
+145:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000070">
+                    
+                    <a name="M000070"></a><b>split_method</b>(meth)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000070_source')" id="l_M000070_source">show</a>
+                        
+                    </p>
+                    <div id="M000070_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 132</span>
+132:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">split_method</span>(<span class="ruby-identifier">meth</span>)
+133:       <span class="ruby-identifier">meth</span> = <span class="ruby-node">&quot;Kernel##{meth}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">meth</span>.<span class="ruby-identifier">to_s</span>[<span class="ruby-regexp re">/[.#]/</span>]
+134:       <span class="ruby-identifier">meth</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/[.#]/</span>,<span class="ruby-value">2</span>)
+135:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000073">
+                    
+                    <a name="M000073"></a><b>match_message</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000073_source')" id="l_M000073_source">show</a>
+                        
+                    </p>
+                    <div id="M000073_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 152</span>
+152:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">match_message</span> <span class="ruby-comment cmt">#@private</span>
+153:     <span class="ruby-node">&quot;Matches completion for method '#{@meth}' in '#{MethodMission.last_class}'.&quot;</span>
+154:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000080">
+                    
+                    <a name="M000080"></a><b>after_match</b>(input)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000080_source')" id="l_M000080_source">show</a>
+                        
+                    </p>
+                    <div id="M000080_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 183</span>
+183:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">after_match</span>(<span class="ruby-identifier">input</span>)
+184:     <span class="ruby-identifier">set_action_and_search</span>
+185:     <span class="ruby-ivar">@completion_prefix</span>, <span class="ruby-identifier">typed</span> = <span class="ruby-ivar">@matched</span>[<span class="ruby-value">3</span>], <span class="ruby-ivar">@matched</span>[<span class="ruby-value">-1</span>]
+186:     <span class="ruby-identifier">input_options</span> = {<span class="ruby-identifier">:object</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@evaled_object</span>, <span class="ruby-identifier">:argument</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span><span class="ruby-operator">+</span><span class="ruby-identifier">typed</span>.<span class="ruby-identifier">count</span>(<span class="ruby-value str">','</span>),
+187:       <span class="ruby-identifier">:arguments</span> =<span class="ruby-operator">&gt;</span> (<span class="ruby-ivar">@completion_prefix</span>.<span class="ruby-identifier">to_s</span><span class="ruby-operator">+</span><span class="ruby-identifier">typed</span>).<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\s*,\s*/</span>) }
+188:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">typed</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-value str">','</span>) <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-identifier">match</span> = <span class="ruby-identifier">typed</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/(.*?\s*)([^,]*)$/</span>))
+189:       <span class="ruby-identifier">typed</span> = <span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>]
+190:       <span class="ruby-identifier">typed</span>.<span class="ruby-identifier">sub!</span>(<span class="ruby-regexp re">/^(['&quot;:])/</span>,<span class="ruby-value str">''</span>)
+191:       <span class="ruby-ivar">@completion_prefix</span> = <span class="ruby-identifier">typed</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-value">? </span><span class="ruby-value str">''</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{@matched[3]}#{match[1]}#{$1}&quot;</span>
+192:     <span class="ruby-keyword kw">end</span>
+193:     <span class="ruby-identifier">create_input</span> <span class="ruby-identifier">typed</span>, <span class="ruby-identifier">input_options</span>
+194:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000076">
+                    
+                    <a name="M000076"></a><b>current_methods</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000076_source')" id="l_M000076_source">show</a>
+                        
+                    </p>
+                    <div id="M000076_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 166</span>
+166:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">current_methods</span>
+167:     <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">action_methods</span> <span class="ruby-operator">-</span> <span class="ruby-constant">OPERATORS</span>
+168:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000077">
+                    
+                    <a name="M000077"></a><b>default_action</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000077_source')" id="l_M000077_source">show</a>
+                        
+                    </p>
+                    <div id="M000077_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 170</span>
+170:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">default_action</span>
+171:     <span class="ruby-constant">MethodMission</span>.<span class="ruby-identifier">last_find</span>[<span class="ruby-value">0</span>]
+172:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000075">
+                    
+                    <a name="M000075"></a><b>default_on</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000075_source')" id="l_M000075_source">show</a>
+                        
+                    </p>
+                    <div id="M000075_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 162</span>
+162:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">default_on</span>
+163:     <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">condition_with_objects</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-value str">'METHODS'</span>,<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">current_methods</span>).<span class="ruby-identifier">to_s</span>)
+164:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000074">
+                    
+                    <a name="M000074"></a><b>do_match</b>(input)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000074_source')" id="l_M000074_source">show</a>
+                        
+                    </p>
+                    <div id="M000074_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 157</span>
+157:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_match</span>(<span class="ruby-identifier">input</span>)
+158:     (<span class="ruby-ivar">@on</span> = <span class="ruby-identifier">default_on</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-keyword kw">super</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">eval_object</span>(<span class="ruby-ivar">@matched</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">?</span> <span class="ruby-ivar">@matched</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">:</span> <span class="ruby-value str">'self'</span>) <span class="ruby-operator">&amp;&amp;</span>
+159:       <span class="ruby-constant">MethodMission</span>.<span class="ruby-identifier">find</span>(<span class="ruby-ivar">@evaled_object</span>, <span class="ruby-ivar">@meth</span> = <span class="ruby-identifier">matched_method</span>)
+160:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000078">
+                    
+                    <a name="M000078"></a><b>matched_method</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000078_source')" id="l_M000078_source">show</a>
+                        
+                    </p>
+                    <div id="M000078_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 174</span>
+174:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">matched_method</span>
+175:     <span class="ruby-ivar">@matched</span>[<span class="ruby-value">2</span>]
+176:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000079">
+                    
+                    <a name="M000079"></a><b>set_action_and_search</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000079_source')" id="l_M000079_source">show</a>
+                        
+                    </p>
+                    <div id="M000079_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bond/missions/method_mission.rb, line 178</span>
+178:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_action_and_search</span>
+179:     <span class="ruby-ivar">@action</span> = <span class="ruby-identifier">default_action</span>
+180:     <span class="ruby-ivar">@search</span> = <span class="ruby-constant">MethodMission</span>.<span class="ruby-identifier">last_find</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">Search</span>.<span class="ruby-identifier">default_search</span>
+181:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Thu Jan 12 02:51:03 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# Sprockets: Rack-based asset packaging
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> is a Ruby library for
+compiling and serving web assets. It features declarative dependency
+management for JavaScript and CSS assets, as well as a powerful
+preprocessor pipeline that allows you to write assets in languages like
+CoffeeScript, Sass, SCSS and LESS.
+</p>
+<p>
+# Installation #
+</p>
+<p>
+Install <a href="../classes/Sprockets.html">Sprockets</a> from RubyGems:
+</p>
+<pre>
+    $ gem install sprockets
+</pre>
+<p>
+Or include it in your project&#8217;s `Gemfile` with Bundler:
+</p>
+<pre>
+    gem 'sprockets', '~&gt; 2.0'
+</pre>
+<p>
+# Understanding the <a href="../classes/Sprockets.html">Sprockets</a>
+Environment #
+</p>
+<p>
+You&#8217;ll need an instance of the `Sprockets::Environment` class to
+access and serve assets from your application. Under Rails 3.1 and later,
+`YourApp::Application.assets` is a preconfigured `Sprockets::Environment`
+instance. For Rack-based applications, create an instance in `config.ru`.
+</p>
+<p>
+The <a href="../classes/Sprockets.html">Sprockets</a> `Environment` has
+methods for retrieving and serving assets, manipulating the load path, and
+registering processors. It is also a Rack application that can be mounted
+at a URL to serve assets over HTTP.
+</p>
+<p>
+## The Load Path ##
+</p>
+<p>
+The *load path* is an ordered list of directories that <a
+href="../classes/Sprockets.html">Sprockets</a> uses to search for assets.
+</p>
+<p>
+In the simplest case, a <a href="../classes/Sprockets.html">Sprockets</a>
+environment&#8217;s load path will consist of a single directory containing
+your application&#8217;s asset source files. When mounted, the environment
+will serve assets from this directory as if they were static files in your
+public root.
+</p>
+<p>
+The power of the load path is that it lets you organize your source files
+into multiple directories &#8212; even directories that live outside your
+application &#8212; and combine those directories into a single virtual
+filesystem. That means you can easily bundle JavaScript, CSS and images
+into a Ruby library and import them into your application.
+</p>
+<p>
+### Manipulating the Load Path ###
+</p>
+<p>
+To add a directory to your environment&#8217;s load path, use the
+`append_path` and `prepend_path` methods. Directories at the beginning of
+the load path have precedence over subsequent directories.
+</p>
+<pre>
+    environment = Sprockets::Environment.new
+    environment.append_path 'app/assets/javascripts'
+    environment.append_path 'lib/assets/javascripts'
+    environment.append_path 'vendor/assets/jquery'
+</pre>
+<p>
+In general, you should append to the path by default and reserve prepending
+for cases where you need to override existing assets.
+</p>
+<p>
+## Accessing Assets ##
+</p>
+<p>
+Once you&#8217;ve set up your environment&#8217;s load path, you can mount
+the environment as a Rack server and request assets via HTTP. You can also
+access assets programmatically from within your application.
+</p>
+<p>
+### Logical Paths ###
+</p>
+<p>
+Assets in <a href="../classes/Sprockets.html">Sprockets</a> are always
+referenced by their *logical path*.
+</p>
+<p>
+The logical path is the path of the asset source file relative to its
+containing directory in the load path. For example, if your load path
+contains the directory `app/assets/javascripts`:
+</p>
+<p>
+<table>
+</p>
+<pre>
+  &lt;tr&gt;
+    &lt;th&gt;Asset source file&lt;/th&gt;
+    &lt;th&gt;Logical path&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;app/assets/javascripts/application.js&lt;/td&gt;
+    &lt;td&gt;application.js&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;app/assets/javascripts/models/project.js&lt;/td&gt;
+    &lt;td&gt;models/project.js&lt;/td&gt;
+  &lt;/tr&gt;
+</pre>
+<p>
+</table>
+</p>
+<p>
+In this way, all directories in the load path are merged to create a
+virtual filesystem whose entries are logical paths.
+</p>
+<p>
+### Serving Assets Over HTTP ###
+</p>
+<p>
+When you mount an environment, all of its assets are accessible as logical
+paths underneath the *mount point*. For example, if you mount your
+environment at `/assets` and request the URL `/assets/application.js`, <a
+href="../classes/Sprockets.html">Sprockets</a> will search your load path
+for the file named `application.js` and serve it.
+</p>
+<p>
+Under Rails 3.1 and later, your <a
+href="../classes/Sprockets.html">Sprockets</a> environment is automatically
+mounted at `/assets`. If you are using <a
+href="../classes/Sprockets.html">Sprockets</a> with a Rack application, you
+will need to mount the environment yourself. A good way to do this is with
+the `map` method in `config.ru`:
+</p>
+<pre>
+    require 'sprockets'
+    map '/assets' do
+      environment = Sprockets::Environment.new
+      environment.append_path 'app/assets/javascripts'
+      environment.append_path 'app/assets/stylesheets'
+      run environment
+    end
+
+    map '/' do
+      run YourRackApp
+    end
+</pre>
+<p>
+### Accessing Assets Programmatically ###
+</p>
+<p>
+You can use the `find_asset` method (aliased as `[]`) to retrieve an asset
+from a <a href="../classes/Sprockets.html">Sprockets</a> environment. Pass
+it a logical path and you&#8217;ll get a `Sprockets::BundledAsset` instance
+back:
+</p>
+<pre>
+    environment['application.js']
+    # =&gt; #&lt;Sprockets::BundledAsset ...&gt;
+</pre>
+<p>
+Call `to_s` on the resulting asset to access its contents, `length` to get
+its length in bytes, `mtime` to query its last-modified time, and
+`pathname` to get its full path on the filesystem.
+</p>
+<p>
+# Using Engines #
+</p>
+<p>
+Asset source files can be written in another language, like SCSS or
+CoffeeScript, and automatically compiled to CSS or JavaScript by <a
+href="../classes/Sprockets.html">Sprockets</a>. Compilers for these
+languages are called <b>engines</b>.
+</p>
+<p>
+Engines are specified by additional extensions on the asset source
+filename. For example, a CSS file written in SCSS might have the name
+`layout.css.scss`, while a JavaScript file written in CoffeeScript might
+have the name `dialog.js.coffee`.
+</p>
+<p>
+## Styling with Sass and SCSS ##
+</p>
+<p>
+[Sass](<a href="http://sass-lang.com/">sass-lang.com/</a>) is a language
+that compiles to CSS and adds features like nested rules, variables, mixins
+and selector inheritance.
+</p>
+<p>
+If the `sass` gem is available to your application, you can use Sass to
+write CSS assets in <a href="../classes/Sprockets.html">Sprockets</a>.
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> supports both Sass
+syntaxes. For the original whitespace-sensitive syntax, use the extension
+`.css.sass`. For the new SCSS syntax, use the extension `.css.scss`.
+</p>
+<p>
+## Styling with LESS ##
+</p>
+<p>
+[LESS](<a href="http://lesscss.org/">lesscss.org/</a>) extends CSS with
+dynamic behavior such as variables, mixins, operations and functions.
+</p>
+<p>
+If the `less` gem is available to your application, you can use LESS to
+write CSS assets in <a href="../classes/Sprockets.html">Sprockets</a>. Note
+that the LESS compiler is written in JavaScript, and at the time of this
+writing, the `less` gem depends on `therubyracer` which embeds the V8
+JavaScript runtime in Ruby.
+</p>
+<p>
+To write CSS assets with LESS, use the extension `.css.less`.
+</p>
+<p>
+## Scripting with CoffeeScript ##
+</p>
+<p>
+[CoffeeScript](<a
+href="http://jashkenas.github.com/coffee-script">jashkenas.github.com/coffee-script</a>/)
+is a language that compiles to the &#8220;good parts&#8221; of JavaScript,
+featuring a cleaner syntax with array comprehensions, classes, and function
+binding.
+</p>
+<p>
+If the `coffee-script` gem is available to your application, you can use
+CoffeeScript to write JavaScript assets in <a
+href="../classes/Sprockets.html">Sprockets</a>. Note that the CoffeeScript
+compiler is written in JavaScript, and you will need an [ExecJS](<a
+href="https://github.com/sstephenson/execjs)-supported">github.com/sstephenson/execjs)-supported</a>
+runtime on your system to invoke it.
+</p>
+<p>
+To write JavaScript assets with CoffeeScript, use the extension
+`.js.coffee`.
+</p>
+<p>
+## JavaScript Templating with EJS and Eco ##
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> supports *JavaScript
+templates* for client-side rendering of strings or markup. JavaScript
+templates have the special format extension `.jst` and are compiled to
+JavaScript functions.
+</p>
+<p>
+When loaded, a JavaScript template function can be accessed by its logical
+path as a property on the global `JST` object. Invoke a template function
+to render the template as a string. The resulting string can then be
+inserted into the DOM.
+</p>
+<pre>
+    &lt;!-- templates/hello.jst.ejs --&gt;
+    &lt;div&gt;Hello, &lt;span&gt;&lt;%= name %&gt;&lt;/span&gt;!&lt;/div&gt;
+
+    // application.js
+    //= require templates/hello
+    $(&quot;#hello&quot;).html(JST[&quot;templates/hello&quot;]({ name: &quot;Sam&quot; }));
+</pre>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> supports two JavaScript
+template languages: [EJS](<a
+href="https://github.com/sstephenson/ruby-ejs">github.com/sstephenson/ruby-ejs</a>),
+for embedded JavaScript, and [Eco](<a
+href="https://github.com/sstephenson/ruby-eco">github.com/sstephenson/ruby-eco</a>),
+for embedded CoffeeScript. Both languages use the familiar `<% … %>`
+syntax for embedding logic in templates.
+</p>
+<p>
+If the `ejs` gem is available to your application, you can use EJS
+templates in <a href="../classes/Sprockets.html">Sprockets</a>. EJS
+templates have the extension `.jst.ejs`.
+</p>
+<p>
+If the `eco` gem is available to your application, you can use [Eco
+templates](<a
+href="https://github.com/sstephenson/eco">github.com/sstephenson/eco</a>)
+in <a href="../classes/Sprockets.html">Sprockets</a>. Eco templates have
+the extension `.jst.eco`. Note that the `eco` gem depends on the
+CoffeeScript compiler, so the same caveats apply as outlined above for the
+CoffeeScript engine.
+</p>
+<p>
+## Invoking Ruby with ERB ##
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> provides an ERB engine
+for preprocessing assets using embedded Ruby code. Append `.erb` to a CSS
+or JavaScript asset&#8217;s filename to enable the ERB engine.
+</p>
+<p>
+*<b>Note</b>*: <a href="../classes/Sprockets.html">Sprockets</a> processes
+multiple engine extensions in order from
+</p>
+<pre>
+  right to left, so you can use multiple engines with a single
+  asset. For example, to have a CoffeeScript asset that is first
+  preprocessed with ERB, use the extension `.js.coffee.erb`.
+</pre>
+<p>
+Ruby code embedded in an asset is evaluated in the context of a
+`Sprockets::Context` instance for the given asset. Common uses for ERB
+include:
+</p>
+<ul>
+<li>embedding another asset as a Base64-encoded `data:` URI with the
+`asset_data_uri` helper
+
+</li>
+<li>inserting the URL to another asset, such as with the `asset_path` helper
+provided by the <a href="../classes/Sprockets.html">Sprockets</a> Rails
+plugin
+
+</li>
+<li>embedding other application resources, such as a localized string database,
+in a JavaScript asset via JSON
+
+</li>
+<li>embedding version constants loaded from another file
+
+</li>
+</ul>
+<p>
+See the [Helper Methods](FIXME) section for more information about
+interacting with `Sprockets::Context` instances via ERB.
+</p>
+<p>
+### String Interpolation Syntax ###
+</p>
+<p>
+If you need access to Ruby from an asset but cannot use ERB&#8217;s `<% …
+%>` syntax, <a href="../classes/Sprockets.html">Sprockets</a> also supports
+Ruby string interpolation syntax (`#{ … }`) with the `.str` engine
+extension.
+</p>
+<p>
+# Managing and Bundling Dependencies #
+</p>
+<p>
+You can create *asset bundles* &#8212; ordered concatenations of asset
+source files &#8212; by specifying dependencies in a special comment syntax
+at the top of each source file.
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> reads these comments,
+called <b>directives</b>, and processes them to recursively build a
+dependency graph. When you request an asset with dependencies, the
+dependencies will be included in order at the top of the file.
+</p>
+<p>
+## The Directive Processor ##
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> runs the *directive
+processor* on each CSS and JavaScript source file. The directive processor
+scans for comment lines beginning with `=` in comment blocks at the top of
+the file.
+</p>
+<pre>
+    //= require jquery
+    //= require jquery-ui
+    //= require backbone
+    //= require_tree .
+</pre>
+<p>
+The first word immediately following `=` specifies the directive name. Any
+words following the directive name are treated as arguments. Arguments may
+be placed in single or double quotes if they contain spaces, similar to
+commands in the Unix shell.
+</p>
+<p>
+*<b>Note</b>*: Non-directive comment lines will be preserved in the final
+</p>
+<pre>
+  asset, but directive comments are stripped after
+  processing. Sprockets will not look for directives in comment blocks
+  that occur after the first line of code.
+</pre>
+<p>
+### Supported Comment Types ###
+</p>
+<p>
+The directive processor understands comment blocks in three formats:
+</p>
+<pre>
+    /* Multi-line comment blocks (CSS, SCSS, JavaScript)
+     *= require foo
+     */
+
+    // Single-line comment blocks (SCSS, JavaScript)
+    //= require foo
+
+    # Single-line comment blocks (CoffeeScript)
+    #= require foo
+</pre>
+<p>
+## <a href="../classes/Sprockets.html">Sprockets</a> Directives ##
+</p>
+<p>
+You can use the following directives to declare dependencies in asset
+source files.
+</p>
+<p>
+For directives that take a <b>path</b> argument, you may specify either a
+logical path or a relative path. Relative paths begin with `./` and
+reference files relative to the location of the current file.
+</p>
+<p>
+### The `require` Directive ###
+</p>
+<p>
+`require` <b>path</b> inserts the contents of the asset source file
+specified by <b>path</b>. If the file is required multiple times, it will
+appear in the bundle only once.
+</p>
+<p>
+### The `include` Directive ###
+</p>
+<p>
+`include` <b>path</b> works like `require`, but inserts the contents of the
+specified source file even if it has already been included or required.
+</p>
+<p>
+### The `require_directory` Directive ###
+</p>
+<p>
+`require_directory` <b>path</b> requires all source files of the same
+format in the directory specified by <b>path</b>. Files are required in
+alphabetical order.
+</p>
+<p>
+### The `require_tree` Directive ###
+</p>
+<p>
+`require_tree` <b>path</b> works like `require_directory`, but operates
+recursively to require all files in all subdirectories of the directory
+specified by <b>path</b>.
+</p>
+<p>
+### The `require_self` Directive ###
+</p>
+<p>
+`require_self` tells <a href="../classes/Sprockets.html">Sprockets</a> to
+insert the body of the current source file before any subsequent `require`
+or `include` directives.
+</p>
+<p>
+### The `depend_on` Directive ###
+</p>
+<p>
+`depend_on` <b>path</b> declares a dependency on the given <b>path</b>
+without including it in the bundle. This is useful when you need to expire
+an asset&#8217;s cache in response to a change in another file.
+</p>
+<p>
+# Development #
+</p>
+<p>
+## Contributing ##
+</p>
+<p>
+The <a href="../classes/Sprockets.html">Sprockets</a> source code is
+[hosted on GitHub](<a
+href="https://github.com/sstephenson/sprockets">github.com/sstephenson/sprockets</a>).
+You can check out a copy of the latest code using Git:
+</p>
+<pre>
+    $ git clone https://github.com/sstephenson/sprockets.git
+</pre>
+<p>
+If you&#8217;ve found a bug or have a question, please open an issue on the
+[<a href="../classes/Sprockets.html">Sprockets</a> issue tracker](<a
+href="https://github.com/sstephenson/sprockets/issues">github.com/sstephenson/sprockets/issues</a>).
+Or, clone the <a href="../classes/Sprockets.html">Sprockets</a> repository,
+write a failing test case, fix the bug and submit a pull request.
+</p>
+<p>
+## Version History ##
+</p>
+<p>
+*<b>2.2.0</b>* (Unreleased)
+</p>
+<ul>
+<li>Added `sprockets` command line utility.
+
+</li>
+<li>Added rake/sprocketstask.
+
+</li>
+<li>Added json manifest log of compiled assets.
+
+</li>
+<li>Added `stub` directive that allows you to exclude files from the bundle.
+
+</li>
+<li>Added per environment external encoding
+(Environment#default_external_encoding). Defaults to UTF-8. Fixes issues
+where LANG is not set correctly and Rubys default external is set to ASCII.
+
+</li>
+</ul>
+<p>
+*<b>2.1.2</b>* (November 20, 2011)
+</p>
+<ul>
+<li>Disabled If-Modified-Since server checks. Fixes some browser caching issues
+when serving the asset body only. If-None-Match caching is sufficent.
+
+</li>
+</ul>
+<p>
+*<b>2.1.1</b>* (November 18, 2011)
+</p>
+<ul>
+<li>Fix windows absolute path check bug.
+
+</li>
+</ul>
+<p>
+*<b>2.1.0</b>* (November 11, 2011)
+</p>
+<ul>
+<li>Directive comment lines are now turned into empty lines instead of removed.
+This way line numbers in CoffeeScript syntax errors are correct.
+
+</li>
+<li>Performance and caching bug fixes.
+
+</li>
+</ul>
+<p>
+*<b>2.0.3</b>* (October 17, 2011)
+</p>
+<ul>
+<li>Detect format extensions from right to left.
+
+</li>
+<li>Make JST namespace configurable.
+
+</li>
+</ul>
+<p>
+*<b>2.0.2</b>* (October 4, 2011)
+</p>
+<ul>
+<li>Fixed loading stale cache from bundler gems.
+
+</li>
+</ul>
+<p>
+*<b>2.0.1</b>* (September 30, 2011)
+</p>
+<ul>
+<li>Fixed bug with fingerprinting file names with multiple dots.
+
+</li>
+<li>Decode URIs as default internal.
+
+</li>
+<li>Fix symlinked asset directories.
+
+</li>
+</ul>
+<p>
+*<b>2.0.0</b>* (August 29, 2011)
+</p>
+<ul>
+<li>Initial public release.
+
+</li>
+</ul>
+<p>
+# License #
+</p>
+<p>
+Copyright &amp;copy; 2011 Sam Stephenson <<sstephenson@gmail.com>>
+</p>
+<p>
+Copyright &amp;copy; 2011 Joshua Peek <<josh@joshpeek.com>>
+</p>
+<p>
+<a href="../classes/Sprockets.html">Sprockets</a> is distributed under an
+MIT-style license. See <a href="LICENSE.html">LICENSE</a> for details.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

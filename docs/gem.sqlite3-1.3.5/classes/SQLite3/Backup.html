@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>SQLite3::Backup</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            SQLite3::Backup 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/ext/sqlite3/sqlite3_c.html">ext/sqlite3/sqlite3.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+call-seq: <a href="Backup.html#M000005">SQLite3::Backup#pagecount</a>
+</p>
+<p>
+Returns the total number of pages in the source database file.
+</p>
+<p>
+Note that the value is only updated after step() is called, so before
+calling step() returned value is invalid.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000003">finish</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000001">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000005">pagecount</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000004">remaining</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000002">step</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000001">
+                    
+                    <a name="M000001"></a><b> SQLite3::Backup.new(dstdb, dstname, srcdb, srcname)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Initialize backup the backup.
+</p>
+<p>
+dstdb:
+</p>
+<pre>
+  the destination SQLite3::Database object.
+</pre>
+<p>
+dstname:
+</p>
+<pre>
+  the destination's database name.
+</pre>
+<p>
+srcdb:
+</p>
+<pre>
+  the source SQLite3::Database object.
+</pre>
+<p>
+srcname:
+</p>
+<pre>
+  the source's database name.
+</pre>
+<p>
+The database name is &#8220;main&#8221;, &#8220;temp&#8221;, or the name
+specified in an ATTACH statement.
+</p>
+<p>
+This feature requires SQLite 3.6.11 or later.
+</p>
+<pre>
+  require 'sqlite3'
+  sdb = SQLite3::Database.new('src.sqlite3')
+
+  ddb = SQLite3::Database.new(':memory:')
+  b = SQLite3::Backup.new(ddb, 'main', sdb, 'main')
+  p [b.remaining, b.pagecount] # invalid value; for example [0, 0]
+  begin
+    p b.step(1) #=&gt; OK or DONE
+    p [b.remaining, b.pagecount]
+  end while b.remaining &gt; 0
+  b.finish
+
+  ddb = SQLite3::Database.new(':memory:')
+  b = SQLite3::Backup.new(ddb, 'main', sdb, 'main')
+  b.step(-1) #=&gt; DONE
+  b.finish
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000001_source')" id="l_M000001_source">show</a>
+                        
+                    </p>
+                    <div id="M000001_source" class="dyn-source">
+                        <pre>static VALUE initialize(VALUE self, VALUE dstdb, VALUE dstname, VALUE srcdb, VALUE srcname)
+{
+  sqlite3BackupRubyPtr ctx;
+  sqlite3RubyPtr ddb_ctx, sdb_ctx;
+  sqlite3_backup *pBackup;
+
+  Data_Get_Struct(self, sqlite3BackupRuby, ctx);
+  Data_Get_Struct(dstdb, sqlite3Ruby, ddb_ctx);
+  Data_Get_Struct(srcdb, sqlite3Ruby, sdb_ctx);
+
+  if(!sdb_ctx-&gt;db)
+    rb_raise(rb_eArgError, &quot;cannot backup from a closed database&quot;);
+  if(!ddb_ctx-&gt;db)
+    rb_raise(rb_eArgError, &quot;cannot backup to a closed database&quot;);
+
+  pBackup = sqlite3_backup_init(ddb_ctx-&gt;db, StringValuePtr(dstname),
+    sdb_ctx-&gt;db, StringValuePtr(srcname));
+  if( pBackup ){
+    ctx-&gt;p = pBackup;
+  }
+  else {
+    CHECK(ddb_ctx-&gt;db, sqlite3_errcode(ddb_ctx-&gt;db));
+  }
+
+  return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b> SQLite3::Backup#finish
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Destroy the backup object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>static VALUE finish(VALUE self)
+{
+  sqlite3BackupRubyPtr ctx;
+
+  Data_Get_Struct(self, sqlite3BackupRuby, ctx);
+  REQUIRE_OPEN_BACKUP(ctx);
+  (void)sqlite3_backup_finish(ctx-&gt;p);
+  ctx-&gt;p = NULL;
+  return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b> SQLite3::Backup#pagecount
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the total number of pages in the source database file.
+</p>
+<p>
+Note that the value is only updated after step() is called, so before
+calling step() returned value is invalid.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>static VALUE pagecount(VALUE self)
+{
+  sqlite3BackupRubyPtr ctx;
+
+  Data_Get_Struct(self, sqlite3BackupRuby, ctx);
+  REQUIRE_OPEN_BACKUP(ctx);
+  return INT2NUM(sqlite3_backup_pagecount(ctx-&gt;p));
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b> SQLite3::Backup#remaining
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the number of pages still to be backed up.
+</p>
+<p>
+Note that the value is only updated after step() is called, so before
+calling step() returned value is invalid.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>static VALUE remaining(VALUE self)
+{
+  sqlite3BackupRubyPtr ctx;
+
+  Data_Get_Struct(self, sqlite3BackupRuby, ctx);
+  REQUIRE_OPEN_BACKUP(ctx);
+  return INT2NUM(sqlite3_backup_remaining(ctx-&gt;p));
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000002">
+                    
+                    <a name="M000002"></a><b> SQLite3::Backup#step(nPage)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Copy database pages up to <tt>nPage</tt>. If negative, copy all remaining
+source pages.
+</p>
+<p>
+If all pages are copied, it returns SQLite3::Constants::ErrorCode::DONE.
+When coping is not done, it returns SQLite3::Constants::ErrorCode::OK. When
+some errors occur, it returns the error code.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000002_source')" id="l_M000002_source">show</a>
+                        
+                    </p>
+                    <div id="M000002_source" class="dyn-source">
+                        <pre>static VALUE step(VALUE self, VALUE nPage)
+{
+  sqlite3BackupRubyPtr ctx;
+  int status;
+
+  Data_Get_Struct(self, sqlite3BackupRuby, ctx);
+  REQUIRE_OPEN_BACKUP(ctx);
+  status = sqlite3_backup_step(ctx-&gt;p, NUM2INT(nPage));
+  return INT2NUM(status);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

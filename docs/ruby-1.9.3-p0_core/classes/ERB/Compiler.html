@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ERB::Compiler</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ERB::Compiler 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/erb_rb.html">lib/erb.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>ERB::Compiler</h1>
+<p>
+Compiles <a href="../ERB.html">ERB</a> templates into Ruby code; the
+compiled code produces the template result when evaluated. ERB::Compiler
+provides hooks to define how generated output is handled.
+</p>
+<p>
+Internally <a href="../ERB.html">ERB</a> does something like this to
+generate the code returned by <a href="../ERB.html#src">ERB#src</a>:
+</p>
+<pre>
+  compiler = ERB::Compiler.new('&lt;&gt;')
+  compiler.pre_cmd    = [&quot;_erbout=''&quot;]
+  compiler.put_cmd    = &quot;_erbout.concat&quot;
+  compiler.insert_cmd = &quot;_erbout.concat&quot;
+  compiler.post_cmd   = [&quot;_erbout&quot;]
+
+  code, enc = compiler.compile(&quot;Got &lt;%= obj %&gt;!\n&quot;)
+  puts code
+</pre>
+<p>
+<em>Generates</em>:
+</p>
+<pre>
+  #coding:UTF-8
+  _erbout=''; _erbout.concat &quot;Got &quot;; _erbout.concat(( obj ).to_s); _erbout.concat &quot;!\n&quot;; _erbout
+</pre>
+<p>
+By default the output is sent to the print method. For example:
+</p>
+<pre>
+  compiler = ERB::Compiler.new('&lt;&gt;')
+  code, enc = compiler.compile(&quot;Got &lt;%= obj %&gt;!\n&quot;)
+  puts code
+</pre>
+<p>
+<em>Generates</em>:
+</p>
+<pre>
+  #coding:UTF-8
+  print &quot;Got &quot;; print(( obj ).to_s); print &quot;!\n&quot;
+</pre>
+<h2>Evaluation</h2>
+<p>
+The compiled code can be used in any context where the names in the code
+correctly resolve. Using the last example, each of these print &#8216;Got
+It!&#8217;
+</p>
+<p>
+Evaluate using a variable:
+</p>
+<pre>
+  obj = 'It'
+  eval code
+</pre>
+<p>
+Evaluate using an input:
+</p>
+<pre>
+  mod = Module.new
+  mod.module_eval %{
+    def get(obj)
+      #{code}
+    end
+  }
+  extend mod
+  get('It')
+</pre>
+<p>
+Evaluate using an accessor:
+</p>
+<pre>
+  klass = Class.new Object
+  klass.class_eval %{
+    attr_accessor :obj
+    def initialize(obj)
+      @obj = obj
+    end
+    def get_it
+      #{code}
+    end
+  }
+  klass.new('It').get_it
+</pre>
+<p>
+Good! See also <a href="../ERB.html#M002183">ERB#def_method</a>, <a
+href="../ERB.html#M002184">ERB#def_module</a>, and <a
+href="../ERB.html#M002185">ERB#def_class</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/Buffer.html">ERB::Compiler::Buffer</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/ExplicitScanner.html">ERB::Compiler::ExplicitScanner</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/PercentLine.html">ERB::Compiler::PercentLine</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/Scanner.html">ERB::Compiler::Scanner</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/SimpleScanner.html">ERB::Compiler::SimpleScanner</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/SimpleScanner2.html">ERB::Compiler::SimpleScanner2</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Compiler/TrimScanner.html">ERB::Compiler::TrimScanner</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>    

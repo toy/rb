@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::Pool</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::Pool 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/pool_rb.html">lib/em/pool.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="Pool.html">EventMachine::Pool</a></h1>
+<p>
+A simple async resource pool based on a resource and work queue. Resources
+are enqueued and work waits for resources to become available.
+</p>
+<p>
+Example:
+</p>
+<pre>
+   EM.run do
+     pool  = EM::Pool.new
+     spawn = lambda { pool.add EM::HttpRequest.new('http://example.org') }
+     10.times { spawn[] }
+     done, scheduled = 0, 0
+
+     check = lambda do
+       done += 1
+       if done &gt;= scheduled
+         EM.stop
+       end
+     end
+
+     pool.on_error { |conn| spawn[] }
+
+     100.times do
+       pool.perform do |conn|
+         req = conn.get :path =&gt; '/', :keepalive =&gt; true
+
+         req.callback do
+           p [:success, conn.object_id, i, req.response.size]
+           check[]
+         end
+
+         req.errback { check[] }
+
+         req
+       end
+     end
+   end
+</pre>
+<p>
+Resources are expected to be controlled by an object responding to a
+deferrable/completion style API with callback and errback blocks.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000098">add</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000111">completion</a>,</li>
+                
+                <li><a href="#M000100">contents</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000110">failure</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000097">new</a>,</li>
+                
+                <li><a href="#M000107">num_waiting</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000101">on_error</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000103">perform</a>,</li>
+                
+                <li><a href="#M000112">process</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000099">remove</a>,</li>
+                
+                <li><a href="#M000108">removed?</a>,</li>
+                
+                <li><a href="#M000109">requeue</a>,</li>
+                
+                <li><a href="#M000106">reschedule</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000097">
+                    
+                    <a name="M000097"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000097_source')" id="l_M000097_source">show</a>
+                        
+                    </p>
+                    <div id="M000097_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/pool.rb, line 45</span>
+45:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+46:       <span class="ruby-ivar">@resources</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Queue</span>.<span class="ruby-identifier">new</span>
+47:       <span class="ruby-ivar">@removed</span> = []
+48:       <span class="ruby-ivar">@contents</span> = []
+49:       <span class="ruby-ivar">@on_error</span> = <span class="ruby-keyword kw">nil</span>
+50:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000098">
+                    
+                    <a name="M000098"></a><b>add</b>(resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000098_source')" id="l_M000098_source">show</a>
+                        
+                    </p>
+                    <div id="M000098_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/pool.rb, line 52</span>
+52:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add</span> <span class="ruby-identifier">resource</span>
+53:       <span class="ruby-ivar">@contents</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource</span>
+54:       <span class="ruby-identifier">requeue</span> <span class="ruby-identifier">resource</span>
+55:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000100">
+                    
+                    <a name="M000100"></a><b>contents</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a list for introspection purposes only. You should <b>NEVER</b>
+call modification or work oriented methods on objects in this list. A good
+example use case is periodic statistics collection against a set of
+connection resources.
+</p>
+<p>
+For example:
+</p>
+<pre>
+    pool.contents.inject(0) { |sum, connection| connection.num_bytes }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000100_source')" id="l_M000100_source">show</a>
+                        
+                    </p>
+                    <div id="M000100_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/pool.rb, line 69</span>
+69:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">contents</span>
+70:       <span class="ruby-ivar">@contents</span>.<span class="ruby-identifier">dup</span>
+71:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000107">
+                    
+                    <a name="M000107"></a><b>num_waiting</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A peek at the number of enqueued jobs waiting for resources
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000107_source')" id="l_M000107_source">show</a>
+                        
+                    </p>
+                    <div id="M000107_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 107</span>
+107:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">num_waiting</span>
+108:       <span class="ruby-ivar">@resources</span>.<span class="ruby-identifier">num_waiting</span>
+109:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000101">
+                    
+                    <a name="M000101"></a><b>on_error</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Define a default catch-all for when the deferrables returned by work blocks
+enter a failed state. By default all that happens is that the resource is
+returned to the pool. If <a href="Pool.html#M000101">on_error</a> is
+defined, this block is responsible for re-adding the resource to the pool
+if it is still usable. In other words, it is generally assumed that <a
+href="Pool.html#M000101">on_error</a> blocks explicitly handle the rest of
+the lifetime of the resource.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000101_source')" id="l_M000101_source">show</a>
+                        
+                    </p>
+                    <div id="M000101_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/pool.rb, line 79</span>
+79:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_error</span> <span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>
+80:       <span class="ruby-ivar">@on_error</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+81:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000103">
+                    
+                    <a name="M000103"></a><b>perform</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Perform a given call-able object or block. The callable object will be
+called with a resource from the pool as soon as one is available, and is
+expected to return a deferrable.
+</p>
+<p>
+The deferrable will have callback and errback added such that when the
+deferrable enters a finished state, the object is returned to the pool.
+</p>
+<p>
+If <a href="Pool.html#M000101">on_error</a> is defined, then objects are
+not automatically returned to the pool.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Pool.html#M000106">reschedule</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000103_source')" id="l_M000103_source">show</a>
+                        
+                    </p>
+                    <div id="M000103_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 92</span>
+ 92:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">perform</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+ 93:       <span class="ruby-identifier">work</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+ 94: 
+ 95:       <span class="ruby-ivar">@resources</span>.<span class="ruby-identifier">pop</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">resource</span><span class="ruby-operator">|</span>
+ 96:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">removed?</span> <span class="ruby-identifier">resource</span>
+ 97:           <span class="ruby-ivar">@removed</span>.<span class="ruby-identifier">delete</span> <span class="ruby-identifier">resource</span>
+ 98:           <span class="ruby-identifier">reschedule</span> <span class="ruby-identifier">work</span>
+ 99:         <span class="ruby-keyword kw">else</span>
+100:           <span class="ruby-identifier">process</span> <span class="ruby-identifier">work</span>, <span class="ruby-identifier">resource</span>
+101:         <span class="ruby-keyword kw">end</span>
+102:       <span class="ruby-keyword kw">end</span>
+103:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000099">
+                    
+                    <a name="M000099"></a><b>remove</b>(resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000099_source')" id="l_M000099_source">show</a>
+                        
+                    </p>
+                    <div id="M000099_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/pool.rb, line 57</span>
+57:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remove</span> <span class="ruby-identifier">resource</span>
+58:       <span class="ruby-ivar">@contents</span>.<span class="ruby-identifier">delete</span> <span class="ruby-identifier">resource</span>
+59:       <span class="ruby-ivar">@removed</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">resource</span>
+60:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000108">
+                    
+                    <a name="M000108"></a><b>removed?</b>(resource)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removed will show resources in a partial pruned state. Resources in the
+removed list may not appear in the contents list if they are currently in
+use.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000108_source')" id="l_M000108_source">show</a>
+                        
+                    </p>
+                    <div id="M000108_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 114</span>
+114:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">removed?</span> <span class="ruby-identifier">resource</span>
+115:       <span class="ruby-ivar">@removed</span>.<span class="ruby-identifier">include?</span> <span class="ruby-identifier">resource</span>
+116:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000106">
+                    
+                    <a name="M000106"></a><b>reschedule</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="Pool.html#M000103">perform</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000111">
+                    
+                    <a name="M000111"></a><b>completion</b>(deferrable, resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000111_source')" id="l_M000111_source">show</a>
+                        
+                    </p>
+                    <div id="M000111_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 131</span>
+131:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">completion</span> <span class="ruby-identifier">deferrable</span>, <span class="ruby-identifier">resource</span>
+132:       <span class="ruby-identifier">deferrable</span>.<span class="ruby-identifier">callback</span> { <span class="ruby-identifier">requeue</span> <span class="ruby-identifier">resource</span> }
+133:       <span class="ruby-identifier">deferrable</span>.<span class="ruby-identifier">errback</span>  { <span class="ruby-identifier">failure</span> <span class="ruby-identifier">resource</span> }
+134:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000110">
+                    
+                    <a name="M000110"></a><b>failure</b>(resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000110_source')" id="l_M000110_source">show</a>
+                        
+                    </p>
+                    <div id="M000110_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 123</span>
+123:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">failure</span> <span class="ruby-identifier">resource</span>
+124:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@on_error</span>
+125:         <span class="ruby-ivar">@on_error</span>.<span class="ruby-identifier">call</span> <span class="ruby-identifier">resource</span>
+126:       <span class="ruby-keyword kw">else</span>
+127:         <span class="ruby-identifier">requeue</span> <span class="ruby-identifier">resource</span>
+128:       <span class="ruby-keyword kw">end</span>
+129:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>process</b>(work, resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 136</span>
+136:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">process</span> <span class="ruby-identifier">work</span>, <span class="ruby-identifier">resource</span>
+137:       <span class="ruby-identifier">deferrable</span> = <span class="ruby-identifier">work</span>.<span class="ruby-identifier">call</span> <span class="ruby-identifier">resource</span>
+138:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">deferrable</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Deferrable</span>)
+139:         <span class="ruby-identifier">completion</span> <span class="ruby-identifier">deferrable</span>, <span class="ruby-identifier">resource</span>
+140:       <span class="ruby-keyword kw">else</span>
+141:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;deferrable expected from work&quot;</span>
+142:       <span class="ruby-keyword kw">end</span>
+143:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>requeue</b>(resource)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pool.rb, line 119</span>
+119:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">requeue</span> <span class="ruby-identifier">resource</span>
+120:       <span class="ruby-ivar">@resources</span>.<span class="ruby-identifier">push</span> <span class="ruby-identifier">resource</span>
+121:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,1319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenID::Consumer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            OpenID::Consumer 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/openid/consumer/associationmanager_rb.html">lib/openid/consumer/associationmanager.rb</a></li>
+            
+            <li><a href="../../files/lib/openid/consumer/checkid_request_rb.html">lib/openid/consumer/checkid_request.rb</a></li>
+            
+            <li><a href="../../files/lib/openid/consumer/discovery_manager_rb.html">lib/openid/consumer/discovery_manager.rb</a></li>
+            
+            <li><a href="../../files/lib/openid/consumer/idres_rb.html">lib/openid/consumer/idres.rb</a></li>
+            
+            <li><a href="../../files/lib/openid/consumer/responses_rb.html">lib/openid/consumer/responses.rb</a></li>
+            
+            <li><a href="../../files/lib/openid/consumer_rb.html">lib/openid/consumer.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../OpenID.html">OpenID</a> support for Relying Parties (aka
+Consumers).
+</p>
+<p>
+This module documents the main interface with the <a
+href="../OpenID.html">OpenID</a> consumer library. The only part of the
+library which has to be used and isn&#8217;t documented in full here is the
+store required to create an <a href="Consumer.html">Consumer</a> instance.
+</p>
+<h1>OVERVIEW</h1>
+<p>
+The <a href="../OpenID.html">OpenID</a> identity verification process most
+commonly uses the following steps, as visible to the user of this library:
+</p>
+<ol>
+<li>The user enters their <a href="../OpenID.html">OpenID</a> into a field on
+the consumer&#8217;s site, and hits a login button.
+
+</li>
+<li>The consumer site discovers the user&#8217;s <a
+href="../OpenID.html">OpenID</a> provider using the <a
+href="Yadis.html">Yadis</a> protocol.
+
+</li>
+<li>The consumer site sends the browser a redirect to the <a
+href="../OpenID.html">OpenID</a> provider. This is the authentication
+request as described in the <a href="../OpenID.html">OpenID</a>
+specification.
+
+</li>
+<li>The <a href="../OpenID.html">OpenID</a> provider&#8217;s site sends the
+browser a redirect back to the consumer site. This redirect contains the
+provider&#8217;s response to the authentication request.
+
+</li>
+</ol>
+<p>
+The most important part of the flow to note is the consumer&#8217;s site
+must handle two separate HTTP requests in order to perform the full
+identity check.
+</p>
+<h1>LIBRARY DESIGN</h1>
+<p>
+This consumer library is designed with that flow in mind. The goal is to
+make it as easy as possible to perform the above steps securely.
+</p>
+<p>
+At a high level, there are two important parts in the consumer library. The
+first important part is this module, which contains the interface to
+actually use this library. The second is openid/store/interface.rb, which
+describes the interface to use if you need to create a custom method for
+storing the state this library needs to maintain between requests.
+</p>
+<p>
+In general, the second part is less important for users of the library to
+know about, as several implementations are provided which cover a wide
+variety of situations in which consumers may use the library.
+</p>
+<p>
+The <a href="Consumer.html">Consumer</a> class has methods corresponding to
+the actions necessary in each of steps 2, 3, and 4 described in the
+overview. Use of this library should be as easy as creating an <a
+href="Consumer.html">Consumer</a> instance and calling the methods
+appropriate for the action the site wants to take.
+</p>
+<p>
+This library automatically detects which version of the <a
+href="../OpenID.html">OpenID</a> protocol should be used for a transaction
+and constructs the proper requests and responses. Users of this library do
+not need to worry about supporting multiple protocol versions; the library
+supports them implicitly. Depending on the version of the protocol in use,
+the <a href="../OpenID.html">OpenID</a> transaction may be more secure. See
+the <a href="../OpenID.html">OpenID</a> specifications for more
+information.
+</p>
+<h1>SESSIONS, STORES, AND STATELESS MODE</h1>
+<p>
+The <a href="Consumer.html">Consumer</a> object keeps track of two types of
+state:
+</p>
+<ol>
+<li>State of the user&#8217;s current authentication attempt. Things like the
+identity URL, the list of endpoints discovered for that URL, and in case
+where some endpoints are unreachable, the list of endpoints already tried.
+This state needs to be held from <a
+href="Consumer.html#M000147">Consumer.begin()</a> to <a
+href="Consumer.html#M000150">Consumer.complete()</a>, but it is only
+applicable to a single session with a single user agent, and at the end of
+the authentication process (i.e. when an OP replies with either
+<tt>id_res</tt>. or <tt>cancel</tt> it may be discarded.
+
+</li>
+<li>State of relationships with servers, i.e. shared secrets (associations)
+with servers and nonces seen on signed messages. This information should
+persist from one session to the next and should not be bound to a
+particular user-agent.
+
+</li>
+</ol>
+<p>
+These two types of storage are reflected in the first two arguments of
+Consumer&#8217;s constructor, <tt>session</tt> and <tt>store</tt>.
+<tt>session</tt> is a dict-like object and we hope your web framework
+provides you with one of these bound to the user agent. <tt>store</tt> is
+an instance of <a href="Store.html">Store</a>.
+</p>
+<p>
+Since the store does hold secrets shared between your application and the
+<a href="../OpenID.html">OpenID</a> provider, you should be careful about
+how you use it in a shared hosting environment. If the filesystem or
+database permissions of your web host allow strangers to read from them, do
+not store your data there! If you have no safe place to store your data,
+construct your consumer with nil for the store, and it will operate only in
+stateless mode. Stateless mode may be slower, put more load on the <a
+href="../OpenID.html">OpenID</a> provider, and trusts the provider to keep
+you safe from replay attacks.
+</p>
+<p>
+Several store implementation are provided, and the interface is fully
+documented so that custom stores can be used as well. See the documentation
+for the <a href="Consumer.html">Consumer</a> class for more information on
+the interface for stores. The implementations that are provided allow the
+consumer site to store the necessary data in several different ways,
+including several SQL databases and normal files on disk.
+</p>
+<h1>IMMEDIATE MODE</h1>
+<p>
+In the flow described above, the user may need to confirm to the <a
+href="../OpenID.html">OpenID</a> provider that it&#8217;s ok to disclose
+his or her identity. The provider may draw pages asking for information
+from the user before it redirects the browser back to the consumer&#8217;s
+site. This is generally transparent to the consumer site, so it is
+typically ignored as an implementation detail.
+</p>
+<p>
+There can be times, however, where the consumer site wants to get a
+response immediately. When this is the case, the consumer can put the
+library in immediate mode. In immediate mode, there is an extra response
+possible from the server, which is essentially the server reporting that it
+doesn&#8217;t have enough information to answer the question yet.
+</p>
+<h1>USING THIS LIBRARY</h1>
+<p>
+Integrating this library into an application is usually a relatively
+straightforward process. The process should basically follow this plan:
+</p>
+<p>
+Add an <a href="../OpenID.html">OpenID</a> login field somewhere on your
+site. When an <a href="../OpenID.html">OpenID</a> is entered in that field
+and the form is submitted, it should make a request to the your site which
+includes that <a href="../OpenID.html">OpenID</a> URL.
+</p>
+<p>
+First, the application should instantiate a <a
+href="Consumer.html">Consumer</a> with a session for per-user state and
+store for shared state using the store of choice.
+</p>
+<p>
+Next, the application should call the <tt>begin</tt> method of <a
+href="Consumer.html">Consumer</a> instance. This method takes the <a
+href="../OpenID.html">OpenID</a> URL as entered by the user. The
+<tt>begin</tt> method returns a <a
+href="Consumer/CheckIDRequest.html">CheckIDRequest</a> object.
+</p>
+<p>
+Next, the application should call the redirect_url method on the <a
+href="Consumer/CheckIDRequest.html">CheckIDRequest</a> object. The
+parameter <tt>return_to</tt> is the URL that the <a
+href="../OpenID.html">OpenID</a> server will send the user back to after
+attempting to verify his or her identity. The <tt>realm</tt> parameter is
+the URL (or URL pattern) that identifies your web site to the user when he
+or she is authorizing it. Send a redirect to the resulting URL to the
+user&#8217;s browser.
+</p>
+<p>
+That&#8217;s the first half of the authentication process. The second half
+of the process is done after the user&#8217;s <a
+href="../OpenID.html">OpenID</a> Provider sends the user&#8217;s browser a
+redirect back to your site to complete their login.
+</p>
+<p>
+When that happens, the user will contact your site at the URL given as the
+<tt>return_to</tt> URL to the redirect_url call made above. The request
+will have several query parameters added to the URL by the <a
+href="../OpenID.html">OpenID</a> provider as the information necessary to
+finish the request.
+</p>
+<p>
+Get a <a href="Consumer.html">Consumer</a> instance with the same session
+and store as before and call its complete() method, passing in all the
+received query arguments and URL currently being handled.
+</p>
+<p>
+There are multiple possible return types possible from that method. These
+indicate the whether or not the login was successful, and include any
+additional information appropriate for their type.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000161">association_manager</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000147">begin</a>,</li>
+                
+                <li><a href="#M000149">begin_without_discovery</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000156">cleanup_last_requested_endpoint</a>,</li>
+                
+                <li><a href="#M000158">cleanup_session</a>,</li>
+                
+                <li><a href="#M000150">complete</a>,</li>
+                
+                <li><a href="#M000164">complete_cancel</a>,</li>
+                
+                <li><a href="#M000165">complete_error</a>,</li>
+                
+                <li><a href="#M000167">complete_id_res</a>,</li>
+                
+                <li><a href="#M000163">complete_invalid</a>,</li>
+                
+                <li><a href="#M000166">complete_setup_needed</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000159">discover</a>,</li>
+                
+                <li><a href="#M000157">discovery_manager</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000162">handle_idres</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000154">last_requested_endpoint</a>,</li>
+                
+                <li><a href="#M000155">last_requested_endpoint=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000160">negotiator</a>,</li>
+                
+                <li><a href="#M000145">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000112">openid1_return_to_claimed_id_name</a>,</li>
+                
+                <li><a href="#M000111">openid1_return_to_claimed_id_name=</a>,</li>
+                
+                <li><a href="#M000110">openid1_return_to_nonce_name</a>,</li>
+                
+                <li><a href="#M000109">openid1_return_to_nonce_name=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000151">session_get</a>,</li>
+                
+                <li><a href="#M000153">session_key</a>,</li>
+                
+                <li><a href="#M000152">session_set</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Consumer/Response.html">OpenID::Consumer::Response</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/AssociationManager.html">OpenID::Consumer::AssociationManager</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/CancelResponse.html">OpenID::Consumer::CancelResponse</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/CheckIDRequest.html">OpenID::Consumer::CheckIDRequest</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/DiffieHellmanSHA1Session.html">OpenID::Consumer::DiffieHellmanSHA1Session</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/DiffieHellmanSHA256Session.html">OpenID::Consumer::DiffieHellmanSHA256Session</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/DiffieHellmanSession.html">OpenID::Consumer::DiffieHellmanSession</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/DiscoveredServices.html">OpenID::Consumer::DiscoveredServices</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/DiscoveryManager.html">OpenID::Consumer::DiscoveryManager</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/FailureResponse.html">OpenID::Consumer::FailureResponse</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/IdResHandler.html">OpenID::Consumer::IdResHandler</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/NoEncryptionSession.html">OpenID::Consumer::NoEncryptionSession</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/SetupNeededResponse.html">OpenID::Consumer::SetupNeededResponse</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Consumer/SuccessResponse.html">OpenID::Consumer::SuccessResponse</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">SUCCESS</td>
+            <td>=</td>
+            <td class="attr-value">:success</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Code returned when either the of the OpenID::OpenIDConsumer.begin_auth or
+OpenID::OpenIDConsumer.complete_auth methods return successfully.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">FAILURE</td>
+            <td>=</td>
+            <td class="attr-value">:failure</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Code OpenID::OpenIDConsumer.complete_auth returns when the value it
+received indicated an invalid login.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">CANCEL</td>
+            <td>=</td>
+            <td class="attr-value">:cancel</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Code returned by OpenIDConsumer.complete_auth when the user cancels the
+operation from the server.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SETUP_NEEDED</td>
+            <td>=</td>
+            <td class="attr-value">:setup_needed</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Code returned by OpenID::OpenIDConsumer.complete_auth when the
+OpenIDConsumer instance is in immediate mode and ther server sends back a
+URL for the user to login with.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>session_key_prefix</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000145">
+                    
+                    <a name="M000145"></a><b>new</b>(session, store)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Initialize a <a href="Consumer.html">Consumer</a> instance.
+</p>
+<p>
+You should create a new instance of the <a
+href="Consumer.html">Consumer</a> object with every HTTP request that
+handles <a href="../OpenID.html">OpenID</a> transactions.
+</p>
+<p>
+session: the session object to use to store request information. The
+session should behave like a hash.
+</p>
+<p>
+store: an object that implements the interface in <a
+href="Store.html">Store</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000145_source')" id="l_M000145_source">show</a>
+                        
+                    </p>
+                    <div id="M000145_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 191</span>
+191:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">session</span>, <span class="ruby-identifier">store</span>)
+192:       <span class="ruby-ivar">@session</span> = <span class="ruby-identifier">session</span>
+193:       <span class="ruby-ivar">@store</span> = <span class="ruby-identifier">store</span>
+194:       <span class="ruby-ivar">@session_key_prefix</span> = <span class="ruby-value str">'OpenID::Consumer::'</span>
+195:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>openid1_return_to_claimed_id_name</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+See <a href="Consumer.html#M000112">openid1_return_to_claimed_id_name</a>=
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/openid/consumer/idres.rb, line 42</span>
+42:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">openid1_return_to_claimed_id_name</span>
+43:       <span class="ruby-ivar">@openid1_return_to_claimed_id_name</span>
+44:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000111">
+                    
+                    <a name="M000111"></a><b>openid1_return_to_claimed_id_name=</b>(query_arg_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Set the name of the query parameter that this library will use to thread
+the requested URL through an <a href="../OpenID.html">OpenID</a> 1
+transaction (for use when verifying discovered information). It will be
+appended to the return_to URL.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000111_source')" id="l_M000111_source">show</a>
+                        
+                    </p>
+                    <div id="M000111_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/openid/consumer/idres.rb, line 37</span>
+37:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">openid1_return_to_claimed_id_name=</span>(<span class="ruby-identifier">query_arg_name</span>)
+38:       <span class="ruby-ivar">@openid1_return_to_claimed_id_name</span> = <span class="ruby-identifier">query_arg_name</span>
+39:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000110">
+                    
+                    <a name="M000110"></a><b>openid1_return_to_nonce_name</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+See <a href="Consumer.html#M000110">openid1_return_to_nonce_name</a>=
+documentation
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000110_source')" id="l_M000110_source">show</a>
+                        
+                    </p>
+                    <div id="M000110_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/openid/consumer/idres.rb, line 29</span>
+29:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">openid1_return_to_nonce_name</span>
+30:       <span class="ruby-ivar">@openid1_return_to_nonce_name</span>
+31:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>openid1_return_to_nonce_name=</b>(query_arg_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Set the name of the query parameter that this library will use to thread a
+nonce through an <a href="../OpenID.html">OpenID</a> 1 transaction. It will
+be appended to the return_to URL.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/openid/consumer/idres.rb, line 24</span>
+24:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">openid1_return_to_nonce_name=</span>(<span class="ruby-identifier">query_arg_name</span>)
+25:       <span class="ruby-ivar">@openid1_return_to_nonce_name</span> = <span class="ruby-identifier">query_arg_name</span>
+26:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000161">
+                    
+                    <a name="M000161"></a><b>association_manager</b>(service)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000161_source')" id="l_M000161_source">show</a>
+                        
+                    </p>
+                    <div id="M000161_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 340</span>
+340:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">association_manager</span>(<span class="ruby-identifier">service</span>)
+341:       <span class="ruby-constant">AssociationManager</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@store</span>, <span class="ruby-identifier">service</span>.<span class="ruby-identifier">server_url</span>,
+342:                              <span class="ruby-identifier">service</span>.<span class="ruby-identifier">compatibility_mode</span>, <span class="ruby-identifier">negotiator</span>)
+343:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000147">
+                    
+                    <a name="M000147"></a><b>begin</b>(openid_identifier, anonymous=false)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start the <a href="../OpenID.html">OpenID</a> authentication process. See
+steps 1-2 in the overview for the <a href="Consumer.html">Consumer</a>
+class.
+</p>
+<p>
+user_url: Identity URL given by the user. This method performs a textual
+transformation of the URL to try and make sure it is normalized. For
+example, a user_url of example.com will be normalized to <a
+href="http://example.com/">example.com/</a> normalizing and resolving any
+redirects the server might issue.
+</p>
+<p>
+anonymous: A boolean value. Whether to make an anonymous request of the <a
+href="../OpenID.html">OpenID</a> provider. Such a request does not ask for
+an authorization assertion for an <a href="../OpenID.html">OpenID</a>
+identifier, but may be used with extensions to pass other data. e.g.
+&#8220;I don&#8217;t care who you are, but I&#8217;d like to know your time
+zone.&#8220;
+</p>
+<p>
+Returns a <a href="Consumer/CheckIDRequest.html">CheckIDRequest</a> object
+containing the discovered information, with a method for building a
+redirect URL to the server, as described in step 3 of the overview. This
+object may also be used to add extension arguments to the request, using
+its add_extension_arg method.
+</p>
+<p>
+Raises <a href="DiscoveryFailure.html">DiscoveryFailure</a> when no <a
+href="../OpenID.html">OpenID</a> server can be found for this URL.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000147_source')" id="l_M000147_source">show</a>
+                        
+                    </p>
+                    <div id="M000147_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 220</span>
+220:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">begin</span>(<span class="ruby-identifier">openid_identifier</span>, <span class="ruby-identifier">anonymous</span>=<span class="ruby-keyword kw">false</span>)
+221:       <span class="ruby-identifier">manager</span> = <span class="ruby-identifier">discovery_manager</span>(<span class="ruby-identifier">openid_identifier</span>)
+222:       <span class="ruby-identifier">service</span> = <span class="ruby-identifier">manager</span>.<span class="ruby-identifier">get_next_service</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:discover</span>))
+223: 
+224:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">service</span>.<span class="ruby-identifier">nil?</span>
+225:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">DiscoveryFailure</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;No usable OpenID services were found &quot;</span>\
+226:                                    <span class="ruby-node">&quot;for #{openid_identifier.inspect}&quot;</span>, <span class="ruby-keyword kw">nil</span>)
+227:       <span class="ruby-keyword kw">else</span>
+228:         <span class="ruby-identifier">begin_without_discovery</span>(<span class="ruby-identifier">service</span>, <span class="ruby-identifier">anonymous</span>)
+229:       <span class="ruby-keyword kw">end</span>
+230:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000149">
+                    
+                    <a name="M000149"></a><b>begin_without_discovery</b>(service, anonymous)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start <a href="../OpenID.html">OpenID</a> verification without doing <a
+href="../OpenID.html">OpenID</a> server discovery. This method is used
+internally by <a href="Consumer.html#M000147">Consumer.begin()</a> after
+discovery is performed, and exists to provide an interface for library
+users needing to perform their own discovery.
+</p>
+<p>
+service: an <a href="../OpenID.html">OpenID</a> service endpoint
+descriptor. This object and factories for it are found in the
+openid/consumer/discovery.rb module.
+</p>
+<p>
+Returns an <a href="../OpenID.html">OpenID</a> authentication request
+object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000149_source')" id="l_M000149_source">show</a>
+                        
+                    </p>
+                    <div id="M000149_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 242</span>
+242:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">begin_without_discovery</span>(<span class="ruby-identifier">service</span>, <span class="ruby-identifier">anonymous</span>)
+243:       <span class="ruby-identifier">assoc</span> = <span class="ruby-identifier">association_manager</span>(<span class="ruby-identifier">service</span>).<span class="ruby-identifier">get_association</span>
+244:       <span class="ruby-identifier">checkid_request</span> = <span class="ruby-constant">CheckIDRequest</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">assoc</span>, <span class="ruby-identifier">service</span>)
+245:       <span class="ruby-identifier">checkid_request</span>.<span class="ruby-identifier">anonymous</span> = <span class="ruby-identifier">anonymous</span>
+246: 
+247:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">service</span>.<span class="ruby-identifier">compatibility_mode</span>
+248:         <span class="ruby-identifier">rt_args</span> = <span class="ruby-identifier">checkid_request</span>.<span class="ruby-identifier">return_to_args</span>
+249:         <span class="ruby-identifier">rt_args</span>[<span class="ruby-constant">Consumer</span>.<span class="ruby-identifier">openid1_return_to_nonce_name</span>] = <span class="ruby-constant">Nonce</span>.<span class="ruby-identifier">mk_nonce</span>
+250:         <span class="ruby-identifier">rt_args</span>[<span class="ruby-constant">Consumer</span>.<span class="ruby-identifier">openid1_return_to_claimed_id_name</span>] =
+251:           <span class="ruby-identifier">service</span>.<span class="ruby-identifier">claimed_id</span>
+252:       <span class="ruby-keyword kw">end</span>
+253: 
+254:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">last_requested_endpoint</span> = <span class="ruby-identifier">service</span>
+255:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">checkid_request</span>
+256:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000156">
+                    
+                    <a name="M000156"></a><b>cleanup_last_requested_endpoint</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000156_source')" id="l_M000156_source">show</a>
+                        
+                    </p>
+                    <div id="M000156_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 319</span>
+319:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cleanup_last_requested_endpoint</span>
+320:       <span class="ruby-ivar">@session</span>[<span class="ruby-identifier">session_key</span>(<span class="ruby-value str">'last_requested_endpoint'</span>)] = <span class="ruby-keyword kw">nil</span>
+321:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000158">
+                    
+                    <a name="M000158"></a><b>cleanup_session</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000158_source')" id="l_M000158_source">show</a>
+                        
+                    </p>
+                    <div id="M000158_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 327</span>
+327:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cleanup_session</span>
+328:       <span class="ruby-identifier">discovery_manager</span>(<span class="ruby-keyword kw">nil</span>).<span class="ruby-identifier">cleanup</span>(<span class="ruby-keyword kw">true</span>)
+329:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000150">
+                    
+                    <a name="M000150"></a><b>complete</b>(query, current_url)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a subclass of <a href="Consumer/Response.html">Response</a>. The
+type of response is indicated by the status attribute, which will be one of
+<a href="Consumer.html#SUCCESS">SUCCESS</a>, <a
+href="Consumer.html#CANCEL">CANCEL</a>, <a
+href="Consumer.html#FAILURE">FAILURE</a>, or <a
+href="Consumer.html#SETUP_NEEDED">SETUP_NEEDED</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000150_source')" id="l_M000150_source">show</a>
+                        
+                    </p>
+                    <div id="M000150_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 281</span>
+281:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete</span>(<span class="ruby-identifier">query</span>, <span class="ruby-identifier">current_url</span>)
+282:       <span class="ruby-identifier">message</span> = <span class="ruby-constant">Message</span>.<span class="ruby-identifier">from_post_args</span>(<span class="ruby-identifier">query</span>)
+283:       <span class="ruby-identifier">mode</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'mode'</span>, <span class="ruby-value str">'invalid'</span>)
+284:       <span class="ruby-keyword kw">begin</span>
+285:         <span class="ruby-identifier">meth</span> = <span class="ruby-identifier">method</span>(<span class="ruby-value str">'complete_'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">mode</span>)
+286:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NameError</span>
+287:         <span class="ruby-identifier">meth</span> = <span class="ruby-identifier">method</span>(<span class="ruby-identifier">:complete_invalid</span>)
+288:       <span class="ruby-keyword kw">end</span>
+289:       <span class="ruby-identifier">response</span> = <span class="ruby-identifier">meth</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">current_url</span>)
+290:       <span class="ruby-identifier">cleanup_last_requested_endpoint</span>
+291:       <span class="ruby-keyword kw">if</span> [<span class="ruby-constant">SUCCESS</span>, <span class="ruby-constant">CANCEL</span>].<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">status</span>)
+292:         <span class="ruby-identifier">cleanup_session</span>
+293:       <span class="ruby-keyword kw">end</span>
+294:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">response</span>
+295:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000164">
+                    
+                    <a name="M000164"></a><b>complete_cancel</b>(unused_message, unused_return_to)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000164_source')" id="l_M000164_source">show</a>
+                        
+                    </p>
+                    <div id="M000164_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 355</span>
+355:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete_cancel</span>(<span class="ruby-identifier">unused_message</span>, <span class="ruby-identifier">unused_return_to</span>)
+356:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">CancelResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>)
+357:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000165">
+                    
+                    <a name="M000165"></a><b>complete_error</b>(message, unused_return_to)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000165_source')" id="l_M000165_source">show</a>
+                        
+                    </p>
+                    <div id="M000165_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 359</span>
+359:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete_error</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">unused_return_to</span>)
+360:       <span class="ruby-identifier">error</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'error'</span>)
+361:       <span class="ruby-identifier">contact</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'contact'</span>)
+362:       <span class="ruby-identifier">reference</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'reference'</span>)
+363: 
+364:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">FailureResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>,
+365:                                  <span class="ruby-identifier">error</span>, <span class="ruby-identifier">contact</span>, <span class="ruby-identifier">reference</span>)
+366:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000167">
+                    
+                    <a name="M000167"></a><b>complete_id_res</b>(message, current_url)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000167_source')" id="l_M000167_source">show</a>
+                        
+                    </p>
+                    <div id="M000167_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 377</span>
+377:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete_id_res</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">current_url</span>)
+378:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">is_openid1</span>
+379:         <span class="ruby-identifier">setup_url</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'user_setup_url'</span>)
+380:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">setup_url</span>.<span class="ruby-identifier">nil?</span>
+381:           <span class="ruby-keyword kw">return</span> <span class="ruby-constant">SetupNeededResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>, <span class="ruby-identifier">setup_url</span>)
+382:         <span class="ruby-keyword kw">end</span>
+383:       <span class="ruby-keyword kw">end</span>
+384: 
+385:       <span class="ruby-keyword kw">begin</span>
+386:         <span class="ruby-identifier">idres</span> = <span class="ruby-identifier">handle_idres</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">current_url</span>)
+387:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">OpenIDError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">why</span>
+388:         <span class="ruby-keyword kw">return</span> <span class="ruby-constant">FailureResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>, <span class="ruby-identifier">why</span>.<span class="ruby-identifier">message</span>)
+389:       <span class="ruby-keyword kw">else</span>
+390:         <span class="ruby-keyword kw">return</span> <span class="ruby-constant">SuccessResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">idres</span>.<span class="ruby-identifier">endpoint</span>, <span class="ruby-identifier">message</span>,
+391:                                      <span class="ruby-identifier">idres</span>.<span class="ruby-identifier">signed_fields</span>)
+392:       <span class="ruby-keyword kw">end</span>
+393:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000163">
+                    
+                    <a name="M000163"></a><b>complete_invalid</b>(message, unused_return_to)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000163_source')" id="l_M000163_source">show</a>
+                        
+                    </p>
+                    <div id="M000163_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 349</span>
+349:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete_invalid</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">unused_return_to</span>)
+350:       <span class="ruby-identifier">mode</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID_NS</span>, <span class="ruby-value str">'mode'</span>, <span class="ruby-value str">'&lt;No mode set&gt;'</span>)
+351:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">FailureResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>,
+352:                                  <span class="ruby-node">&quot;Invalid openid.mode: #{mode}&quot;</span>)
+353:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000166">
+                    
+                    <a name="M000166"></a><b>complete_setup_needed</b>(message, unused_return_to)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000166_source')" id="l_M000166_source">show</a>
+                        
+                    </p>
+                    <div id="M000166_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 368</span>
+368:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">complete_setup_needed</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">unused_return_to</span>)
+369:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">is_openid1</span>
+370:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">complete_invalid</span>(<span class="ruby-identifier">message</span>, <span class="ruby-keyword kw">nil</span>)
+371:       <span class="ruby-keyword kw">else</span>
+372:         <span class="ruby-identifier">setup_url</span> = <span class="ruby-identifier">message</span>.<span class="ruby-identifier">get_arg</span>(<span class="ruby-constant">OPENID2_NS</span>, <span class="ruby-value str">'user_setup_url'</span>)
+373:         <span class="ruby-keyword kw">return</span> <span class="ruby-constant">SetupNeededResponse</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">last_requested_endpoint</span>, <span class="ruby-identifier">setup_url</span>)
+374:       <span class="ruby-keyword kw">end</span>
+375:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000159">
+                    
+                    <a name="M000159"></a><b>discover</b>(identifier)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000159_source')" id="l_M000159_source">show</a>
+                        
+                    </p>
+                    <div id="M000159_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 332</span>
+332:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discover</span>(<span class="ruby-identifier">identifier</span>)
+333:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">discover</span>(<span class="ruby-identifier">identifier</span>)
+334:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000157">
+                    
+                    <a name="M000157"></a><b>discovery_manager</b>(openid_identifier)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000157_source')" id="l_M000157_source">show</a>
+                        
+                    </p>
+                    <div id="M000157_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 323</span>
+323:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discovery_manager</span>(<span class="ruby-identifier">openid_identifier</span>)
+324:       <span class="ruby-constant">DiscoveryManager</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@session</span>, <span class="ruby-identifier">openid_identifier</span>, <span class="ruby-ivar">@session_key_prefix</span>)
+325:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000162">
+                    
+                    <a name="M000162"></a><b>handle_idres</b>(message, current_url)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000162_source')" id="l_M000162_source">show</a>
+                        
+                    </p>
+                    <div id="M000162_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 345</span>
+345:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_idres</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">current_url</span>)
+346:       <span class="ruby-constant">IdResHandler</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">message</span>, <span class="ruby-identifier">current_url</span>, <span class="ruby-ivar">@store</span>, <span class="ruby-identifier">last_requested_endpoint</span>)
+347:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000154">
+                    
+                    <a name="M000154"></a><b>last_requested_endpoint</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000154_source')" id="l_M000154_source">show</a>
+                        
+                    </p>
+                    <div id="M000154_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 311</span>
+311:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">last_requested_endpoint</span>
+312:       <span class="ruby-identifier">session_get</span>(<span class="ruby-value str">'last_requested_endpoint'</span>)
+313:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000155">
+                    
+                    <a name="M000155"></a><b>last_requested_endpoint=</b>(endpoint)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000155_source')" id="l_M000155_source">show</a>
+                        
+                    </p>
+                    <div id="M000155_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 315</span>
+315:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">last_requested_endpoint=</span>(<span class="ruby-identifier">endpoint</span>)
+316:       <span class="ruby-identifier">session_set</span>(<span class="ruby-value str">'last_requested_endpoint'</span>, <span class="ruby-identifier">endpoint</span>)
+317:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000160">
+                    
+                    <a name="M000160"></a><b>negotiator</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000160_source')" id="l_M000160_source">show</a>
+                        
+                    </p>
+                    <div id="M000160_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 336</span>
+336:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">negotiator</span>
+337:       <span class="ruby-constant">DefaultNegotiator</span>
+338:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000151">
+                    
+                    <a name="M000151"></a><b>session_get</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000151_source')" id="l_M000151_source">show</a>
+                        
+                    </p>
+                    <div id="M000151_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 299</span>
+299:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">session_get</span>(<span class="ruby-identifier">name</span>)
+300:       <span class="ruby-ivar">@session</span>[<span class="ruby-identifier">session_key</span>(<span class="ruby-identifier">name</span>)]
+301:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000153">
+                    
+                    <a name="M000153"></a><b>session_key</b>(suffix)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000153_source')" id="l_M000153_source">show</a>
+                        
+                    </p>
+                    <div id="M000153_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 307</span>
+307:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">session_key</span>(<span class="ruby-identifier">suffix</span>)
+308:       <span class="ruby-ivar">@session_key_prefix</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">suffix</span>
+309:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000152">
+                    
+                    <a name="M000152"></a><b>session_set</b>(name, val)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000152_source')" id="l_M000152_source">show</a>
+                        
+                    </p>
+                    <div id="M000152_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/openid/consumer.rb, line 303</span>
+303:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">session_set</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">val</span>)
+304:       <span class="ruby-ivar">@session</span>[<span class="ruby-identifier">session_key</span>(<span class="ruby-identifier">name</span>)] = <span class="ruby-identifier">val</span>
+305:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

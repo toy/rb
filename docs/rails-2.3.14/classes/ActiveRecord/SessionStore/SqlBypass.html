@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::SessionStore::SqlBypass</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ActiveRecord::SessionStore::SqlBypass 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/activerecord-2_3_14/lib/active_record/session_store_rb.html">activerecord-2.3.14/lib/active_record/session_store.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A barebones session store which duck-types with the default session store
+but bypasses Active Record and issues SQL directly. This is an example
+session model class meant as a basis for your own classes.
+</p>
+<p>
+The database connection, table name, and session id and data columns are
+configurable class attributes. Marshaling and unmarshaling are implemented
+as class methods that you may override. By default, marshaling data is
+</p>
+<pre>
+  ActiveSupport::Base64.encode64(Marshal.dump(data))
+</pre>
+<p>
+and unmarshaling data is
+</p>
+<pre>
+  Marshal.load(ActiveSupport::Base64.decode64(data))
+</pre>
+<p>
+This marshaling behavior is intended to store the widest range of binary
+session data in a <tt>text</tt> column. For higher performance, store in a
+<tt>blob</tt> column instead and forgo the Base64 encoding.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001256">connection</a>,</li>
+                
+                <li><a href="#M001260">connection</a>,</li>
+                
+                <li><a href="#M001264">create_table!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001268">data</a>,</li>
+                
+                <li><a href="#M001259">data_column</a>,</li>
+                
+                <li><a href="#M001271">destroy</a>,</li>
+                
+                <li><a href="#M001265">drop_table!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001261">find_by_session_id</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001269">loaded?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001262">marshal</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001266">new</a>,</li>
+                
+                <li><a href="#M001267">new_record?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001270">save</a>,</li>
+                
+                <li><a href="#M001258">session_id_column</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001257">table_name</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001263">unmarshal</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>session_id</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [W]
+            </td>
+            <td class='attr-name'>data</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001268">
+                    
+                    <a name="M001268"></a><b>data</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Lazy-unmarshal session state.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001268_source')" id="l_M001268_source">show</a>
+                        
+                    </p>
+                    <div id="M001268_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 233</span>
+233:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">data</span>
+234:         <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@data</span>
+235:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@marshaled_data</span>
+236:             <span class="ruby-ivar">@data</span>, <span class="ruby-ivar">@marshaled_data</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">unmarshal</span>(<span class="ruby-ivar">@marshaled_data</span>) <span class="ruby-operator">||</span> {}, <span class="ruby-keyword kw">nil</span>
+237:           <span class="ruby-keyword kw">else</span>
+238:             <span class="ruby-ivar">@data</span> = {}
+239:           <span class="ruby-keyword kw">end</span>
+240:         <span class="ruby-keyword kw">end</span>
+241:         <span class="ruby-ivar">@data</span>
+242:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001271">
+                    
+                    <a name="M001271"></a><b>destroy</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001271_source')" id="l_M001271_source">show</a>
+                        
+                    </p>
+                    <div id="M001271_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 273</span>
+273:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">destroy</span>
+274:         <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@new_record</span>
+275:           <span class="ruby-ivar">@@connection</span>.<span class="ruby-identifier">delete</span> <span class="ruby-value str">&quot;DELETE FROM \#{@@table_name}\nWHERE \#{@@connection.quote_column_name(@@session_id_column)}=\#{@@connection.quote(session_id)}\n&quot;</span>, <span class="ruby-value str">'Destroy session'</span>
+276:         <span class="ruby-keyword kw">end</span>
+277:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001269">
+                    
+                    <a name="M001269"></a><b>loaded?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001269_source')" id="l_M001269_source">show</a>
+                        
+                    </p>
+                    <div id="M001269_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 244</span>
+244:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">loaded?</span>
+245:         <span class="ruby-operator">!</span><span class="ruby-operator">!</span><span class="ruby-ivar">@data</span>
+246:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001267">
+                    
+                    <a name="M001267"></a><b>new_record?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001267_source')" id="l_M001267_source">show</a>
+                        
+                    </p>
+                    <div id="M001267_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 228</span>
+228:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">new_record?</span>
+229:         <span class="ruby-ivar">@new_record</span>
+230:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001270">
+                    
+                    <a name="M001270"></a><b>save</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001270_source')" id="l_M001270_source">show</a>
+                        
+                    </p>
+                    <div id="M001270_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 248</span>
+248:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save</span>
+249:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">loaded?</span>
+250:         <span class="ruby-identifier">marshaled_data</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">marshal</span>(<span class="ruby-identifier">data</span>)
+251: 
+252:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@new_record</span>
+253:           <span class="ruby-ivar">@new_record</span> = <span class="ruby-keyword kw">false</span>
+254:           <span class="ruby-ivar">@@connection</span>.<span class="ruby-identifier">update</span> <span class="ruby-value str">&quot;INSERT INTO \#{@@table_name} (\n\#{@@connection.quote_column_name(@@session_id_column)},\n\#{@@connection.quote_column_name(@@data_column)} )\nVALUES (\n\#{@@connection.quote(session_id)},\n\#{@@connection.quote(marshaled_data)} )\n&quot;</span>, <span class="ruby-value str">'Create session'</span>
+255:         <span class="ruby-keyword kw">else</span>
+256:           <span class="ruby-ivar">@@connection</span>.<span class="ruby-identifier">update</span> <span class="ruby-value str">&quot;UPDATE \#{@@table_name}\nSET \#{@@connection.quote_column_name(@@data_column)}=\#{@@connection.quote(marshaled_data)}\nWHERE \#{@@connection.quote_column_name(@@session_id_column)}=\#{@@connection.quote(session_id)}\n&quot;</span>, <span class="ruby-value str">'Update session'</span>
+257:         <span class="ruby-keyword kw">end</span>
+258:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001256">
+                    
+                    <a name="M001256"></a><b>connection</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Use the <a href="../Base.html#M000707">ActiveRecord::Base.connection</a> by
+default.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001256_source')" id="l_M001256_source">show</a>
+                        
+                    </p>
+                    <div id="M001256_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 161</span>
+161:       <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:connection</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001260">
+                    
+                    <a name="M001260"></a><b>connection</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001260_source')" id="l_M001260_source">show</a>
+                        
+                    </p>
+                    <div id="M001260_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 182</span>
+182:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">connection</span>
+183:           <span class="ruby-ivar">@@connection</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>.<span class="ruby-identifier">connection</span>
+184:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001264">
+                    
+                    <a name="M001264"></a><b>create_table!</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001264_source')" id="l_M001264_source">show</a>
+                        
+                    </p>
+                    <div id="M001264_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 201</span>
+201:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_table!</span>
+202:           <span class="ruby-ivar">@@connection</span>.<span class="ruby-identifier">execute</span> <span class="ruby-value str">&quot;CREATE TABLE \#{table_name} (\nid INTEGER PRIMARY KEY,\n\#{@@connection.quote_column_name(session_id_column)} TEXT UNIQUE,\n\#{@@connection.quote_column_name(data_column)} TEXT\n)\n&quot;</span>
+203:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001259">
+                    
+                    <a name="M001259"></a><b>data_column</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The data field defaults to &#8216;data&#8217;.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001259_source')" id="l_M001259_source">show</a>
+                        
+                    </p>
+                    <div id="M001259_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 178</span>
+178:       <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:data_column</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001265">
+                    
+                    <a name="M001265"></a><b>drop_table!</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001265_source')" id="l_M001265_source">show</a>
+                        
+                    </p>
+                    <div id="M001265_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 212</span>
+212:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">drop_table!</span>
+213:           <span class="ruby-ivar">@@connection</span>.<span class="ruby-identifier">execute</span> <span class="ruby-node">&quot;DROP TABLE #{table_name}&quot;</span>
+214:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001261">
+                    
+                    <a name="M001261"></a><b>find_by_session_id</b>(session_id)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Look up a session by id and unmarshal its data if found.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001261_source')" id="l_M001261_source">show</a>
+                        
+                    </p>
+                    <div id="M001261_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 187</span>
+187:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_by_session_id</span>(<span class="ruby-identifier">session_id</span>)
+188:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">record</span> = <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">select_one</span>(<span class="ruby-node">&quot;SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id)}&quot;</span>)
+189:             <span class="ruby-identifier">new</span>(<span class="ruby-identifier">:session_id</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">session_id</span>, <span class="ruby-identifier">:marshaled_data</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">record</span>[<span class="ruby-value str">'data'</span>])
+190:           <span class="ruby-keyword kw">end</span>
+191:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001262">
+                    
+                    <a name="M001262"></a><b>marshal</b>(data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001262_source')" id="l_M001262_source">show</a>
+                        
+                    </p>
+                    <div id="M001262_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 193</span>
+193:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">marshal</span>(<span class="ruby-identifier">data</span>)
+194:           <span class="ruby-constant">ActiveSupport</span><span class="ruby-operator">::</span><span class="ruby-constant">Base64</span>.<span class="ruby-identifier">encode64</span>(<span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-identifier">data</span>)) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>
+195:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001266">
+                    
+                    <a name="M001266"></a><b>new</b>(attributes)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Look for normal and marshaled data, self.find_by_session_id&#8217;s way of
+telling us to postpone unmarshaling until the data is requested. We need to
+handle a normal data attribute in case of a new record.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001266_source')" id="l_M001266_source">show</a>
+                        
+                    </p>
+                    <div id="M001266_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 223</span>
+223:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">attributes</span>)
+224:         <span class="ruby-ivar">@session_id</span>, <span class="ruby-ivar">@data</span>, <span class="ruby-ivar">@marshaled_data</span> = <span class="ruby-identifier">attributes</span>[<span class="ruby-identifier">:session_id</span>], <span class="ruby-identifier">attributes</span>[<span class="ruby-identifier">:data</span>], <span class="ruby-identifier">attributes</span>[<span class="ruby-identifier">:marshaled_data</span>]
+225:         <span class="ruby-ivar">@new_record</span> = <span class="ruby-ivar">@marshaled_data</span>.<span class="ruby-identifier">nil?</span>
+226:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001258">
+                    
+                    <a name="M001258"></a><b>session_id_column</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The session id field defaults to &#8216;<a
+href="SqlBypass.html#session_id">session_id</a>&#8217;.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001258_source')" id="l_M001258_source">show</a>
+                        
+                    </p>
+                    <div id="M001258_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 172</span>
+172:       <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:session_id_column</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001257">
+                    
+                    <a name="M001257"></a><b>table_name</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The table name defaults to &#8216;sessions&#8217;.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001257_source')" id="l_M001257_source">show</a>
+                        
+                    </p>
+                    <div id="M001257_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 166</span>
+166:       <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:table_name</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001263">
+                    
+                    <a name="M001263"></a><b>unmarshal</b>(data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001263_source')" id="l_M001263_source">show</a>
+                        
+                    </p>
+                    <div id="M001263_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 197</span>
+197:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unmarshal</span>(<span class="ruby-identifier">data</span>)
+198:           <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">load</span>(<span class="ruby-constant">ActiveSupport</span><span class="ruby-operator">::</span><span class="ruby-constant">Base64</span>.<span class="ruby-identifier">decode64</span>(<span class="ruby-identifier">data</span>)) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>
+199:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

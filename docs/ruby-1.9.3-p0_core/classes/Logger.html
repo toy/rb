@@ -1,0 +1,1335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Logger</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Logger 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/logger_rb.html">lib/logger.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2>Description</h2>
+<p>
+The <a href="Logger.html">Logger</a> class provides a simple but
+sophisticated logging utility that you can use to output messages.
+</p>
+<p>
+The messages have associated levels, such as <tt>INFO</tt> or
+<tt>ERROR</tt> that indicate their importance. You can then give the <a
+href="Logger.html">Logger</a> a level, and only messages at that level of
+higher will be printed.
+</p>
+<p>
+The levels are:
+</p>
+<table>
+<tr><td valign="top"><tt>FATAL</tt>:</td><td>an unhandleable error that results in a program crash
+
+</td></tr>
+<tr><td valign="top"><tt>ERROR</tt>:</td><td>a handleable error condition
+
+</td></tr>
+<tr><td valign="top"><tt>WARN</tt>:</td><td>a warning
+
+</td></tr>
+<tr><td valign="top"><tt>INFO</tt>:</td><td>generic (useful) information about system operation
+
+</td></tr>
+<tr><td valign="top"><tt>DEBUG</tt>:</td><td>low-level information for developers
+
+</td></tr>
+</table>
+<p>
+For instance, in a production system, you may have your <a
+href="Logger.html">Logger</a> set to <tt>INFO</tt> or even <tt>WARN</tt>
+When you are developing the system, however, you probably want to know
+about the program&#8217;s internal state, and would set the <a
+href="Logger.html">Logger</a> to <tt>DEBUG</tt>.
+</p>
+<p>
+<b>Note</b>: <a href="Logger.html">Logger</a> does not escape or sanitize
+any messages passed to it. Developers should be aware of when potentially
+malicious data (user-input) is passed to <a href="Logger.html">Logger</a>,
+and manually escape the untrusted data:
+</p>
+<pre>
+  logger.info(&quot;User-input: #{input.dump}&quot;)
+  logger.info(&quot;User-input: %p&quot; % input)
+</pre>
+<p>
+You can use formatter= for escaping all data.
+</p>
+<pre>
+  original_formatter = Logger::Formatter.new
+  logger.formatter = proc { |severity, datetime, progname, msg|
+    original_formatter.call(severity, datetime, progname, msg.dump)
+  }
+  logger.info(input)
+</pre>
+<h3>Example</h3>
+<p>
+This creates a logger to the standard output stream, with a level of
+<tt>WARN</tt>
+</p>
+<pre>
+  log = Logger.new(STDOUT)
+  log.level = Logger::WARN
+
+  log.debug(&quot;Created logger&quot;)
+  log.info(&quot;Program started&quot;)
+  log.warn(&quot;Nothing to do!&quot;)
+
+  begin
+    File.each_line(path) do |line|
+      unless line =~ /^(\w+) = (.*)$/
+        log.error(&quot;Line in wrong format: #{line}&quot;)
+      end
+    end
+  rescue =&gt; err
+    log.fatal(&quot;Caught exception; exiting&quot;)
+    log.fatal(err)
+  end
+</pre>
+<p>
+Because the Logger&#8217;s level is set to <tt>WARN</tt>, only the warning,
+error, and fatal messages are recorded. The debug and info messages are
+silently discarded.
+</p>
+<h3>Features</h3>
+<p>
+There are several interesting features that <a
+href="Logger.html">Logger</a> provides, like auto-rolling of log files,
+setting the format of log messages, and specifying a program name in
+conjunction with the message. The next section shows you how to achieve
+these things.
+</p>
+<h2>HOWTOs</h2>
+<h3>How to create a logger</h3>
+<p>
+The options below give you various choices, in more or less increasing
+complexity.
+</p>
+<ol>
+<li>Create a logger which logs messages to STDERR/STDOUT.
+
+<pre>
+  logger = Logger.new(STDERR)
+  logger = Logger.new(STDOUT)
+</pre>
+</li>
+<li>Create a logger for the file which has the specified name.
+
+<pre>
+  logger = Logger.new('logfile.log')
+</pre>
+</li>
+<li>Create a logger for the specified file.
+
+<pre>
+  file = File.open('foo.log', File::WRONLY | File::APPEND)
+  # To create new (and to remove old) logfile, add File::CREAT like;
+  #   file = open('foo.log', File::WRONLY | File::APPEND | File::CREAT)
+  logger = Logger.new(file)
+</pre>
+</li>
+<li>Create a logger which ages logfile once it reaches a certain size. Leave 10
+&#8220;old log files&#8221; and each file is about 1,024,000 bytes.
+
+<pre>
+  logger = Logger.new('foo.log', 10, 1024000)
+</pre>
+</li>
+<li>Create a logger which ages logfile daily/weekly/monthly.
+
+<pre>
+  logger = Logger.new('foo.log', 'daily')
+  logger = Logger.new('foo.log', 'weekly')
+  logger = Logger.new('foo.log', 'monthly')
+</pre>
+</li>
+</ol>
+<h3>How to log a message</h3>
+<p>
+Notice the different methods (<tt>fatal</tt>, <tt>error</tt>,
+<tt>info</tt>) being used to log messages of various levels? Other methods
+in this family are <tt>warn</tt> and <tt>debug</tt>. <tt>add</tt> is used
+below to log a message of an arbitrary (perhaps dynamic) level.
+</p>
+<ol>
+<li>Message in block.
+
+<pre>
+  logger.fatal { &quot;Argument 'foo' not given.&quot; }
+</pre>
+</li>
+<li>Message as a string.
+
+<pre>
+  logger.error &quot;Argument #{ @foo } mismatch.&quot;
+</pre>
+</li>
+<li>With progname.
+
+<pre>
+  logger.info('initialize') { &quot;Initializing...&quot; }
+</pre>
+</li>
+<li>With severity.
+
+<pre>
+  logger.add(Logger::FATAL) { 'Fatal error!' }
+</pre>
+</li>
+</ol>
+<p>
+The block form allows you to create potentially complex log messages, but
+to delay their evaluation until and unless the message is logged. For
+example, if we have the following:
+</p>
+<pre>
+    logger.debug { &quot;This is a &quot; + potentially + &quot; expensive operation&quot; }
+</pre>
+<p>
+If the logger&#8217;s level is <tt>INFO</tt> or higher, no debug messages
+will be logged, and the entire block will not even be evaluated. Compare to
+this:
+</p>
+<pre>
+    logger.debug(&quot;This is a &quot; + potentially + &quot; expensive operation&quot;)
+</pre>
+<p>
+Here, the string concatenation is done every time, even if the log level is
+not set to show the debug message.
+</p>
+<h3>How to close a logger</h3>
+<pre>
+     logger.close
+</pre>
+<h3>Setting severity threshold</h3>
+<ol>
+<li>Original interface.
+
+<pre>
+  logger.sev_threshold = Logger::WARN
+</pre>
+</li>
+<li>Log4r (somewhat) compatible interface.
+
+<pre>
+  logger.level = Logger::INFO
+
+  DEBUG &lt; INFO &lt; WARN &lt; ERROR &lt; FATAL &lt; UNKNOWN
+</pre>
+</li>
+</ol>
+<h2>Format</h2>
+<p>
+Log messages are rendered in the output stream in a certain format by
+default. The default format and a sample are shown below:
+</p>
+<p>
+Log format:
+</p>
+<pre>
+  SeverityID, [Date Time mSec #pid] SeverityLabel -- ProgName: message
+</pre>
+<p>
+Log sample:
+</p>
+<pre>
+  I, [Wed Mar 03 02:34:24 JST 1999 895701 #19074]  INFO -- Main: info.
+</pre>
+<p>
+You may change the date and time format via <a
+href="Logger.html#M002598">datetime_format=</a>
+</p>
+<pre>
+  logger.datetime_format = &quot;%Y-%m-%d %H:%M:%S&quot;
+        # e.g. &quot;2004-01-03 00:54:26&quot;
+</pre>
+<p>
+Or, you may change the overall format with formatter= method.
+</p>
+<pre>
+  logger.formatter = proc do |severity, datetime, progname, msg|
+    &quot;#{datetime}: #{msg}\n&quot;
+  end
+  # e.g. &quot;Thu Sep 22 08:51:08 GMT+9:00 2005: hello world&quot;
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002613"><<</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002611">add</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002620">close</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002600">datetime_format</a>,</li>
+                
+                <li><a href="#M002598">datetime_format=</a>,</li>
+                
+                <li><a href="#M002614">debug</a>,</li>
+                
+                <li><a href="#M002601">debug?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002617">error</a>,</li>
+                
+                <li><a href="#M002605">error?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002618">fatal</a>,</li>
+                
+                <li><a href="#M002608">fatal?</a>,</li>
+                
+                <li><a href="#M002622">format_message</a>,</li>
+                
+                <li><a href="#M002621">format_severity</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002615">info</a>,</li>
+                
+                <li><a href="#M002602">info?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002612">log</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002609">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002619">unknown</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002616">warn</a>,</li>
+                
+                <li><a href="#M002604">warn?</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="Logger/Severity.html">Logger::Severity</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Logger/Severity.html">Logger::Severity</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Logger/Application.html">Logger::Application</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Logger/Error.html">Logger::Error</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Logger/Formatter.html">Logger::Formatter</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Logger/LogDevice.html">Logger::LogDevice</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Logger/ShiftingError.html">Logger::ShiftingError</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">VERSION</td>
+            <td>=</td>
+            <td class="attr-value">&quot;1.2.7&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ProgName</td>
+            <td>=</td>
+            <td class="attr-value">&quot;#{name}/#{rev}&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SEV_LABEL</td>
+            <td>=</td>
+            <td class="attr-value">%w(DEBUG INFO WARN ERROR FATAL ANY)</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Logger/Severity.html">Severity</a> label for logging. (max 5 char)
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>level</td>
+            <td class='attr-desc'><p>
+Logging severity threshold (e.g. <tt>Logger::INFO</tt>).
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>progname</td>
+            <td class='attr-desc'><p>
+program name to include in log messages.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>formatter</td>
+            <td class='attr-desc'><p>
+Logging formatter, as a <tt>Proc</tt> that will take four arguments and
+return the formatted message. The arguments are:
+</p>
+<table>
+<tr><td valign="top"><tt>severity</tt>:</td><td>The <a href="Logger/Severity.html">Severity</a> of the log message
+
+</td></tr>
+<tr><td valign="top"><tt>time</tt>:</td><td>A <a href="Time.html">Time</a> instance representing when the message was
+logged
+
+</td></tr>
+<tr><td valign="top"><tt>progname</tt>:</td><td>The <a href="Logger.html#progname">progname</a> configured, or passed to
+the logger method
+
+</td></tr>
+<tr><td valign="top"><tt>msg</tt>:</td><td>The <em>Object</em> the user passed to the log message; not necessarily a
+<a href="String.html">String</a>.
+
+</td></tr>
+</table>
+<p>
+The block should return an <a href="Object.html">Object</a> that can be
+written to the logging device via <tt>write</tt>. The default formatter is
+used when no formatter is set.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002609">
+                    
+                    <a name="M002609"></a><b>new</b>(logdev, shift_age = 0, shift_size = 1048576)
+                    
+                </div>
+                
+                <div class="description">
+                  <h3>Synopsis</h3>
+<pre>
+  Logger.new(name, shift_age = 7, shift_size = 1048576)
+  Logger.new(name, shift_age = 'weekly')
+</pre>
+<h3>Args</h3>
+<table>
+<tr><td valign="top"><tt>logdev</tt>:</td><td>The log device. This is a filename (<a href="String.html">String</a>) or <a
+href="IO.html">IO</a> object (typically <tt>STDOUT</tt>, <tt>STDERR</tt>,
+or an open file).
+
+</td></tr>
+<tr><td valign="top"><tt>shift_age</tt>:</td><td>Number of old log files to keep, <b>or</b> frequency of rotation
+(<tt>daily</tt>, <tt>weekly</tt> or <tt>monthly</tt>).
+
+</td></tr>
+<tr><td valign="top"><tt>shift_size</tt>:</td><td>Maximum logfile size (only applies when <tt>shift_age</tt> is a number).
+
+</td></tr>
+</table>
+<h3>Description</h3>
+<p>
+Create an instance.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002609_source')" id="l_M002609_source">show</a>
+                        
+                    </p>
+                    <div id="M002609_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 307</span>
+307:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">logdev</span>, <span class="ruby-identifier">shift_age</span> = <span class="ruby-value">0</span>, <span class="ruby-identifier">shift_size</span> = <span class="ruby-value">1048576</span>)
+308:     <span class="ruby-ivar">@progname</span> = <span class="ruby-keyword kw">nil</span>
+309:     <span class="ruby-ivar">@level</span> = <span class="ruby-constant">DEBUG</span>
+310:     <span class="ruby-ivar">@default_formatter</span> = <span class="ruby-constant">Formatter</span>.<span class="ruby-identifier">new</span>
+311:     <span class="ruby-ivar">@formatter</span> = <span class="ruby-keyword kw">nil</span>
+312:     <span class="ruby-ivar">@logdev</span> = <span class="ruby-keyword kw">nil</span>
+313:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">logdev</span>
+314:       <span class="ruby-ivar">@logdev</span> = <span class="ruby-constant">LogDevice</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">logdev</span>, <span class="ruby-identifier">:shift_age</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">shift_age</span>,
+315:         <span class="ruby-identifier">:shift_size</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">shift_size</span>)
+316:     <span class="ruby-keyword kw">end</span>
+317:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002613">
+                    
+                    <a name="M002613"></a><b>&lt;&lt;</b>(msg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Dump given message to the log device without any formatting. If no log
+device exists, return <tt>nil</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002613_source')" id="l_M002613_source">show</a>
+                        
+                    </p>
+                    <div id="M002613_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 387</span>
+387:   <span class="ruby-keyword kw">def</span> <span class="ruby-operator">&lt;&lt;</span>(<span class="ruby-identifier">msg</span>)
+388:     <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">nil?</span>
+389:       <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">msg</span>)
+390:     <span class="ruby-keyword kw">end</span>
+391:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002611">
+                    
+                    <a name="M002611"></a><b>add</b>(severity, message = nil, progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <h3>Synopsis</h3>
+<pre>
+  Logger#add(severity, message = nil, progname = nil) { ... }
+</pre>
+<h3>Args</h3>
+<table>
+<tr><td valign="top"><tt>severity</tt>:</td><td><a href="Logger/Severity.html">Severity</a>. Constants are defined in <a
+href="Logger.html">Logger</a> namespace: <tt>DEBUG</tt>, <tt>INFO</tt>,
+<tt>WARN</tt>, <tt>ERROR</tt>, <tt>FATAL</tt>, or <tt>UNKNOWN</tt>.
+
+</td></tr>
+<tr><td valign="top"><tt>message</tt>:</td><td>The log message. A <a href="String.html">String</a> or <a
+href="Exception.html">Exception</a>.
+
+</td></tr>
+<tr><td valign="top"><tt>progname</tt>:</td><td>Program name string. Can be omitted. Treated as a message if no
+<tt>message</tt> and <tt>block</tt> are given.
+
+</td></tr>
+<tr><td valign="top"><tt>block</tt>:</td><td>Can be omitted. Called to get a message string if <tt>message</tt> is nil.
+
+</td></tr>
+</table>
+<h3>Return</h3>
+<p>
+<tt>true</tt> if successful, <tt>false</tt> otherwise.
+</p>
+<p>
+When the given severity is not high enough (for this particular logger),
+log no message, and return <tt>true</tt>.
+</p>
+<h3>Description</h3>
+<p>
+Log a message if the given severity is high enough. This is the generic
+logging method. Users will be more inclined to use <a
+href="Logger.html#M002614">debug</a>, <a
+href="Logger.html#M002615">info</a>, <a
+href="Logger.html#M002616">warn</a>, <a
+href="Logger.html#M002617">error</a>, and <a
+href="Logger.html#M002618">fatal</a>.
+</p>
+<p>
+<b>Message format</b>: <tt>message</tt> can be any object, but it has to be
+converted to a <a href="String.html">String</a> in order to log it.
+Generally, <tt>inspect</tt> is used if the given object is not a <a
+href="String.html">String</a>. A special case is an <tt>Exception</tt>
+object, which will be printed in detail, including message, class, and
+backtrace. See msg2str for the implementation if required.
+</p>
+<h3>Bugs</h3>
+<ul>
+<li>Logfile is not locked.
+
+</li>
+<li>Append open does not need to lock file.
+
+</li>
+<li>If the OS which supports multi I/O, records possibly be mixed.
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Logger.html#M002612">log</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002611_source')" id="l_M002611_source">show</a>
+                        
+                    </p>
+                    <div id="M002611_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 363</span>
+363:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">message</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+364:     <span class="ruby-identifier">severity</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">UNKNOWN</span>
+365:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">severity</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@level</span>
+366:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+367:     <span class="ruby-keyword kw">end</span>
+368:     <span class="ruby-identifier">progname</span> <span class="ruby-operator">||=</span> <span class="ruby-ivar">@progname</span>
+369:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">message</span>.<span class="ruby-identifier">nil?</span>
+370:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+371:         <span class="ruby-identifier">message</span> = <span class="ruby-keyword kw">yield</span>
+372:       <span class="ruby-keyword kw">else</span>
+373:         <span class="ruby-identifier">message</span> = <span class="ruby-identifier">progname</span>
+374:         <span class="ruby-identifier">progname</span> = <span class="ruby-ivar">@progname</span>
+375:       <span class="ruby-keyword kw">end</span>
+376:     <span class="ruby-keyword kw">end</span>
+377:     <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">write</span>(
+378:       <span class="ruby-identifier">format_message</span>(<span class="ruby-identifier">format_severity</span>(<span class="ruby-identifier">severity</span>), <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-identifier">message</span>))
+379:     <span class="ruby-keyword kw">true</span>
+380:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002620">
+                    
+                    <a name="M002620"></a><b>close</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Close the logging device.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002620_source')" id="l_M002620_source">show</a>
+                        
+                    </p>
+                    <div id="M002620_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 477</span>
+477:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">close</span>
+478:     <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@logdev</span>
+479:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002600">
+                    
+                    <a name="M002600"></a><b>datetime_format</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the date format being used. See <a
+href="Logger.html#M002598">datetime_format=</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002600_source')" id="l_M002600_source">show</a>
+                        
+                    </p>
+                    <div id="M002600_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 245</span>
+245:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">datetime_format</span>
+246:     <span class="ruby-ivar">@default_formatter</span>.<span class="ruby-identifier">datetime_format</span>
+247:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002598">
+                    
+                    <a name="M002598"></a><b>datetime_format=</b>(datetime_format)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Set.html">Set</a> date-time format.
+</p>
+<table>
+<tr><td valign="top"><tt><a href="Logger.html#M002600">datetime_format</a></tt>:</td><td>A string suitable for passing to <tt>strftime</tt>.
+
+</td></tr>
+</table>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002598_source')" id="l_M002598_source">show</a>
+                        
+                    </p>
+                    <div id="M002598_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 240</span>
+240:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">datetime_format=</span>(<span class="ruby-identifier">datetime_format</span>)
+241:     <span class="ruby-ivar">@default_formatter</span>.<span class="ruby-identifier">datetime_format</span> = <span class="ruby-identifier">datetime_format</span>
+242:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002614">
+                    
+                    <a name="M002614"></a><b>debug</b>(progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log a <tt>DEBUG</tt> message.
+</p>
+<p>
+See <a href="Logger.html#M002615">info</a> for more information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002614_source')" id="l_M002614_source">show</a>
+                        
+                    </p>
+                    <div id="M002614_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 398</span>
+398:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">debug</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+399:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">DEBUG</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+400:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002601">
+                    
+                    <a name="M002601"></a><b>debug?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> iff the current severity level allows for the
+printing of <tt>DEBUG</tt> messages.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002601_source')" id="l_M002601_source">show</a>
+                        
+                    </p>
+                    <div id="M002601_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 268</span>
+268:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">debug?</span>; <span class="ruby-ivar">@level</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">DEBUG</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002617">
+                    
+                    <a name="M002617"></a><b>error</b>(progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log an <tt>ERROR</tt> message.
+</p>
+<p>
+See <a href="Logger.html#M002615">info</a> for more information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002617_source')" id="l_M002617_source">show</a>
+                        
+                    </p>
+                    <div id="M002617_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 451</span>
+451:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">error</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+452:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">ERROR</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+453:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002605">
+                    
+                    <a name="M002605"></a><b>error?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> iff the current severity level allows for the
+printing of <tt>ERROR</tt> messages.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002605_source')" id="l_M002605_source">show</a>
+                        
+                    </p>
+                    <div id="M002605_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 280</span>
+280:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">error?</span>; <span class="ruby-ivar">@level</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">ERROR</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002618">
+                    
+                    <a name="M002618"></a><b>fatal</b>(progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log a <tt>FATAL</tt> message.
+</p>
+<p>
+See <a href="Logger.html#M002615">info</a> for more information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002618_source')" id="l_M002618_source">show</a>
+                        
+                    </p>
+                    <div id="M002618_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 460</span>
+460:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fatal</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+461:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">FATAL</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+462:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002608">
+                    
+                    <a name="M002608"></a><b>fatal?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> iff the current severity level allows for the
+printing of <tt>FATAL</tt> messages.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002608_source')" id="l_M002608_source">show</a>
+                        
+                    </p>
+                    <div id="M002608_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 284</span>
+284:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fatal?</span>; <span class="ruby-ivar">@level</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">FATAL</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002615">
+                    
+                    <a name="M002615"></a><b>info(message)
+info(progname,&block)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log an <tt>INFO</tt> message.
+</p>
+<table>
+<tr><td valign="top"><tt>message</tt>:</td><td>the message to log; does not need to be a <a href="String.html">String</a>
+
+</td></tr>
+<tr><td valign="top"><tt>progname</tt>:</td><td>in the block form, this is the <a href="Logger.html#progname">progname</a>
+to use in the the log message. The default can be set with progname=
+
+</td></tr>
+<tr><td valign="top"><tt>&amp;block</tt>:</td><td>evaluates to the message to log. This is not evaluated unless the
+logger&#8217;s level is sufficient to log the message. This allows you to
+create potentially expensive logging messages that are only called when the
+logger is configured to show them.
+
+</td></tr>
+</table>
+<h3>Examples</h3>
+<pre>
+  logger.info(&quot;MainApp&quot;) { &quot;Received connection from #{ip}&quot; }
+  # ...
+  logger.info &quot;Waiting for input from user&quot;
+  # ...
+  logger.info { &quot;User typed #{input}&quot; }
+</pre>
+<p>
+You&#8217;ll probably stick to the second form above, unless you want to
+provide a program name (which you can do with progname= as well).
+</p>
+<h3>Return</h3>
+<p>
+See <a href="Logger.html#M002611">add</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002615_source')" id="l_M002615_source">show</a>
+                        
+                    </p>
+                    <div id="M002615_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 433</span>
+433:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">info</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+434:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">INFO</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+435:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002602">
+                    
+                    <a name="M002602"></a><b>info?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> iff the current severity level allows for the
+printing of <tt>INFO</tt> messages.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002602_source')" id="l_M002602_source">show</a>
+                        
+                    </p>
+                    <div id="M002602_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 272</span>
+272:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">info?</span>; <span class="ruby-ivar">@level</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">INFO</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002612">
+                    
+                    <a name="M002612"></a><b>log</b>(severity, message = nil, progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="Logger.html#M002611">add</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002619">
+                    
+                    <a name="M002619"></a><b>unknown</b>(progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log an <tt>UNKNOWN</tt> message. This will be printed no matter what the
+logger&#8217;s level.
+</p>
+<p>
+See <a href="Logger.html#M002615">info</a> for more information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002619_source')" id="l_M002619_source">show</a>
+                        
+                    </p>
+                    <div id="M002619_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 470</span>
+470:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unknown</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+471:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">UNKNOWN</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+472:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002616">
+                    
+                    <a name="M002616"></a><b>warn</b>(progname = nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Log a <tt>WARN</tt> message.
+</p>
+<p>
+See <a href="Logger.html#M002615">info</a> for more information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002616_source')" id="l_M002616_source">show</a>
+                        
+                    </p>
+                    <div id="M002616_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 442</span>
+442:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">warn</span>(<span class="ruby-identifier">progname</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+443:     <span class="ruby-identifier">add</span>(<span class="ruby-constant">WARN</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+444:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002604">
+                    
+                    <a name="M002604"></a><b>warn?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> iff the current severity level allows for the
+printing of <tt>WARN</tt> messages.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002604_source')" id="l_M002604_source">show</a>
+                        
+                    </p>
+                    <div id="M002604_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 276</span>
+276:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">warn?</span>; <span class="ruby-ivar">@level</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">WARN</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002622">
+                    
+                    <a name="M002622"></a><b>format_message</b>(severity, datetime, progname, msg)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002622_source')" id="l_M002622_source">show</a>
+                        
+                    </p>
+                    <div id="M002622_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 490</span>
+490:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">format_message</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">datetime</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-identifier">msg</span>)
+491:     (<span class="ruby-ivar">@formatter</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@default_formatter</span>).<span class="ruby-identifier">call</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">datetime</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-identifier">msg</span>)
+492:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002621">
+                    
+                    <a name="M002621"></a><b>format_severity</b>(severity)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002621_source')" id="l_M002621_source">show</a>
+                        
+                    </p>
+                    <div id="M002621_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/logger.rb, line 486</span>
+486:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">format_severity</span>(<span class="ruby-identifier">severity</span>)
+487:     <span class="ruby-constant">SEV_LABEL</span>[<span class="ruby-identifier">severity</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">'ANY'</span>
+488:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

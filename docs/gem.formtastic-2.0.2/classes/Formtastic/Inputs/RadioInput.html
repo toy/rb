@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Formtastic::Inputs::RadioInput</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Formtastic::Inputs::RadioInput 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/formtastic/inputs/radio_input_rb.html">lib/formtastic/inputs/radio_input.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A radio input is used to render a series of radio inputs. This is an
+alternative input choice for `belongs_to` associations like a `Post`
+belonging to a `Section` or an `Author`, or any case where the user needs
+to make a single selection from a pre-defined collectioon of choices.
+</p>
+<p>
+Within the standard `<li>` wrapper, the output is a `<fieldset>` with a
+`<legend>` to represent the &#8220;label&#8221; for the input, and an
+`<ol>` containing `<li>`s for each choice in the association. Each `<li>`
+choice has a `<label>` containing an `<input type=&#8220;radio&#8221;>` and
+the label text to describe each choice.
+</p>
+<p>
+Radio inputs can be considered as an alternative where a (non-multi) select
+input is used, especially in cases where there are only a few choices,
+however they are not used by default for any type of association or model
+attribute. You can choose to use a radio input instead of a select with
+`:as => :radio`.
+</p>
+<p>
+Like a select input, the flexibility of the `:collection` option (see
+examples) makes the :radio input viable as an alternative for many other
+input types. For example, instead of...
+</p>
+<ul>
+<li>a `:string` input (where you want to force the user to choose from a few
+specific strings rather than entering anything)
+
+</li>
+<li>a `:boolean` checkbox input (where the user could choose yes or no, rather
+than checking a box)
+
+</li>
+<li>a `:date`, `:time` or `:datetime` input (where the user could choose from a
+small set of pre-determined dates)
+
+</li>
+<li>a `:number` input (where the user could choose from a small set of
+pre-defined numbers)
+
+</li>
+<li>a `:time_zone` input (where you want to provide your own small set of
+choices instead of relying on Rails)
+
+</li>
+<li>a `:country` input (where you want to provide a small set of choices, no
+need for a plugin really)
+
+</li>
+</ul>
+<p>
+For radio inputs that map to associations on the object model, <a
+href="../../Formtastic.html">Formtastic</a> will automatically load in a
+collection of objects on the association as options to choose from. This
+might be an `Author.all` on a `Post` form with an input for a `belongs_to
+:user` association, or a `Section.all` for a `Post` form with an input for
+a `belongs_to :section` association. You can override or customise this
+collection through the `:collection` option (see examples).
+</p>
+<p>
+The way on which <a href="../../Formtastic.html">Formtastic</a> renders the
+`value` attribute and label for each choice is customisable through the
+`:member_label` and `:member_value` options (see examples below). When not
+provided, we fall back to a list of methods to try on each object such as
+`:to_label`, `:name` and `:to_s`, which are defined in the configurations
+`collection_label_methods` and `collection_value_methods`.
+</p>
+<p>
+@example Basic `belongs_to` example with full form context
+</p>
+<pre>
+    &lt;%= semantic_form_for @post do |f| %&gt;
+      &lt;%= f.inputs do %&gt;
+        &lt;%= f.input :author, :as =&gt; :radio %&gt;
+      &lt;% end %&gt;
+    &lt;% end %&gt;
+
+    &lt;form...&gt;
+      &lt;fieldset&gt;
+        &lt;ol&gt;
+          &lt;li class='radio'&gt;
+            &lt;fieldset&gt;
+              &lt;legend class=&quot;label&quot;&gt;&lt;label&gt;Categories&lt;/label&gt;&lt;/legend&gt;
+              &lt;ol&gt;
+                &lt;li&gt;
+                  &lt;label for=&quot;post_author_id_1&quot;&gt;
+                    &lt;input type=&quot;radio&quot; id=&quot;post_author_id_1&quot; value=&quot;1&quot;&gt; Justin
+                  &lt;/label&gt;
+                &lt;/li&gt;
+                &lt;li&gt;
+                  &lt;label for=&quot;post_author_id_3&quot;&gt;
+                    &lt;input type=&quot;radio&quot; id=&quot;post_author_id_3&quot; value=&quot;3&quot;&gt; Kate
+                  &lt;/label&gt;
+                &lt;/li&gt;
+                &lt;li&gt;
+                  &lt;label for=&quot;post_author_id_2&quot;&gt;
+                    &lt;input type=&quot;radio&quot; id=&quot;post_author_id_2&quot; value=&quot;2&quot;&gt; Amelia
+                  &lt;/label&gt;
+                &lt;/li&gt;
+              &lt;/ol&gt;
+            &lt;/fieldset&gt;
+          &lt;/li&gt;
+        &lt;/ol&gt;
+      &lt;/fieldset&gt;
+    &lt;/form&gt;
+</pre>
+<p>
+@example The `:collection` option can be used to customize the choices
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; @authors %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; Author.all %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; Author.some_named_scope %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [Author.find_by_login(&quot;justin&quot;), Category.find_by_name(&quot;kate&quot;)] %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [&quot;Justin&quot;, &quot;Kate&quot;] %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [[&quot;Justin&quot;, &quot;justin&quot;], [&quot;Kate&quot;, &quot;kate&quot;]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [[&quot;Justin&quot;, &quot;1&quot;], [&quot;Kate&quot;, &quot;3&quot;]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [[&quot;Justin&quot;, 1], [&quot;Kate&quot;, 3]] %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; 1..5 %&gt;
+</pre>
+<p>
+@example The `:member_label` can be used to call a different method (or a
+Proc) on each object in the collection for rendering the label text
+(it&#8217;ll try the methods like `to_s` in `collection_label_methods`
+config by default)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :member_label =&gt; :name %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :member_label =&gt; :name_with_post_count
+  &lt;%= f.input :author, :as =&gt; :radio, :member_label =&gt; Proc.new { |a| &quot;#{c.name} (#{pluralize(&quot;post&quot;, a.posts.count)})&quot; }
+</pre>
+<p>
+@example `:member_label` can be used with a helper method (both examples
+have the same result)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :member_label =&gt; method(:fancy_label)
+  &lt;%= f.input :author, :as =&gt; :radio, :member_label =&gt; Proc.new { |author| fancy_label(author) }
+</pre>
+<p>
+@example The `:member_value` can be used to call a different method (or a
+Proc) on each object in the collection for rendering the value for each
+checkbox (it&#8217;ll try the methods like `id` in
+`collection_value_methods` config by default)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :member_value =&gt; :login %&gt;
+  &lt;%= f.input :author, :as =&gt; :radio, :member_value =&gt; Proc.new { |c| c.full_name.downcase.underscore }
+</pre>
+<p>
+@example `:member_value` can be used with a helper method (both examples
+have the same result)
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :member_value =&gt; method(:some_helper)
+  &lt;%= f.input :author, :as =&gt; :radio, :member_value =&gt; Proc.new { |author| some_helper(author) }
+</pre>
+<p>
+@example Set HTML attributes on each `<input type=&#8220;radio&#8221;>` tag
+with `:input_html`
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :input_html =&gt; { :size =&gt; 20, :multiple =&gt; true, :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example Set HTML attributes on the `<li>` wrapper with `:wrapper_html`
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :wrapper_html =&gt; { :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example `:value_as_class` can be used to add a class to the `<li>` wrapped
+around each choice using the radio value for custom styling of each choice
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :value_as_class =&gt; true %&gt;
+</pre>
+<p>
+@example Set HTML options on a specific radio input option with a 3rd
+element in the array for a collection member
+</p>
+<pre>
+  &lt;%= f.input :author, :as =&gt; :radio, :collection =&gt; [[&quot;Test&quot;, 'test'], [&quot;Try&quot;, &quot;try&quot;, {:disabled =&gt; true}]]
+</pre>
+<p>
+@see Formtastic::Helpers::InputsHelper#input InputsHelper#input for full
+documetation of all possible options. @see <a
+href="RadioInput.html">Formtastic::Inputs::RadioInput</a> as an alternative
+for `belongs_to` associations
+</p>
+<p>
+@todo :disabled like CheckBoxes?
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000213">choice_html</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000217">label_html_options</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000210">to_html</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="Base/Stringish.html">Formtastic::Inputs::Base::Stringish</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Base::Collections</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Base::Choices</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000213">
+                    
+                    <a name="M000213"></a><b>choice_html</b>(choice)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000213_source')" id="l_M000213_source">show</a>
+                        
+                    </p>
+                    <div id="M000213_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/radio_input.rb, line 141</span>
+141:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">choice_html</span>(<span class="ruby-identifier">choice</span>)        
+142:         <span class="ruby-identifier">template</span>.<span class="ruby-identifier">content_tag</span>(<span class="ruby-identifier">:label</span>,
+143:           <span class="ruby-identifier">builder</span>.<span class="ruby-identifier">radio_button</span>(<span class="ruby-identifier">input_name</span>, <span class="ruby-identifier">choice_value</span>(<span class="ruby-identifier">choice</span>), <span class="ruby-identifier">input_html_options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">choice_html_options</span>(<span class="ruby-identifier">choice</span>)).<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:required</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>)) <span class="ruby-operator">&lt;&lt;</span> 
+144:           <span class="ruby-identifier">choice_label</span>(<span class="ruby-identifier">choice</span>),
+145:           <span class="ruby-identifier">label_html_options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:for</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">choice_input_dom_id</span>(<span class="ruby-identifier">choice</span>), <span class="ruby-identifier">:class</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>)
+146:         )
+147:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000217">
+                    
+                    <a name="M000217"></a><b>label_html_options</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Override to remove the for attribute since this isn&#8217;t associated with
+any element, as it&#8217;s nested inside the legend.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000217_source')" id="l_M000217_source">show</a>
+                        
+                    </p>
+                    <div id="M000217_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/radio_input.rb, line 151</span>
+151:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">label_html_options</span>
+152:         <span class="ruby-keyword kw">super</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:for</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>)
+153:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000210">
+                    
+                    <a name="M000210"></a><b>to_html</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000210_source')" id="l_M000210_source">show</a>
+                        
+                    </p>
+                    <div id="M000210_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/radio_input.rb, line 126</span>
+126:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_html</span>
+127:         <span class="ruby-identifier">input_wrapping</span> <span class="ruby-keyword kw">do</span>
+128:           <span class="ruby-identifier">choices_wrapping</span> <span class="ruby-keyword kw">do</span>
+129:             <span class="ruby-identifier">legend_html</span> <span class="ruby-operator">&lt;&lt;</span>
+130:             <span class="ruby-identifier">choices_group_wrapping</span> <span class="ruby-keyword kw">do</span>
+131:               <span class="ruby-identifier">collection</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">choice</span><span class="ruby-operator">|</span> 
+132:                 <span class="ruby-identifier">choice_wrapping</span>(<span class="ruby-identifier">choice_wrapping_html_options</span>(<span class="ruby-identifier">choice</span>)) <span class="ruby-keyword kw">do</span>
+133:                   <span class="ruby-identifier">choice_html</span>(<span class="ruby-identifier">choice</span>)
+134:                 <span class="ruby-keyword kw">end</span>
+135:               }.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">html_safe</span>
+136:             <span class="ruby-keyword kw">end</span>
+137:           <span class="ruby-keyword kw">end</span>
+138:         <span class="ruby-keyword kw">end</span>
+139:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

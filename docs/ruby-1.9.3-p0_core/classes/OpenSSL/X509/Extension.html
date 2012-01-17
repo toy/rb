@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenSSL::X509::Extension</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            OpenSSL::X509::Extension 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/ext/openssl/lib/openssl/x509-internal_rb.html">ext/openssl/lib/openssl/x509-internal.rb</a></li>
+            
+            <li><a href="../../../files/ext/openssl/ossl_ssl_c.html">ext/openssl/ossl_ssl.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+INIT
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009712">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009343">to_a</a>,</li>
+                
+                <li><a href="#M009342">to_h</a>,</li>
+                
+                <li><a href="#M009341">to_s</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009712">
+                    
+                    <a name="M009712"></a><b>OpenSSL::X509::Extension.new asn1
+OpenSSL::X509::Extension.new name, value
+OpenSSL::X509::Extension.new name, value, critical
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates an <a href="../X509.html">X509</a> extension.
+</p>
+<p>
+The extension may be created from <tt>asn1</tt> data or from an extension
+<tt>name</tt> and <tt>value</tt>. The <tt>name</tt> may be either an OID or
+an extension name. If <tt>critical</tt> is true the extension is marked
+critical.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009712_source')" id="l_M009712_source">show</a>
+                        
+                    </p>
+                    <div id="M009712_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_x509ext_initialize(int argc, VALUE *argv, VALUE self)
+{
+    VALUE oid, value, critical;
+    const unsigned char *p;
+    X509_EXTENSION *ext, *x;
+
+    GetX509Ext(self, ext);
+    if(rb_scan_args(argc, argv, &quot;12&quot;, &amp;oid, &amp;value, &amp;critical) == 1){
+  oid = ossl_to_der_if_possible(oid);
+  StringValue(oid);
+  p = (unsigned char *)RSTRING_PTR(oid);
+  x = d2i_X509_EXTENSION(&amp;ext, &amp;p, RSTRING_LEN(oid));
+  DATA_PTR(self) = ext;
+  if(!x)
+      ossl_raise(eX509ExtError, NULL);
+  return self;
+    }
+    rb_funcall(self, rb_intern(&quot;oid=&quot;), 1, oid);
+    rb_funcall(self, rb_intern(&quot;value=&quot;), 1, value);
+    if(argc &gt; 2) rb_funcall(self, rb_intern(&quot;critical=&quot;), 1, critical);
+
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009343">
+                    
+                    <a name="M009343"></a><b>to_a</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009343_source')" id="l_M009343_source">show</a>
+                        
+                    </p>
+                    <div id="M009343_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/openssl/lib/openssl/x509-internal.rb, line 57</span>
+57:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_a</span>
+58:         [ <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">oid</span>, <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">value</span>, <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">critical?</span> ]
+59:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009342">
+                    
+                    <a name="M009342"></a><b>to_h</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009342_source')" id="l_M009342_source">show</a>
+                        
+                    </p>
+                    <div id="M009342_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/openssl/lib/openssl/x509-internal.rb, line 53</span>
+53:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_h</span> <span class="ruby-comment cmt"># {&quot;oid&quot;=&gt;sn|ln, &quot;value&quot;=&gt;value, &quot;critical&quot;=&gt;true|false}</span>
+54:         {<span class="ruby-value str">&quot;oid&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">oid</span>,<span class="ruby-value str">&quot;value&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">value</span>,<span class="ruby-value str">&quot;critical&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">critical?</span>}
+55:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009341">
+                    
+                    <a name="M009341"></a><b>to_s</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009341_source')" id="l_M009341_source">show</a>
+                        
+                    </p>
+                    <div id="M009341_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/openssl/lib/openssl/x509-internal.rb, line 46</span>
+46:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_s</span> <span class="ruby-comment cmt"># &quot;oid = critical, value&quot;</span>
+47:         <span class="ruby-identifier">str</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">oid</span>
+48:         <span class="ruby-identifier">str</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; = &quot;</span>
+49:         <span class="ruby-identifier">str</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;critical, &quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">critical?</span>
+50:         <span class="ruby-identifier">str</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">value</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\n/</span>, <span class="ruby-value str">&quot;, &quot;</span>)
+51:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

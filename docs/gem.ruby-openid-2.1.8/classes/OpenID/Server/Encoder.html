@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenID::Server::Encoder</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            OpenID::Server::Encoder 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/openid/server_rb.html">lib/openid/server.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+I encode responses in to WebResponses.
+</p>
+<p>
+If you don&#8217;t like WebResponses, you can do your own handling of
+OpenIDResponses with OpenIDResponse.whichEncoding,
+OpenIDResponse.encodeToURL, and OpenIDResponse.encodeToKVForm.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000415">encode</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000415">
+                    
+                    <a name="M000415"></a><b>encode</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Encode a response to a <a href="WebResponse.html">WebResponse</a>.
+</p>
+<p>
+Raises <a href="EncodingError.html">EncodingError</a> when I can&#8217;t
+figure out how to encode this message.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000415_source')" id="l_M000415_source">show</a>
+                        
+                    </p>
+                    <div id="M000415_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/openid/server.rb, line 1153</span>
+1153:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">encode</span>(<span class="ruby-identifier">response</span>)
+1154:         <span class="ruby-identifier">encode_as</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">which_encoding</span>()
+1155:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">encode_as</span> <span class="ruby-operator">==</span> <span class="ruby-constant">ENCODE_KVFORM</span>
+1156:           <span class="ruby-identifier">wr</span> = <span class="ruby-ivar">@@responseFactory</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">HTTP_OK</span>, <span class="ruby-keyword kw">nil</span>,
+1157:                                      <span class="ruby-identifier">response</span>.<span class="ruby-identifier">encode_to_kvform</span>())
+1158:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Exception</span>)
+1159:             <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">code</span> = <span class="ruby-constant">HTTP_ERROR</span>
+1160:           <span class="ruby-keyword kw">end</span>
+1161:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">encode_as</span> <span class="ruby-operator">==</span> <span class="ruby-constant">ENCODE_URL</span>
+1162:           <span class="ruby-identifier">location</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">encode_to_url</span>()
+1163:           <span class="ruby-identifier">wr</span> = <span class="ruby-ivar">@@responseFactory</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">HTTP_REDIRECT</span>,
+1164:                                      {<span class="ruby-value str">'location'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">location</span>})
+1165:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">encode_as</span> <span class="ruby-operator">==</span> <span class="ruby-constant">ENCODE_HTML_FORM</span>
+1166:           <span class="ruby-identifier">wr</span> = <span class="ruby-ivar">@@responseFactory</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">HTTP_OK</span>, <span class="ruby-keyword kw">nil</span>,
+1167:                                      <span class="ruby-identifier">response</span>.<span class="ruby-identifier">to_form_markup</span>())
+1168:         <span class="ruby-keyword kw">else</span>
+1169:           <span class="ruby-comment cmt"># Can't encode this to a protocol message.  You should</span>
+1170:           <span class="ruby-comment cmt"># probably render it to HTML and show it to the user.</span>
+1171:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">EncodingError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>)
+1172:         <span class="ruby-keyword kw">end</span>
+1173: 
+1174:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">wr</span>
+1175:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

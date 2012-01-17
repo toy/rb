@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Tue Jan 03 01:57:28 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="../classes/Scrobbler.html">Scrobbler</a></h1>
+<p>
+<a href="../classes/Scrobbler.html">Scrobbler</a> is a wrapper for the
+audioscrobbler web services (<a
+href="http://www.audioscrobbler.net/data/webservices/">www.audioscrobbler.net/data/webservices/</a>).
+</p>
+<p>
+Below is just a sampling of how easy this lib is to use.
+</p>
+<h2>Users</h2>
+<pre>
+        user = Scrobbler::User.new('jnunemaker')
+
+        puts &quot;#{user.username}'s Recent Tracks&quot;
+        puts &quot;=&quot; * (user.username.length + 16)
+        user.recent_tracks.each { |t| puts t.name }
+
+        puts
+        puts
+
+        puts &quot;#{user.username}'s Top Tracks&quot;
+        puts &quot;=&quot; * (user.username.length + 13)
+        user.top_tracks.each { |t| puts &quot;(#{t.playcount}) #{t.name}&quot; }
+</pre>
+<h2>Albums</h2>
+<pre>
+        album = Scrobbler::Album.new('Carrie Underwood', 'Some Hearts', :include_info =&gt; true)
+
+        puts &quot;Album: #{album.name}&quot;
+        puts &quot;Artist: #{album.artist}&quot;
+        puts &quot;Reach: #{album.reach}&quot;
+        puts &quot;URL: #{album.url}&quot;
+        puts &quot;Release Date: #{album.release_date.strftime('%m/%d/%Y')}&quot;
+
+        puts
+        puts
+
+        puts &quot;Tracks&quot;
+        longest_track_name = album.tracks.collect(&amp;:name).sort { |x, y| y.length &lt;=&gt; x.length }.first.length
+        puts &quot;=&quot; * longest_track_name
+        album.tracks.each { |t| puts t.name }
+</pre>
+<h2>Artists</h2>
+<pre>
+        artist = Scrobbler::Artist.new('Carrie Underwood')
+
+        puts 'Top Tracks'
+        puts &quot;=&quot; * 10
+        artist.top_tracks.each { |t| puts &quot;(#{t.reach}) #{t.name}&quot; }
+
+        puts
+
+        puts 'Similar Artists'
+        puts &quot;=&quot; * 15
+        artist.similar.each { |a| puts &quot;(#{a.match}%) #{a.name}&quot; }
+</pre>
+<h2>Tags</h2>
+<pre>
+        tag = Scrobbler::Tag.new('country')
+
+        puts 'Top Albums'
+        tag.top_albums.each { |a| puts &quot;(#{a.count}) #{a.name} by #{a.artist}&quot; }
+
+        puts
+
+        puts 'Top Tracks'
+        tag.top_tracks.each { |t| puts &quot;(#{t.count}) #{t.name} by #{t.artist}&quot; }
+</pre>
+<h2>Tracks</h2>
+<pre>
+        track = Scrobbler::Track.new('Carrie Underwood', 'Before He Cheats')
+        puts 'Fans'
+        puts &quot;=&quot; * 4
+        track.fans.each { |u| puts &quot;(#{u.weight}) #{u.username}&quot; }
+</pre>
+<h2>Simple Authentication (for Scrobbling)</h2>
+<pre>
+    auth = Scrobbler::SimpleAuth.new(:user =&gt; 'chunky', :password =&gt; 'bacon')
+    auth.handshake!
+
+    puts &quot;Auth Status: #{auth.status}&quot;
+    puts &quot;Session ID: #{auth.session_id}&quot;
+    puts &quot;Now Playing URL: #{auth.now_playing_url}&quot;
+    puts &quot;Submission URL: #{auth.submission_url}&quot;
+</pre>
+<h2>Scrobbling</h2>
+<pre>
+    scrobble = Scrobbler::Scrobble.new(:session_id =&gt; auth.session_id,
+                                       :submission_url =&gt; auth.submission_url,
+                                       :artist =&gt; 'Coldplay',
+                                       :track =&gt; 'Viva La Vida',
+                                       :album =&gt; &quot;Viva La Vida&quot;,
+                                       :time =&gt; Time.new,
+                                       :length =&gt; 244,
+                                       :track_number =&gt; 7)
+    scrobble.submit!
+    puts &quot;Scrobbler Submission Status: #{scrobble.status}&quot;
+</pre>
+<h2>Now Playing Submission</h2>
+<pre>
+    playing = Scrobbler::Playing.new(:session_id =&gt; auth.session_id,
+                                     :now_playing_url =&gt; auth.now_playing_url,
+                                     :artist =&gt; 'Anberlin',
+                                     :track =&gt; 'Readyfuels',
+                                     :album =&gt; 'Blueprints For the Black Market',
+                                     :length =&gt; 218,
+                                     :track_number =&gt; 1)
+
+    playing.submit!
+    puts &quot;Playing Submission Status: #{playing.status}&quot;
+</pre>
+<h2>Docs</h2>
+<p>
+<a
+href="http://rdoc.info/projects/jnunemaker/scrobbler">rdoc.info/projects/jnunemaker/scrobbler</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

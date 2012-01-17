@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Renee::Core::RequestContext</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Renee::Core::RequestContext 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/renee_core/request_context_rb.html">lib/renee_core/request_context.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+This module deals with the Rack#call compilance. It defines <a
+href="RequestContext.html#M000019">call</a> and also defines several
+critical methods used by interaction by other application modules.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000019">call</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>env</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>request</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>detected_extension</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000019">
+                    
+                    <a name="M000019"></a><b>call</b>(env)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Provides a rack interface compliant call method. @param[Hash] env The rack
+environment.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000019_source')" id="l_M000019_source">show</a>
+                        
+                    </p>
+                    <div id="M000019_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/renee_core/request_context.rb, line 10</span>
+10:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+11:         <span class="ruby-ivar">@env</span>, <span class="ruby-ivar">@request</span> = <span class="ruby-identifier">env</span>, <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">Request</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">env</span>)
+12:         <span class="ruby-ivar">@detected_extension</span> = <span class="ruby-identifier">env</span>[<span class="ruby-value str">'PATH_INFO'</span>][<span class="ruby-regexp re">/\.([^\.\/]+)$/</span>, <span class="ruby-value">1</span>]
+13:         <span class="ruby-comment cmt"># TODO clear template cache in development? `template_cache.clear`</span>
+14:         <span class="ruby-identifier">catch</span>(<span class="ruby-identifier">:halt</span>) <span class="ruby-keyword kw">do</span>
+15:           <span class="ruby-keyword kw">begin</span>
+16:             <span class="ruby-identifier">instance_eval</span>(<span class="ruby-operator">&amp;</span><span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">application_block</span>)
+17:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ClientError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+18:             <span class="ruby-identifier">e</span>.<span class="ruby-identifier">response</span> <span class="ruby-value">? </span><span class="ruby-identifier">instance_eval</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">e</span>.<span class="ruby-identifier">response</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">halt</span>(<span class="ruby-value str">&quot;There was an error with your request&quot;</span>, <span class="ruby-value">400</span>)
+19:           <span class="ruby-keyword kw">end</span>
+20:           <span class="ruby-constant">Renee</span><span class="ruby-operator">::</span><span class="ruby-constant">Core</span><span class="ruby-operator">::</span><span class="ruby-constant">Response</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;Not found&quot;</span>, <span class="ruby-value">404</span>).<span class="ruby-identifier">finish</span>
+21:         <span class="ruby-keyword kw">end</span>
+22:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

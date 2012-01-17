@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>URI::FTP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            URI::FTP 
+            
+                <span class="parent">&lt; 
+                    
+                    Generic
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/open-uri_rb.html">lib/open-uri.rb</a></li>
+            
+            <li><a href="../../files/lib/uri/ftp_rb.html">lib/uri/ftp.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="FTP.html">FTP</a> <a href="../URI.html">URI</a> syntax is defined
+by RFC1738 section 3.2.
+</p>
+<p>
+This class will be redesigned because of difference of implementations; the
+structure of its path. draft-hoffman-ftp-uri-04 is a draft but it is a good
+summary about the de facto spec. <a
+href="http://tools.ietf.org/html/draft-hoffman-ftp-uri-04">tools.ietf.org/html/draft-hoffman-ftp-uri-04</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007796">build</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007798">check_typecode</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007797">new</a>,</li>
+                
+                <li><a href="#M007795">new2</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007803">path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007804">set_path</a>,</li>
+                
+                <li><a href="#M007799">set_typecode</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M007805">to_s</a>,</li>
+                
+                <li><a href="#M007801">typecode=</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="../JSON.html">JSON</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_PORT</td>
+            <td>=</td>
+            <td class="attr-value">21</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+A Default port of 21 for <a href="FTP.html">URI::FTP</a>
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">COMPONENT</td>
+            <td>=</td>
+            <td class="attr-value">[       :scheme,       :userinfo, :host, :port,       :path, :typecode     ].freeze</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+An <a href="../Array.html">Array</a> of the available components for <a
+href="FTP.html">URI::FTP</a>
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPECODE</td>
+            <td>=</td>
+            <td class="attr-value">['a', 'i', 'd'].freeze</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Typecode is &#8220;a&#8221;, &#8220;i&#8221; or &#8220;d&#8221;.
+</p>
+<ul>
+<li>&#8220;a&#8221; indicates a text file (the <a href="FTP.html">FTP</a>
+command was ASCII)
+
+</li>
+<li>&#8220;i&#8221; indicates a binary file (<a href="FTP.html">FTP</a> command
+IMAGE)
+
+</li>
+<li>&#8220;d&#8221; indicates the contents of a directory should be displayed
+
+</li>
+</ul>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPECODE_PREFIX</td>
+            <td>=</td>
+            <td class="attr-value">';type='.freeze</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Typecode prefix
+</p>
+<pre>
+ ';type='
+</pre>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>typecode</td>
+            <td class='attr-desc'><p>
+typecode accessor
+</p>
+<p>
+see URI::FTP::COMPONENT
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M007796">
+                    
+                    <a name="M007796"></a><b>build</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Description</h2>
+<p>
+Creates a new <a href="FTP.html">URI::FTP</a> object from components, with
+syntax checking.
+</p>
+<p>
+The components accepted are <tt>userinfo</tt>, <tt>host</tt>,
+<tt>port</tt>, <tt>path</tt> and <tt>typecode</tt>.
+</p>
+<p>
+The components should be provided either as an <a
+href="../Array.html">Array</a>, or as a <a href="../Hash.html">Hash</a>
+with keys formed by preceding the component names with a colon.
+</p>
+<p>
+If an <a href="../Array.html">Array</a> is used, the components must be
+passed in the order [userinfo, host, port, path, typecode]
+</p>
+<p>
+If the path supplied is absolute, it will be escaped in order to make it
+absolute in the <a href="../URI.html">URI</a>. Examples:
+</p>
+<pre>
+    require 'uri'
+
+    uri = URI::FTP.build(['user:password', 'ftp.example.com', nil,
+      '/path/file.&gt; zip', 'i'])
+    puts uri.to_s  -&gt;  ftp://user:password@ftp.example.com/%2Fpath/file.zip;type=a
+
+    uri2 = URI::FTP.build({:host =&gt; 'ftp.example.com',
+      :path =&gt; 'ruby/src'})
+    puts uri2.to_s  -&gt;  ftp://ftp.example.com/ruby/src
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007796_source')" id="l_M007796_source">show</a>
+                        
+                    </p>
+                    <div id="M007796_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 100</span>
+100:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">build</span>(<span class="ruby-identifier">args</span>)
+101: 
+102:       <span class="ruby-comment cmt"># Fix the incoming path to be generic URL syntax</span>
+103:       <span class="ruby-comment cmt"># FTP path  -&gt;  URL path</span>
+104:       <span class="ruby-comment cmt"># foo/bar       /foo/bar</span>
+105:       <span class="ruby-comment cmt"># /foo/bar      /%2Ffoo/bar</span>
+106:       <span class="ruby-comment cmt">#</span>
+107:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Array</span>)
+108:         <span class="ruby-identifier">args</span>[<span class="ruby-value">3</span>] = <span class="ruby-value str">'/'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">args</span>[<span class="ruby-value">3</span>].<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>, <span class="ruby-value str">'%2F'</span>)
+109:       <span class="ruby-keyword kw">else</span>
+110:         <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:path</span>] = <span class="ruby-value str">'/'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:path</span>].<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>, <span class="ruby-value str">'%2F'</span>)
+111:       <span class="ruby-keyword kw">end</span>
+112: 
+113:       <span class="ruby-identifier">tmp</span> = <span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-identifier">make_components_hash</span>(<span class="ruby-keyword kw">self</span>, <span class="ruby-identifier">args</span>)
+114: 
+115:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:typecode</span>]
+116:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:typecode</span>].<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
+117:           <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:typecode</span>] = <span class="ruby-constant">TYPECODE_PREFIX</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:typecode</span>]
+118:         <span class="ruby-keyword kw">end</span>
+119:         <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:path</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">tmp</span>[<span class="ruby-identifier">:typecode</span>]
+120:       <span class="ruby-keyword kw">end</span>
+121: 
+122:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">tmp</span>)
+123:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M007797">
+                    
+                    <a name="M007797"></a><b>new</b>(*arg)
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Description</h2>
+<p>
+Creates a new <a href="FTP.html">URI::FTP</a> object from generic URL
+components with no syntax checking.
+</p>
+<p>
+Unlike build(), this method does not escape the path component as required
+by RFC1738; instead it is treated as per RFC2396.
+</p>
+<p>
+Arguments are <tt>scheme</tt>, <tt>userinfo</tt>, <tt>host</tt>,
+<tt>port</tt>, <tt>registry</tt>, <tt>path</tt>, <tt>opaque</tt>,
+<tt>query</tt> and <tt>fragment</tt>, in that order.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007797_source')" id="l_M007797_source">show</a>
+                        
+                    </p>
+                    <div id="M007797_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 137</span>
+137:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">arg</span>)
+138:       <span class="ruby-identifier">arg</span>[<span class="ruby-value">5</span>] = <span class="ruby-identifier">arg</span>[<span class="ruby-value">5</span>].<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>,<span class="ruby-value str">''</span>).<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^%2F/</span>,<span class="ruby-value str">'/'</span>)
+139:       <span class="ruby-keyword kw">super</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">arg</span>)
+140:       <span class="ruby-ivar">@typecode</span> = <span class="ruby-keyword kw">nil</span>
+141:       <span class="ruby-identifier">tmp</span> = <span class="ruby-ivar">@path</span>.<span class="ruby-identifier">index</span>(<span class="ruby-constant">TYPECODE_PREFIX</span>)
+142:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tmp</span>
+143:         <span class="ruby-identifier">typecode</span> = <span class="ruby-ivar">@path</span>[<span class="ruby-identifier">tmp</span> <span class="ruby-operator">+</span> <span class="ruby-constant">TYPECODE_PREFIX</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">..</span><span class="ruby-value">-1</span>]
+144:         <span class="ruby-ivar">@path</span> = <span class="ruby-ivar">@path</span>[<span class="ruby-value">0</span><span class="ruby-operator">..</span><span class="ruby-identifier">tmp</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>]
+145: 
+146:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">arg</span>[<span class="ruby-value">-1</span>]
+147:           <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">typecode</span> = <span class="ruby-identifier">typecode</span>
+148:         <span class="ruby-keyword kw">else</span>
+149:           <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">set_typecode</span>(<span class="ruby-identifier">typecode</span>)
+150:         <span class="ruby-keyword kw">end</span>
+151:       <span class="ruby-keyword kw">end</span>
+152:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M007795">
+                    
+                    <a name="M007795"></a><b>new2</b>(user, password, host, port, path, typecode = nil, arg_check = true)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+alternate initialization Creates a new <a href="FTP.html">URI::FTP</a>
+object.
+</p>
+<p>
+Unlike build(), this method does not escape the path component as required
+by RFC1738; instead it is treated as per RFC2396.
+</p>
+<p>
+Arguments are user, password, host, port, path, typecode, and arg_check, in
+that order.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007795_source')" id="l_M007795_source">show</a>
+                        
+                    </p>
+                    <div id="M007795_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 56</span>
+56:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">new2</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">password</span>, <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-identifier">path</span>,
+57:                   <span class="ruby-identifier">typecode</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">arg_check</span> = <span class="ruby-keyword kw">true</span>)
+58:       <span class="ruby-identifier">typecode</span> = <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">typecode</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+59:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">typecode</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-constant">TYPECODE</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">typecode</span>)
+60:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>,
+61:           <span class="ruby-node">&quot;bad typecode is specified: #{typecode}&quot;</span>
+62:       <span class="ruby-keyword kw">end</span>
+63: 
+64:       <span class="ruby-comment cmt"># do escape</span>
+65: 
+66:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'ftp'</span>,
+67:                [<span class="ruby-identifier">user</span>, <span class="ruby-identifier">password</span>],
+68:                <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>, <span class="ruby-keyword kw">nil</span>,
+69:                <span class="ruby-identifier">typecode</span> <span class="ruby-value">? </span><span class="ruby-identifier">path</span> <span class="ruby-operator">+</span> <span class="ruby-constant">TYPECODE_PREFIX</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">typecode</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">path</span>,
+70:                <span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">arg_check</span>)
+71:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M007803">
+                    
+                    <a name="M007803"></a><b>path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the path from an <a href="FTP.html">FTP</a> <a
+href="../URI.html">URI</a>.
+</p>
+<p>
+RFC 1738 specifically states that the path for an <a
+href="FTP.html">FTP</a> <a href="../URI.html">URI</a> does not include the
+/ which separates the <a href="../URI.html">URI</a> path from the <a
+href="../URI.html">URI</a> host. Example:
+</p>
+<pre>
+    ftp://ftp.example.com/pub/ruby
+</pre>
+<p>
+The above <a href="../URI.html">URI</a> indicates that the client should
+connect to ftp.example.com then cd pub/ruby from the initial login
+directory.
+</p>
+<p>
+If you want to cd to an absolute directory, you must include an escaped /
+(%2F) in the path. Example:
+</p>
+<pre>
+    ftp://ftp.example.com/%2Fpub/ruby
+</pre>
+<p>
+This method will then return &#8220;/pub/ruby&#8220;
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007803_source')" id="l_M007803_source">show</a>
+                        
+                    </p>
+                    <div id="M007803_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 237</span>
+237:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">path</span>
+238:       <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@path</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>,<span class="ruby-value str">''</span>).<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^%2F/</span>,<span class="ruby-value str">'/'</span>)
+239:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M007805">
+                    
+                    <a name="M007805"></a><b>to_s</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007805_source')" id="l_M007805_source">show</a>
+                        
+                    </p>
+                    <div id="M007805_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 246</span>
+246:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_s</span>
+247:       <span class="ruby-identifier">save_path</span> = <span class="ruby-keyword kw">nil</span>
+248:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@typecode</span>
+249:         <span class="ruby-identifier">save_path</span> = <span class="ruby-ivar">@path</span>
+250:         <span class="ruby-ivar">@path</span> = <span class="ruby-ivar">@path</span> <span class="ruby-operator">+</span> <span class="ruby-constant">TYPECODE_PREFIX</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@typecode</span>
+251:       <span class="ruby-keyword kw">end</span>
+252:       <span class="ruby-identifier">str</span> = <span class="ruby-keyword kw">super</span>
+253:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@typecode</span>
+254:         <span class="ruby-ivar">@path</span> = <span class="ruby-identifier">save_path</span>
+255:       <span class="ruby-keyword kw">end</span>
+256: 
+257:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>
+258:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M007801">
+                    
+                    <a name="M007801"></a><b>typecode=</b>(typecode)
+                    
+                </div>
+                
+                <div class="description">
+                  <h2>Args</h2>
+<table>
+<tr><td valign="top"><tt>v</tt>:</td><td><a href="../String.html">String</a>
+
+</td></tr>
+</table>
+<h2>Description</h2>
+<p>
+public setter for the typecode <tt>v</tt>. (with validation)
+</p>
+<p>
+see also <a href="FTP.html#M007798">URI::FTP.check_typecode</a>
+</p>
+<h2>Usage</h2>
+<pre>
+  require 'uri'
+
+  uri = URI.parse(&quot;ftp://john@ftp.example.com/my_file.img&quot;)
+  #=&gt; #&lt;URI::FTP:0x00000000923650 URL:ftp://john@ftp.example.com/my_file.img&gt;
+  uri.typecode = &quot;i&quot;
+  # =&gt;  &quot;i&quot;
+  uri
+  #=&gt; #&lt;URI::FTP:0x00000000923650 URL:ftp://john@ftp.example.com/my_file.img;type=i&gt;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007801_source')" id="l_M007801_source">show</a>
+                        
+                    </p>
+                    <div id="M007801_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 205</span>
+205:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">typecode=</span>(<span class="ruby-identifier">typecode</span>)
+206:       <span class="ruby-identifier">check_typecode</span>(<span class="ruby-identifier">typecode</span>)
+207:       <span class="ruby-identifier">set_typecode</span>(<span class="ruby-identifier">typecode</span>)
+208:       <span class="ruby-identifier">typecode</span>
+209:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M007804">
+                    
+                    <a name="M007804"></a><b>set_path</b>(v)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007804_source')" id="l_M007804_source">show</a>
+                        
+                    </p>
+                    <div id="M007804_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 241</span>
+241:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_path</span>(<span class="ruby-identifier">v</span>)
+242:       <span class="ruby-keyword kw">super</span>(<span class="ruby-value str">&quot;/&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">v</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>, <span class="ruby-value str">&quot;%2F&quot;</span>))
+243:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M007799">
+                    
+                    <a name="M007799"></a><b>set_typecode</b>(v)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+private setter for the typecode <tt>v</tt>
+</p>
+<p>
+see also <a href="FTP.html#M007801">URI::FTP.typecode=</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007799_source')" id="l_M007799_source">show</a>
+                        
+                    </p>
+                    <div id="M007799_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 176</span>
+176:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_typecode</span>(<span class="ruby-identifier">v</span>)
+177:       <span class="ruby-ivar">@typecode</span> = <span class="ruby-identifier">v</span>
+178:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M007798">
+                    
+                    <a name="M007798"></a><b>check_typecode</b>(v)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+validates typecode <tt>v</tt>, returns a <tt>true</tt> or <tt>false</tt>
+boolean
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M007798_source')" id="l_M007798_source">show</a>
+                        
+                    </p>
+                    <div id="M007798_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/uri/ftp.rb, line 162</span>
+162:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_typecode</span>(<span class="ruby-identifier">v</span>)
+163:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">TYPECODE</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">v</span>)
+164:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+165:       <span class="ruby-keyword kw">else</span>
+166:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidComponentError</span>,
+167:           <span class="ruby-node">&quot;bad typecode(expected #{TYPECODE.join(', ')}): #{v}&quot;</span>
+168:       <span class="ruby-keyword kw">end</span>
+169:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

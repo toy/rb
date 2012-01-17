@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sun Jan 15 22:40:14 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../classes/Rugged.html">Rugged</a> - libgit2 bindings in Ruby
+</p>
+<h6>=============================</h6>
+<p>
+<a href="../classes/Rugged.html">Rugged</a> is a Ruby bindings to the
+libgit2 linkable C Git library. This is for testing and using the libgit2
+library in a language that is awesome.
+</p>
+<p>
+INSTALLING AND RUNNING
+</p>
+<h6>==================</h6>
+<p>
+First you need to install libgit2:
+</p>
+<pre>
+    $ git clone git://github.com/libgit2/libgit2.git
+    $ cd libgit2
+    $ mdkir build &amp;&amp; cd build
+    $ cmake ..
+    $ make
+    $ make install
+</pre>
+<p>
+Next, you need to install rake-compiler:
+</p>
+<pre>
+    $ sudo gem install rake-compiler
+</pre>
+<p>
+Now that those are installed, you can install Rugged:
+</p>
+<pre>
+    $ git clone git://github.com/libgit2/rugged.git
+    $ cd rugged
+    $ rake compile
+    $ rake test
+</pre>
+<p>
+API
+</p>
+<h6>========</h6>
+<p>
+There is a general library for some basic Gitty methods. So far, just
+converting a raw sha (20 bytes) into a readable hex sha (40 char).
+</p>
+<pre>
+    raw = Rugged.hex_to_raw(hex_sha)
+    hex = Rugged.raw_to_hex(20_byte_raw_sha)
+</pre>
+<p>
+Repository Access
+</p>
+<hr size="10"></hr><p>
+There is a Repository class that you can instantiate with a path. This lets
+you check for objects, read raw object data, write raw object data and get
+a hash (SHA1 checksum) of what contents would be without writing them out.
+You also use it to lookup Git objects from it.
+</p>
+<p>
+Repository is the main repository object that everything else will emanate
+from.
+</p>
+<pre>
+    repo =
+    Rugged::Repository.new(path)
+      ctnt, type = repo.read(sha)
+      gobj = repo.lookup(sha, type[?])  # optional type argument for checking
+      sha  = repo.write(content, type)
+      sha  = repo.hash(content, type)
+      bool = repo.exists(sha)
+      index = repo.index
+</pre>
+<p>
+The &#8216;path&#8217; argument must point to an actual git repository
+folder. The library will automatically guess if it&#8217;s a bare
+repository or a &#8217;.git&#8217; folder inside a working repository, and
+locate the working path accordingly.
+</p>
+<p>
+Object Access
+</p>
+<hr size="10"></hr><p>
+Object is the main object class - it shouldn&#8217;t be created directly,
+but all of these methods should be useful in it&#8217;s derived classes
+</p>
+<pre>
+    object =
+    # Constructor is inherited by all the repository objects
+    # 'sha' is the ID of the object;
+    # 'repo' is the repository where the object resides
+    # If both 'sha' and 'repo' exist, the object will be looked up on
+    # the repository and instantiated
+    # If the 'sha' ID of the object is missing, the object will be
+    # created in memory and can be written later on to the repository
+    Rugged::Object.new(repo, sha)
+      obj.oid
+      obj.type
+
+      str = obj.read_raw        # read the raw data of the object
+</pre>
+<p>
+The next classes are for consuming and creating the 4 base git object
+types. Just about every method should be able to take a parameter to change
+the value so the object can be re-written slightly different or no
+parameter to simply read the current value out.
+</p>
+<pre>
+    gobjc = Rugged::Commit.new
+    # Rugged::Commit.new &lt; Rugged::Object
+      str   = gobjc.message
+      str   = gobjc.message_short
+      str   = gobjc.message_body # TODO
+      prsn  = gobjc.author
+      prsn  = gobjc.committer
+      gobjr = gobjc.tree
+      sha   = gobjc.tree_sha
+      arr   = gobjc.parents [*] # TODO: write
+
+    gobtg = Rugged::Tag.new
+    # Rugged::Tag.new &lt; Rugged::Object
+      gobj  = gobtg.target
+      int   = gobtg.target_type
+      str   = gobtg.name
+      prsn  = gobtg.tagger
+      str   = gobtg.message
+
+    gobtr = Rugged::Tree.new
+    # Rugged::Tree.new &lt; Rugged::Object
+              gobtr.add(ent) # TODO
+              gobtr.remove(name) # TODO
+      int   = gobtr.entry_count
+      ent   = gobtr.get_entry
+
+    ent =
+    Rugged::TreeEntry.new(attributes, name, sha)
+      int  = ent.attributes
+      str  = ent.name
+      sha  = ent.sha
+      gobj = ent.to_object
+</pre>
+<p>
+// * Person information is returned as a hash table
+</p>
+<p>
+Commit Walker
+</p>
+<hr size="10"></hr><p>
+There is also a Walker class that currently takes a repo object. You can
+push head SHAs onto the walker, then call next to get a list of the
+reachable commit objects, one at a time. You can also hide() commits if you
+are not interested in anything beneath them (useful for a `git log master
+^origin/master` type deal).
+</p>
+<pre>
+    walker =
+    Rugged::Walker.new(repo)
+             walker.walk { |c| puts c.inspect } # walk is just an alias of each
+             walker.each { |c| puts c.inspect }
+             walker.push(hex_sha_interesting)
+             walker.hide(hex_sha_uninteresting)
+             walker.reset
+</pre>
+<p>
+Index/Staging Area
+</p>
+<hr size="10"></hr><p>
+We can inspect and manipulate the Git Index as well. To work with the index
+inside of an existing repository, instantiate it by using the
+`Repository.index` method instead of manually opening the Index by its
+path.
+</p>
+<pre>
+    # TODO: the remove and add functions immediately flush to the index file on disk
+    index =
+    Rugged::Index.new(path)
+            index.reload              # re-read the index file from disk
+      int = index.count # count of index entries
+            index.entries # collection of index entries
+            index.each { |i| puts i.inspect }
+      ent = index.get_entry(i/path)
+            index.remove(i/path)
+            index.add(ientry)    # also updates existing entry if there is one
+            index.add(path)      # create ientry from file in path, update index
+      #TODO index.read_tree(gobtr, path='/')
+      #TODO index.write_tree
+</pre>
+<p>
+Index Status # TODO
+</p>
+<hr size="10"></hr><pre>
+      #TODO index.status # how does the index differ from the work tree and the last commit
+
+    # &gt;&gt; pp stat
+    # [ ['file1', :staged],
+    #   ['file2', :modified],
+    #   ['file3', :deleted],
+    #   ['file4', :untracked],
+    #   ['file4', :unmerged],
+    # ]
+</pre>
+<p>
+Ref Management # TODO
+</p>
+<hr size="10"></hr><p>
+The RefList class allows you to list, create and delete packed and loose
+refs.
+</p>
+<pre>
+    list =
+    Rugged::RefList.new(repo)
+     ref   = list.head         # can retrieve and set HEAD with this - returns ref obj or commit obj if detatched
+     array = list.list([type]) # type is 'heads', 'tags', 'remotes', 'notes', et
+             list.add(oref)
+             list.pack
+             list.unpack
+
+    oref =
+    Rugged::Ref.new(ref, sha)
+             br.name # master
+             br.ref  # refs/heads/master
+             br.type # heads
+             br.object
+             br.sha
+             br.delete
+             br.save
+</pre>
+<p>
+Config Management # TODO
+</p>
+<hr size="10"></hr><pre>
+    conf =
+    Rugged::Config.new(repo)
+      hash = conf.list([section])
+       val = conf.get(key, [scope])
+      bool = conf.set(key, value, [scope]) # scope is 'local'(default), 'global', 'system'
+</pre>
+<p>
+Client Transport # TODO
+</p>
+<hr size="10"></hr><pre>
+    client =
+    Rugged::Client.new(repo)
+    summry = client.fetch(url, [refs])
+    summry = client.push(url, refs)
+      refs = client.refs(url)  # ls-remote
+</pre>
+<p>
+Remote Management # TODO
+</p>
+<hr size="10"></hr><pre>
+    remlist =
+    Rugged::RemoteList.new(repo)
+    array = remlist.list
+      rem = remlist.add(alias, url)
+
+    rem =
+    Rugged::Remote.new(repo)
+    summry = rem.fetch([refs])
+    summry = rem.push(refs)
+    summry = rem.remove(refs)
+      bool = rem.delete
+     heads = rem.heads
+</pre>
+<p>
+Server Transport # TODO
+</p>
+<hr size="10"></hr><pre>
+    server =
+    Rugged::Server.new
+             server.listen(port = 8080, ip = 0.0.0.0)
+             server.export_repo(path/repo)
+             server.export_path(path)
+</pre>
+<p>
+TODO
+</p>
+<h6>========</h6>
+<p>
+I will try to keep this up to date with the working public API available in
+the libgit2 linkable library. Whatever is available there should be here as
+well. The latest libgit2 commit known to link and build successfully will
+be listed in the LIBGIT2_VERSION file.
+</p>
+<p>
+CONTRIBUTING
+</p>
+<h6>========</h6>
+<p>
+Fork libgit2/rugged on GitHub, make it awesomer (preferably in a branch
+named for the topic), send a pull request.
+</p>
+<p>
+AUTHORS
+</p>
+<h6>========</h6>
+<ul>
+<li>Scott Chacon <schacon@gmail.com>
+
+</li>
+<li>Vicent Marti <tanoku@gmail.com>
+
+</li>
+</ul>
+<p>
+<a href="LICENSE.html">LICENSE</a>
+</p>
+<h6>========</h6>
+<p>
+MIT. See <a href="LICENSE.html">LICENSE</a> file.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

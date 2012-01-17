@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sat Oct 01 23:00:24 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# <a href="../classes/Thor.html">Thor</a>
+</p>
+<p>
+## Description
+</p>
+<p>
+<a href="../classes/Thor.html">Thor</a> is a simple and efficient tool for
+building self-documenting command line utilities. It removes the pain of
+parsing command line options, writing &#8220;USAGE:&#8221; banners, and can
+also be used as an alternative to the [Rake](<a
+href="http://github.com/jimweirich/rake">github.com/jimweirich/rake</a>)
+build tool. The syntax is Rake-like, so it should be familiar to most Rake
+users.
+</p>
+<p>
+## Installation
+</p>
+<p>
+$ gem install thor
+</p>
+<p>
+or
+</p>
+<p>
+$ gem install wycats-thor -s <a
+href="http://gems.github.com">gems.github.com</a>
+</p>
+<p>
+## Usage
+</p>
+<p>
+Map options to a class. Simply create a class with the appropriate
+annotations and have options automatically map to functions and parameters.
+</p>
+<p>
+Example:
+</p>
+<pre>
+    class App &lt; Thor                                                 # [1]
+      map &quot;-L&quot; =&gt; :list                                              # [2]
+
+      desc &quot;install APP_NAME&quot;, &quot;install one of the available apps&quot;   # [3]
+      method_options :force =&gt; :boolean, :alias =&gt; :string           # [4]
+      def install(name)
+        user_alias = options[:alias]
+        if options.force?
+          # do something
+        end
+        # other code
+      end
+
+      desc &quot;list [SEARCH]&quot;, &quot;list all of the available apps, limited by SEARCH&quot;
+      def list(search=&quot;&quot;)
+        # list everything
+      end
+    end
+</pre>
+<p>
+<a href="../classes/Thor.html">Thor</a> automatically maps commands as
+such:
+</p>
+<pre>
+    thor app:install myname --force
+</pre>
+<p>
+That gets converted to:
+</p>
+<pre>
+    App.new.install(&quot;myname&quot;)
+    # with {'force' =&gt; true} as options hash
+</pre>
+<ol>
+<li>Inherit from <a href="../classes/Thor.html">Thor</a> to turn a class into
+an option mapper.
+
+</li>
+<li>Map additional non-valid identifiers to specific methods. In this case,
+convert -L to :list
+
+</li>
+<li>Describe the method immediately below. The first parameter is the usage
+information, and the second parameter is the description.
+
+</li>
+<li>Provide any additional options that will be available the instance method
+options.
+
+</li>
+</ol>
+<p>
+## Types for <tt>method_options</tt>
+</p>
+<ul>
+<li>:boolean - is parsed as <tt>--option</tt> or <tt>--option=true</tt>
+
+</li>
+<li>:string - is parsed as <tt>--option=VALUE</tt>
+
+</li>
+<li>:numeric - is parsed as <tt>--option=N</tt>
+
+</li>
+<li>:array - is parsed as <tt>--option=one two three</tt>
+
+</li>
+<li>:hash - is parsed as <tt>--option=name:string age:integer</tt>
+
+</li>
+</ul>
+<p>
+Besides, method_option allows a default value to be given. Examples:
+</p>
+<pre>
+    method_options :force =&gt; false
+    #=&gt; Creates a boolean option with default value false
+
+    method_options :alias =&gt; &quot;bar&quot;
+    #=&gt; Creates a string option with default value &quot;bar&quot;
+
+    method_options :threshold =&gt; 3.0
+    #=&gt; Creates a numeric option with default value 3.0
+</pre>
+<p>
+You can also supply <tt>:option =&gt; :required</tt> to mark an option as
+required. The type is assumed to be string. If you want a required hash
+with default values as option, you can use <tt>method_option</tt> which
+uses a more declarative style:
+</p>
+<pre>
+    method_option :attributes, :type =&gt; :hash, :default =&gt; {}, :required =&gt; true
+</pre>
+<p>
+All arguments can be set to nil (except required arguments), by suppling a
+no or skip variant. For example:
+</p>
+<pre>
+    thor app name --no-attributes
+</pre>
+<p>
+In previous versions, aliases for options were created automatically, but
+now they should be explicit. You can supply aliases in both short and
+declarative styles:
+</p>
+<pre>
+    method_options %w( force -f ) =&gt; :boolean
+</pre>
+<p>
+Or:
+</p>
+<pre>
+    method_option :force, :type =&gt; :boolean, :aliases =&gt; &quot;-f&quot;
+</pre>
+<p>
+You can supply as many aliases as you want.
+</p>
+<p>
+NOTE: Type :optional available in <a href="../classes/Thor.html">Thor</a>
+0.9.0 was deprecated. Use :string or :boolean instead.
+</p>
+<p>
+## Namespaces
+</p>
+<p>
+By default, your <a href="../classes/Thor.html">Thor</a> tasks are invoked
+using Ruby namespace. In the example above, tasks are invoked as:
+</p>
+<pre>
+    thor app:install name --force
+</pre>
+<p>
+However, you could namespace your class as:
+</p>
+<pre>
+    module Sinatra
+      class App &lt; Thor
+        # tasks
+      end
+    end
+</pre>
+<p>
+And then you should invoke your tasks as:
+</p>
+<pre>
+    thor sinatra:app:install name --force
+</pre>
+<p>
+If desired, you can change the namespace:
+</p>
+<pre>
+    module Sinatra
+      class App &lt; Thor
+        namespace :myapp
+        # tasks
+      end
+    end
+</pre>
+<p>
+And then your tasks should be invoked as:
+</p>
+<pre>
+    thor myapp:install name --force
+</pre>
+<p>
+## Invocations
+</p>
+<p>
+<a href="../classes/Thor.html">Thor</a> comes with a invocation-dependency
+system as well, which allows a task to be invoked only once. For example:
+</p>
+<pre>
+    class Counter &lt; Thor
+      desc &quot;one&quot;, &quot;Prints 1, 2, 3&quot;
+      def one
+        puts 1
+        invoke :two
+        invoke :three
+      end
+
+      desc &quot;two&quot;, &quot;Prints 2, 3&quot;
+      def two
+        puts 2
+        invoke :three
+      end
+
+      desc &quot;three&quot;, &quot;Prints 3&quot;
+      def three
+        puts 3
+      end
+    end
+</pre>
+<p>
+When invoking the task one:
+</p>
+<pre>
+    thor counter:one
+</pre>
+<p>
+The output is &#8220;1 2 3&#8221;, which means that the three task was
+invoked only once. You can even invoke tasks from another class, so be sure
+to check the [documentation](<a
+href="http://rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor.html">rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor.html</a>).
+</p>
+<p>
+Notice invocations do not share the same object. I.e, <a
+href="../classes/Thor.html">Thor</a> will instantiate Counter once to
+invoke the task one, then, it instantiates another to invoke the task two
+and another for task three. This happens to allow options and arguments to
+parsed again. For example, if two and three have different options and both
+of them were given to the command line, calling invoke makes them be parsed
+each time and used accordingly by each task.
+</p>
+<p>
+## <a href="../classes/Thor/Group.html">Thor::Group</a>
+</p>
+<p>
+<a href="../classes/Thor.html">Thor</a> has a special class called <a
+href="../classes/Thor/Group.html">Thor::Group</a>. The main difference to
+<a href="../classes/Thor.html">Thor</a> class is that it invokes all tasks
+at once. The example above could be rewritten in <a
+href="../classes/Thor/Group.html">Thor::Group</a> as this:
+</p>
+<pre>
+    class Counter &lt; Thor::Group
+      desc &quot;Prints 1, 2, 3&quot;
+
+      def one
+        puts 1
+      end
+
+      def two
+        puts 2
+      end
+
+      def three
+        puts 3
+      end
+    end
+</pre>
+<p>
+When invoked:
+</p>
+<pre>
+    thor counter
+</pre>
+<p>
+It prints &#8220;1 2 3&#8221; as well. Notice you should describe (using
+the method <tt>desc</tt>) only the class and not each task anymore. <a
+href="../classes/Thor/Group.html">Thor::Group</a> is a great tool to create
+generators, since you can define several steps which are invoked in the
+order they are defined (<a
+href="../classes/Thor/Group.html">Thor::Group</a> is the tool use in
+generators in Rails 3.0).
+</p>
+<p>
+Besides, <a href="../classes/Thor/Group.html">Thor::Group</a> can parse
+arguments and options as <a href="../classes/Thor.html">Thor</a> tasks:
+</p>
+<pre>
+    class Counter &lt; Thor::Group
+      # number will be available as attr_accessor
+      argument :number, :type =&gt; :numeric, :desc =&gt; &quot;The number to start counting&quot;
+      desc &quot;Prints the 'number' given upto 'number+2'&quot;
+
+      def one
+        puts number + 0
+      end
+
+      def two
+        puts number + 1
+      end
+
+      def three
+        puts number + 2
+      end
+    end
+</pre>
+<p>
+The counter above expects one parameter and has the folling outputs:
+</p>
+<pre>
+    thor counter 5
+    # Prints &quot;5 6 7&quot;
+
+    thor counter 11
+    # Prints &quot;11 12 13&quot;
+</pre>
+<p>
+You can also give options to <a
+href="../classes/Thor/Group.html">Thor::Group</a>, but instead of using
+<tt>method_option</tt> and <tt>method_options</tt>, you should use
+<tt>class_option</tt> and <tt>class_options</tt>. Both argument and
+class_options methods are available to <a
+href="../classes/Thor.html">Thor</a> class as well.
+</p>
+<p>
+## Actions
+</p>
+<p>
+<a href="../classes/Thor.html">Thor</a> comes with several actions which
+helps with script and generator tasks. You might be familiar with them
+since some came from Rails Templates. They are: <tt>say</tt>, <tt>ask</tt>,
+<tt>yes?</tt>, <tt>no?</tt>, <tt>add_file</tt>, <tt>remove_file</tt>,
+<tt>copy_file</tt>, <tt>template</tt>, <tt>directory</tt>, <tt>inside</tt>,
+<tt>run</tt>, <tt>inject_into_file</tt> and a couple more.
+</p>
+<p>
+To use them, you just need to include <a
+href="../classes/Thor/Actions.html">Thor::Actions</a> in your <a
+href="../classes/Thor.html">Thor</a> classes:
+</p>
+<pre>
+    class App &lt; Thor
+      include Thor::Actions
+      # tasks
+    end
+</pre>
+<p>
+Some actions like copy file requires that a class method called source_root
+is defined in your class. This is the directory where your templates should
+be placed. Be sure to check the documentation on [actions](<a
+href="http://rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor/Actions.html">rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor/Actions.html</a>).
+</p>
+<p>
+## Generators
+</p>
+<p>
+A great use for <a href="../classes/Thor.html">Thor</a> is creating custom
+generators. Combining <a href="../classes/Thor/Group.html">Thor::Group</a>,
+<a href="../classes/Thor/Actions.html">Thor::Actions</a> and ERB templates
+makes this very easy. Here is an example:
+</p>
+<pre>
+    class Newgem &lt; Thor::Group
+      include Thor::Actions
+
+      # Define arguments and options
+      argument :name
+      class_option :test_framework, :default =&gt; :test_unit
+
+      def self.source_root
+        File.dirname(__FILE__)
+      end
+
+      def create_lib_file
+        template('templates/newgem.tt', &quot;#{name}/lib/#{name}.rb&quot;)
+      end
+
+      def create_test_file
+        test = options[:test_framework] == &quot;rspec&quot; ? :spec : :test
+        create_file &quot;#{name}/#{test}/#{name}_#{test}.rb&quot;
+      end
+
+      def copy_licence
+        if yes?(&quot;Use MIT license?&quot;)
+          # Make a copy of the MITLICENSE file at the source root
+          copy_file &quot;MITLICENSE&quot;, &quot;#{name}/MITLICENSE&quot;
+        else
+          say &quot;Shame on you…&quot;, :red
+        end
+      end
+    end
+</pre>
+<p>
+Doing a <tt>thor -T</tt> will show how to run our generator. It should
+read: <tt>thor newgem NAME</tt>. This shows that we have to supply a NAME
+argument for our generator to run.
+</p>
+<p>
+The <tt>create_lib_file</tt> uses an ERB template. This is what it looks
+like:
+</p>
+<pre>
+    class &lt;%= name.capitalize %&gt;
+    end
+</pre>
+<p>
+The arguments that you set in your generator will automatically be passed
+in when <tt>template</tt> gets called. Be sure to read the
+[documentation](<a
+href="http://rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor/Actions.html">rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor/Actions.html</a>)
+for more options.
+</p>
+<p>
+Running the generator with <tt>thor newgem devise</tt> will create two
+files: &#8220;devise/lib/devise.rb&#8220;, and
+&#8220;devise/test/devise_test.rb&#8220;. The user will then be asked (via
+a prompt by the <tt>yes?</tt> method) whether or not they would like to
+copy the MIT License. If you want to change the test framework, you can add
+the option: <tt>thor newgem devise --test-framework=rspec</tt>
+</p>
+<p>
+This will generate two files - &#8220;devise/lib/devise.rb&#8220; and
+&#8220;devise/spec/devise_spec.rb&#8220;.
+</p>
+<p>
+## Further Reading
+</p>
+<p>
+<a href="../classes/Thor.html">Thor</a> offers many scripting possibilities
+beyond these examples. Be sure to read through the [documentation](<a
+href="http://rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor.html">rdoc.info/rdoc/wycats/thor/blob/f939a3e8a854616784cac1dcff04ef4f3ee5f7ff/Thor.html</a>)
+and [specs](<a
+href="http://github.com/wycats/thor/tree/master/spec/">github.com/wycats/thor/tree/master/spec/</a>)
+to get a better understanding of the options available.
+</p>
+<p>
+## License
+</p>
+<p>
+Released under the MIT License. See the <a href="LICENSE.html">LICENSE</a>
+file for further details.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

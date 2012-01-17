@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RSpec::Rails::ControllerExampleGroup::ClassMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            RSpec::Rails::ControllerExampleGroup::ClassMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/rspec/rails/example/controller_example_group_rb.html">lib/rspec/rails/example/controller_example_group.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000042">controller</a>,</li>
+                
+                <li><a href="#M000041">controller_class</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000044">name</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000042">
+                    
+                    <a name="M000042"></a><b>controller</b>(base_class = nil, &amp;body)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Supports a simple DSL for specifying behavior of ApplicationController.
+Creates an anonymous subclass of ApplicationController and evals the `body`
+in that context. Also sets up implicit routes for this controller, that are
+separate from those defined in &#8220;config/routes.rb&#8220;.
+</p>
+<p>
+@note Due to Ruby 1.8 scoping rules in anoymous subclasses, constants
+</p>
+<pre>
+  defined in `ApplicationController` must be fully qualified (e.g.
+  `ApplicationController::AccessDenied`) in the block passed to the
+  `controller` method. Any instance methods, filters, etc, that are
+  defined in `ApplicationController`, however, are accessible from
+  within the block.
+</pre>
+<p>
+@example
+</p>
+<pre>
+    describe ApplicationController do
+      controller do
+        def index
+          raise ApplicationController::AccessDenied
+        end
+      end
+
+      describe &quot;handling AccessDenied exceptions&quot; do
+        it &quot;redirects to the /401.html page&quot; do
+          get :index
+          response.should redirect_to(&quot;/401.html&quot;)
+        end
+      end
+    end
+</pre>
+<p>
+If you would like to spec a subclass of ApplicationController, call
+controller like so:
+</p>
+<pre>
+    controller(ApplicationControllerSubclass) do
+      # ....
+    end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000042_source')" id="l_M000042_source">show</a>
+                        
+                    </p>
+                    <div id="M000042_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rspec/rails/example/controller_example_group.rb, line 56</span>
+56:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">controller</span>(<span class="ruby-identifier">base_class</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">body</span>)
+57:         <span class="ruby-identifier">base_class</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">RSpec</span>.<span class="ruby-identifier">configuration</span>.<span class="ruby-identifier">infer_base_class_for_anonymous_controllers?</span> <span class="ruby-value">?
+58: </span>                         <span class="ruby-identifier">controller_class</span> <span class="ruby-operator">:</span>
+59:                          <span class="ruby-constant">ApplicationController</span>
+60: 
+61:         <span class="ruby-identifier">metadata</span>[<span class="ruby-identifier">:example_group</span>][<span class="ruby-identifier">:described_class</span>] = <span class="ruby-constant">Class</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">base_class</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">body</span>)
+62:         <span class="ruby-identifier">metadata</span>[<span class="ruby-identifier">:example_group</span>][<span class="ruby-identifier">:described_class</span>].<span class="ruby-identifier">singleton_class</span>.<span class="ruby-identifier">class_eval</span> <span class="ruby-keyword kw">do</span>
+63:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">name</span>; <span class="ruby-value str">&quot;AnonymousController&quot;</span> <span class="ruby-keyword kw">end</span>
+64:         <span class="ruby-keyword kw">end</span>
+65: 
+66:         <span class="ruby-identifier">before</span> <span class="ruby-keyword kw">do</span>
+67:           <span class="ruby-ivar">@orig_routes</span>, <span class="ruby-ivar">@routes</span> = <span class="ruby-ivar">@routes</span>, <span class="ruby-constant">ActionDispatch</span><span class="ruby-operator">::</span><span class="ruby-constant">Routing</span><span class="ruby-operator">::</span><span class="ruby-constant">RouteSet</span>.<span class="ruby-identifier">new</span>
+68:           <span class="ruby-ivar">@routes</span>.<span class="ruby-identifier">draw</span> { <span class="ruby-identifier">resources</span> <span class="ruby-identifier">:anonymous</span> }
+69:         <span class="ruby-keyword kw">end</span>
+70: 
+71:         <span class="ruby-identifier">after</span> <span class="ruby-keyword kw">do</span>
+72:           <span class="ruby-ivar">@routes</span>, <span class="ruby-ivar">@orig_routes</span> = <span class="ruby-ivar">@orig_routes</span>, <span class="ruby-keyword kw">nil</span>
+73:         <span class="ruby-keyword kw">end</span>
+74:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000041">
+                    
+                    <a name="M000041"></a><b>controller_class</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@private
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000041_source')" id="l_M000041_source">show</a>
+                        
+                    </p>
+                    <div id="M000041_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rspec/rails/example/controller_example_group.rb, line 17</span>
+17:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">controller_class</span>
+18:         <span class="ruby-identifier">described_class</span>
+19:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000044">
+                    
+                    <a name="M000044"></a><b>name</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000044_source')" id="l_M000044_source">show</a>
+                        
+                    </p>
+                    <div id="M000044_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rspec/rails/example/controller_example_group.rb, line 63</span>
+63:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">name</span>; <span class="ruby-value str">&quot;AnonymousController&quot;</span> <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

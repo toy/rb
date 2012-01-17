@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Erubis::HeaderFooterEnhancer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Erubis::HeaderFooterEnhancer 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/erubis/enhancer_rb.html">lib/erubis/enhancer.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <dl>
+<dt>experimental</dt><dd>allow header and footer in eRuby script
+
+</dd>
+</dl>
+<p>
+ex.
+</p>
+<pre>
+  ====================
+  ## without header and footer
+  $ cat ex1.eruby
+  &lt;% def list_items(list) %&gt;
+  &lt;%   for item in list %&gt;
+  &lt;li&gt;&lt;%= item %&gt;&lt;/li&gt;
+  &lt;%   end %&gt;
+  &lt;% end %&gt;
+
+  $ erubis -s ex1.eruby
+  _buf = []; def list_items(list)
+  ;   for item in list
+  ; _buf &lt;&lt; '&lt;li&gt;'; _buf &lt;&lt; ( item ).to_s; _buf &lt;&lt; '&lt;/li&gt;
+  ';   end
+  ; end
+  ;
+  _buf.join
+
+  ## with header and footer
+  $ cat ex2.eruby
+  &lt;!--#header:
+  def list_items(list)
+   #--&gt;
+  &lt;%  for item in list %&gt;
+  &lt;li&gt;&lt;%= item %&gt;&lt;/li&gt;
+  &lt;%  end %&gt;
+  &lt;!--#footer:
+  end
+   #--&gt;
+
+  $ erubis -s -c HeaderFooterEruby ex4.eruby
+
+  def list_items(list)
+   _buf = []; _buf &lt;&lt; '
+  ';  for item in list
+  ; _buf &lt;&lt; '&lt;li&gt;'; _buf &lt;&lt; ( item ).to_s; _buf &lt;&lt; '&lt;/li&gt;
+  ';  end
+  ; _buf &lt;&lt; '
+  ';
+  _buf.join
+  end
+
+  ====================
+</pre>
+<p>
+this is language-independent.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000215">add_text</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000216">convert</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">HEADER_FOOTER_PATTERN</td>
+            <td>=</td>
+            <td class="attr-value">/(.*?)(^[ \t]*)?&lt;!--\#(\w+):(.*?)\#--&gt;([ \t]*\r?\n)?/m</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>header</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>footer</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000215">
+                    
+                    <a name="M000215"></a><b>add_text</b>(src, text)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000215_source')" id="l_M000215_source">show</a>
+                        
+                    </p>
+                    <div id="M000215_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/erubis/enhancer.rb, line 585</span>
+585:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_text</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">text</span>)
+586:       <span class="ruby-identifier">m</span> = <span class="ruby-keyword kw">nil</span>
+587:       <span class="ruby-identifier">text</span>.<span class="ruby-identifier">scan</span>(<span class="ruby-constant">HEADER_FOOTER_PATTERN</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">txt</span>, <span class="ruby-identifier">lspace</span>, <span class="ruby-identifier">word</span>, <span class="ruby-identifier">content</span>, <span class="ruby-identifier">rspace</span><span class="ruby-operator">|</span>
+588:         <span class="ruby-identifier">m</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>
+589:         <span class="ruby-identifier">flag_trim</span> = <span class="ruby-ivar">@trim</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">lspace</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">rspace</span>
+590:         <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">txt</span>)
+591:         <span class="ruby-identifier">content</span> = <span class="ruby-node">&quot;#{lspace}#{content}#{rspace}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">flag_trim</span>
+592:         <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">lspace</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">flag_trim</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">lspace</span>
+593:         <span class="ruby-identifier">instance_variable_set</span>(<span class="ruby-node">&quot;@#{word}&quot;</span>, <span class="ruby-identifier">content</span>)
+594:         <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">rspace</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">flag_trim</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">rspace</span>
+595:       <span class="ruby-keyword kw">end</span>
+596:       <span class="ruby-comment cmt">#rest = $' || text                    # ruby1.8</span>
+597:       <span class="ruby-identifier">rest</span> = <span class="ruby-identifier">m</span> <span class="ruby-value">? </span><span class="ruby-identifier">text</span>[<span class="ruby-identifier">m</span>.<span class="ruby-identifier">end</span>(<span class="ruby-value">0</span>)<span class="ruby-operator">..</span><span class="ruby-value">-1</span>] <span class="ruby-operator">:</span> <span class="ruby-identifier">text</span>  <span class="ruby-comment cmt"># ruby1.9</span>
+598:       <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">rest</span>)
+599:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000216">
+                    
+                    <a name="M000216"></a><b>convert</b>(input)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000216_source')" id="l_M000216_source">show</a>
+                        
+                    </p>
+                    <div id="M000216_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/erubis/enhancer.rb, line 603</span>
+603:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">convert</span>(<span class="ruby-identifier">input</span>)
+604:       <span class="ruby-identifier">source</span> = <span class="ruby-keyword kw">super</span>
+605:       <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@src</span> = <span class="ruby-node">&quot;#{@header}#{source}#{@footer}&quot;</span>
+606:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

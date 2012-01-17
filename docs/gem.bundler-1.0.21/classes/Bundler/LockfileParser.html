@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Bundler::LockfileParser</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Bundler::LockfileParser 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/bundler/lockfile_parser_rb.html">lib/bundler/lockfile_parser.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000153">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000155">parse_dependency</a>,</li>
+                
+                <li><a href="#M000157">parse_platform</a>,</li>
+                
+                <li><a href="#M000154">parse_source</a>,</li>
+                
+                <li><a href="#M000156">parse_spec</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPES</td>
+            <td>=</td>
+            <td class="attr-value">{       &quot;GIT&quot;  =&gt; Bundler::Source::Git,       &quot;GEM&quot;  =&gt; Bundler::Source::Rubygems,       &quot;PATH&quot; =&gt; Bundler::Source::Path     }</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">NAME_VERSION</td>
+            <td>=</td>
+            <td class="attr-value">'(?! )(.*?)(?: \(([^-]*)(?:-(.*))?\))?'</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>sources</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>dependencies</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>specs</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>platforms</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000153">
+                    
+                    <a name="M000153"></a><b>new</b>(lockfile)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000153_source')" id="l_M000153_source">show</a>
+                        
+                    </p>
+                    <div id="M000153_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bundler/lockfile_parser.rb, line 7</span>
+ 7:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">lockfile</span>)
+ 8:       <span class="ruby-ivar">@platforms</span>    = []
+ 9:       <span class="ruby-ivar">@sources</span>      = []
+10:       <span class="ruby-ivar">@dependencies</span> = []
+11:       <span class="ruby-ivar">@specs</span>        = []
+12:       <span class="ruby-ivar">@state</span>        = <span class="ruby-identifier">:source</span>
+13: 
+14:       <span class="ruby-identifier">lockfile</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/(\r?\n)+/</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+15:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;DEPENDENCIES&quot;</span>
+16:           <span class="ruby-ivar">@state</span> = <span class="ruby-identifier">:dependency</span>
+17:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;PLATFORMS&quot;</span>
+18:           <span class="ruby-ivar">@state</span> = <span class="ruby-identifier">:platform</span>
+19:         <span class="ruby-keyword kw">else</span>
+20:           <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;parse_#{@state}&quot;</span>, <span class="ruby-identifier">line</span>)
+21:         <span class="ruby-keyword kw">end</span>
+22:       <span class="ruby-keyword kw">end</span>
+23:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000155">
+                    
+                    <a name="M000155"></a><b>parse_dependency</b>(line)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000155_source')" id="l_M000155_source">show</a>
+                        
+                    </p>
+                    <div id="M000155_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bundler/lockfile_parser.rb, line 61</span>
+61:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_dependency</span>(<span class="ruby-identifier">line</span>)
+62:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r{^ {2}#{NAME_VERSION}(!)?$}</span>
+63:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span>, <span class="ruby-identifier">pinned</span> = <span class="ruby-identifier">$1</span>, <span class="ruby-identifier">$2</span>, <span class="ruby-identifier">$4</span>
+64:         <span class="ruby-identifier">version</span> = <span class="ruby-identifier">version</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;,&quot;</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">d</span><span class="ruby-operator">|</span> <span class="ruby-identifier">d</span>.<span class="ruby-identifier">strip</span> } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">version</span>
+65: 
+66:         <span class="ruby-identifier">dep</span> = <span class="ruby-constant">Bundler</span><span class="ruby-operator">::</span><span class="ruby-constant">Dependency</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span>)
+67: 
+68:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pinned</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'bundler'</span>
+69:           <span class="ruby-identifier">spec</span> = <span class="ruby-ivar">@specs</span>.<span class="ruby-identifier">find</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">name</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">name</span> }
+70:           <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">source</span> = <span class="ruby-identifier">spec</span>.<span class="ruby-identifier">source</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">spec</span>
+71: 
+72:           <span class="ruby-comment cmt"># Path sources need to know what the default name / version</span>
+73:           <span class="ruby-comment cmt"># to use in the case that there are no gemspecs present. A fake</span>
+74:           <span class="ruby-comment cmt"># gemspec is created based on the version set on the dependency</span>
+75:           <span class="ruby-comment cmt"># TODO: Use the version from the spec instead of from the dependency</span>
+76:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">version</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">version</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">version</span>.<span class="ruby-identifier">first</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^\s*= (.+)\s*$/</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">source</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Bundler</span><span class="ruby-operator">::</span><span class="ruby-constant">Source</span><span class="ruby-operator">::</span><span class="ruby-constant">Path</span>)
+77:             <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">source</span>.<span class="ruby-identifier">name</span>    = <span class="ruby-identifier">name</span>
+78:             <span class="ruby-identifier">dep</span>.<span class="ruby-identifier">source</span>.<span class="ruby-identifier">version</span> = <span class="ruby-identifier">$1</span>
+79:           <span class="ruby-keyword kw">end</span>
+80:         <span class="ruby-keyword kw">end</span>
+81: 
+82:         <span class="ruby-ivar">@dependencies</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">dep</span>
+83:       <span class="ruby-keyword kw">end</span>
+84:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000157">
+                    
+                    <a name="M000157"></a><b>parse_platform</b>(line)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000157_source')" id="l_M000157_source">show</a>
+                        
+                    </p>
+                    <div id="M000157_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/bundler/lockfile_parser.rb, line 101</span>
+101:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_platform</span>(<span class="ruby-identifier">line</span>)
+102:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^  (.*)$/</span>
+103:         <span class="ruby-ivar">@platforms</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Platform</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">$1</span>)
+104:       <span class="ruby-keyword kw">end</span>
+105:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000154">
+                    
+                    <a name="M000154"></a><b>parse_source</b>(line)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000154_source')" id="l_M000154_source">show</a>
+                        
+                    </p>
+                    <div id="M000154_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bundler/lockfile_parser.rb, line 33</span>
+33:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_source</span>(<span class="ruby-identifier">line</span>)
+34:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">line</span>
+35:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;GIT&quot;</span>, <span class="ruby-value str">&quot;GEM&quot;</span>, <span class="ruby-value str">&quot;PATH&quot;</span>
+36:         <span class="ruby-ivar">@current_source</span> = <span class="ruby-keyword kw">nil</span>
+37:         <span class="ruby-ivar">@opts</span>, <span class="ruby-ivar">@type</span> = {}, <span class="ruby-identifier">line</span>
+38:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;  specs:&quot;</span>
+39:         <span class="ruby-ivar">@current_source</span> = <span class="ruby-constant">TYPES</span>[<span class="ruby-ivar">@type</span>].<span class="ruby-identifier">from_lock</span>(<span class="ruby-ivar">@opts</span>)
+40:         <span class="ruby-ivar">@sources</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@current_source</span>
+41:       <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/^  ([a-z]+): (.*)$/i</span>
+42:         <span class="ruby-identifier">value</span> = <span class="ruby-identifier">$2</span>
+43:         <span class="ruby-identifier">value</span> = <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">value</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;true&quot;</span>
+44:         <span class="ruby-identifier">value</span> = <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">value</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;false&quot;</span>
+45: 
+46:         <span class="ruby-identifier">key</span> = <span class="ruby-identifier">$1</span>
+47: 
+48:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@opts</span>[<span class="ruby-identifier">key</span>]
+49:           <span class="ruby-ivar">@opts</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-constant">Array</span>(<span class="ruby-ivar">@opts</span>[<span class="ruby-identifier">key</span>])
+50:           <span class="ruby-ivar">@opts</span>[<span class="ruby-identifier">key</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">value</span>
+51:         <span class="ruby-keyword kw">else</span>
+52:           <span class="ruby-ivar">@opts</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+53:         <span class="ruby-keyword kw">end</span>
+54:       <span class="ruby-keyword kw">else</span>
+55:         <span class="ruby-identifier">parse_spec</span>(<span class="ruby-identifier">line</span>)
+56:       <span class="ruby-keyword kw">end</span>
+57:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000156">
+                    
+                    <a name="M000156"></a><b>parse_spec</b>(line)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000156_source')" id="l_M000156_source">show</a>
+                        
+                    </p>
+                    <div id="M000156_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/bundler/lockfile_parser.rb, line 86</span>
+86:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_spec</span>(<span class="ruby-identifier">line</span>)
+87:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r{^ {4}#{NAME_VERSION}$}</span>
+88:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span> = <span class="ruby-identifier">$1</span>, <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Version</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">$2</span>)
+89:         <span class="ruby-identifier">platform</span> = <span class="ruby-identifier">$3</span> <span class="ruby-operator">?</span> <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Platform</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">$3</span>) <span class="ruby-operator">:</span> <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Platform</span><span class="ruby-operator">::</span><span class="ruby-constant">RUBY</span>
+90:         <span class="ruby-ivar">@current_spec</span> = <span class="ruby-constant">LazySpecification</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span>, <span class="ruby-identifier">platform</span>)
+91:         <span class="ruby-ivar">@current_spec</span>.<span class="ruby-identifier">source</span> = <span class="ruby-ivar">@current_source</span>
+92:         <span class="ruby-ivar">@specs</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@current_spec</span>
+93:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">=~</span> <span class="ruby-node">%r{^ {6}#{NAME_VERSION}$}</span>
+94:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span> = <span class="ruby-identifier">$1</span>, <span class="ruby-identifier">$2</span>
+95:         <span class="ruby-identifier">version</span> = <span class="ruby-identifier">version</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">','</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">d</span><span class="ruby-operator">|</span> <span class="ruby-identifier">d</span>.<span class="ruby-identifier">strip</span> } <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">version</span>
+96:         <span class="ruby-identifier">dep</span> = <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Dependency</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">version</span>)
+97:         <span class="ruby-ivar">@current_spec</span>.<span class="ruby-identifier">dependencies</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">dep</span>
+98:       <span class="ruby-keyword kw">end</span>
+99:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

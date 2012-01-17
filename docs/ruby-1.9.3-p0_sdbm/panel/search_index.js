@@ -1,0 +1,1 @@
+var search_data = {"index":{"info":[["_sdbm.c","files/ext/sdbm/_sdbm_c.html","files/ext/sdbm/_sdbm_c.html","","",3],["sdbm.h","files/ext/sdbm/sdbm_h.html","files/ext/sdbm/sdbm_h.html","","",3]],"searchIndex":["_sdbm.c","sdbm.h"],"longSearchIndex":["files/ext/sdbm/_sdbm_c.html","files/ext/sdbm/sdbm_h.html"]}}

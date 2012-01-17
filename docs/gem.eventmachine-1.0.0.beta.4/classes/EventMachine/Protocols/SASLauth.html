@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::Protocols::SASLauth</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            EventMachine::Protocols::SASLauth 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/em/protocols/saslauth_rb.html">lib/em/protocols/saslauth.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Implements SASL authd. This is a very, very simple protocol that mimics the
+one used by saslauthd and pwcheck, two outboard daemons included in the
+standard SASL library distro. The only thing this is really suitable for is
+SASL PLAIN (user+password) authentication, but the SASL libs that are
+linked into standard servers (like imapd and sendmail) implement the other
+ones.
+</p>
+<p>
+SASL-auth is intended for reasonably fast operation inside a single
+machine, so it has no transport-security (although there have been
+multi-machine extensions incorporating transport-layer encryption).
+</p>
+<p>
+The standard saslauthd module generally runs privileged and does its work
+by referring to the system-account files.
+</p>
+<p>
+This feature was added to <a
+href="../../EventMachine.html">EventMachine</a> to enable the development
+of custom authentication/authorization engines for standard servers.
+</p>
+<p>
+To use <a href="SASLauth.html">SASLauth</a>, include it in a class that
+subclasses EM::Connection, and reimplement the validate method.
+</p>
+<p>
+The typical way to incorporate this module into an authentication daemon
+would be to set it as the handler for a UNIX-domain socket. The code might
+look like this:
+</p>
+<pre>
+ EM.start_unix_domain_server( &quot;/var/run/saslauthd/mux&quot;, MyHandler )
+ File.chmod( 0777, &quot;/var/run/saslauthd/mux&quot;)
+</pre>
+<p>
+The chmod is probably needed to ensure that unprivileged clients can access
+the UNIX-domain socket.
+</p>
+<p>
+It&#8217;s also a very good idea to drop superuser privileges (if any),
+after the UNIX-domain socket has been opened.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000207">post_init</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000208">receive_data</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000209">validate</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">MaxFieldSize</td>
+            <td>=</td>
+            <td class="attr-value">128*1024</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000207">
+                    
+                    <a name="M000207"></a><b>post_init</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000207_source')" id="l_M000207_source">show</a>
+                        
+                    </p>
+                    <div id="M000207_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/protocols/saslauth.rb, line 85</span>
+85:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">post_init</span>
+86:         <span class="ruby-keyword kw">super</span>
+87:         <span class="ruby-ivar">@sasl_data</span> = <span class="ruby-value str">&quot;&quot;</span>
+88:         <span class="ruby-ivar">@sasl_values</span> = []
+89:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000208">
+                    
+                    <a name="M000208"></a><b>receive_data</b>(data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000208_source')" id="l_M000208_source">show</a>
+                        
+                    </p>
+                    <div id="M000208_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/saslauth.rb, line 91</span>
+ 91:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">receive_data</span> <span class="ruby-identifier">data</span>
+ 92:         <span class="ruby-ivar">@sasl_data</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">data</span>
+ 93:         <span class="ruby-keyword kw">while</span> <span class="ruby-ivar">@sasl_data</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">2</span>
+ 94:           <span class="ruby-identifier">len</span> = (<span class="ruby-ivar">@sasl_data</span>[<span class="ruby-value">0</span>,<span class="ruby-value">2</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">&quot;n&quot;</span>)).<span class="ruby-identifier">first</span>
+ 95:           <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;SASL Max Field Length exceeded&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">len</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">MaxFieldSize</span>
+ 96:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@sasl_data</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> (<span class="ruby-identifier">len</span> <span class="ruby-operator">+</span> <span class="ruby-value">2</span>)
+ 97:             <span class="ruby-ivar">@sasl_values</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@sasl_data</span>[<span class="ruby-value">2</span>,<span class="ruby-identifier">len</span>]
+ 98:             <span class="ruby-ivar">@sasl_data</span>.<span class="ruby-identifier">slice!</span>(<span class="ruby-value">0</span><span class="ruby-operator">...</span>(<span class="ruby-value">2</span><span class="ruby-operator">+</span><span class="ruby-identifier">len</span>))
+ 99:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@sasl_values</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">==</span> <span class="ruby-value">4</span>
+100:               <span class="ruby-identifier">send_data</span>( <span class="ruby-identifier">validate</span>(<span class="ruby-operator">*</span><span class="ruby-ivar">@sasl_values</span>) <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;\0\002OK&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;\0\002NO&quot;</span> )
+101:               <span class="ruby-ivar">@sasl_values</span>.<span class="ruby-identifier">clear</span>
+102:             <span class="ruby-keyword kw">end</span>
+103:           <span class="ruby-keyword kw">else</span>
+104:             <span class="ruby-keyword kw">break</span>
+105:           <span class="ruby-keyword kw">end</span>
+106:         <span class="ruby-keyword kw">end</span>
+107:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000209">
+                    
+                    <a name="M000209"></a><b>validate</b>(username, psw, sysname, realm)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000209_source')" id="l_M000209_source">show</a>
+                        
+                    </p>
+                    <div id="M000209_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/saslauth.rb, line 109</span>
+109:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validate</span> <span class="ruby-identifier">username</span>, <span class="ruby-identifier">psw</span>, <span class="ruby-identifier">sysname</span>, <span class="ruby-identifier">realm</span>
+110:         <span class="ruby-identifier">p</span> <span class="ruby-identifier">username</span>
+111:         <span class="ruby-identifier">p</span> <span class="ruby-identifier">psw</span>
+112:         <span class="ruby-identifier">p</span> <span class="ruby-identifier">sysname</span>
+113:         <span class="ruby-identifier">p</span> <span class="ruby-identifier">realm</span>
+114:         <span class="ruby-keyword kw">true</span>
+115:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RDoc::ParserFactory</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            RDoc::ParserFactory 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rdoc/parsers/parserfactory_rb.html">lib/rdoc/parsers/parserfactory.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A parser is simple a class that implements
+</p>
+<pre>
+  #initialize(file_name, body, options)
+</pre>
+<p>
+and
+</p>
+<pre>
+  #scan
+</pre>
+<p>
+The initialize method takes a file name to be used, the body of the file,
+and an <a href="../Options.html">RDoc::Options</a> object. The scan method
+is then called to return an appropriately parsed <a
+href="TopLevel.html">TopLevel</a> code object.
+</p>
+<p>
+The ParseFactory is used to redirect to the correct parser given a filename
+extension. This magic works because individual parsers have to register
+themselves with us as they are loaded in. The do this using the following
+incantation
+</p>
+<pre>
+   require &quot;rdoc/parsers/parsefactory&quot;
+
+   module RDoc
+
+     class XyzParser
+       extend ParseFactory                  &lt;&lt;&lt;&lt;
+       parse_files_matching /\.xyz$/        &lt;&lt;&lt;&lt;
+
+       def initialize(file_name, body, options)
+         ...
+       end
+
+       def scan
+         ...
+       end
+     end
+   end
+</pre>
+<p>
+Just to make life interesting, if we suspect a plain text file, we also
+look for a shebang line just in case it&#8217;s a potential shell script
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003940">alias_extension</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003938">can_parse</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003937">parse_files_matching</a>,</li>
+                
+                <li><a href="#M003941">parser_for</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">Parsers</td>
+            <td>=</td>
+            <td class="attr-value">Struct.new(:regexp, :parser)</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003937">
+                    
+                    <a name="M003937"></a><b>parse_files_matching</b>(regexp)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Record the fact that a particular class parses files that match a given
+extension
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003937_source')" id="l_M003937_source">show</a>
+                        
+                    </p>
+                    <div id="M003937_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/parsers/parserfactory.rb, line 56</span>
+56:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_files_matching</span>(<span class="ruby-identifier">regexp</span>)
+57:       <span class="ruby-ivar">@@parsers</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-constant">Parsers</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">regexp</span>, <span class="ruby-keyword kw">self</span>)
+58:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003940">
+                    
+                    <a name="M003940"></a><b>alias_extension</b>(old_ext, new_ext)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="Alias.html">Alias</a> an extension to another extension. After
+this call, files ending &#8220;new_ext&#8220; will be parsed using the same
+parser as &#8220;old_ext&#8220;
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003940_source')" id="l_M003940_source">show</a>
+                        
+                    </p>
+                    <div id="M003940_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/parsers/parserfactory.rb, line 70</span>
+70:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ParserFactory</span>.<span class="ruby-identifier">alias_extension</span>(<span class="ruby-identifier">old_ext</span>, <span class="ruby-identifier">new_ext</span>)
+71:       <span class="ruby-identifier">parser</span> = <span class="ruby-constant">ParserFactory</span>.<span class="ruby-identifier">can_parse</span>(<span class="ruby-node">&quot;xxx.#{old_ext}&quot;</span>)
+72:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">parser</span>
+73:       <span class="ruby-ivar">@@parsers</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-constant">Parsers</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;\\.#{new_ext}$&quot;</span>), <span class="ruby-identifier">parser</span>.<span class="ruby-identifier">parser</span>)
+74:       <span class="ruby-keyword kw">true</span>
+75:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003938">
+                    
+                    <a name="M003938"></a><b>can_parse</b>(file_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return a parser that can handle a particular extension
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003938_source')" id="l_M003938_source">show</a>
+                        
+                    </p>
+                    <div id="M003938_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/parsers/parserfactory.rb, line 62</span>
+62:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ParserFactory</span>.<span class="ruby-identifier">can_parse</span>(<span class="ruby-identifier">file_name</span>)
+63:       <span class="ruby-ivar">@@parsers</span>.<span class="ruby-identifier">find</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">regexp</span>.<span class="ruby-identifier">match</span>(<span class="ruby-identifier">file_name</span>) }
+64:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003941">
+                    
+                    <a name="M003941"></a><b>parser_for</b>(top_level, file_name, body, options, stats)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="../Find.html">Find</a> the correct parser for a particular file
+name. Return a <a href="SimpleParser.html">SimpleParser</a> for ones that
+we don&#8217;t know
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003941_source')" id="l_M003941_source">show</a>
+                        
+                    </p>
+                    <div id="M003941_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/parsers/parserfactory.rb, line 80</span>
+80:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ParserFactory</span>.<span class="ruby-identifier">parser_for</span>(<span class="ruby-identifier">top_level</span>, <span class="ruby-identifier">file_name</span>, <span class="ruby-identifier">body</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">stats</span>)
+81:       <span class="ruby-comment cmt"># If no extension, look for shebang</span>
+82:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file_name</span> <span class="ruby-operator">!~</span> <span class="ruby-regexp re">/\.\w+$/</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">body</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">%r{\A#!(.+)}</span>
+83:         <span class="ruby-identifier">shebang</span> = <span class="ruby-identifier">$1</span>
+84:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">shebang</span>
+85:         <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">%r{env\s+ruby}</span>, <span class="ruby-regexp re">%r{/ruby}</span>
+86:           <span class="ruby-identifier">file_name</span> = <span class="ruby-value str">&quot;dummy.rb&quot;</span>
+87:         <span class="ruby-keyword kw">end</span>
+88:       <span class="ruby-keyword kw">end</span>
+89:       <span class="ruby-identifier">parser_description</span> = <span class="ruby-identifier">can_parse</span>(<span class="ruby-identifier">file_name</span>)
+90:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">parser_description</span>
+91:         <span class="ruby-identifier">parser</span> = <span class="ruby-identifier">parser_description</span>.<span class="ruby-identifier">parser</span> 
+92:       <span class="ruby-keyword kw">else</span>
+93:         <span class="ruby-identifier">parser</span> = <span class="ruby-constant">SimpleParser</span>
+94:       <span class="ruby-keyword kw">end</span>
+95: 
+96:       <span class="ruby-identifier">parser</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">top_level</span>, <span class="ruby-identifier">file_name</span>, <span class="ruby-identifier">body</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">stats</span>)
+97:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

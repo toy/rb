@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Mon Dec 19 00:58:10 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../classes/Slop.html">Slop</a>
+</p>
+<h4></h4>
+<p>
+<a href="../classes/Slop.html">Slop</a> is a simple option parser with an
+easy to remember syntax and friendly API.
+</p>
+<p>
+Installation
+</p>
+<hr size="10"></hr><p>
+### Rubygems
+</p>
+<pre>
+    gem install slop
+</pre>
+<p>
+### GitHub
+</p>
+<pre>
+    git clone git://github.com/injekt/slop.git
+    gem build slop.gemspec
+    gem install slop-&lt;version&gt;.gem
+</pre>
+<p>
+Usage
+</p>
+<hr size="3"></hr><p>
+```ruby # parse assumes ARGV, otherwise you can pass it your own Array opts
+= <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  on :v, :verbose, 'Enable verbose mode'   # A boolean option
+  on :n, :name=, 'Your name'               # This option requires an argument
+  on :s, :sex, 'Your sex', true            # So does this one
+  on :a, :age, 'Your age', optional: true  # This one accepts an optional argument
+  on '-D', '--debug', 'Enable debug'       # The prefixed -'s are optional
+</pre>
+<p>
+end
+</p>
+<p>
+# if ARGV is `-v &#8212;name &#8216;lee jarvis&#8217; -s male`
+opts.verbose? #=> true opts.name? #=> true opts[:name] #=> &#8216;lee
+jarvis&#8217; opts.age? #=> false opts[:age] #=> nil ```
+</p>
+<p>
+For more information about creating options, see the [Creating Options](<a
+href="https://github.com/injekt/slop/wiki/Creating-Options">github.com/injekt/slop/wiki/Creating-Options</a>)
+wiki page.
+</p>
+<p>
+You can also return your options as a Hash
+</p>
+<p>
+```ruby opts.to_hash #=> { :name => &#8216;Lee Jarvis&#8217;, :verbose =>
+true, :age => nil, :sex => &#8216;male&#8217; } ```
+</p>
+<p>
+If you want some pretty output for the user to see your options, you can
+just send the <a href="../classes/Slop.html">Slop</a> object to `puts` or
+use the `help` method.
+</p>
+<p>
+```ruby puts opts puts opts.help ```
+</p>
+<p>
+Will output something like
+</p>
+<p>
+``` -v, &#8212;verbose Enable verbose mode -n, &#8212;name Your name -a,
+&#8212;age Your age ```
+</p>
+<p>
+You can also add a banner using the `banner` method
+</p>
+<p>
+```ruby opts = <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  banner &quot;Usage: foo.rb [options]&quot;
+</pre>
+<p>
+end ```
+</p>
+<p>
+Helpful Help
+</p>
+<hr size="10"></hr><p>
+Long form:
+</p>
+<p>
+```ruby <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  ...
+  on :h, :help, 'Print this help message', :tail =&gt; true do
+    puts help
+    exit
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+Shortcut:
+</p>
+<p>
+```ruby <a href="../classes/Slop.html#M000017">Slop.new</a> :help => true #
+or <a href="../classes/Slop.html#M000017">Slop.new</a> :help ```
+</p>
+<p>
+Parsing
+</p>
+<hr size="5"></hr><p>
+Slop&#8217;s pretty good at parsing, let&#8217;s take a look at what
+it&#8217;ll extract for you
+</p>
+<p>
+```ruby <a
+href="../classes/Slop.html#M000014">Slop.parse</a>(:multiple_switches =>
+false) do
+</p>
+<pre>
+  on 's', 'server='
+  on 'p', 'port=', :as =&gt; :integer
+  on 'username=', :matches =&gt; /^[a-zA-Z]+$/
+  on 'password='
+</pre>
+<p>
+end ```
+</p>
+<p>
+Now throw some options at it:
+</p>
+<p>
+``` -s <a href="ftp://foobar.com">foobar.com</a> -p1234
+&#8212;username=FooBar &#8212;password &#8216;hello there&#8217; ```
+</p>
+<p>
+Here&#8217;s what we&#8217;ll get back
+</p>
+<p>
+``` {
+</p>
+<pre>
+  :server =&gt; &quot;ftp://foobar.com&quot;,
+  :port =&gt; 1234,
+  :username =&gt; &quot;FooBar&quot;,
+  :password =&gt; &quot;hello there&quot;
+</pre>
+<p>
+} ```
+</p>
+<p>
+Events
+</p>
+<hr size="4"></hr><p>
+If you&#8217;d like to trigger an event when an option is used, you can
+pass a block to your option. Here&#8217;s how:
+</p>
+<p>
+```ruby <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  on :V, :version, 'Print the version' do
+    puts 'Version 1.0.0'
+    exit
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+Now when using the `&#8212;version` option on the command line, the trigger
+will be called and its contents executed.
+</p>
+<p>
+Yielding Non Options
+</p>
+<hr size="10"></hr><p>
+If you pass a block to `<a
+href="../classes/Slop.html#M000014">Slop#parse</a>`, <a
+href="../classes/Slop.html">Slop</a> will yield non-options as
+they&#8217;re found, just like [OptionParser](<a
+href="http://rubydoc.info/stdlib/optparse/1.9.2/OptionParser:order">rubydoc.info/stdlib/optparse/1.9.2/OptionParser:order</a>)
+does it.
+</p>
+<p>
+```ruby opts = <a href="../classes/Slop.html#M000017">Slop.new</a> do
+</p>
+<pre>
+  on :n, :name, :optional =&gt; false
+</pre>
+<p>
+end
+</p>
+<p>
+opts.parse do |arg|
+</p>
+<pre>
+  puts arg
+</pre>
+<p>
+end
+</p>
+<p>
+# if ARGV is `foo &#8212;name Lee bar` foo bar ```
+</p>
+<p>
+Negative Options
+</p>
+<hr size="10"></hr><p>
+<a href="../classes/Slop.html">Slop</a> also allows you to prefix
+`&#8212;no-` to an option which will force the option to return a false
+value.
+</p>
+<p>
+```ruby opts = <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  on :v, :verbose, :default =&gt; true
+</pre>
+<p>
+end
+</p>
+<p>
+# with no command line options opts[:verbose] #=> true
+</p>
+<p>
+# with `&#8212;no-verbose` opts[:verbose] #=> false opts.verbose? #=> false
+```
+</p>
+<p>
+Short Switches
+</p>
+<hr size="10"></hr><p>
+Want to enable multiple switches at once like rsync does? By default <a
+href="../classes/Slop.html">Slop</a> will parse `-abc` as the options `a`
+`b` and `c` and set their values to true. If you would like to disable
+this, you can pass `multiple_switches => false` to a new <a
+href="../classes/Slop.html">Slop</a> object. In which case <a
+href="../classes/Slop.html">Slop</a> will then parse `-fbar` as the option
+`f` with the argument value `bar`.
+</p>
+<p>
+```ruby <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  on :a, 'First switch'
+  on :b, 'Second switch'
+  on :c, 'Third switch'
+</pre>
+<p>
+end
+</p>
+<p>
+# Using `-ac` opts[:a] #=> true opts[:b] #=> false opts[:c] #=> true
+</p>
+<p>
+<a href="../classes/Slop.html#M000014">Slop.parse</a>(:multiple_switches =>
+false) do
+</p>
+<pre>
+  on :a, 'Some switch', true
+</pre>
+<p>
+end
+</p>
+<p>
+# Using `ahello` opts[:a] #=> &#8216;hello&#8217; ```
+</p>
+<p>
+Lists
+</p>
+<hr size="3"></hr><p>
+You can of course also parse lists into options. Here&#8217;s how:
+</p>
+<p>
+```ruby opts = <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  opt :people, true, :as =&gt; Array
+</pre>
+<p>
+end
+</p>
+<p>
+# ARGV is `&#8212;people lee,john,bill` opts[:people] #=>
+[&#8216;lee&#8217;, &#8216;john&#8217;, &#8216;bill&#8217;] ```
+</p>
+<p>
+<a href="../classes/Slop.html">Slop</a> supports a few styles of list
+parsing. Check out [this wiki page](<a
+href="https://github.com/injekt/slop/wiki/Lists">github.com/injekt/slop/wiki/Lists</a>)
+for more info.
+</p>
+<p>
+Strict Mode
+</p>
+<hr size="9"></hr><p>
+Passing `strict => true` to `<a
+href="../classes/Slop.html#M000014">Slop.parse</a>` causes it to raise a
+`Slop::InvalidOptionError` when an invalid option is found (`false` by
+default):
+</p>
+<p>
+```ruby <a href="../classes/Slop.html#M000017">Slop.new</a>(:strict =>
+true).parse(%w/&#8212;foo/) # => Slop::InvalidOptionError: Unknown option
+&#8212; &#8216;foo&#8217; ```
+</p>
+<p>
+Features
+</p>
+<hr size="6"></hr><p>
+Check out the following wiki pages for more features:
+</p>
+<ul>
+<li>[Ranges](<a
+href="https://github.com/injekt/slop/wiki/Ranges">github.com/injekt/slop/wiki/Ranges</a>)
+
+</li>
+<li>[Auto Create](<a
+href="https://github.com/injekt/slop/wiki/Auto-Create">github.com/injekt/slop/wiki/Auto-Create</a>)
+
+</li>
+<li>[Commands](<a
+href="https://github.com/injekt/slop/wiki/Commands">github.com/injekt/slop/wiki/Commands</a>)
+
+</li>
+</ul>
+<p>
+Woah woah, why you hating on OptionParser?
+</p>
+<hr size="10"></hr><p>
+I&#8217;m not, honestly! I love OptionParser. I really do, it&#8217;s a
+fantastic library. So why did I build <a
+href="../classes/Slop.html">Slop</a>? Well, I find myself using
+OptionParser to simply gather a bunch of key/value options, usually you
+would do something like this:
+</p>
+<p>
+```ruby require &#8216;optparse&#8217;
+</p>
+<p>
+things = {}
+</p>
+<p>
+opt = OptionParser.new do |opt|
+</p>
+<pre>
+  opt.on('-n', '--name NAME', 'Your name') do |name|
+    things[:name] = name
+  end
+
+  opt.on('-a', '--age AGE', 'Your age') do |age|
+    things[:age] = age.to_i
+  end
+
+  # you get the point
+</pre>
+<p>
+end
+</p>
+<p>
+opt.parse things #=> { :name => &#8216;lee&#8217;, :age => 105 } ```
+</p>
+<p>
+Which is all great and stuff, but it can lead to some repetition. The same
+thing in Slop:
+</p>
+<p>
+```ruby require &#8216;slop&#8217;
+</p>
+<p>
+opts = <a href="../classes/Slop.html#M000014">Slop.parse</a> do
+</p>
+<pre>
+  on :n, :name=, 'Your name'
+  on :a, :age=, 'Your age', :as =&gt; :int
+</pre>
+<p>
+end
+</p>
+<p>
+opts.to_hash #=> { :name => &#8216;lee&#8217;, :age => 105 } ```
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

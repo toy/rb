@@ -1,0 +1,936 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::AutosaveAssociation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ActiveRecord::AutosaveAssociation 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/activerecord-2_3_14/lib/active_record/autosave_association_rb.html">activerecord-2.3.14/lib/active_record/autosave_association.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="AutosaveAssociation.html">AutosaveAssociation</a> is a module that
+takes care of automatically saving your associations when the parent is
+saved. In addition to saving, it also destroys any associations that were
+marked for destruction. (See <a
+href="AutosaveAssociation.html#M000397">mark_for_destruction</a> and
+marked_for_destruction?)
+</p>
+<p>
+Saving of the parent, its associations, and the destruction of marked
+associations, all happen inside 1 transaction. This should never leave the
+database in an inconsistent state after, for instance, mass assigning
+attributes and saving them.
+</p>
+<p>
+If validations for any of the associations fail, their error messages will
+be applied to the parent.
+</p>
+<p>
+Note that it also means that associations marked for destruction
+won&#8217;t be destroyed directly. They will however still be marked for
+destruction.
+</p>
+<h3>One-to-one Example</h3>
+<p>
+Consider a Post model with one Author:
+</p>
+<pre>
+  class Post
+    has_one :author, :autosave =&gt; true
+  end
+</pre>
+<p>
+Saving changes to the parent and its associated model can now be performed
+automatically <em>and</em> atomically:
+</p>
+<pre>
+  post = Post.find(1)
+  post.title # =&gt; &quot;The current global position of migrating ducks&quot;
+  post.author.name # =&gt; &quot;alloy&quot;
+
+  post.title = &quot;On the migration of ducks&quot;
+  post.author.name = &quot;Eloy Duran&quot;
+
+  post.save
+  post.reload
+  post.title # =&gt; &quot;On the migration of ducks&quot;
+  post.author.name # =&gt; &quot;Eloy Duran&quot;
+</pre>
+<p>
+Destroying an associated model, as part of the parent&#8217;s save action,
+is as simple as marking it for destruction:
+</p>
+<pre>
+  post.author.mark_for_destruction
+  post.author.marked_for_destruction? # =&gt; true
+</pre>
+<p>
+Note that the model is <em>not</em> yet removed from the database:
+</p>
+<pre>
+  id = post.author.id
+  Author.find_by_id(id).nil? # =&gt; false
+
+  post.save
+  post.reload.author # =&gt; nil
+</pre>
+<p>
+Now it <em>is</em> removed from the database:
+</p>
+<pre>
+  Author.find_by_id(id).nil? # =&gt; true
+</pre>
+<h3>One-to-many Example</h3>
+<p>
+Consider a Post model with many Comments:
+</p>
+<pre>
+  class Post
+    has_many :comments, :autosave =&gt; true
+  end
+</pre>
+<p>
+Saving changes to the parent and its associated model can now be performed
+automatically <em>and</em> atomically:
+</p>
+<pre>
+  post = Post.find(1)
+  post.title # =&gt; &quot;The current global position of migrating ducks&quot;
+  post.comments.first.body # =&gt; &quot;Wow, awesome info thanks!&quot;
+  post.comments.last.body # =&gt; &quot;Actually, your article should be named differently.&quot;
+
+  post.title = &quot;On the migration of ducks&quot;
+  post.comments.last.body = &quot;Actually, your article should be named differently. [UPDATED]: You are right, thanks.&quot;
+
+  post.save
+  post.reload
+  post.title # =&gt; &quot;On the migration of ducks&quot;
+  post.comments.last.body # =&gt; &quot;Actually, your article should be named differently. [UPDATED]: You are right, thanks.&quot;
+</pre>
+<p>
+Destroying one of the associated models members, as part of the
+parent&#8217;s save action, is as simple as marking it for destruction:
+</p>
+<pre>
+  post.comments.last.mark_for_destruction
+  post.comments.last.marked_for_destruction? # =&gt; true
+  post.comments.length # =&gt; 2
+</pre>
+<p>
+Note that the model is <em>not</em> yet removed from the database:
+</p>
+<pre>
+  id = post.comments.last.id
+  Comment.find_by_id(id).nil? # =&gt; false
+
+  post.save
+  post.reload.comments.length # =&gt; 1
+</pre>
+<p>
+Now it <em>is</em> removed from the database:
+</p>
+<pre>
+  Comment.find_by_id(id).nil? # =&gt; true
+</pre>
+<h3>Validation</h3>
+<p>
+Validation is performed on the parent as usual, but also on all autosave
+enabled associations. If any of the associations fail validation, its error
+messages will be applied on the parents errors object and validation of the
+parent will fail.
+</p>
+<p>
+Consider a Post model with Author which validates the presence of its name
+attribute:
+</p>
+<pre>
+  class Post
+    has_one :author, :autosave =&gt; true
+  end
+
+  class Author
+    validates_presence_of :name
+  end
+
+  post = Post.find(1)
+  post.author.name = ''
+  post.save # =&gt; false
+  post.errors # =&gt; #&lt;ActiveRecord::Errors:0x174498c @errors={&quot;author_name&quot;=&gt;[&quot;can't be blank&quot;]}, @base=#&lt;Post ...&gt;&gt;
+</pre>
+<p>
+No validations will be performed on the associated models when validations
+are skipped for the parent:
+</p>
+<pre>
+  post = Post.find(1)
+  post.author.name = ''
+  post.save(false) # =&gt; true
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000400">associated_records_to_validate_or_save</a>,</li>
+                
+                <li><a href="#M000404">association_valid?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000405">before_save_collection_association</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000399">changed_for_autosave?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000394">included</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000397">mark_for_destruction</a>,</li>
+                
+                <li><a href="#M000398">marked_for_destruction?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000401">nested_records_changed_for_autosave?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000396">reload_with_autosave_associations</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000408">save_belongs_to_association</a>,</li>
+                
+                <li><a href="#M000406">save_collection_association</a>,</li>
+                
+                <li><a href="#M000407">save_has_one_association</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000403">validate_collection_association</a>,</li>
+                
+                <li><a href="#M000402">validate_single_association</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="AutosaveAssociation/ClassMethods.html">ActiveRecord::AutosaveAssociation::ClassMethods</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">ASSOCIATION_TYPES</td>
+            <td>=</td>
+            <td class="attr-value">%w{ has_one belongs_to has_many has_and_belongs_to_many }</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000399">
+                    
+                    <a name="M000399"></a><b>changed_for_autosave?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns whether or not this record has been changed in any way (including
+whether any of its nested autosave associations are likewise changed)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000399_source')" id="l_M000399_source">show</a>
+                        
+                    </p>
+                    <div id="M000399_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 223</span>
+223:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">changed_for_autosave?</span>
+224:       <span class="ruby-identifier">new_record?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">changed?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">marked_for_destruction?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">nested_records_changed_for_autosave?</span>
+225:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000397">
+                    
+                    <a name="M000397"></a><b>mark_for_destruction</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Marks this record to be destroyed as part of the parents save transaction.
+This does <em>not</em> actually destroy the record yet, rather it will be
+destroyed when <tt>parent.save</tt> is called.
+</p>
+<p>
+Only useful if the <tt>:autosave</tt> option on the parent is enabled for
+this associated model.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000397_source')" id="l_M000397_source">show</a>
+                        
+                    </p>
+                    <div id="M000397_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 210</span>
+210:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mark_for_destruction</span>
+211:       <span class="ruby-ivar">@marked_for_destruction</span> = <span class="ruby-keyword kw">true</span>
+212:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000398">
+                    
+                    <a name="M000398"></a><b>marked_for_destruction?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns whether or not this record will be destroyed as part of the parents
+save transaction.
+</p>
+<p>
+Only useful if the <tt>:autosave</tt> option on the parent is enabled for
+this associated model.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000398_source')" id="l_M000398_source">show</a>
+                        
+                    </p>
+                    <div id="M000398_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 217</span>
+217:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">marked_for_destruction?</span>
+218:       <span class="ruby-ivar">@marked_for_destruction</span>
+219:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000396">
+                    
+                    <a name="M000396"></a><b>reload_with_autosave_associations</b>(options = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Reloads the attributes of the object as usual and removes a mark for
+destruction.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000396_source')" id="l_M000396_source">show</a>
+                        
+                    </p>
+                    <div id="M000396_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 201</span>
+201:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reload_with_autosave_associations</span>(<span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+202:       <span class="ruby-ivar">@marked_for_destruction</span> = <span class="ruby-keyword kw">false</span>
+203:       <span class="ruby-identifier">reload_without_autosave_associations</span>(<span class="ruby-identifier">options</span>)
+204:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000400">
+                    
+                    <a name="M000400"></a><b>associated_records_to_validate_or_save</b>(association, new_record, autosave)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the record for an association collection that should be validated
+or saved. If <tt>autosave</tt> is <tt>false</tt> only new records will be
+returned, unless the parent is/was a new record itself.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000400_source')" id="l_M000400_source">show</a>
+                        
+                    </p>
+                    <div id="M000400_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 232</span>
+232:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">associated_records_to_validate_or_save</span>(<span class="ruby-identifier">association</span>, <span class="ruby-identifier">new_record</span>, <span class="ruby-identifier">autosave</span>)
+233:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">new_record</span>
+234:         <span class="ruby-identifier">association</span>
+235:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">autosave</span>
+236:         <span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">changed_for_autosave?</span> }
+237:       <span class="ruby-keyword kw">else</span>
+238:         <span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">new_record?</span> }
+239:       <span class="ruby-keyword kw">end</span>
+240:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000404">
+                    
+                    <a name="M000404"></a><b>association_valid?</b>(reflection, association)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns whether or not the association is valid and applies any errors to
+the parent, <tt>self</tt>, if it wasn&#8217;t. Skips any <tt>:autosave</tt>
+enabled records if they&#8217;re marked_for_destruction? or destroyed.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000404_source')" id="l_M000404_source">show</a>
+                        
+                    </p>
+                    <div id="M000404_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 279</span>
+279:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">association_valid?</span>(<span class="ruby-identifier">reflection</span>, <span class="ruby-identifier">association</span>)
+280:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroyed?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">marked_for_destruction?</span>
+281: 
+282:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">valid</span> = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">valid?</span>
+283:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:autosave</span>]
+284:           <span class="ruby-identifier">association</span>.<span class="ruby-identifier">errors</span>.<span class="ruby-identifier">each_error</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">error</span><span class="ruby-operator">|</span>
+285:             <span class="ruby-identifier">attribute</span> = <span class="ruby-node">&quot;#{reflection.name}.#{attribute}&quot;</span>
+286:             <span class="ruby-identifier">errors</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">error</span>.<span class="ruby-identifier">dup</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">errors</span>.<span class="ruby-identifier">on</span>(<span class="ruby-identifier">attribute</span>)
+287:           <span class="ruby-keyword kw">end</span>
+288:         <span class="ruby-keyword kw">else</span>
+289:           <span class="ruby-identifier">errors</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)
+290:         <span class="ruby-keyword kw">end</span>
+291:       <span class="ruby-keyword kw">end</span>
+292:       <span class="ruby-identifier">valid</span>
+293:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000405">
+                    
+                    <a name="M000405"></a><b>before_save_collection_association</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Is used as a before_save callback to check while saving a collection
+association whether or not the parent was a new record before saving.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000405_source')" id="l_M000405_source">show</a>
+                        
+                    </p>
+                    <div id="M000405_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 297</span>
+297:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">before_save_collection_association</span>
+298:       <span class="ruby-ivar">@new_record_before_save</span> = <span class="ruby-identifier">new_record?</span>
+299:       <span class="ruby-keyword kw">true</span>
+300:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000401">
+                    
+                    <a name="M000401"></a><b>nested_records_changed_for_autosave?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+go through nested autosave associations that are loaded in memory (without
+loading any new ones), and return true if is changed for autosave
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000401_source')" id="l_M000401_source">show</a>
+                        
+                    </p>
+                    <div id="M000401_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 244</span>
+244:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nested_records_changed_for_autosave?</span>
+245:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">reflect_on_all_autosave_associations</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">reflection</span><span class="ruby-operator">|</span>
+246:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)
+247:           <span class="ruby-keyword kw">if</span> [<span class="ruby-identifier">:belongs_to</span>, <span class="ruby-identifier">:has_one</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">macro</span>)
+248:             <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">changed_for_autosave?</span>
+249:           <span class="ruby-keyword kw">else</span>
+250:             <span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">each</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span> <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">changed_for_autosave?</span> }
+251:           <span class="ruby-keyword kw">end</span>
+252:         <span class="ruby-keyword kw">end</span>
+253:       <span class="ruby-keyword kw">end</span>
+254:       <span class="ruby-keyword kw">false</span>
+255:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000408">
+                    
+                    <a name="M000408"></a><b>save_belongs_to_association</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Saves the associated record if it&#8217;s new or <tt>:autosave</tt> is
+enabled on the association.
+</p>
+<p>
+In addition, it will destroy the association if it was marked for
+destruction with mark_for_destruction.
+</p>
+<p>
+This all happens inside a transaction, <em>if</em> the <a
+href="Transactions.html">Transactions</a> module is included into <a
+href="Base.html">ActiveRecord::Base</a> after the <a
+href="AutosaveAssociation.html">AutosaveAssociation</a> module, which it
+does by default.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000408_source')" id="l_M000408_source">show</a>
+                        
+                    </p>
+                    <div id="M000408_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 373</span>
+373:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_belongs_to_association</span>(<span class="ruby-identifier">reflection</span>)
+374:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroyed?</span>
+375:         <span class="ruby-identifier">autosave</span> = <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:autosave</span>]
+376: 
+377:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">marked_for_destruction?</span>
+378:           <span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroy</span>
+379:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">false</span>
+380:           <span class="ruby-identifier">saved</span> = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">save</span>(<span class="ruby-operator">!</span><span class="ruby-identifier">autosave</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">new_record?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">autosave</span>
+381: 
+382:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">updated?</span>
+383:             <span class="ruby-identifier">association_id</span> = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:primary_key</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">:id</span>)
+384:             <span class="ruby-keyword kw">self</span>[<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">primary_key_name</span>] = <span class="ruby-identifier">association_id</span>
+385:             <span class="ruby-comment cmt"># TODO: Removing this code doesn't seem to matter…</span>
+386:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:polymorphic</span>]
+387:               <span class="ruby-keyword kw">self</span>[<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:foreign_type</span>]] = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">base_class</span>.<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_s</span>
+388:             <span class="ruby-keyword kw">end</span>
+389:           <span class="ruby-keyword kw">end</span>
+390: 
+391:           <span class="ruby-identifier">saved</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span>
+392:         <span class="ruby-keyword kw">end</span>
+393:       <span class="ruby-keyword kw">end</span>
+394:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000406">
+                    
+                    <a name="M000406"></a><b>save_collection_association</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Saves any new associated records, or all loaded autosave associations if
+<tt>:autosave</tt> is enabled on the association.
+</p>
+<p>
+In addition, it destroys all children that were marked for destruction with
+mark_for_destruction.
+</p>
+<p>
+This all happens inside a transaction, <em>if</em> the <a
+href="Transactions.html">Transactions</a> module is included into <a
+href="Base.html">ActiveRecord::Base</a> after the <a
+href="AutosaveAssociation.html">AutosaveAssociation</a> module, which it
+does by default.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000406_source')" id="l_M000406_source">show</a>
+                        
+                    </p>
+                    <div id="M000406_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 310</span>
+310:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_collection_association</span>(<span class="ruby-identifier">reflection</span>)
+311:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)
+312:         <span class="ruby-identifier">autosave</span> = <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:autosave</span>]
+313: 
+314:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">records</span> = <span class="ruby-identifier">associated_records_to_validate_or_save</span>(<span class="ruby-identifier">association</span>, <span class="ruby-ivar">@new_record_before_save</span>, <span class="ruby-identifier">autosave</span>)
+315:           <span class="ruby-identifier">records</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span>
+316:             <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">destroyed?</span>
+317: 
+318:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">marked_for_destruction?</span>
+319:               <span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroy</span>(<span class="ruby-identifier">record</span>)
+320:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">false</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-ivar">@new_record_before_save</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">new_record?</span>)
+321:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span>
+322:                 <span class="ruby-identifier">saved</span> = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">:insert_record</span>, <span class="ruby-identifier">record</span>, <span class="ruby-keyword kw">false</span>, <span class="ruby-keyword kw">false</span>)
+323:               <span class="ruby-keyword kw">else</span>
+324:                 <span class="ruby-identifier">association</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">:insert_record</span>, <span class="ruby-identifier">record</span>)
+325:               <span class="ruby-keyword kw">end</span>
+326:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">autosave</span>
+327:               <span class="ruby-identifier">saved</span> = <span class="ruby-identifier">record</span>.<span class="ruby-identifier">save</span>(<span class="ruby-keyword kw">false</span>)
+328:             <span class="ruby-keyword kw">end</span>
+329: 
+330:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Rollback</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">saved</span> <span class="ruby-operator">==</span> <span class="ruby-keyword kw">false</span>
+331:           <span class="ruby-keyword kw">end</span>
+332:         <span class="ruby-keyword kw">end</span>
+333: 
+334:         <span class="ruby-comment cmt"># reconstruct the SQL queries now that we know the owner's id</span>
+335:         <span class="ruby-identifier">association</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">:construct_sql</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:construct_sql</span>)
+336:       <span class="ruby-keyword kw">end</span>
+337:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000407">
+                    
+                    <a name="M000407"></a><b>save_has_one_association</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Saves the associated record if it&#8217;s new or <tt>:autosave</tt> is
+enabled on the association.
+</p>
+<p>
+In addition, it will destroy the association if it was marked for
+destruction with mark_for_destruction.
+</p>
+<p>
+This all happens inside a transaction, <em>if</em> the <a
+href="Transactions.html">Transactions</a> module is included into <a
+href="Base.html">ActiveRecord::Base</a> after the <a
+href="AutosaveAssociation.html">AutosaveAssociation</a> module, which it
+does by default.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000407_source')" id="l_M000407_source">show</a>
+                        
+                    </p>
+                    <div id="M000407_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 347</span>
+347:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_has_one_association</span>(<span class="ruby-identifier">reflection</span>)
+348:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroyed?</span>
+349:         <span class="ruby-identifier">autosave</span> = <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:autosave</span>]
+350: 
+351:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">marked_for_destruction?</span>
+352:           <span class="ruby-identifier">association</span>.<span class="ruby-identifier">destroy</span>
+353:         <span class="ruby-keyword kw">else</span>
+354:           <span class="ruby-identifier">key</span> = <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:primary_key</span>] <span class="ruby-operator">?</span> <span class="ruby-identifier">send</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:primary_key</span>]) <span class="ruby-operator">:</span> <span class="ruby-identifier">id</span>
+355:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">autosave</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">false</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-identifier">new_record?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">association</span>.<span class="ruby-identifier">new_record?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">association</span>[<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">primary_key_name</span>] <span class="ruby-operator">!=</span> <span class="ruby-identifier">key</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">autosave</span>)
+356:             <span class="ruby-identifier">association</span>[<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">primary_key_name</span>] = <span class="ruby-identifier">key</span>
+357:             <span class="ruby-identifier">saved</span> = <span class="ruby-identifier">association</span>.<span class="ruby-identifier">save</span>(<span class="ruby-operator">!</span><span class="ruby-identifier">autosave</span>)
+358:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Rollback</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">saved</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">autosave</span>
+359:             <span class="ruby-identifier">saved</span>
+360:           <span class="ruby-keyword kw">end</span>
+361:         <span class="ruby-keyword kw">end</span>
+362:       <span class="ruby-keyword kw">end</span>
+363:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000403">
+                    
+                    <a name="M000403"></a><b>validate_collection_association</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Validate the associated records if <tt>:validate</tt> or <tt>:autosave</tt>
+is turned on for the association specified by <tt>reflection</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000403_source')" id="l_M000403_source">show</a>
+                        
+                    </p>
+                    <div id="M000403_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 268</span>
+268:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validate_collection_association</span>(<span class="ruby-identifier">reflection</span>)
+269:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)
+270:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">records</span> = <span class="ruby-identifier">associated_records_to_validate_or_save</span>(<span class="ruby-identifier">association</span>, <span class="ruby-identifier">new_record?</span>, <span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:autosave</span>])
+271:           <span class="ruby-identifier">records</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">record</span><span class="ruby-operator">|</span> <span class="ruby-identifier">association_valid?</span>(<span class="ruby-identifier">reflection</span>, <span class="ruby-identifier">record</span>) }
+272:         <span class="ruby-keyword kw">end</span>
+273:       <span class="ruby-keyword kw">end</span>
+274:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000402">
+                    
+                    <a name="M000402"></a><b>validate_single_association</b>(reflection)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
+turned on for the association specified by <tt>reflection</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000402_source')" id="l_M000402_source">show</a>
+                        
+                    </p>
+                    <div id="M000402_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 259</span>
+259:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validate_single_association</span>(<span class="ruby-identifier">reflection</span>)
+260:       <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">association</span> = <span class="ruby-identifier">association_instance_get</span>(<span class="ruby-identifier">reflection</span>.<span class="ruby-identifier">name</span>)) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">association</span>.<span class="ruby-identifier">target</span>.<span class="ruby-identifier">nil?</span>
+261:         <span class="ruby-identifier">association_valid?</span>(<span class="ruby-identifier">reflection</span>, <span class="ruby-identifier">association</span>)
+262:       <span class="ruby-keyword kw">end</span>
+263:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000394">
+                    
+                    <a name="M000394"></a><b>included</b>(base)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000394_source')" id="l_M000394_source">show</a>
+                        
+                    </p>
+                    <div id="M000394_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/autosave_association.rb, line 130</span>
+130:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">included</span>(<span class="ruby-identifier">base</span>)
+131:       <span class="ruby-identifier">base</span>.<span class="ruby-identifier">class_eval</span> <span class="ruby-keyword kw">do</span>
+132:         <span class="ruby-identifier">base</span>.<span class="ruby-identifier">extend</span>(<span class="ruby-constant">ClassMethods</span>)
+133:         <span class="ruby-identifier">alias_method_chain</span> <span class="ruby-identifier">:reload</span>, <span class="ruby-identifier">:autosave_associations</span>
+134: 
+135:         <span class="ruby-constant">ASSOCIATION_TYPES</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span><span class="ruby-operator">|</span>
+136:           <span class="ruby-identifier">base</span>.<span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;valid_keys_for_#{type}_association&quot;</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">:autosave</span>
+137:         <span class="ruby-keyword kw">end</span>
+138:       <span class="ruby-keyword kw">end</span>
+139:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

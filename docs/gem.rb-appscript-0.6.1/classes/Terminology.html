@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Terminology</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Terminology 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/_appscript/terminology_rb.html">lib/_appscript/terminology.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+TERMINOLOGY TABLES BUILDER
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000308">_make_reference_table</a>,</li>
+                
+                <li><a href="#M000307">_make_type_table</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000316">aetes_for_app</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000311">default_tables</a>,</li>
+                
+                <li><a href="#M000320">dump</a>,</li>
+                
+                <li><a href="#M000309">dump_tables</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000312">tables_for_aetes</a>,</li>
+                
+                <li><a href="#M000318">tables_for_app</a>,</li>
+                
+                <li><a href="#M000314">tables_for_module</a>,</li>
+                
+                <li><a href="#M000315">tables_for_parsed_sdef</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000308">
+                    
+                    <a name="M000308"></a><b>_make_reference_table</b>(properties, elements, commands)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000308_source')" id="l_M000308_source">show</a>
+                        
+                    </p>
+                    <div id="M000308_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 300</span>
+300:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">_make_reference_table</span>(<span class="ruby-identifier">properties</span>, <span class="ruby-identifier">elements</span>, <span class="ruby-identifier">commands</span>)
+301:     <span class="ruby-comment cmt"># builds tables used for constructing references and commands</span>
+302:     <span class="ruby-identifier">reference_by_code</span> = <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">ReferenceByCode</span>.<span class="ruby-identifier">clone</span>
+303:     <span class="ruby-identifier">reference_by_name</span> = <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">ReferenceByName</span>.<span class="ruby-identifier">clone</span>
+304:     [[<span class="ruby-identifier">:element</span>, <span class="ruby-identifier">elements</span>, <span class="ruby-value str">'e'</span>], [<span class="ruby-identifier">:property</span>, <span class="ruby-identifier">properties</span>, <span class="ruby-value str">'p'</span>]].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">kind</span>, <span class="ruby-identifier">table</span>, <span class="ruby-identifier">prefix</span><span class="ruby-operator">|</span>
+305:       <span class="ruby-comment cmt"># note: if property and element names are same (e.g. 'file' in BBEdit), will pack as property specifier unless it's a special case (i.e. see :text below). Note that there is currently no way to override this, i.e. to force appscript to pack it as an all-elements specifier instead (in AS, this would be done by prepending the 'every' keyword), so clients would need to use aem for that (but could add an 'all' method to Reference class if there was demand for a built-in workaround)</span>
+306:       <span class="ruby-identifier">table</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">item</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+307:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span> = <span class="ruby-identifier">item</span>
+308:         <span class="ruby-comment cmt"># If an application-defined name overlaps an existing type name but has a different code, append '_' to avoid collision:</span>
+309:         <span class="ruby-identifier">name</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">'_'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeCodeByName</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>) <span class="ruby-operator">!=</span> <span class="ruby-identifier">code</span>
+310:         <span class="ruby-identifier">reference_by_code</span>[<span class="ruby-identifier">prefix</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">code</span>] = <span class="ruby-identifier">name</span> <span class="ruby-comment cmt"># to handle synonyms, if same code appears more than once then use name from last definition in list</span>
+311:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span> = <span class="ruby-identifier">table</span>[<span class="ruby-operator">-</span><span class="ruby-identifier">i</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>]
+312:         <span class="ruby-identifier">name</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">'_'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeCodeByName</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>) <span class="ruby-operator">!=</span> <span class="ruby-identifier">code</span>
+313:         <span class="ruby-keyword kw">begin</span>
+314:           <span class="ruby-identifier">reference_by_name</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">intern</span>] = [<span class="ruby-identifier">kind</span>, <span class="ruby-identifier">code</span>] <span class="ruby-comment cmt"># to handle synonyms, if same name appears more than once then use code from first definition in list</span>
+315:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ArgumentError</span> <span class="ruby-comment cmt"># ignore #intern error if name is empty string</span>
+316:         <span class="ruby-keyword kw">end</span>
+317:       <span class="ruby-keyword kw">end</span>
+318:     <span class="ruby-keyword kw">end</span>
+319:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">reference_by_name</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:text</span>) <span class="ruby-comment cmt"># special case: AppleScript always packs 'text of...' as all-elements specifier</span>
+320:       <span class="ruby-identifier">reference_by_name</span>[<span class="ruby-identifier">:text</span>][<span class="ruby-value">0</span>] = <span class="ruby-identifier">:element</span>
+321:     <span class="ruby-keyword kw">end</span>
+322:     <span class="ruby-identifier">commands</span>.<span class="ruby-identifier">reverse</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>, <span class="ruby-identifier">args</span><span class="ruby-operator">|</span> <span class="ruby-comment cmt"># to handle synonyms, if two commands have same name but different codes, only the first definition should be used (iterating over the commands list in reverse ensures this)</span>
+323:       <span class="ruby-comment cmt"># Avoid collisions between default commands and application-defined commands with same name but different code (e.g. 'get' and 'set' in InDesign CS2):</span>
+324:       <span class="ruby-identifier">name</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">'_'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">CommandCodeByName</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>) <span class="ruby-operator">!=</span> <span class="ruby-identifier">code</span>
+325:       <span class="ruby-identifier">dct</span> = {}
+326:       <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">arg_name</span>, <span class="ruby-identifier">arg_code</span><span class="ruby-operator">|</span>
+327:         <span class="ruby-keyword kw">begin</span>
+328:           <span class="ruby-identifier">dct</span>[<span class="ruby-identifier">arg_name</span>.<span class="ruby-identifier">intern</span>] = <span class="ruby-identifier">arg_code</span>
+329:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ArgumentError</span> <span class="ruby-comment cmt"># ignore #intern error if name is empty string</span>
+330:         <span class="ruby-keyword kw">end</span>
+331:       <span class="ruby-keyword kw">end</span>
+332:       <span class="ruby-keyword kw">begin</span>
+333:         <span class="ruby-identifier">reference_by_name</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">intern</span>] = [<span class="ruby-identifier">:command</span>, [<span class="ruby-identifier">code</span>, <span class="ruby-identifier">dct</span>]]
+334:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ArgumentError</span> <span class="ruby-comment cmt"># ignore #intern error if name is empty string</span>
+335:       <span class="ruby-keyword kw">end</span>
+336:     <span class="ruby-keyword kw">end</span>
+337:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">reference_by_code</span>, <span class="ruby-identifier">reference_by_name</span>
+338:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000307">
+                    
+                    <a name="M000307"></a><b>_make_type_table</b>(classes, enums, properties)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000307_source')" id="l_M000307_source">show</a>
+                        
+                    </p>
+                    <div id="M000307_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 276</span>
+276:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">_make_type_table</span>(<span class="ruby-identifier">classes</span>, <span class="ruby-identifier">enums</span>, <span class="ruby-identifier">properties</span>)
+277:     <span class="ruby-comment cmt"># builds tables used for converting symbols to/from AEType, AEEnums</span>
+278:     <span class="ruby-identifier">type_by_code</span> = <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeByCode</span>.<span class="ruby-identifier">clone</span>
+279:     <span class="ruby-identifier">type_by_name</span> = <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeByName</span>.<span class="ruby-identifier">clone</span>
+280:     [[<span class="ruby-constant">AEM</span><span class="ruby-operator">::</span><span class="ruby-constant">AEType</span>, <span class="ruby-identifier">properties</span>], [<span class="ruby-constant">AEM</span><span class="ruby-operator">::</span><span class="ruby-constant">AEEnum</span>, <span class="ruby-identifier">enums</span>], [<span class="ruby-constant">AEM</span><span class="ruby-operator">::</span><span class="ruby-constant">AEType</span>, <span class="ruby-identifier">classes</span>]].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">klass</span>, <span class="ruby-identifier">table</span><span class="ruby-operator">|</span>
+281:       <span class="ruby-identifier">table</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">item</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+282:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span> = <span class="ruby-identifier">item</span>
+283:         <span class="ruby-comment cmt"># If an application-defined name overlaps an existing type name but has a different code, append '_' to avoid collision:</span>
+284:         <span class="ruby-identifier">name</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">'_'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeCodeByName</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>) <span class="ruby-operator">!=</span> <span class="ruby-identifier">code</span>
+285:         <span class="ruby-keyword kw">begin</span>
+286:           <span class="ruby-identifier">type_by_code</span>[<span class="ruby-identifier">code</span>] = <span class="ruby-identifier">name</span>.<span class="ruby-identifier">intern</span> <span class="ruby-comment cmt"># to handle synonyms, if same code appears more than once then use name from last definition in list</span>
+287:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ArgumentError</span> <span class="ruby-comment cmt"># ignore #intern error if name is empty string</span>
+288:         <span class="ruby-keyword kw">end</span>
+289:         <span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span> = <span class="ruby-identifier">table</span>[<span class="ruby-operator">-</span><span class="ruby-identifier">i</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>]
+290:         <span class="ruby-identifier">name</span> <span class="ruby-operator">+=</span> <span class="ruby-value str">'_'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">DefaultTerminology</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeCodeByName</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>) <span class="ruby-operator">!=</span> <span class="ruby-identifier">code</span>
+291:         <span class="ruby-keyword kw">begin</span>
+292:           <span class="ruby-identifier">type_by_name</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">intern</span>] = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">code</span>) <span class="ruby-comment cmt"># to handle synonyms, if same name appears more than once then use code from first definition in list</span>
+293:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ArgumentError</span> <span class="ruby-comment cmt"># ignore #intern error if name is empty string</span>
+294:         <span class="ruby-keyword kw">end</span>
+295:       <span class="ruby-keyword kw">end</span>
+296:     <span class="ruby-keyword kw">end</span>
+297:     <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">type_by_code</span>, <span class="ruby-identifier">type_by_name</span>]
+298:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000316">
+                    
+                    <a name="M000316"></a><b>aetes_for_app</b>(aem_app)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000316_source')" id="l_M000316_source">show</a>
+                        
+                    </p>
+                    <div id="M000316_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 407</span>
+407:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">aetes_for_app</span>(<span class="ruby-identifier">aem_app</span>)
+408:     <span class="ruby-keyword kw">begin</span>
+409:       <span class="ruby-keyword kw">begin</span>
+410:         <span class="ruby-identifier">aetes</span> = <span class="ruby-identifier">aem_app</span>.<span class="ruby-identifier">event</span>(<span class="ruby-value str">'ascrgdte'</span>, {<span class="ruby-value str">'----'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>}).<span class="ruby-identifier">send</span>(<span class="ruby-value">120</span> <span class="ruby-operator">*</span> <span class="ruby-value">60</span>)
+411:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">AEM</span><span class="ruby-operator">::</span><span class="ruby-constant">EventError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+412:         <span class="ruby-keyword kw">if</span>  <span class="ruby-identifier">e</span>.<span class="ruby-identifier">number</span> <span class="ruby-operator">==</span> <span class="ruby-value">-192</span> <span class="ruby-comment cmt"># aete resource not found</span>
+413:           <span class="ruby-identifier">aetes</span> = []
+414:         <span class="ruby-keyword kw">else</span>
+415:           <span class="ruby-identifier">raise</span>
+416:         <span class="ruby-keyword kw">end</span>
+417:       <span class="ruby-keyword kw">end</span>
+418:     <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+419:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">RuntimeError</span>, <span class="ruby-node">&quot;Can't get terminology for application (#{aem_app}): #{err}&quot;</span>
+420:     <span class="ruby-keyword kw">end</span>
+421:     <span class="ruby-identifier">aetes</span> = [<span class="ruby-identifier">aetes</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">aetes</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Array</span>)
+422:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">aetes</span>
+423:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000311">
+                    
+                    <a name="M000311"></a><b>default_tables</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+public
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000311_source')" id="l_M000311_source">show</a>
+                        
+                    </p>
+                    <div id="M000311_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 375</span>
+375:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">default_tables</span>
+376:     <span class="ruby-comment cmt"># [typebycode, typebyname, referencebycode, referencebyname]</span>
+377:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">_make_type_table</span>([], [], []) <span class="ruby-operator">+</span> <span class="ruby-identifier">_make_reference_table</span>([], [], [])
+378:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000320">
+                    
+                    <a name="M000320"></a><b>dump</b>(app_name, module_name, out_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+public
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000320_source')" id="l_M000320_source">show</a>
+                        
+                    </p>
+                    <div id="M000320_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 439</span>
+439:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-identifier">app_name</span>, <span class="ruby-identifier">module_name</span>, <span class="ruby-identifier">out_path</span>)
+440:     <span class="ruby-comment cmt"># Export application terminology tables as a Ruby module</span>
+441:     <span class="ruby-comment cmt"># app_path : string -- name or path of application</span>
+442:     <span class="ruby-comment cmt"># module_name : string -- name of generated module (must be a valid Ruby constant)</span>
+443:     <span class="ruby-comment cmt"># out_path : string -- module file to write</span>
+444:     <span class="ruby-comment cmt">#   </span>
+445:     <span class="ruby-comment cmt"># Generates a Ruby module containing an application's basic terminology </span>
+446:     <span class="ruby-comment cmt"># (names and codes) as used by appscript.</span>
+447:     <span class="ruby-comment cmt"># </span>
+448:     <span class="ruby-comment cmt"># Call the #dump method to dump faulty aetes to Ruby module, e.g.:</span>
+449:     <span class="ruby-comment cmt"># </span>
+450:     <span class="ruby-comment cmt">#   Terminology.dump('MyApp', 'MyAppGlue', '/path/to/ruby/modules/myappglue.rb')</span>
+451:     <span class="ruby-comment cmt"># </span>
+452:     <span class="ruby-comment cmt"># Patch any errors by hand, then import the patched module into your script </span>
+453:     <span class="ruby-comment cmt"># and pass it to appscript's app() constructor via its 'terms' argument, e.g.:</span>
+454:     <span class="ruby-comment cmt"># </span>
+455:     <span class="ruby-comment cmt">#   require 'appscript'; include Appscript</span>
+456:     <span class="ruby-comment cmt">#   require 'myappglue'</span>
+457:     <span class="ruby-comment cmt">#   </span>
+458:     <span class="ruby-comment cmt">#   myapp = app('MyApp', terms =&gt; MyAppGlue)</span>
+459:     <span class="ruby-comment cmt"># </span>
+460:     <span class="ruby-comment cmt"># Note that dumped terminologies aren't used by appscript's built-in help system.</span>
+461:     <span class="ruby-comment cmt">#</span>
+462:     <span class="ruby-identifier">app_path</span> = <span class="ruby-constant">FindApp</span>.<span class="ruby-identifier">by_name</span>(<span class="ruby-identifier">app_name</span>)
+463:     <span class="ruby-comment cmt"># Get aete(s)</span>
+464:     <span class="ruby-identifier">aetes</span> = <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">aetes_for_app</span>(<span class="ruby-constant">Application</span>.<span class="ruby-identifier">by_path</span>(<span class="ruby-identifier">app_path</span>))
+465:     <span class="ruby-identifier">aetes</span>.<span class="ruby-identifier">delete_if</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">aete</span><span class="ruby-operator">|</span> <span class="ruby-keyword kw">not</span>(<span class="ruby-identifier">aete</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">AE</span><span class="ruby-operator">::</span><span class="ruby-constant">AEDesc</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">aete</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">KAE</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeAETE</span>) }
+466:     <span class="ruby-identifier">tables</span> = <span class="ruby-constant">TerminologyParser</span>.<span class="ruby-identifier">build_tables_for_aetes</span>(<span class="ruby-identifier">aetes</span>)
+467:     <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">dump_tables</span>(<span class="ruby-identifier">tables</span>, <span class="ruby-identifier">module_name</span>, <span class="ruby-identifier">app_path</span>, <span class="ruby-identifier">out_path</span>)
+468:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000309">
+                    
+                    <a name="M000309"></a><b>dump_tables</b>(tables, module_name, source_path, out_path)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000309_source')" id="l_M000309_source">show</a>
+                        
+                    </p>
+                    <div id="M000309_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 340</span>
+340:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">dump_tables</span>(<span class="ruby-identifier">tables</span>, <span class="ruby-identifier">module_name</span>, <span class="ruby-identifier">source_path</span>, <span class="ruby-identifier">out_path</span>)
+341:     <span class="ruby-comment cmt"># Parse aete(s) into intermediate tables, suitable for use by Terminology#tables_for_module</span>
+342:     <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span>(<span class="ruby-regexp re">/^[A-Z][A-Za-z0-9_]*$/</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">module_name</span>)
+343:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">RuntimeError</span>, <span class="ruby-value str">&quot;Invalid module name.&quot;</span>
+344:     <span class="ruby-keyword kw">end</span>
+345:     <span class="ruby-comment cmt"># Write module</span>
+346:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">out_path</span>, <span class="ruby-value str">&quot;w&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+347:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;module #{module_name}&quot;</span>
+348:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\tVersion = 1.1&quot;</span>
+349:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;\tPath = #{source_path.inspect}&quot;</span>
+350:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span>
+351:       ([<span class="ruby-value str">&quot;Classes&quot;</span>, <span class="ruby-value str">&quot;Enumerators&quot;</span>, <span class="ruby-value str">&quot;Properties&quot;</span>, <span class="ruby-value str">&quot;Elements&quot;</span>].<span class="ruby-identifier">zip</span>(<span class="ruby-identifier">tables</span>[<span class="ruby-value">0</span>,<span class="ruby-value">4</span>])).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">name</span>, <span class="ruby-identifier">table</span><span class="ruby-operator">|</span>
+352:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;\t#{name} = [&quot;</span>
+353:         <span class="ruby-identifier">table</span>.<span class="ruby-identifier">sort</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">item</span><span class="ruby-operator">|</span>
+354:           <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;\t\t#{item.inspect},&quot;</span>
+355:         <span class="ruby-keyword kw">end</span>
+356:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\t]&quot;</span>
+357:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span>
+358:       <span class="ruby-keyword kw">end</span>
+359:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\tCommands = [&quot;</span>
+360:       <span class="ruby-identifier">tables</span>[<span class="ruby-value">4</span>].<span class="ruby-identifier">sort</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">name</span>, <span class="ruby-identifier">code</span>, <span class="ruby-identifier">params</span><span class="ruby-operator">|</span>
+361:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;\t\t[#{name.inspect}, #{code.inspect}, [&quot;</span>
+362:           <span class="ruby-identifier">params</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">item</span><span class="ruby-operator">|</span>
+363:             <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;\t\t\t#{item.inspect},&quot;</span>
+364:           <span class="ruby-keyword kw">end</span>
+365:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\t\t]],&quot;</span>
+366:       <span class="ruby-keyword kw">end</span>
+367:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\t]&quot;</span>
+368:       <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;end&quot;</span>
+369:     <span class="ruby-keyword kw">end</span>
+370:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000312">
+                    
+                    <a name="M000312"></a><b>tables_for_aetes</b>(aetes)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000312_source')" id="l_M000312_source">show</a>
+                        
+                    </p>
+                    <div id="M000312_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 380</span>
+380:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">tables_for_aetes</span>(<span class="ruby-identifier">aetes</span>)
+381:     <span class="ruby-comment cmt"># Build terminology tables from a list of unpacked aete byte strings.</span>
+382:     <span class="ruby-comment cmt"># Result : list of hash -- [typebycode, typebyname, referencebycode, referencebyname]</span>
+383:     <span class="ruby-identifier">aetes</span> = <span class="ruby-identifier">aetes</span>.<span class="ruby-identifier">reject</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">aete</span><span class="ruby-operator">|</span> <span class="ruby-keyword kw">not</span>(<span class="ruby-identifier">aete</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">AE</span><span class="ruby-operator">::</span><span class="ruby-constant">AEDesc</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">aete</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">KAE</span><span class="ruby-operator">::</span><span class="ruby-constant">TypeAETE</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">aete</span>.<span class="ruby-identifier">data</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">''</span>) }
+384:     <span class="ruby-identifier">classes</span>, <span class="ruby-identifier">enums</span>, <span class="ruby-identifier">properties</span>, <span class="ruby-identifier">elements</span>, <span class="ruby-identifier">commands</span> = <span class="ruby-constant">TerminologyParser</span>.<span class="ruby-identifier">build_tables_for_aetes</span>(<span class="ruby-identifier">aetes</span>)
+385:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">_make_type_table</span>(<span class="ruby-identifier">classes</span>, <span class="ruby-identifier">enums</span>, <span class="ruby-identifier">properties</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">_make_reference_table</span>(<span class="ruby-identifier">properties</span>, <span class="ruby-identifier">elements</span>, <span class="ruby-identifier">commands</span>)
+386:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000318">
+                    
+                    <a name="M000318"></a><b>tables_for_app</b>(aem_app)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000318_source')" id="l_M000318_source">show</a>
+                        
+                    </p>
+                    <div id="M000318_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 425</span>
+425:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">tables_for_app</span>(<span class="ruby-identifier">aem_app</span>)
+426:     <span class="ruby-comment cmt"># Build terminology tables for an application.</span>
+427:     <span class="ruby-comment cmt"># app : AEM::Application</span>
+428:     <span class="ruby-comment cmt"># Result : list of hash -- [typebycode, typebyname, referencebycode, referencebyname]</span>
+429:     <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-ivar">@@_terminology_cache</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">aem_app</span>.<span class="ruby-identifier">identity</span>)
+430:       <span class="ruby-identifier">aetes</span> = <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">aetes_for_app</span>(<span class="ruby-identifier">aem_app</span>)
+431:       <span class="ruby-ivar">@@_terminology_cache</span>[<span class="ruby-identifier">aem_app</span>.<span class="ruby-identifier">identity</span>] = <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">tables_for_aetes</span>(<span class="ruby-identifier">aetes</span>)
+432:     <span class="ruby-keyword kw">end</span>
+433:     <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@@_terminology_cache</span>[<span class="ruby-identifier">aem_app</span>.<span class="ruby-identifier">identity</span>]
+434:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000314">
+                    
+                    <a name="M000314"></a><b>tables_for_module</b>(terms)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000314_source')" id="l_M000314_source">show</a>
+                        
+                    </p>
+                    <div id="M000314_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 390</span>
+390:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">tables_for_module</span>(<span class="ruby-identifier">terms</span>)
+391:     <span class="ruby-comment cmt"># Build terminology tables from a dumped terminology module.</span>
+392:     <span class="ruby-comment cmt"># Result : list of hash -- [typebycode, typebyname, referencebycode, referencebyname]</span>
+393:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Version</span> <span class="ruby-operator">!=</span> <span class="ruby-value">1.1</span>
+394:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">RuntimeError</span>, <span class="ruby-node">&quot;Unsupported terminology module version: #{terms::Version} (requires version 1.1).&quot;</span>
+395:     <span class="ruby-keyword kw">end</span>
+396:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">_make_type_table</span>(<span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Classes</span>, <span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Enumerators</span>, <span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Properties</span>) \
+397:       <span class="ruby-operator">+</span> <span class="ruby-identifier">_make_reference_table</span>(<span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Properties</span>, <span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Elements</span>, <span class="ruby-identifier">terms</span><span class="ruby-operator">::</span><span class="ruby-constant">Commands</span>)
+398:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000315">
+                    
+                    <a name="M000315"></a><b>tables_for_parsed_sdef</b>(terms)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000315_source')" id="l_M000315_source">show</a>
+                        
+                    </p>
+                    <div id="M000315_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/_appscript/terminology.rb, line 400</span>
+400:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Terminology</span>.<span class="ruby-identifier">tables_for_parsed_sdef</span>(<span class="ruby-identifier">terms</span>)
+401:     <span class="ruby-comment cmt"># Build terminology tables from an SdefParser instance.</span>
+402:     <span class="ruby-comment cmt"># Result : list of hash -- [typebycode, typebyname, referencebycode, referencebyname]</span>
+403:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">_make_type_table</span>(<span class="ruby-identifier">terms</span>.<span class="ruby-identifier">classes</span>, <span class="ruby-identifier">terms</span>.<span class="ruby-identifier">enumerators</span>, <span class="ruby-identifier">terms</span>.<span class="ruby-identifier">properties</span>) \
+404:       <span class="ruby-operator">+</span> <span class="ruby-identifier">_make_reference_table</span>(<span class="ruby-identifier">terms</span>.<span class="ruby-identifier">properties</span>, <span class="ruby-identifier">terms</span>.<span class="ruby-identifier">elements</span>, <span class="ruby-identifier">terms</span>.<span class="ruby-identifier">commands</span>)
+405:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::TickLoop</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::TickLoop 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/tick_loop_rb.html">lib/em/tick_loop.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A <a href="TickLoop.html">TickLoop</a> is useful when one needs to
+distribute amounts of work throughout ticks in order to maintain response
+times. It is also useful for simple repeated checks and metrics.
+</p>
+<pre>
+  # Here we run through an array one item per tick until it is empty,
+  # printing each element.
+  # When the array is empty, we return :stop from the callback, and the
+  # loop will terminate.
+  # When the loop terminates, the on_stop callbacks will be called.
+  EM.run do
+    array = (1..100).to_a
+
+    tickloop = EM.tick_loop do
+      if array.empty?
+        :stop
+      else
+        puts array.shift
+      end
+    end
+
+    tickloop.on_stop { EM.stop }
+  end
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000438">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000439">on_stop</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000443">schedule</a>,</li>
+                
+                <li><a href="#M000442">start</a>,</li>
+                
+                <li><a href="#M000440">stop</a>,</li>
+                
+                <li><a href="#M000441">stopped?</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000438">
+                    
+                    <a name="M000438"></a><b>new</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Arguments: A callback (EM::Callback) to call each tick. If the call returns
+<tt>:stop</tt> then the loop will be stopped. Any other value is ignored.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000438_source')" id="l_M000438_source">show</a>
+                        
+                    </p>
+                    <div id="M000438_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 35</span>
+35:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+36:       <span class="ruby-ivar">@work</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+37:       <span class="ruby-ivar">@stops</span> = []
+38:       <span class="ruby-ivar">@stopped</span> = <span class="ruby-keyword kw">true</span>
+39:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000439">
+                    
+                    <a name="M000439"></a><b>on_stop</b>(*a, &amp;b)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Arguments: A callback (EM::Callback) to call once on the next stop (or
+immediately if already stopped).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000439_source')" id="l_M000439_source">show</a>
+                        
+                    </p>
+                    <div id="M000439_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 43</span>
+43:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_stop</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+44:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@stopped</span>
+45:         <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>).<span class="ruby-identifier">call</span>
+46:       <span class="ruby-keyword kw">else</span>
+47:         <span class="ruby-ivar">@stops</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">Callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">b</span>)
+48:       <span class="ruby-keyword kw">end</span>
+49:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000442">
+                    
+                    <a name="M000442"></a><b>start</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Start the tick loop, will raise argument error if the loop is already
+running.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000442_source')" id="l_M000442_source">show</a>
+                        
+                    </p>
+                    <div id="M000442_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 66</span>
+66:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start</span>
+67:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;double start&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@stopped</span>
+68:       <span class="ruby-ivar">@stopped</span> = <span class="ruby-keyword kw">false</span>
+69:       <span class="ruby-identifier">schedule</span>
+70:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000440">
+                    
+                    <a name="M000440"></a><b>stop</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Stop the tick loop immediately, and call it&#8217;s <a
+href="TickLoop.html#M000439">on_stop</a> callbacks.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000440_source')" id="l_M000440_source">show</a>
+                        
+                    </p>
+                    <div id="M000440_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 52</span>
+52:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stop</span>
+53:       <span class="ruby-ivar">@stopped</span> = <span class="ruby-keyword kw">true</span>
+54:       <span class="ruby-keyword kw">until</span> <span class="ruby-ivar">@stops</span>.<span class="ruby-identifier">empty?</span>
+55:         <span class="ruby-ivar">@stops</span>.<span class="ruby-identifier">shift</span>.<span class="ruby-identifier">call</span>
+56:       <span class="ruby-keyword kw">end</span>
+57:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000441">
+                    
+                    <a name="M000441"></a><b>stopped?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Query if the loop is stopped.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000441_source')" id="l_M000441_source">show</a>
+                        
+                    </p>
+                    <div id="M000441_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 60</span>
+60:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stopped?</span>
+61:       <span class="ruby-ivar">@stopped</span>
+62:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000443">
+                    
+                    <a name="M000443"></a><b>schedule</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000443_source')" id="l_M000443_source">show</a>
+                        
+                    </p>
+                    <div id="M000443_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/em/tick_loop.rb, line 73</span>
+73:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">schedule</span>
+74:       <span class="ruby-constant">EM</span>.<span class="ruby-identifier">next_tick</span> <span class="ruby-keyword kw">do</span>
+75:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@stopped</span>
+76:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@work</span>.<span class="ruby-identifier">call</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:stop</span>
+77:           <span class="ruby-identifier">stop</span>
+78:         <span class="ruby-keyword kw">else</span>
+79:           <span class="ruby-identifier">schedule</span>
+80:         <span class="ruby-keyword kw">end</span>
+81:       <span class="ruby-keyword kw">end</span>
+82:       <span class="ruby-keyword kw">self</span>
+83:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

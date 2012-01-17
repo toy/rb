@@ -1,0 +1,1033 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Grit::GitRuby::Internal::PackStorage</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Grit::GitRuby::Internal::PackStorage 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/grit/git-ruby/internal/pack_rb.html">lib/grit/git-ruby/internal/pack.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000122">[]</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000117">cache_objects</a>,</li>
+                
+                <li><a href="#M000120">close</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000124">each_entry</a>,</li>
+                
+                <li><a href="#M000126">each_sha1</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000130">find_object</a>,</li>
+                
+                <li><a href="#M000129">find_object_in_index</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000121">get_shas</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000123">init_pack</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000119">name</a>,</li>
+                
+                <li><a href="#M000112">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000131">parse_object</a>,</li>
+                
+                <li><a href="#M000147">patch_delta</a>,</li>
+                
+                <li><a href="#M000154">patch_delta_header_size</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000125">read_data_v2</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000143">unpack_compressed</a>,</li>
+                
+                <li><a href="#M000136">unpack_deltified</a>,</li>
+                
+                <li><a href="#M000132">unpack_object</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000113">with_idx</a>,</li>
+                
+                <li><a href="#M000116">with_packfile</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">OBJ_OFS_DELTA</td>
+            <td>=</td>
+            <td class="attr-value">6</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OBJ_REF_DELTA</td>
+            <td>=</td>
+            <td class="attr-value">7</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">FanOutCount</td>
+            <td>=</td>
+            <td class="attr-value">256</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SHA1Size</td>
+            <td>=</td>
+            <td class="attr-value">20</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">IdxOffsetSize</td>
+            <td>=</td>
+            <td class="attr-value">4</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OffsetSize</td>
+            <td>=</td>
+            <td class="attr-value">4</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">CrcSize</td>
+            <td>=</td>
+            <td class="attr-value">4</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OffsetStart</td>
+            <td>=</td>
+            <td class="attr-value">FanOutCount * IdxOffsetSize</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SHA1Start</td>
+            <td>=</td>
+            <td class="attr-value">OffsetStart + OffsetSize</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EntrySize</td>
+            <td>=</td>
+            <td class="attr-value">OffsetSize + SHA1Size</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">EntrySizeV2</td>
+            <td>=</td>
+            <td class="attr-value">SHA1Size + CrcSize + OffsetSize</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000122">
+                    
+                    <a name="M000122"></a><b>[]</b>(sha1)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000122_source')" id="l_M000122_source">show</a>
+                        
+                    </p>
+                    <div id="M000122_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 110</span>
+110:         <span class="ruby-keyword kw">def</span> <span class="ruby-operator">[]</span>(<span class="ruby-identifier">sha1</span>)
+111:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">obj</span> = <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">sha1</span>]
+112:             <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">obj</span>
+113:           <span class="ruby-keyword kw">end</span>
+114: 
+115:           <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">find_object</span>(<span class="ruby-identifier">sha1</span>)
+116:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">offset</span>
+117:           <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">sha1</span>] = <span class="ruby-identifier">obj</span> = <span class="ruby-identifier">parse_object</span>(<span class="ruby-identifier">offset</span>)
+118:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">obj</span>
+119:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000117">
+                    
+                    <a name="M000117"></a><b>cache_objects</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000117_source')" id="l_M000117_source">show</a>
+                        
+                    </p>
+                    <div id="M000117_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 83</span>
+83:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cache_objects</span>
+84:           <span class="ruby-ivar">@cache</span> = {}
+85:           <span class="ruby-identifier">with_packfile</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">packfile</span><span class="ruby-operator">|</span>
+86:             <span class="ruby-identifier">each_entry</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sha</span>, <span class="ruby-identifier">offset</span><span class="ruby-operator">|</span>
+87:               <span class="ruby-identifier">data</span>, <span class="ruby-identifier">type</span> = <span class="ruby-identifier">unpack_object</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">offset</span>, {<span class="ruby-identifier">:caching</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>})
+88:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>
+89:                 <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">sha</span>] = <span class="ruby-constant">RawObject</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">OBJ_TYPES</span>[<span class="ruby-identifier">type</span>], <span class="ruby-identifier">data</span>)
+90:               <span class="ruby-keyword kw">end</span>
+91:             <span class="ruby-keyword kw">end</span>
+92:           <span class="ruby-keyword kw">end</span>
+93:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000120">
+                    
+                    <a name="M000120"></a><b>close</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000120_source')" id="l_M000120_source">show</a>
+                        
+                    </p>
+                    <div id="M000120_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 99</span>
+ 99:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">close</span>
+100:           <span class="ruby-comment cmt"># shouldnt be anything open now</span>
+101:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000124">
+                    
+                    <a name="M000124"></a><b>each_entry</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000124_source')" id="l_M000124_source">show</a>
+                        
+                    </p>
+                    <div id="M000124_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 135</span>
+135:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">each_entry</span>
+136:           <span class="ruby-identifier">with_idx</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">idx</span><span class="ruby-operator">|</span>
+137:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@version</span> <span class="ruby-operator">==</span> <span class="ruby-value">2</span>
+138:               <span class="ruby-identifier">data</span> = <span class="ruby-identifier">read_data_v2</span>(<span class="ruby-identifier">idx</span>)
+139:               <span class="ruby-identifier">data</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sha1</span>, <span class="ruby-identifier">crc</span>, <span class="ruby-identifier">offset</span><span class="ruby-operator">|</span>
+140:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">sha1</span>, <span class="ruby-identifier">offset</span>
+141:               <span class="ruby-keyword kw">end</span>
+142:             <span class="ruby-keyword kw">else</span>
+143:               <span class="ruby-identifier">pos</span> = <span class="ruby-constant">OffsetStart</span>
+144:               <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span>
+145:                 <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">OffsetSize</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'N'</span>)[<span class="ruby-value">0</span>]
+146:                 <span class="ruby-identifier">sha1</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span><span class="ruby-operator">+</span><span class="ruby-constant">OffsetSize</span>,<span class="ruby-constant">SHA1Size</span>]
+147:                 <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">EntrySize</span>
+148:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">sha1</span>, <span class="ruby-identifier">offset</span>
+149:               <span class="ruby-keyword kw">end</span>
+150:             <span class="ruby-keyword kw">end</span>
+151:           <span class="ruby-keyword kw">end</span>
+152:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000126">
+                    
+                    <a name="M000126"></a><b>each_sha1</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000126_source')" id="l_M000126_source">show</a>
+                        
+                    </p>
+                    <div id="M000126_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 175</span>
+175:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">each_sha1</span>
+176:           <span class="ruby-identifier">with_idx</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">idx</span><span class="ruby-operator">|</span>
+177:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@version</span> <span class="ruby-operator">==</span> <span class="ruby-value">2</span>
+178:               <span class="ruby-identifier">data</span> = <span class="ruby-identifier">read_data_v2</span>(<span class="ruby-identifier">idx</span>)
+179:               <span class="ruby-identifier">data</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sha1</span>, <span class="ruby-identifier">crc</span>, <span class="ruby-identifier">offset</span><span class="ruby-operator">|</span>
+180:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">sha1</span>
+181:               <span class="ruby-keyword kw">end</span>
+182:             <span class="ruby-keyword kw">else</span>
+183:               <span class="ruby-identifier">pos</span> = <span class="ruby-constant">SHA1Start</span>
+184:               <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span>
+185:                 <span class="ruby-identifier">sha1</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">SHA1Size</span>]
+186:                 <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">EntrySize</span>
+187:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">sha1</span>
+188:               <span class="ruby-keyword kw">end</span>
+189:             <span class="ruby-keyword kw">end</span>
+190:           <span class="ruby-keyword kw">end</span>
+191:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000129">
+                    
+                    <a name="M000129"></a><b>find_object_in_index</b>(idx, sha1)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000129_source')" id="l_M000129_source">show</a>
+                        
+                    </p>
+                    <div id="M000129_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 193</span>
+193:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_object_in_index</span>(<span class="ruby-identifier">idx</span>, <span class="ruby-identifier">sha1</span>)
+194:           <span class="ruby-identifier">slot</span> = <span class="ruby-identifier">sha1</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-value">0</span>)
+195:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">slot</span>
+196:           <span class="ruby-identifier">first</span>, <span class="ruby-identifier">last</span> = <span class="ruby-ivar">@offsets</span>[<span class="ruby-identifier">slot</span>,<span class="ruby-value">2</span>]
+197:           <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">first</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">last</span>
+198:             <span class="ruby-identifier">mid</span> = (<span class="ruby-identifier">first</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">last</span>) <span class="ruby-operator">/</span> <span class="ruby-value">2</span>
+199:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@version</span> <span class="ruby-operator">==</span> <span class="ruby-value">2</span>
+200:               <span class="ruby-identifier">midsha1</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-constant">OffsetStart</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">mid</span> <span class="ruby-operator">*</span> <span class="ruby-constant">SHA1Size</span>), <span class="ruby-constant">SHA1Size</span>]
+201:               <span class="ruby-identifier">cmp</span> = <span class="ruby-identifier">midsha1</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">sha1</span>
+202: 
+203:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cmp</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>
+204:                 <span class="ruby-identifier">first</span> = <span class="ruby-identifier">mid</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+205:               <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">cmp</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+206:                 <span class="ruby-identifier">last</span> = <span class="ruby-identifier">mid</span>
+207:               <span class="ruby-keyword kw">else</span>
+208:                 <span class="ruby-identifier">pos</span> = <span class="ruby-constant">OffsetStart</span> <span class="ruby-operator">+</span> (<span class="ruby-ivar">@size</span> <span class="ruby-operator">*</span> (<span class="ruby-constant">SHA1Size</span> <span class="ruby-operator">+</span> <span class="ruby-constant">CrcSize</span>)) <span class="ruby-operator">+</span> (<span class="ruby-identifier">mid</span> <span class="ruby-operator">*</span> <span class="ruby-constant">OffsetSize</span>)
+209:                 <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>, <span class="ruby-constant">OffsetSize</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'N'</span>)[<span class="ruby-value">0</span>]
+210:                 <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">offset</span>
+211:               <span class="ruby-keyword kw">end</span>
+212:             <span class="ruby-keyword kw">else</span>
+213:               <span class="ruby-identifier">midsha1</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-constant">SHA1Start</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">mid</span> <span class="ruby-operator">*</span> <span class="ruby-constant">EntrySize</span>,<span class="ruby-constant">SHA1Size</span>]
+214:               <span class="ruby-identifier">cmp</span> = <span class="ruby-identifier">midsha1</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">sha1</span>
+215: 
+216:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cmp</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>
+217:                 <span class="ruby-identifier">first</span> = <span class="ruby-identifier">mid</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+218:               <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">cmp</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+219:                 <span class="ruby-identifier">last</span> = <span class="ruby-identifier">mid</span>
+220:               <span class="ruby-keyword kw">else</span>
+221:                 <span class="ruby-identifier">pos</span> = <span class="ruby-constant">OffsetStart</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">mid</span> <span class="ruby-operator">*</span> <span class="ruby-constant">EntrySize</span>
+222:                 <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">OffsetSize</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'N'</span>)[<span class="ruby-value">0</span>]
+223:                 <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">offset</span>
+224:               <span class="ruby-keyword kw">end</span>
+225:             <span class="ruby-keyword kw">end</span>
+226:           <span class="ruby-keyword kw">end</span>
+227:           <span class="ruby-keyword kw">nil</span>
+228:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000121">
+                    
+                    <a name="M000121"></a><b>get_shas</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+given an index file, list out the shas that it&#8217;s packfile contains
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000121_source')" id="l_M000121_source">show</a>
+                        
+                    </p>
+                    <div id="M000121_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 104</span>
+104:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_shas</span>
+105:           <span class="ruby-identifier">shas</span> = []
+106:           <span class="ruby-identifier">each_sha1</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">sha</span><span class="ruby-operator">|</span> <span class="ruby-identifier">shas</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">sha</span>.<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">&quot;H*&quot;</span>)[<span class="ruby-value">0</span>] }
+107:           <span class="ruby-identifier">shas</span>
+108:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000123">
+                    
+                    <a name="M000123"></a><b>init_pack</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000123_source')" id="l_M000123_source">show</a>
+                        
+                    </p>
+                    <div id="M000123_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 121</span>
+121:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">init_pack</span>
+122:           <span class="ruby-identifier">with_idx</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">idx</span><span class="ruby-operator">|</span>
+123:             <span class="ruby-ivar">@offsets</span> = [<span class="ruby-value">0</span>]
+124:             <span class="ruby-constant">FanOutCount</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+125:               <span class="ruby-identifier">pos</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">i</span> <span class="ruby-operator">*</span> <span class="ruby-constant">IdxOffsetSize</span>,<span class="ruby-constant">IdxOffsetSize</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'N'</span>)[<span class="ruby-value">0</span>]
+126:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pos</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@offsets</span>[<span class="ruby-identifier">i</span>]
+127:                 <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-node">&quot;pack #@name has discontinuous index #{i}&quot;</span>
+128:               <span class="ruby-keyword kw">end</span>
+129:               <span class="ruby-ivar">@offsets</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">pos</span>
+130:             <span class="ruby-keyword kw">end</span>
+131:             <span class="ruby-ivar">@size</span> = <span class="ruby-ivar">@offsets</span>[<span class="ruby-value">-1</span>]
+132:           <span class="ruby-keyword kw">end</span>
+133:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000119">
+                    
+                    <a name="M000119"></a><b>name</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000119_source')" id="l_M000119_source">show</a>
+                        
+                    </p>
+                    <div id="M000119_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 95</span>
+95:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">name</span>
+96:           <span class="ruby-ivar">@name</span>
+97:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000113">
+                    
+                    <a name="M000113"></a><b>with_idx</b>(index_file = nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000113_source')" id="l_M000113_source">show</a>
+                        
+                    </p>
+                    <div id="M000113_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 48</span>
+48:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_idx</span>(<span class="ruby-identifier">index_file</span> = <span class="ruby-keyword kw">nil</span>)
+49:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">index_file</span>
+50:             <span class="ruby-identifier">index_file</span> = <span class="ruby-ivar">@name</span>
+51:             <span class="ruby-identifier">idxfile</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@name</span>[<span class="ruby-value">0</span><span class="ruby-operator">...</span><span class="ruby-value">-4</span>]<span class="ruby-operator">+</span><span class="ruby-value str">'idx'</span>, <span class="ruby-value str">'rb'</span>)
+52:           <span class="ruby-keyword kw">else</span>
+53:             <span class="ruby-identifier">idxfile</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">index_file</span>, <span class="ruby-value str">'rb'</span>)
+54:           <span class="ruby-keyword kw">end</span>
+55: 
+56:           <span class="ruby-comment cmt"># read header</span>
+57:           <span class="ruby-identifier">sig</span> = <span class="ruby-identifier">idxfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">4</span>)
+58:           <span class="ruby-identifier">ver</span> = <span class="ruby-identifier">idxfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">4</span>).<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">&quot;N&quot;</span>)[<span class="ruby-value">0</span>]
+59: 
+60:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sig</span> <span class="ruby-operator">==</span> <span class="ruby-constant">PACK_IDX_SIGNATURE</span>
+61:             <span class="ruby-keyword kw">if</span>(<span class="ruby-identifier">ver</span> <span class="ruby-operator">!=</span> <span class="ruby-value">2</span>)
+62:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-node">&quot;pack #@name has unknown pack file version #{ver}&quot;</span>
+63:             <span class="ruby-keyword kw">end</span>
+64:             <span class="ruby-ivar">@version</span> = <span class="ruby-value">2</span>
+65:           <span class="ruby-keyword kw">else</span>
+66:             <span class="ruby-ivar">@version</span> = <span class="ruby-value">1</span>
+67:           <span class="ruby-keyword kw">end</span>
+68: 
+69:           <span class="ruby-identifier">idx</span> = <span class="ruby-constant">FileWindow</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">idxfile</span>, <span class="ruby-ivar">@version</span>)
+70:           <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">idx</span>
+71:           <span class="ruby-identifier">idx</span>.<span class="ruby-identifier">unmap</span>
+72:         <span class="ruby-keyword kw">ensure</span>
+73:           <span class="ruby-identifier">idxfile</span>.<span class="ruby-identifier">close</span>
+74:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000116">
+                    
+                    <a name="M000116"></a><b>with_packfile</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000116_source')" id="l_M000116_source">show</a>
+                        
+                    </p>
+                    <div id="M000116_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 76</span>
+76:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">with_packfile</span>
+77:           <span class="ruby-identifier">packfile</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-ivar">@name</span>, <span class="ruby-value str">'rb'</span>)
+78:           <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">packfile</span>
+79:         <span class="ruby-keyword kw">ensure</span>
+80:           <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">close</span>
+81:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000131">
+                    
+                    <a name="M000131"></a><b>parse_object</b>(offset)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000131_source')" id="l_M000131_source">show</a>
+                        
+                    </p>
+                    <div id="M000131_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 239</span>
+239:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_object</span>(<span class="ruby-identifier">offset</span>)
+240:           <span class="ruby-identifier">obj</span> = <span class="ruby-keyword kw">nil</span>
+241:           <span class="ruby-identifier">with_packfile</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">packfile</span><span class="ruby-operator">|</span>
+242:             <span class="ruby-identifier">data</span>, <span class="ruby-identifier">type</span> = <span class="ruby-identifier">unpack_object</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">offset</span>)
+243:             <span class="ruby-identifier">obj</span> = <span class="ruby-constant">RawObject</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">OBJ_TYPES</span>[<span class="ruby-identifier">type</span>], <span class="ruby-identifier">data</span>)
+244:           <span class="ruby-keyword kw">end</span>
+245:           <span class="ruby-identifier">obj</span>
+246:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000130">
+                    
+                    <a name="M000130"></a><b>find_object</b>(sha1)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000130_source')" id="l_M000130_source">show</a>
+                        
+                    </p>
+                    <div id="M000130_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 230</span>
+230:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_object</span>(<span class="ruby-identifier">sha1</span>)
+231:           <span class="ruby-identifier">obj</span> = <span class="ruby-keyword kw">nil</span>
+232:           <span class="ruby-identifier">with_idx</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">idx</span><span class="ruby-operator">|</span>
+233:             <span class="ruby-identifier">obj</span> = <span class="ruby-identifier">find_object_in_index</span>(<span class="ruby-identifier">idx</span>, <span class="ruby-identifier">sha1</span>)
+234:           <span class="ruby-keyword kw">end</span>
+235:           <span class="ruby-identifier">obj</span>
+236:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000147">
+                    
+                    <a name="M000147"></a><b>patch_delta</b>(base, delta)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000147_source')" id="l_M000147_source">show</a>
+                        
+                    </p>
+                    <div id="M000147_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 331</span>
+331:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">patch_delta</span>(<span class="ruby-identifier">base</span>, <span class="ruby-identifier">delta</span>)
+332:           <span class="ruby-identifier">src_size</span>, <span class="ruby-identifier">pos</span> = <span class="ruby-identifier">patch_delta_header_size</span>(<span class="ruby-identifier">delta</span>, <span class="ruby-value">0</span>)
+333:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">src_size</span> <span class="ruby-operator">!=</span> <span class="ruby-identifier">base</span>.<span class="ruby-identifier">size</span>
+334:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-value str">'invalid delta data'</span>
+335:           <span class="ruby-keyword kw">end</span>
+336: 
+337:           <span class="ruby-identifier">dest_size</span>, <span class="ruby-identifier">pos</span> = <span class="ruby-identifier">patch_delta_header_size</span>(<span class="ruby-identifier">delta</span>, <span class="ruby-identifier">pos</span>)
+338:           <span class="ruby-identifier">dest</span> = <span class="ruby-value str">&quot;&quot;</span>
+339:           <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">pos</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">size</span>
+340:             <span class="ruby-identifier">c</span> = <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span>)
+341:             <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+342:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x80</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+343:               <span class="ruby-identifier">pos</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+344:               <span class="ruby-identifier">cp_off</span> = <span class="ruby-identifier">cp_size</span> = <span class="ruby-value">0</span>
+345:               <span class="ruby-identifier">cp_off</span> = <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x01</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+346:               <span class="ruby-identifier">cp_off</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">8</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x02</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+347:               <span class="ruby-identifier">cp_off</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">16</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x04</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+348:               <span class="ruby-identifier">cp_off</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">24</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x08</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+349:               <span class="ruby-identifier">cp_size</span> = <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x10</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+350:               <span class="ruby-identifier">cp_size</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">8</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x20</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+351:               <span class="ruby-identifier">cp_size</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">16</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x40</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+352:               <span class="ruby-identifier">cp_size</span> = <span class="ruby-value">0x10000</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cp_size</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+353:               <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+354:               <span class="ruby-identifier">dest</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">base</span>[<span class="ruby-identifier">cp_off</span>,<span class="ruby-identifier">cp_size</span>]
+355:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+356:               <span class="ruby-identifier">dest</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">delta</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-identifier">c</span>]
+357:               <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">c</span>
+358:             <span class="ruby-keyword kw">else</span>
+359:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-value str">'invalid delta data'</span>
+360:             <span class="ruby-keyword kw">end</span>
+361:           <span class="ruby-keyword kw">end</span>
+362:           <span class="ruby-identifier">dest</span>
+363:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000154">
+                    
+                    <a name="M000154"></a><b>patch_delta_header_size</b>(delta, pos)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000154_source')" id="l_M000154_source">show</a>
+                        
+                    </p>
+                    <div id="M000154_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 366</span>
+366:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">patch_delta_header_size</span>(<span class="ruby-identifier">delta</span>, <span class="ruby-identifier">pos</span>)
+367:           <span class="ruby-identifier">size</span> = <span class="ruby-value">0</span>
+368:           <span class="ruby-identifier">shift</span> = <span class="ruby-value">0</span>
+369:           <span class="ruby-keyword kw">begin</span>
+370:             <span class="ruby-identifier">c</span> = <span class="ruby-identifier">delta</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">pos</span>)
+371:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">==</span> <span class="ruby-keyword kw">nil</span>
+372:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-value str">'invalid delta header'</span>
+373:             <span class="ruby-keyword kw">end</span>
+374:             <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+375:             <span class="ruby-identifier">size</span> <span class="ruby-operator">|=</span> (<span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x7f</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">shift</span>
+376:             <span class="ruby-identifier">shift</span> <span class="ruby-operator">+=</span> <span class="ruby-value">7</span>
+377:           <span class="ruby-keyword kw">end</span> <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x80</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+378:           [<span class="ruby-identifier">size</span>, <span class="ruby-identifier">pos</span>]
+379:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000125">
+                    
+                    <a name="M000125"></a><b>read_data_v2</b>(idx)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000125_source')" id="l_M000125_source">show</a>
+                        
+                    </p>
+                    <div id="M000125_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 154</span>
+154:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_data_v2</span>(<span class="ruby-identifier">idx</span>)
+155:           <span class="ruby-identifier">data</span> = []
+156:           <span class="ruby-identifier">pos</span> = <span class="ruby-constant">OffsetStart</span>
+157:           <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+158:             <span class="ruby-identifier">data</span>[<span class="ruby-identifier">i</span>] = [<span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">SHA1Size</span>], <span class="ruby-value">0</span>, <span class="ruby-value">0</span>]
+159:             <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">SHA1Size</span>
+160:           <span class="ruby-keyword kw">end</span>
+161:           <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+162:             <span class="ruby-identifier">crc</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">CrcSize</span>]
+163:             <span class="ruby-identifier">data</span>[<span class="ruby-identifier">i</span>][<span class="ruby-value">1</span>] = <span class="ruby-identifier">crc</span>
+164:             <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">CrcSize</span>
+165:           <span class="ruby-keyword kw">end</span>
+166:           <span class="ruby-ivar">@size</span>.<span class="ruby-identifier">times</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+167:             <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">idx</span>[<span class="ruby-identifier">pos</span>,<span class="ruby-constant">OffsetSize</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'N'</span>)[<span class="ruby-value">0</span>]
+168:             <span class="ruby-identifier">data</span>[<span class="ruby-identifier">i</span>][<span class="ruby-value">2</span>] = <span class="ruby-identifier">offset</span>
+169:             <span class="ruby-identifier">pos</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">OffsetSize</span>
+170:           <span class="ruby-keyword kw">end</span>
+171:           <span class="ruby-identifier">data</span>
+172:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000143">
+                    
+                    <a name="M000143"></a><b>unpack_compressed</b>(offset, destsize)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000143_source')" id="l_M000143_source">show</a>
+                        
+                    </p>
+                    <div id="M000143_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 310</span>
+310:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unpack_compressed</span>(<span class="ruby-identifier">offset</span>, <span class="ruby-identifier">destsize</span>)
+311:           <span class="ruby-identifier">outdata</span> = <span class="ruby-value str">&quot;&quot;</span>
+312:           <span class="ruby-identifier">with_packfile</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">packfile</span><span class="ruby-operator">|</span>
+313:             <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">seek</span>(<span class="ruby-identifier">offset</span>)
+314:             <span class="ruby-identifier">zstr</span> = <span class="ruby-constant">Zlib</span><span class="ruby-operator">::</span><span class="ruby-constant">Inflate</span>.<span class="ruby-identifier">new</span>
+315:             <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">outdata</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">destsize</span>
+316:               <span class="ruby-identifier">indata</span> = <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">4096</span>)
+317:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">indata</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+318:                 <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-value str">'error reading pack data'</span>
+319:               <span class="ruby-keyword kw">end</span>
+320:               <span class="ruby-identifier">outdata</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">zstr</span>.<span class="ruby-identifier">inflate</span>(<span class="ruby-identifier">indata</span>)
+321:             <span class="ruby-keyword kw">end</span>
+322:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">outdata</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">destsize</span>
+323:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-value str">'error reading pack data'</span>
+324:             <span class="ruby-keyword kw">end</span>
+325:             <span class="ruby-identifier">zstr</span>.<span class="ruby-identifier">close</span>
+326:           <span class="ruby-keyword kw">end</span>
+327:           <span class="ruby-identifier">outdata</span>
+328:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000136">
+                    
+                    <a name="M000136"></a><b>unpack_deltified</b>(packfile, type, offset, obj_offset, size, options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000136_source')" id="l_M000136_source">show</a>
+                        
+                    </p>
+                    <div id="M000136_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 280</span>
+280:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unpack_deltified</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">obj_offset</span>, <span class="ruby-identifier">size</span>, <span class="ruby-identifier">options</span> = {})
+281:           <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">seek</span>(<span class="ruby-identifier">offset</span>)
+282:           <span class="ruby-identifier">data</span> = <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-constant">SHA1Size</span>)
+283: 
+284:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OBJ_OFS_DELTA</span>
+285:             <span class="ruby-identifier">i</span> = <span class="ruby-value">0</span>
+286:             <span class="ruby-identifier">c</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">i</span>)
+287:             <span class="ruby-identifier">base_offset</span> = <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x7f</span>
+288:             <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x80</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+289:               <span class="ruby-identifier">c</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">getord</span>(<span class="ruby-identifier">i</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>)
+290:               <span class="ruby-identifier">base_offset</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+291:               <span class="ruby-identifier">base_offset</span> <span class="ruby-operator">&lt;&lt;=</span> <span class="ruby-value">7</span>
+292:               <span class="ruby-identifier">base_offset</span> <span class="ruby-operator">|=</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x7f</span>
+293:             <span class="ruby-keyword kw">end</span>
+294:             <span class="ruby-identifier">base_offset</span> = <span class="ruby-identifier">obj_offset</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">base_offset</span>
+295:             <span class="ruby-identifier">offset</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
+296:           <span class="ruby-keyword kw">else</span>
+297:             <span class="ruby-identifier">base_offset</span> = <span class="ruby-identifier">find_object</span>(<span class="ruby-identifier">data</span>)
+298:             <span class="ruby-identifier">offset</span> <span class="ruby-operator">+=</span> <span class="ruby-constant">SHA1Size</span>
+299:           <span class="ruby-keyword kw">end</span>
+300: 
+301:           <span class="ruby-identifier">base</span>, <span class="ruby-identifier">type</span> = <span class="ruby-identifier">unpack_object</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">base_offset</span>)
+302: 
+303:           <span class="ruby-keyword kw">return</span> [<span class="ruby-keyword kw">false</span>, <span class="ruby-keyword kw">false</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span>(<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OBJ_COMMIT</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OBJ_TREE</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:caching</span>]
+304: 
+305:           <span class="ruby-identifier">delta</span> = <span class="ruby-identifier">unpack_compressed</span>(<span class="ruby-identifier">offset</span>, <span class="ruby-identifier">size</span>)
+306:           [<span class="ruby-identifier">patch_delta</span>(<span class="ruby-identifier">base</span>, <span class="ruby-identifier">delta</span>), <span class="ruby-identifier">type</span>]
+307:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000132">
+                    
+                    <a name="M000132"></a><b>unpack_object</b>(packfile, offset, options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000132_source')" id="l_M000132_source">show</a>
+                        
+                    </p>
+                    <div id="M000132_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 249</span>
+249:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unpack_object</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">options</span> = {})
+250:           <span class="ruby-identifier">obj_offset</span> = <span class="ruby-identifier">offset</span>
+251:           <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">seek</span>(<span class="ruby-identifier">offset</span>)
+252: 
+253:           <span class="ruby-identifier">c</span> = <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">1</span>).<span class="ruby-identifier">getord</span>(<span class="ruby-value">0</span>)
+254:           <span class="ruby-identifier">size</span> = <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xf</span>
+255:           <span class="ruby-identifier">type</span> = (<span class="ruby-identifier">c</span> <span class="ruby-operator">&gt;&gt;</span> <span class="ruby-value">4</span>) <span class="ruby-operator">&amp;</span> <span class="ruby-value">7</span>
+256:           <span class="ruby-identifier">shift</span> = <span class="ruby-value">4</span>
+257:           <span class="ruby-identifier">offset</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+258:           <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x80</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+259:             <span class="ruby-identifier">c</span> = <span class="ruby-identifier">packfile</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">1</span>).<span class="ruby-identifier">getord</span>(<span class="ruby-value">0</span>)
+260:             <span class="ruby-identifier">size</span> <span class="ruby-operator">|=</span> ((<span class="ruby-identifier">c</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x7f</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">shift</span>)
+261:             <span class="ruby-identifier">shift</span> <span class="ruby-operator">+=</span> <span class="ruby-value">7</span>
+262:             <span class="ruby-identifier">offset</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+263:           <span class="ruby-keyword kw">end</span>
+264: 
+265:           <span class="ruby-keyword kw">return</span> [<span class="ruby-keyword kw">false</span>, <span class="ruby-keyword kw">false</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span>(<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OBJ_COMMIT</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-constant">OBJ_TREE</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:caching</span>]
+266: 
+267:           <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span>
+268:           <span class="ruby-keyword kw">when</span> <span class="ruby-constant">OBJ_OFS_DELTA</span>, <span class="ruby-constant">OBJ_REF_DELTA</span>
+269:             <span class="ruby-identifier">data</span>, <span class="ruby-identifier">type</span> = <span class="ruby-identifier">unpack_deltified</span>(<span class="ruby-identifier">packfile</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">obj_offset</span>, <span class="ruby-identifier">size</span>, <span class="ruby-identifier">options</span>)
+270:             <span class="ruby-comment cmt">#puts type</span>
+271:           <span class="ruby-keyword kw">when</span> <span class="ruby-constant">OBJ_COMMIT</span>, <span class="ruby-constant">OBJ_TREE</span>, <span class="ruby-constant">OBJ_BLOB</span>, <span class="ruby-constant">OBJ_TAG</span>
+272:             <span class="ruby-identifier">data</span> = <span class="ruby-identifier">unpack_compressed</span>(<span class="ruby-identifier">offset</span>, <span class="ruby-identifier">size</span>)
+273:           <span class="ruby-keyword kw">else</span>
+274:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">PackFormatError</span>, <span class="ruby-node">&quot;invalid type #{type}&quot;</span>
+275:           <span class="ruby-keyword kw">end</span>
+276:           [<span class="ruby-identifier">data</span>, <span class="ruby-identifier">type</span>]
+277:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>new</b>(file)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/grit/git-ruby/internal/pack.rb, line 39</span>
+39:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">file</span>)
+40:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\.idx$/</span>
+41:             <span class="ruby-identifier">file</span> = <span class="ruby-identifier">file</span>[<span class="ruby-value">0</span><span class="ruby-operator">...</span><span class="ruby-value">-3</span>] <span class="ruby-operator">+</span> <span class="ruby-value str">'pack'</span>
+42:           <span class="ruby-keyword kw">end</span>
+43:           <span class="ruby-ivar">@name</span> = <span class="ruby-identifier">file</span>
+44:           <span class="ruby-ivar">@cache</span> = {}
+45:           <span class="ruby-identifier">init_pack</span>
+46:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

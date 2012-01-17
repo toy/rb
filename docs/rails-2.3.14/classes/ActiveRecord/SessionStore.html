@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::SessionStore</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ActiveRecord::SessionStore 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../ActionController/Session/AbstractStore.html">ActionController::Session::AbstractStore</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/activerecord-2_3_14/lib/active_record/session_store_rb.html">activerecord-2.3.14/lib/active_record/session_store.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A session store backed by an Active Record class. A default class is
+provided, but any object duck-typing to an Active Record <a
+href="SessionStore/Session.html">Session</a> class with text
+<tt>session_id</tt> and <tt>data</tt> attributes is sufficient.
+</p>
+<p>
+The default assumes a <tt>sessions</tt> tables with columns:
+</p>
+<pre>
+  +id+ (numeric primary key),
+  +session_id+ (text, or longtext if your session data exceeds 65K), and
+  +data+ (text or longtext; careful if your session data exceeds 65KB).
+</pre>
+<p>
+The <tt>session_id</tt> column should always be indexed for speedy lookups.
+<a href="SessionStore/Session.html">Session</a> data is marshaled to the
+<tt>data</tt> column in Base64 format. If the data you write is larger than
+the column&#8217;s size limit, ActionController::SessionOverflowError will
+be raised.
+</p>
+<p>
+You may configure the table name, primary key, and data column. For
+example, at the end of <tt>config/environment.rb</tt>:
+</p>
+<pre>
+  ActiveRecord::SessionStore::Session.table_name = 'legacy_session_table'
+  ActiveRecord::SessionStore::Session.primary_key = 'session_id'
+  ActiveRecord::SessionStore::Session.data_column_name = 'legacy_session_data'
+</pre>
+<p>
+Note that setting the primary key to the <tt>session_id</tt> frees you from
+having a separate <tt>id</tt> column if you don&#8217;t want it. However,
+you must set <tt>session.model.id = session.session_id</tt> by hand! A
+before filter on ApplicationController is a good place.
+</p>
+<p>
+Since the default class is a simple Active Record, you get timestamps for
+free if you add <tt>created_at</tt> and <tt>updated_at</tt> datetime
+columns to the <tt>sessions</tt> table, making periodic session expiration
+a snap.
+</p>
+<p>
+You may provide your own session class implementation, whether a
+feature-packed Active Record or a bare-metal high-performance SQL store, by
+setting
+</p>
+<pre>
+  ActiveRecord::SessionStore.session_class = MySessionClass
+</pre>
+<p>
+You must implement these methods:
+</p>
+<pre>
+  self.find_by_session_id(session_id)
+  initialize(hash_of_session_id_and_data)
+  attr_reader :session_id
+  attr_accessor :data
+  save
+  destroy
+</pre>
+<p>
+The example <a href="SessionStore/SqlBypass.html">SqlBypass</a> class is a
+generic SQL session store. You may use it as a basis for high-performance
+database-specific stores.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001274">destroy</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001276">find_session</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001272">get_session</a>,</li>
+                
+                <li><a href="#M001275">get_session_model</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001273">set_session</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="SessionStore/Session.html">ActiveRecord::SessionStore::Session</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="SessionStore/SqlBypass.html">ActiveRecord::SessionStore::SqlBypass</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">SESSION_RECORD_KEY</td>
+            <td>=</td>
+            <td class="attr-value">'rack.session.record'.freeze</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001274">
+                    
+                    <a name="M001274"></a><b>destroy</b>(env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001274_source')" id="l_M001274_source">show</a>
+                        
+                    </p>
+                    <div id="M001274_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 318</span>
+318:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">destroy</span>(<span class="ruby-identifier">env</span>)
+319:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sid</span> = <span class="ruby-identifier">current_session_id</span>(<span class="ruby-identifier">env</span>)
+320:           <span class="ruby-constant">Base</span>.<span class="ruby-identifier">silence</span> <span class="ruby-keyword kw">do</span>
+321:             <span class="ruby-identifier">get_session_model</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">sid</span>).<span class="ruby-identifier">destroy</span>
+322:           <span class="ruby-keyword kw">end</span>
+323:         <span class="ruby-keyword kw">end</span>
+324:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001276">
+                    
+                    <a name="M001276"></a><b>find_session</b>(id)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001276_source')" id="l_M001276_source">show</a>
+                        
+                    </p>
+                    <div id="M001276_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 334</span>
+334:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_session</span>(<span class="ruby-identifier">id</span>)
+335:         <span class="ruby-ivar">@@session_class</span>.<span class="ruby-identifier">find_by_session_id</span>(<span class="ruby-identifier">id</span>) <span class="ruby-operator">||</span>
+336:           <span class="ruby-ivar">@@session_class</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:session_id</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">id</span>, <span class="ruby-identifier">:data</span> =<span class="ruby-operator">&gt;</span> {})
+337:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001272">
+                    
+                    <a name="M001272"></a><b>get_session</b>(env, sid)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001272_source')" id="l_M001272_source">show</a>
+                        
+                    </p>
+                    <div id="M001272_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 292</span>
+292:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_session</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">sid</span>)
+293:         <span class="ruby-constant">Base</span>.<span class="ruby-identifier">silence</span> <span class="ruby-keyword kw">do</span>
+294:           <span class="ruby-identifier">sid</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">generate_sid</span>
+295:           <span class="ruby-identifier">session</span> = <span class="ruby-identifier">find_session</span>(<span class="ruby-identifier">sid</span>)
+296:           <span class="ruby-identifier">env</span>[<span class="ruby-constant">SESSION_RECORD_KEY</span>] = <span class="ruby-identifier">session</span>
+297:           [<span class="ruby-identifier">sid</span>, <span class="ruby-identifier">session</span>.<span class="ruby-identifier">data</span>]
+298:         <span class="ruby-keyword kw">end</span>
+299:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001275">
+                    
+                    <a name="M001275"></a><b>get_session_model</b>(env, sid)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001275_source')" id="l_M001275_source">show</a>
+                        
+                    </p>
+                    <div id="M001275_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 326</span>
+326:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_session_model</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">sid</span>)
+327:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">env</span>[<span class="ruby-constant">ENV_SESSION_OPTIONS_KEY</span>][<span class="ruby-identifier">:id</span>].<span class="ruby-identifier">nil?</span>
+328:           <span class="ruby-identifier">env</span>[<span class="ruby-constant">SESSION_RECORD_KEY</span>] = <span class="ruby-identifier">find_session</span>(<span class="ruby-identifier">sid</span>)
+329:         <span class="ruby-keyword kw">else</span>
+330:           <span class="ruby-identifier">env</span>[<span class="ruby-constant">SESSION_RECORD_KEY</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">find_session</span>(<span class="ruby-identifier">sid</span>)
+331:         <span class="ruby-keyword kw">end</span>
+332:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001273">
+                    
+                    <a name="M001273"></a><b>set_session</b>(env, sid, session_data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001273_source')" id="l_M001273_source">show</a>
+                        
+                    </p>
+                    <div id="M001273_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-2.3.14/lib/active_record/session_store.rb, line 301</span>
+301:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_session</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">sid</span>, <span class="ruby-identifier">session_data</span>)
+302:         <span class="ruby-constant">Base</span>.<span class="ruby-identifier">silence</span> <span class="ruby-keyword kw">do</span>
+303:           <span class="ruby-identifier">record</span> = <span class="ruby-identifier">get_session_model</span>(<span class="ruby-identifier">env</span>, <span class="ruby-identifier">sid</span>)
+304:           <span class="ruby-identifier">record</span>.<span class="ruby-identifier">data</span> = <span class="ruby-identifier">session_data</span>
+305:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">record</span>.<span class="ruby-identifier">save</span>
+306: 
+307:           <span class="ruby-identifier">session_data</span> = <span class="ruby-identifier">record</span>.<span class="ruby-identifier">data</span>
+308:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">session_data</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">session_data</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:each_value</span>)
+309:             <span class="ruby-identifier">session_data</span>.<span class="ruby-identifier">each_value</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">obj</span><span class="ruby-operator">|</span>
+310:               <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">clear_association_cache</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:clear_association_cache</span>)
+311:             <span class="ruby-keyword kw">end</span>
+312:           <span class="ruby-keyword kw">end</span>
+313:         <span class="ruby-keyword kw">end</span>
+314: 
+315:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+316:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

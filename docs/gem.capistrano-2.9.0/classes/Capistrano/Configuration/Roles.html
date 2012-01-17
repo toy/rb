@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Capistrano::Configuration::Roles</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Capistrano::Configuration::Roles 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/capistrano/configuration/roles_rb.html">lib/capistrano/configuration/roles.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000152">role</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000153">server</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>roles</td>
+            <td class='attr-desc'><p>
+The hash of roles defined for this configuration. Each entry in the hash
+points to an array of server definitions that belong in that role.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000152">
+                    
+                    <a name="M000152"></a><b>role</b>(which, *args, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Define a new role and its associated servers. You must specify at least one
+host for each role. Also, you can specify additional information (in the
+form of a Hash) which can be used to more uniquely specify the subset of
+servers specified by this specific role definition.
+</p>
+<p>
+Usage:
+</p>
+<pre>
+  role :db,  &quot;db1.example.com&quot;, &quot;db2.example.com&quot;
+  role :db,  &quot;master.example.com&quot;, :primary =&gt; true
+  role :app, &quot;app1.example.com&quot;, &quot;app2.example.com&quot;
+</pre>
+<p>
+You can also encode the username and port number for each host in the
+server string, if needed:
+</p>
+<pre>
+  role :web,  &quot;www@web1.example.com&quot;
+  role :file, &quot;files.example.com:4144&quot;
+  role :db,   &quot;admin@db3.example.com:1234&quot;
+</pre>
+<p>
+Lastly, username and port number may be passed as options, if that is
+preferred; note that the options apply to all servers defined in that call
+to &#8220;role&#8221;:
+</p>
+<pre>
+  role :web, &quot;web2&quot;, &quot;web3&quot;, :user =&gt; &quot;www&quot;, :port =&gt; 2345
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000152_source')" id="l_M000152_source">show</a>
+                        
+                    </p>
+                    <div id="M000152_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/configuration/roles.rb, line 45</span>
+45:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">role</span>(<span class="ruby-identifier">which</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+46:         <span class="ruby-identifier">options</span> = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">pop</span> <span class="ruby-operator">:</span> {}
+47:         <span class="ruby-identifier">which</span> = <span class="ruby-identifier">which</span>.<span class="ruby-identifier">to_sym</span>
+48: 
+49:         <span class="ruby-comment cmt"># The roles Hash is defined so that unrecognized keys always auto-initialize</span>
+50:         <span class="ruby-comment cmt"># to a new Role instance (see the assignment in the initialize_with_roles method,</span>
+51:         <span class="ruby-comment cmt"># above). However, we explicitly assign here so that role declarations will</span>
+52:         <span class="ruby-comment cmt"># vivify the role object even if there are no server arguments. (Otherwise,</span>
+53:         <span class="ruby-comment cmt"># role(:app) won't actually instantiate a Role object for :app.)</span>
+54:         <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">which</span>] <span class="ruby-operator">||=</span> <span class="ruby-constant">Role</span>.<span class="ruby-identifier">new</span>
+55: 
+56:         <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">which</span>].<span class="ruby-identifier">push</span>(<span class="ruby-identifier">block</span>, <span class="ruby-identifier">options</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+57:         <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">host</span><span class="ruby-operator">|</span> <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">which</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">ServerDefinition</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">options</span>) }
+58:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000153">
+                    
+                    <a name="M000153"></a><b>server</b>(host, *roles)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+An alternative way to associate servers with roles. If you have a server
+that participates in multiple roles, this can be a DRYer way to describe
+the relationships. Pass the host definition as the first parameter, and the
+roles as the remaining parameters:
+</p>
+<pre>
+  server &quot;master.example.com&quot;, :web, :app
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000153_source')" id="l_M000153_source">show</a>
+                        
+                    </p>
+                    <div id="M000153_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/configuration/roles.rb, line 66</span>
+66:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">server</span>(<span class="ruby-identifier">host</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">roles</span>)
+67:         <span class="ruby-identifier">options</span> = <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">pop</span> <span class="ruby-operator">:</span> {}
+68:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;you must associate a server with at least one role&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">empty?</span>
+69:         <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">name</span><span class="ruby-operator">|</span> <span class="ruby-identifier">role</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">host</span>, <span class="ruby-identifier">options</span>) }
+70:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

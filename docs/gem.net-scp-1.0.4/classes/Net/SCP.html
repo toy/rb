@@ -1,0 +1,1699 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SCP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::SCP 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/net/scp/errors_rb.html">lib/net/scp/errors.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/download_rb.html">lib/net/scp/download.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/upload_rb.html">lib/net/scp/upload.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/version_rb.html">lib/net/scp/version.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp_rb.html">lib/net/scp.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/download_rb.html">lib/net/scp/download.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/errors_rb.html">lib/net/scp/errors.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/upload_rb.html">lib/net/scp/upload.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp/version_rb.html">lib/net/scp/version.rb</a></li>
+            
+            <li><a href="../../files/lib/net/scp_rb.html">lib/net/scp.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="SCP.html">Net::SCP</a> implements the <a href="SCP.html">SCP</a>
+(Secure CoPy) client protocol, allowing Ruby programs to securely and
+programmatically transfer individual files or entire directory trees to and
+from remote servers. It provides support for multiple simultaneous <a
+href="SCP.html">SCP</a> copies working in parallel over the same
+connection, as well as for synchronous, serial copies.
+</p>
+<p>
+Basic usage:
+</p>
+<pre>
+  require 'net/scp'
+
+  Net::SCP.start(&quot;remote.host&quot;, &quot;username&quot;, :password =&gt; &quot;passwd&quot;) do |scp|
+    # synchronous (blocking) upload; call blocks until upload completes
+    scp.upload! &quot;/local/path&quot;, &quot;/remote/path&quot;
+
+    # asynchronous upload; call returns immediately and requires SSH
+    # event loop to run
+    channel = scp.upload(&quot;/local/path&quot;, &quot;/remote/path&quot;)
+    channel.wait
+  end
+</pre>
+<p>
+<a href="SCP.html">Net::SCP</a> also provides an open-uri tie-in, so you
+can use the Kernel#open method to open and read a remote file:
+</p>
+<pre>
+  # if you just want to parse SCP URL's:
+  require 'uri/scp'
+  url = URI.parse(&quot;scp://user@remote.host/path/to/file&quot;)
+
+  # if you want to read from a URL voa SCP:
+  require 'uri/open-scp'
+  puts open(&quot;scp://user@remote.host/path/to/file&quot;).read
+</pre>
+<p>
+Lastly, <a href="SCP.html">Net::SCP</a> adds a method to the <a
+href="SSH/Connection/Session.html">Net::SSH::Connection::Session</a> class,
+allowing you to easily grab a <a href="SCP.html">Net::SCP</a> reference
+from an existing <a href="SSH.html">Net::SSH</a> session:
+</p>
+<pre>
+  require 'net/ssh'
+  require 'net/scp'
+
+  Net::SSH.start(&quot;remote.host&quot;, &quot;username&quot;, :password =&gt; &quot;passwd&quot;) do |ssh|
+    ssh.scp.download! &quot;/remote/path&quot;, &quot;/local/path&quot;
+  end
+</pre>
+<h2>Progress Reporting</h2>
+<p>
+By default, uploading and downloading proceed silently, without any outword
+indication of their progress. For long running uploads or downloads (and
+especially in interactive environments) it is desirable to report to the
+user the progress of the current operation.
+</p>
+<p>
+To receive progress reports for the current operation, just pass a block to
+<a href="SCP.html#M000023">upload</a> or <a
+href="SCP.html#M000026">download</a> (or one of their variants):
+</p>
+<pre>
+  scp.upload!(&quot;/path/to/local&quot;, &quot;/path/to/remote&quot;) do |ch, name, sent, total|
+    puts &quot;#{name}: #{sent}/#{total}&quot;
+  end
+</pre>
+<p>
+Whenever a new chunk of data is recieved for or sent to a file, the
+callback will be invoked, indicating the name of the file (local for
+downloads, remote for uploads), the number of bytes that have been sent or
+received so far for the file, and the size of the file.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000033">await_response</a>,</li>
+                
+                <li><a href="#M000062">await_response</a>,</li>
+                
+                <li><a href="#M000034">await_response_state</a>,</li>
+                
+                <li><a href="#M000063">await_response_state</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000026">download</a>,</li>
+                
+                <li><a href="#M000056">download</a>,</li>
+                
+                <li><a href="#M000051">download!</a>,</li>
+                
+                <li><a href="#M000027">download!</a>,</li>
+                
+                <li><a href="#M000058">download!</a>,</li>
+                
+                <li><a href="#M000020">download!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000064">finish_state</a>,</li>
+                
+                <li><a href="#M000036">finish_state</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000021">new</a>,</li>
+                
+                <li><a href="#M000053">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000065">progress_callback</a>,</li>
+                
+                <li><a href="#M000037">progress_callback</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000060">scp_command</a>,</li>
+                
+                <li><a href="#M000028">scp_command</a>,</li>
+                
+                <li><a href="#M000038">shellescape</a>,</li>
+                
+                <li><a href="#M000066">shellescape</a>,</li>
+                
+                <li><a href="#M000049">start</a>,</li>
+                
+                <li><a href="#M000018">start</a>,</li>
+                
+                <li><a href="#M000061">start_command</a>,</li>
+                
+                <li><a href="#M000030">start_command</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000054">upload</a>,</li>
+                
+                <li><a href="#M000023">upload</a>,</li>
+                
+                <li><a href="#M000024">upload!</a>,</li>
+                
+                <li><a href="#M000050">upload!</a>,</li>
+                
+                <li><a href="#M000019">upload!</a>,</li>
+                
+                <li><a href="#M000055">upload!</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>Net::SSH::Loggable</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="SCP/Upload.html">Net::SCP::Upload</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="SCP/Upload.html">Net::SCP::Upload</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Net::SSH::Loggable</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="SCP/Upload.html">Net::SCP::Upload</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="SCP/Upload.html">Net::SCP::Upload</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="SCP/Download.html">Net::SCP::Download</a></li>
+        
+        <li><span class="type">MODULE</span> <a href="SCP/Upload.html">Net::SCP::Upload</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="SCP/Error.html">Net::SCP::Error</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="SCP/Version.html">Net::SCP::Version</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>session</td>
+            <td class='attr-desc'><p>
+The underlying <a href="SSH.html">Net::SSH</a> session that acts as
+transport for the <a href="SCP.html">SCP</a> packets.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>session</td>
+            <td class='attr-desc'><p>
+The underlying <a href="SSH.html">Net::SSH</a> session that acts as
+transport for the <a href="SCP.html">SCP</a> packets.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000051">
+                    
+                    <a name="M000051"></a><b>download!</b>(host, username, remote, local=nil, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection using the
+<tt>host</tt> and <tt>username</tt> parameters, instantiates a new <a
+href="SCP.html">SCP</a> session on top of it, and then begins a download
+from <tt>remote</tt> to <tt>local</tt>. If the <tt>options</tt> hash
+includes an :ssh key, the value for that will be passed to the <a
+href="SSH.html">SSH</a> connection as options (e.g., to set the password,
+etc.). All other options are passed to the <a
+href="SCP.html#M000020">download!</a> method. If a block is given, it will
+be used to report progress (see &#8220;Progress Reporting&#8221;, under <a
+href="SCP.html">Net::SCP</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000051_source')" id="l_M000051_source">show</a>
+                        
+                    </p>
+                    <div id="M000051_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 233</span>
+233:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">download!</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+234:       <span class="ruby-identifier">options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+235:       <span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:ssh</span>) <span class="ruby-operator">||</span> {}) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">scp</span><span class="ruby-operator">|</span>
+236:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">scp</span>.<span class="ruby-identifier">download!</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+237:       <span class="ruby-keyword kw">end</span>
+238:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000020">
+                    
+                    <a name="M000020"></a><b>download!</b>(host, username, remote, local=nil, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection using the
+<tt>host</tt> and <tt>username</tt> parameters, instantiates a new <a
+href="SCP.html">SCP</a> session on top of it, and then begins a download
+from <tt>remote</tt> to <tt>local</tt>. If the <tt>options</tt> hash
+includes an :ssh key, the value for that will be passed to the <a
+href="SSH.html">SSH</a> connection as options (e.g., to set the password,
+etc.). All other options are passed to the <a
+href="SCP.html#M000020">download!</a> method. If a block is given, it will
+be used to report progress (see &#8220;Progress Reporting&#8221;, under <a
+href="SCP.html">Net::SCP</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000020_source')" id="l_M000020_source">show</a>
+                        
+                    </p>
+                    <div id="M000020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 233</span>
+233:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">download!</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+234:       <span class="ruby-identifier">options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+235:       <span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:ssh</span>) <span class="ruby-operator">||</span> {}) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">scp</span><span class="ruby-operator">|</span>
+236:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">scp</span>.<span class="ruby-identifier">download!</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+237:       <span class="ruby-keyword kw">end</span>
+238:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000053">
+                    
+                    <a name="M000053"></a><b>new</b>(session)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="SCP.html">Net::SCP</a> session on top of the given
+<a href="SSH.html">Net::SSH</a> <tt>session</tt> object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000053_source')" id="l_M000053_source">show</a>
+                        
+                    </p>
+                    <div id="M000053_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 246</span>
+246:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">session</span>)
+247:       <span class="ruby-ivar">@session</span> = <span class="ruby-identifier">session</span>
+248:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">logger</span> = <span class="ruby-identifier">session</span>.<span class="ruby-identifier">logger</span>
+249:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000021">
+                    
+                    <a name="M000021"></a><b>new</b>(session)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="SCP.html">Net::SCP</a> session on top of the given
+<a href="SSH.html">Net::SSH</a> <tt>session</tt> object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000021_source')" id="l_M000021_source">show</a>
+                        
+                    </p>
+                    <div id="M000021_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 246</span>
+246:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">session</span>)
+247:       <span class="ruby-ivar">@session</span> = <span class="ruby-identifier">session</span>
+248:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">logger</span> = <span class="ruby-identifier">session</span>.<span class="ruby-identifier">logger</span>
+249:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>start</b>(host, username, options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection and instantiates a
+new <a href="SCP.html">SCP</a> session on top of it. If a block is given,
+the <a href="SCP.html">SCP</a> session is yielded, and the <a
+href="SSH.html">SSH</a> session is closed automatically when the block
+terminates. If no block is given, the <a href="SCP.html">SCP</a> session is
+returned.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 196</span>
+196:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>={})
+197:       <span class="ruby-identifier">session</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>)
+198:       <span class="ruby-identifier">scp</span> = <span class="ruby-identifier">new</span>(<span class="ruby-identifier">session</span>)
+199: 
+200:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+201:         <span class="ruby-keyword kw">begin</span>
+202:           <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">scp</span>
+203:           <span class="ruby-identifier">session</span>.<span class="ruby-identifier">loop</span>
+204:         <span class="ruby-keyword kw">ensure</span>
+205:           <span class="ruby-identifier">session</span>.<span class="ruby-identifier">close</span>
+206:         <span class="ruby-keyword kw">end</span>
+207:       <span class="ruby-keyword kw">else</span>
+208:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">scp</span>
+209:       <span class="ruby-keyword kw">end</span>
+210:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000049">
+                    
+                    <a name="M000049"></a><b>start</b>(host, username, options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection and instantiates a
+new <a href="SCP.html">SCP</a> session on top of it. If a block is given,
+the <a href="SCP.html">SCP</a> session is yielded, and the <a
+href="SSH.html">SSH</a> session is closed automatically when the block
+terminates. If no block is given, the <a href="SCP.html">SCP</a> session is
+returned.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000049_source')" id="l_M000049_source">show</a>
+                        
+                    </p>
+                    <div id="M000049_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 196</span>
+196:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>={})
+197:       <span class="ruby-identifier">session</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>)
+198:       <span class="ruby-identifier">scp</span> = <span class="ruby-identifier">new</span>(<span class="ruby-identifier">session</span>)
+199: 
+200:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+201:         <span class="ruby-keyword kw">begin</span>
+202:           <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">scp</span>
+203:           <span class="ruby-identifier">session</span>.<span class="ruby-identifier">loop</span>
+204:         <span class="ruby-keyword kw">ensure</span>
+205:           <span class="ruby-identifier">session</span>.<span class="ruby-identifier">close</span>
+206:         <span class="ruby-keyword kw">end</span>
+207:       <span class="ruby-keyword kw">else</span>
+208:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">scp</span>
+209:       <span class="ruby-keyword kw">end</span>
+210:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000019">
+                    
+                    <a name="M000019"></a><b>upload!</b>(host, username, local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection using the
+<tt>host</tt> and <tt>username</tt> parameters, instantiates a new <a
+href="SCP.html">SCP</a> session on top of it, and then begins an upload
+from <tt>local</tt> to <tt>remote</tt>. If the <tt>options</tt> hash
+includes an :ssh key, the value for that will be passed to the <a
+href="SSH.html">SSH</a> connection as options (e.g., to set the password,
+etc.). All other options are passed to the <a
+href="SCP.html#M000019">upload!</a> method. If a block is given, it will be
+used to report progress (see &#8220;Progress Reporting&#8221;, under <a
+href="SCP.html">Net::SCP</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000019_source')" id="l_M000019_source">show</a>
+                        
+                    </p>
+                    <div id="M000019_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 219</span>
+219:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+220:       <span class="ruby-identifier">options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+221:       <span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:ssh</span>) <span class="ruby-operator">||</span> {}) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">scp</span><span class="ruby-operator">|</span>
+222:         <span class="ruby-identifier">scp</span>.<span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+223:       <span class="ruby-keyword kw">end</span>
+224:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000050">
+                    
+                    <a name="M000050"></a><b>upload!</b>(host, username, local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts up a new <a href="SSH.html">SSH</a> connection using the
+<tt>host</tt> and <tt>username</tt> parameters, instantiates a new <a
+href="SCP.html">SCP</a> session on top of it, and then begins an upload
+from <tt>local</tt> to <tt>remote</tt>. If the <tt>options</tt> hash
+includes an :ssh key, the value for that will be passed to the <a
+href="SSH.html">SSH</a> connection as options (e.g., to set the password,
+etc.). All other options are passed to the <a
+href="SCP.html#M000019">upload!</a> method. If a block is given, it will be
+used to report progress (see &#8220;Progress Reporting&#8221;, under <a
+href="SCP.html">Net::SCP</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000050_source')" id="l_M000050_source">show</a>
+                        
+                    </p>
+                    <div id="M000050_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 219</span>
+219:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+220:       <span class="ruby-identifier">options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+221:       <span class="ruby-identifier">start</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:ssh</span>) <span class="ruby-operator">||</span> {}) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">scp</span><span class="ruby-operator">|</span>
+222:         <span class="ruby-identifier">scp</span>.<span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+223:       <span class="ruby-keyword kw">end</span>
+224:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000026">
+                    
+                    <a name="M000026"></a><b>download</b>(remote, local, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Inititiate a synchronous (non-blocking) download from <tt>remote</tt> to
+<tt>local</tt>. The following options are recognized:
+</p>
+<ul>
+<li>:recursive - the <tt>remote</tt> parameter refers to a remote directory,
+which should be downloaded to a new directory named <tt>local</tt> on the
+local machine.
+
+</li>
+<li>:preserve - the atime and mtime of the file should be preserved.
+
+</li>
+<li>:verbose - the process should result in verbose output on the server end
+(useful for debugging).
+
+</li>
+</ul>
+<p>
+This method will return immediately, returning the
+Net::SSH::Connection::Channel object that will support the download. To
+wait for the download to finish, you can either call the wait method on the
+channel, or otherwise run the <a href="SSH.html">Net::SSH</a> event loop
+until the channel&#8217;s active? method returns false.
+</p>
+<pre>
+  channel = scp.download(&quot;/remote/path&quot;, &quot;/local/path&quot;)
+  channel.wait
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000026_source')" id="l_M000026_source">show</a>
+                        
+                    </p>
+                    <div id="M000026_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 299</span>
+299:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">download</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+300:       <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">:download</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+301:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000056">
+                    
+                    <a name="M000056"></a><b>download</b>(remote, local, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Inititiate a synchronous (non-blocking) download from <tt>remote</tt> to
+<tt>local</tt>. The following options are recognized:
+</p>
+<ul>
+<li>:recursive - the <tt>remote</tt> parameter refers to a remote directory,
+which should be downloaded to a new directory named <tt>local</tt> on the
+local machine.
+
+</li>
+<li>:preserve - the atime and mtime of the file should be preserved.
+
+</li>
+<li>:verbose - the process should result in verbose output on the server end
+(useful for debugging).
+
+</li>
+</ul>
+<p>
+This method will return immediately, returning the
+Net::SSH::Connection::Channel object that will support the download. To
+wait for the download to finish, you can either call the wait method on the
+channel, or otherwise run the <a href="SSH.html">Net::SSH</a> event loop
+until the channel&#8217;s active? method returns false.
+</p>
+<pre>
+  channel = scp.download(&quot;/remote/path&quot;, &quot;/local/path&quot;)
+  channel.wait
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000056_source')" id="l_M000056_source">show</a>
+                        
+                    </p>
+                    <div id="M000056_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 299</span>
+299:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">download</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+300:       <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">:download</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+301:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000058">
+                    
+                    <a name="M000058"></a><b>download!</b>(remote, local=nil, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Same as <a href="SCP.html#M000026">download</a>, but blocks until the
+download finishes. Identical to calling <a
+href="SCP.html#M000026">download</a> and then calling the wait method on
+the channel object that is returned.
+</p>
+<pre>
+  scp.download!(&quot;/remote/path&quot;, &quot;/local/path&quot;)
+</pre>
+<p>
+If <tt>local</tt> is nil, and the download is not recursive (e.g., it is
+downloading only a single file), the file will be downloaded to an
+in-memory buffer and the resulting string returned.
+</p>
+<pre>
+  data = download!(&quot;/remote/path&quot;)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000058_source')" id="l_M000058_source">show</a>
+                        
+                    </p>
+                    <div id="M000058_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 314</span>
+314:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">download!</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+315:       <span class="ruby-identifier">destination</span> = <span class="ruby-identifier">local</span> <span class="ruby-value">? </span><span class="ruby-identifier">local</span> <span class="ruby-operator">:</span> <span class="ruby-constant">StringIO</span>.<span class="ruby-identifier">new</span>
+316:       <span class="ruby-identifier">download</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">destination</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>).<span class="ruby-identifier">wait</span>
+317:       <span class="ruby-identifier">local</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">true</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">destination</span>.<span class="ruby-identifier">string</span>
+318:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000027">
+                    
+                    <a name="M000027"></a><b>download!</b>(remote, local=nil, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Same as <a href="SCP.html#M000026">download</a>, but blocks until the
+download finishes. Identical to calling <a
+href="SCP.html#M000026">download</a> and then calling the wait method on
+the channel object that is returned.
+</p>
+<pre>
+  scp.download!(&quot;/remote/path&quot;, &quot;/local/path&quot;)
+</pre>
+<p>
+If <tt>local</tt> is nil, and the download is not recursive (e.g., it is
+downloading only a single file), the file will be downloaded to an
+in-memory buffer and the resulting string returned.
+</p>
+<pre>
+  data = download!(&quot;/remote/path&quot;)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000027_source')" id="l_M000027_source">show</a>
+                        
+                    </p>
+                    <div id="M000027_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 314</span>
+314:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">download!</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">local</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+315:       <span class="ruby-identifier">destination</span> = <span class="ruby-identifier">local</span> <span class="ruby-value">? </span><span class="ruby-identifier">local</span> <span class="ruby-operator">:</span> <span class="ruby-constant">StringIO</span>.<span class="ruby-identifier">new</span>
+316:       <span class="ruby-identifier">download</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-identifier">destination</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>).<span class="ruby-identifier">wait</span>
+317:       <span class="ruby-identifier">local</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">true</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">destination</span>.<span class="ruby-identifier">string</span>
+318:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000054">
+                    
+                    <a name="M000054"></a><b>upload</b>(local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Inititiate a synchronous (non-blocking) upload from <tt>local</tt> to
+<tt>remote</tt>. The following options are recognized:
+</p>
+<ul>
+<li>:recursive - the <tt>local</tt> parameter refers to a local directory,
+which should be uploaded to a new directory named <tt>remote</tt> on the
+remote server.
+
+</li>
+<li>:preserve - the atime and mtime of the file should be preserved.
+
+</li>
+<li>:verbose - the process should result in verbose output on the server end
+(useful for debugging).
+
+</li>
+<li>:chunk_size - the size of each &#8220;chunk&#8221; that should be sent.
+Defaults to 2048. Changing this value may improve throughput at the expense
+of decreasing interactivity.
+
+</li>
+</ul>
+<p>
+This method will return immediately, returning the
+Net::SSH::Connection::Channel object that will support the upload. To wait
+for the upload to finish, you can either call the wait method on the
+channel, or otherwise run the <a href="SSH.html">Net::SSH</a> event loop
+until the channel&#8217;s active? method returns false.
+</p>
+<pre>
+  channel = scp.upload(&quot;/local/path&quot;, &quot;/remote/path&quot;)
+  channel.wait
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000054_source')" id="l_M000054_source">show</a>
+                        
+                    </p>
+                    <div id="M000054_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 271</span>
+271:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+272:       <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">:upload</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+273:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000023">
+                    
+                    <a name="M000023"></a><b>upload</b>(local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Inititiate a synchronous (non-blocking) upload from <tt>local</tt> to
+<tt>remote</tt>. The following options are recognized:
+</p>
+<ul>
+<li>:recursive - the <tt>local</tt> parameter refers to a local directory,
+which should be uploaded to a new directory named <tt>remote</tt> on the
+remote server.
+
+</li>
+<li>:preserve - the atime and mtime of the file should be preserved.
+
+</li>
+<li>:verbose - the process should result in verbose output on the server end
+(useful for debugging).
+
+</li>
+<li>:chunk_size - the size of each &#8220;chunk&#8221; that should be sent.
+Defaults to 2048. Changing this value may improve throughput at the expense
+of decreasing interactivity.
+
+</li>
+</ul>
+<p>
+This method will return immediately, returning the
+Net::SSH::Connection::Channel object that will support the upload. To wait
+for the upload to finish, you can either call the wait method on the
+channel, or otherwise run the <a href="SSH.html">Net::SSH</a> event loop
+until the channel&#8217;s active? method returns false.
+</p>
+<pre>
+  channel = scp.upload(&quot;/local/path&quot;, &quot;/remote/path&quot;)
+  channel.wait
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000023_source')" id="l_M000023_source">show</a>
+                        
+                    </p>
+                    <div id="M000023_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 271</span>
+271:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+272:       <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">:upload</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+273:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000055">
+                    
+                    <a name="M000055"></a><b>upload!</b>(local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Same as <a href="SCP.html#M000023">upload</a>, but blocks until the upload
+finishes. Identical to calling <a href="SCP.html#M000023">upload</a> and
+then calling the wait method on the channel object that is returned. The
+return value is not defined.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000055_source')" id="l_M000055_source">show</a>
+                        
+                    </p>
+                    <div id="M000055_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 278</span>
+278:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+279:       <span class="ruby-identifier">upload</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>).<span class="ruby-identifier">wait</span>
+280:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000024">
+                    
+                    <a name="M000024"></a><b>upload!</b>(local, remote, options={}, &amp;progress)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Same as <a href="SCP.html#M000023">upload</a>, but blocks until the upload
+finishes. Identical to calling <a href="SCP.html#M000023">upload</a> and
+then calling the wait method on the channel object that is returned. The
+return value is not defined.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000024_source')" id="l_M000024_source">show</a>
+                        
+                    </p>
+                    <div id="M000024_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 278</span>
+278:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>)
+279:       <span class="ruby-identifier">upload</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">progress</span>).<span class="ruby-identifier">wait</span>
+280:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000062">
+                    
+                    <a name="M000062"></a><b>await_response</b>(channel, next_state)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Causes the state machine to enter the &#8220;await response&#8221; state,
+where things just pause until the server replies with a 0 (see <a
+href="SCP.html#M000034">await_response_state</a>), at which point the state
+machine will pick up at <tt>next_state</tt> and continue processing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000062_source')" id="l_M000062_source">show</a>
+                        
+                    </p>
+                    <div id="M000062_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 369</span>
+369:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">await_response</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">next_state</span>)
+370:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>] = <span class="ruby-identifier">:await_response</span>
+371:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span> ] = <span class="ruby-identifier">next_state</span>.<span class="ruby-identifier">to_sym</span>
+372:         <span class="ruby-comment cmt"># check right away, to see if the response is immediately available</span>
+373:         <span class="ruby-identifier">await_response_state</span>(<span class="ruby-identifier">channel</span>)
+374:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000033">
+                    
+                    <a name="M000033"></a><b>await_response</b>(channel, next_state)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Causes the state machine to enter the &#8220;await response&#8221; state,
+where things just pause until the server replies with a 0 (see <a
+href="SCP.html#M000034">await_response_state</a>), at which point the state
+machine will pick up at <tt>next_state</tt> and continue processing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000033_source')" id="l_M000033_source">show</a>
+                        
+                    </p>
+                    <div id="M000033_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 369</span>
+369:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">await_response</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">next_state</span>)
+370:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>] = <span class="ruby-identifier">:await_response</span>
+371:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span> ] = <span class="ruby-identifier">next_state</span>.<span class="ruby-identifier">to_sym</span>
+372:         <span class="ruby-comment cmt"># check right away, to see if the response is immediately available</span>
+373:         <span class="ruby-identifier">await_response_state</span>(<span class="ruby-identifier">channel</span>)
+374:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000063">
+                    
+                    <a name="M000063"></a><b>await_response_state</b>(channel)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The action invoked while the state machine remains in the &#8220;await
+response&#8221; state. As long as there is no data ready to process, the
+machine will remain in this state. As soon as the server replies with an
+integer 0 as the only byte, the state machine is kicked into the next state
+(see <tt><a href="SCP.html#M000033">await_response</a></tt>). If the
+response is not a 0, an exception is raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000063_source')" id="l_M000063_source">show</a>
+                        
+                    </p>
+                    <div id="M000063_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 382</span>
+382:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">await_response_state</span>(<span class="ruby-identifier">channel</span>)
+383:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">available</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+384:         <span class="ruby-identifier">c</span> = <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">read_byte</span>
+385:         <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;#{c.chr}#{channel[:buffer].read}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+386:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span>], <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>] = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span>]
+387:         <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{channel[:state]}_state&quot;</span>, <span class="ruby-identifier">channel</span>)
+388:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000034">
+                    
+                    <a name="M000034"></a><b>await_response_state</b>(channel)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The action invoked while the state machine remains in the &#8220;await
+response&#8221; state. As long as there is no data ready to process, the
+machine will remain in this state. As soon as the server replies with an
+integer 0 as the only byte, the state machine is kicked into the next state
+(see <tt><a href="SCP.html#M000033">await_response</a></tt>). If the
+response is not a 0, an exception is raised.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000034_source')" id="l_M000034_source">show</a>
+                        
+                    </p>
+                    <div id="M000034_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 382</span>
+382:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">await_response_state</span>(<span class="ruby-identifier">channel</span>)
+383:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">available</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+384:         <span class="ruby-identifier">c</span> = <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">read_byte</span>
+385:         <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;#{c.chr}#{channel[:buffer].read}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">c</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+386:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span>], <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>] = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:next</span>]
+387:         <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{channel[:state]}_state&quot;</span>, <span class="ruby-identifier">channel</span>)
+388:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000064">
+                    
+                    <a name="M000064"></a><b>finish_state</b>(channel)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The action invoked when the state machine is in the &#8220;finish&#8221;
+state. It just tells the server not to expect any more data from this end
+of the pipe, and allows the pipe to drain until the server closes it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000064_source')" id="l_M000064_source">show</a>
+                        
+                    </p>
+                    <div id="M000064_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 393</span>
+393:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">finish_state</span>(<span class="ruby-identifier">channel</span>)
+394:         <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">eof!</span>
+395:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000036">
+                    
+                    <a name="M000036"></a><b>finish_state</b>(channel)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The action invoked when the state machine is in the &#8220;finish&#8221;
+state. It just tells the server not to expect any more data from this end
+of the pipe, and allows the pipe to drain until the server closes it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000036_source')" id="l_M000036_source">show</a>
+                        
+                    </p>
+                    <div id="M000036_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 393</span>
+393:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">finish_state</span>(<span class="ruby-identifier">channel</span>)
+394:         <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">eof!</span>
+395:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000037">
+                    
+                    <a name="M000037"></a><b>progress_callback</b>(channel, name, sent, total)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Invoked to report progress back to the client. If a callback was not set,
+this does nothing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000037_source')" id="l_M000037_source">show</a>
+                        
+                    </p>
+                    <div id="M000037_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 399</span>
+399:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">progress_callback</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">sent</span>, <span class="ruby-identifier">total</span>)
+400:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>].<span class="ruby-identifier">call</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">sent</span>, <span class="ruby-identifier">total</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>]
+401:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000065">
+                    
+                    <a name="M000065"></a><b>progress_callback</b>(channel, name, sent, total)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Invoked to report progress back to the client. If a callback was not set,
+this does nothing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000065_source')" id="l_M000065_source">show</a>
+                        
+                    </p>
+                    <div id="M000065_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 399</span>
+399:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">progress_callback</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">sent</span>, <span class="ruby-identifier">total</span>)
+400:         <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>].<span class="ruby-identifier">call</span>(<span class="ruby-identifier">channel</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">sent</span>, <span class="ruby-identifier">total</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>]
+401:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000028">
+                    
+                    <a name="M000028"></a><b>scp_command</b>(mode, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Constructs the scp command line needed to initiate and <a
+href="SCP.html">SCP</a> session for the given <tt>mode</tt> (:upload or
+:download) and with the given options (:verbose, :recursive, :preserve).
+Returns the command-line as a string, ready to execute.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000028_source')" id="l_M000028_source">show</a>
+                        
+                    </p>
+                    <div id="M000028_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 326</span>
+326:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scp_command</span>(<span class="ruby-identifier">mode</span>, <span class="ruby-identifier">options</span>)
+327:         <span class="ruby-identifier">command</span> = <span class="ruby-value str">&quot;scp &quot;</span>
+328:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> (<span class="ruby-identifier">mode</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:upload</span> <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;-t&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;-f&quot;</span>)
+329:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -v&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:verbose</span>]
+330:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -r&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:recursive</span>]
+331:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -p&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:preserve</span>]
+332:         <span class="ruby-identifier">command</span>
+333:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000060">
+                    
+                    <a name="M000060"></a><b>scp_command</b>(mode, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Constructs the scp command line needed to initiate and <a
+href="SCP.html">SCP</a> session for the given <tt>mode</tt> (:upload or
+:download) and with the given options (:verbose, :recursive, :preserve).
+Returns the command-line as a string, ready to execute.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000060_source')" id="l_M000060_source">show</a>
+                        
+                    </p>
+                    <div id="M000060_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 326</span>
+326:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scp_command</span>(<span class="ruby-identifier">mode</span>, <span class="ruby-identifier">options</span>)
+327:         <span class="ruby-identifier">command</span> = <span class="ruby-value str">&quot;scp &quot;</span>
+328:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> (<span class="ruby-identifier">mode</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:upload</span> <span class="ruby-operator">?</span> <span class="ruby-value str">&quot;-t&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;-f&quot;</span>)
+329:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -v&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:verbose</span>]
+330:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -r&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:recursive</span>]
+331:         <span class="ruby-identifier">command</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot; -p&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:preserve</span>]
+332:         <span class="ruby-identifier">command</span>
+333:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000038">
+                    
+                    <a name="M000038"></a><b>shellescape</b>(str)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Imported from ruby 1.9.2 shellwords.rb
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000038_source')" id="l_M000038_source">show</a>
+                        
+                    </p>
+                    <div id="M000038_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 404</span>
+404:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">shellescape</span>(<span class="ruby-identifier">str</span>)
+405:         <span class="ruby-comment cmt"># ruby 1.8.7+ implements String#shellescape</span>
+406:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">shellescape</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:shellescape</span>
+407: 
+408:         <span class="ruby-comment cmt"># An empty argument will be skipped, so return empty quotes.</span>
+409:         <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;''&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">empty?</span>
+410: 
+411:         <span class="ruby-identifier">str</span> = <span class="ruby-identifier">str</span>.<span class="ruby-identifier">dup</span>
+412: 
+413:         <span class="ruby-comment cmt"># Process as a single byte sequence because not all shell</span>
+414:         <span class="ruby-comment cmt"># implementations are multibyte aware.</span>
+415:         <span class="ruby-identifier">str</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/([^A-Za-z0-9_\-.,:\/@\n])/n</span>, <span class="ruby-value str">&quot;\\\\\\1&quot;</span>)
+416: 
+417:         <span class="ruby-comment cmt"># A LF cannot be escaped with a backslash because a backslash + LF</span>
+418:         <span class="ruby-comment cmt"># combo is regarded as line continuation and simply ignored.</span>
+419:         <span class="ruby-identifier">str</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\n/</span>, <span class="ruby-value str">&quot;'\n'&quot;</span>)
+420: 
+421:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>
+422:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000066">
+                    
+                    <a name="M000066"></a><b>shellescape</b>(str)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Imported from ruby 1.9.2 shellwords.rb
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000066_source')" id="l_M000066_source">show</a>
+                        
+                    </p>
+                    <div id="M000066_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 404</span>
+404:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">shellescape</span>(<span class="ruby-identifier">str</span>)
+405:         <span class="ruby-comment cmt"># ruby 1.8.7+ implements String#shellescape</span>
+406:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">shellescape</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:shellescape</span>
+407: 
+408:         <span class="ruby-comment cmt"># An empty argument will be skipped, so return empty quotes.</span>
+409:         <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;''&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">str</span>.<span class="ruby-identifier">empty?</span>
+410: 
+411:         <span class="ruby-identifier">str</span> = <span class="ruby-identifier">str</span>.<span class="ruby-identifier">dup</span>
+412: 
+413:         <span class="ruby-comment cmt"># Process as a single byte sequence because not all shell</span>
+414:         <span class="ruby-comment cmt"># implementations are multibyte aware.</span>
+415:         <span class="ruby-identifier">str</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/([^A-Za-z0-9_\-.,:\/@\n])/n</span>, <span class="ruby-value str">&quot;\\\\\\1&quot;</span>)
+416: 
+417:         <span class="ruby-comment cmt"># A LF cannot be escaped with a backslash because a backslash + LF</span>
+418:         <span class="ruby-comment cmt"># combo is regarded as line continuation and simply ignored.</span>
+419:         <span class="ruby-identifier">str</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\n/</span>, <span class="ruby-value str">&quot;'\n'&quot;</span>)
+420: 
+421:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>
+422:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000030">
+                    
+                    <a name="M000030"></a><b>start_command</b>(mode, local, remote, options={}, &amp;callback)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens a new <a href="SSH.html">SSH</a> channel and executes the necessary
+<a href="SCP.html">SCP</a> command over it (see <a
+href="SCP.html#M000028">scp_command</a>). It then sets up the necessary
+callbacks, and sets up a state machine to use to process the upload or
+download. (See <a href="SCP/Upload.html">Net::SCP::Upload</a> and <a
+href="SCP/Download.html">Net::SCP::Download</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000030_source')" id="l_M000030_source">show</a>
+                        
+                    </p>
+                    <div id="M000030_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 339</span>
+339:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">mode</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+340:         <span class="ruby-identifier">session</span>.<span class="ruby-identifier">open_channel</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">channel</span><span class="ruby-operator">|</span>
+341:           <span class="ruby-identifier">command</span> = <span class="ruby-node">&quot;#{scp_command(mode, options)} #{shellescape remote}&quot;</span>
+342:           <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-identifier">command</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">success</span><span class="ruby-operator">|</span>
+343:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">success</span>
+344:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:local</span>   ] = <span class="ruby-identifier">local</span>
+345:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:remote</span>  ] = <span class="ruby-identifier">remote</span>
+346:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:options</span> ] = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+347:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>] = <span class="ruby-identifier">callback</span>
+348:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>  ] = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Buffer</span>.<span class="ruby-identifier">new</span>
+349:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>   ] = <span class="ruby-node">&quot;#{mode}_start&quot;</span>
+350:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:stack</span>   ] = []
+351: 
+352:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_close</span>                  { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span><span class="ruby-operator">|</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;SCP did not finish successfully (#{ch[:exit]})&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ch</span>[<span class="ruby-identifier">:exit</span>] <span class="ruby-operator">!=</span> <span class="ruby-value">0</span> }
+353:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_data</span>                   { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">append</span>(<span class="ruby-identifier">data</span>) }
+354:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_extended_data</span>          { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">debug</span> { <span class="ruby-identifier">data</span>.<span class="ruby-identifier">chomp</span> } }
+355:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_request</span>(<span class="ruby-value str">&quot;exit-status&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:exit</span>] = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">read_long</span> }
+356:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_process</span>                { <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{channel[:state]}_state&quot;</span>, <span class="ruby-identifier">channel</span>) }
+357:             <span class="ruby-keyword kw">else</span>
+358:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">close</span>
+359:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-value str">&quot;could not exec scp on the remote host&quot;</span>
+360:             <span class="ruby-keyword kw">end</span>
+361:           <span class="ruby-keyword kw">end</span>
+362:         <span class="ruby-keyword kw">end</span>
+363:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000061">
+                    
+                    <a name="M000061"></a><b>start_command</b>(mode, local, remote, options={}, &amp;callback)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens a new <a href="SSH.html">SSH</a> channel and executes the necessary
+<a href="SCP.html">SCP</a> command over it (see <a
+href="SCP.html#M000028">scp_command</a>). It then sets up the necessary
+callbacks, and sets up a state machine to use to process the upload or
+download. (See <a href="SCP/Upload.html">Net::SCP::Upload</a> and <a
+href="SCP/Download.html">Net::SCP::Download</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000061_source')" id="l_M000061_source">show</a>
+                        
+                    </p>
+                    <div id="M000061_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/scp.rb, line 339</span>
+339:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_command</span>(<span class="ruby-identifier">mode</span>, <span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">options</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">callback</span>)
+340:         <span class="ruby-identifier">session</span>.<span class="ruby-identifier">open_channel</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">channel</span><span class="ruby-operator">|</span>
+341:           <span class="ruby-identifier">command</span> = <span class="ruby-node">&quot;#{scp_command(mode, options)} #{shellescape remote}&quot;</span>
+342:           <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-identifier">command</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">success</span><span class="ruby-operator">|</span>
+343:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">success</span>
+344:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:local</span>   ] = <span class="ruby-identifier">local</span>
+345:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:remote</span>  ] = <span class="ruby-identifier">remote</span>
+346:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:options</span> ] = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+347:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:callback</span>] = <span class="ruby-identifier">callback</span>
+348:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>  ] = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Buffer</span>.<span class="ruby-identifier">new</span>
+349:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:state</span>   ] = <span class="ruby-node">&quot;#{mode}_start&quot;</span>
+350:               <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:stack</span>   ] = []
+351: 
+352:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_close</span>                  { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span><span class="ruby-operator">|</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;SCP did not finish successfully (#{ch[:exit]})&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ch</span>[<span class="ruby-identifier">:exit</span>] <span class="ruby-operator">!=</span> <span class="ruby-value">0</span> }
+353:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_data</span>                   { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:buffer</span>].<span class="ruby-identifier">append</span>(<span class="ruby-identifier">data</span>) }
+354:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_extended_data</span>          { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">debug</span> { <span class="ruby-identifier">data</span>.<span class="ruby-identifier">chomp</span> } }
+355:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_request</span>(<span class="ruby-value str">&quot;exit-status&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span> <span class="ruby-identifier">channel</span>[<span class="ruby-identifier">:exit</span>] = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">read_long</span> }
+356:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">on_process</span>                { <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{channel[:state]}_state&quot;</span>, <span class="ruby-identifier">channel</span>) }
+357:             <span class="ruby-keyword kw">else</span>
+358:               <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">close</span>
+359:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-value str">&quot;could not exec scp on the remote host&quot;</span>
+360:             <span class="ruby-keyword kw">end</span>
+361:           <span class="ruby-keyword kw">end</span>
+362:         <span class="ruby-keyword kw">end</span>
+363:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

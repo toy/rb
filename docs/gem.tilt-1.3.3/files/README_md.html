@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sat Oct 01 23:00:15 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../classes/Tilt.html">Tilt</a>
+</p>
+<h4></h4>
+<p>
+<a href="../classes/Tilt.html">Tilt</a> is a thin interface over a bunch of
+different Ruby template engines in an attempt to make their usage as
+generic possible. This is useful for web frameworks, static site
+generators, and other systems that support multiple template engines but
+don&#8217;t want to code for each of them individually.
+</p>
+<p>
+The following features are supported for all template engines (assuming the
+feature is relevant to the engine):
+</p>
+<pre>
+ * Custom template evaluation scopes / bindings
+ * Ability to pass locals to template evaluation
+ * Support for passing a block to template evaluation for &quot;yield&quot;
+ * Backtraces with correct filenames and line numbers
+ * Template file caching and reloading
+ * Fast, method-based template source compilation
+</pre>
+<p>
+The primary goal is to get all of the things listed above right for all
+template engines included in the distribution.
+</p>
+<p>
+Support for these template engines is included with the package:
+</p>
+<pre>
+    ENGINE                     FILE EXTENSIONS         REQUIRED LIBRARIES
+    -------------------------- ----------------------- ----------------------------
+    ERB                        .erb, .rhtml            none (included ruby stdlib)
+    Interpolated String        .str                    none (included ruby core)
+    Erubis                     .erb, .rhtml, .erubis   erubis
+    Haml                       .haml                   haml
+    Sass                       .sass                   haml (&lt; 3.1) or sass (&gt;= 3.1)
+    Scss                       .scss                   haml (&lt; 3.1) or sass (&gt;= 3.1)
+    Less CSS                   .less                   less
+    Builder                    .builder                builder
+    Liquid                     .liquid                 liquid
+    RDiscount                  .markdown, .mkd, .md    rdiscount
+    Redcarpet                  .markdown, .mkd, .md    redcarpet
+    BlueCloth                  .markdown, .mkd, .md    bluecloth
+    Kramdown                   .markdown, .mkd, .md    kramdown
+    Maruku                     .markdown, .mkd, .md    maruku
+    RedCloth                   .textile                redcloth
+    RDoc                       .rdoc                   rdoc
+    Radius                     .radius                 radius
+    Markaby                    .mab                    markaby
+    Nokogiri                   .nokogiri               nokogiri
+    CoffeeScript               .coffee                 coffee-script (+ javascript)
+    Creole (Wiki markup)       .wiki, .creole          creole
+    WikiCloth (Wiki markup)    .wiki, .mediawiki, .mw  wikicloth
+    Yajl                       .yajl                   yajl-ruby
+</pre>
+<p>
+These template engines ship with their own <a
+href="../classes/Tilt.html">Tilt</a> integration:
+</p>
+<pre>
+    ENGINE                     FILE EXTENSIONS   REQUIRED LIBRARIES
+    -------------------------- ----------------- ----------------------------
+    Slim                       .slim             slim (&gt;= 0.7)
+    Embedded JavaScript                          sprockets
+    Embedded CoffeeScript                        sprockets
+    JST                                          sprockets
+</pre>
+<p>
+See [TEMPLATES.md][t] for detailed information on template engine options
+and supported features.
+</p>
+<p>
+[t]: <a
+href="http://github.com/rtomayko/tilt/blob/master/TEMPLATES.md">github.com/rtomayko/tilt/blob/master/TEMPLATES.md</a>
+</p>
+<pre>
+   &quot;Tilt Template Engine Documentation&quot;
+</pre>
+<p>
+Basic Usage
+</p>
+<hr size="9"></hr><p>
+Instant gratification:
+</p>
+<pre>
+    require 'erb'
+    require 'tilt'
+    template = Tilt.new('templates/foo.erb')
+    =&gt; #&lt;Tilt::ERBTemplate @file=&quot;templates/foo.rb&quot; ...&gt;
+    output = template.render
+    =&gt; &quot;Hello world!&quot;
+</pre>
+<p>
+It&#8217;s recommended that calling programs explicitly require template
+engine libraries (like &#8216;erb&#8217; above) at load time. <a
+href="../classes/Tilt.html">Tilt</a> attempts to lazy require the template
+engine library the first time a template is created but this is prone to
+error in threaded environments.
+</p>
+<p>
+The `Tilt` module contains generic implementation classes for all supported
+template engines. Each template class adheres to the same interface for
+creation and rendering. In the instant gratification example, we let <a
+href="../classes/Tilt.html">Tilt</a> determine the template implementation
+class based on the filename, but `Tilt::Template` implementations can also
+be used directly:
+</p>
+<pre>
+    template = Tilt::HamlTemplate.new('templates/foo.haml')
+    output = template.render
+</pre>
+<p>
+The `render` method takes an optional evaluation scope and locals hash
+arguments. Here, the template is evaluated within the context of the
+`Person` object with locals `x` and `y`:
+</p>
+<pre>
+    template = Tilt::ERBTemplate.new('templates/foo.erb')
+    joe = Person.find('joe')
+    output = template.render(joe, :x =&gt; 35, :y =&gt; 42)
+</pre>
+<p>
+If no scope is provided, the template is evaluated within the context of an
+object created with `Object.new`.
+</p>
+<p>
+A single `Template` instance&#8217;s `render` method may be called multiple
+times with different scope and locals arguments. Continuing the previous
+example, we render the same compiled template but this time in jane&#8217;s
+scope:
+</p>
+<pre>
+    jane = Person.find('jane')
+    output = template.render(jane, :x =&gt; 22, :y =&gt; nil)
+</pre>
+<p>
+Blocks can be passed to `render` for templates that support running
+arbitrary ruby code (usually with some form of `yield`). For instance,
+assuming the following in `foo.erb`:
+</p>
+<pre>
+    Hey &lt;%= yield %&gt;!
+</pre>
+<p>
+The block passed to `render` is called on `yield`:
+</p>
+<pre>
+    template = Tilt::ERBTemplate.new('foo.erb')
+    template.render { 'Joe' }
+    # =&gt; &quot;Hey Joe!&quot;
+</pre>
+<p>
+Template Mappings
+</p>
+<hr size="10"></hr><p>
+The `Tilt` module includes methods for associating template implementation
+classes with filename patterns and for locating/instantiating template
+classes based on those associations.
+</p>
+<p>
+The `Tilt::register` method associates a filename pattern with a specific
+template implementation. To use ERB for files ending in a `.bar` extension:
+</p>
+<pre>
+     &gt;&gt; Tilt.register Tilt::ERBTemplate, 'bar'
+     &gt;&gt; Tilt.new('views/foo.bar')
+     =&gt; #&lt;Tilt::ERBTemplate @file=&quot;views/foo.bar&quot; ...&gt;
+</pre>
+<p>
+Retrieving the template class for a file or file extension:
+</p>
+<pre>
+     &gt;&gt; Tilt['foo.bar']
+     =&gt; Tilt::ERBTemplate
+     &gt;&gt; Tilt['haml']
+     =&gt; Tilt::HamlTemplate
+</pre>
+<p>
+It&#8217;s also possible to register template file mappings that are more
+specific than a file extension. To use Erubis for `bar.erb` but ERB for all
+other `.erb` files:
+</p>
+<pre>
+     &gt;&gt; Tilt.register Tilt::ErubisTemplate, 'bar.erb'
+     &gt;&gt; Tilt.new('views/foo.erb')
+     =&gt; Tilt::ERBTemplate
+     &gt;&gt; Tilt.new('views/bar.erb')
+     =&gt; Tilt::ErubisTemplate
+</pre>
+<p>
+The template class is determined by searching for a series of decreasingly
+specific name patterns. When creating a new template with `<a
+href="../classes/Tilt.html#M000152">Tilt.new</a>(&#8216;views/foo.html.erb&#8217;)`,
+we check for the following template mappings:
+</p>
+<pre>
+  1. `views/foo.html.erb`
+  2. `foo.html.erb`
+  3. `html.erb`
+  4. `erb`
+</pre>
+<p>
+### Fallback mode
+</p>
+<p>
+If there are more than one template class registered for a file extension,
+<a href="../classes/Tilt.html">Tilt</a> will automatically try to load the
+version that works on your machine:
+</p>
+<pre>
+  1. If any of the template engines has been loaded already: Use that one.
+  2. If not, it will try to initialize each of the classes with an empty template.
+  3. Tilt will use the first that doesn't raise an exception.
+  4. If however *all* of them failed, Tilt will raise the exception of the first
+     template engine, since that was the most preferred one.
+</pre>
+<p>
+Template classes that were registered <b>last</b> would be tried first.
+Because the Markdown extensions are registered like this:
+</p>
+<pre>
+    Tilt.register Tilt::BlueClothTemplate, 'md'
+    Tilt.register Tilt::RDiscountTemplate, 'md'
+</pre>
+<p>
+<a href="../classes/Tilt.html">Tilt</a> will first try RDiscount and then
+BlueCloth. You could say that RDiscount has a *higher priority* than
+BlueCloth.
+</p>
+<p>
+The fallback mode works nicely when you just need to render an ERB or
+Markdown template, but if you depend on a specific implementation, you
+should use prefer:
+</p>
+<pre>
+    # Prefer BlueCloth for all its registered extensions (markdown, mkd, md)
+    Tilt.prefer Tilt::BlueClothTemplate
+
+    # Prefer Erubis for .erb only:
+    Tilt.prefer Tilt::ErubisTemplate, 'erb'
+</pre>
+<p>
+When a file extension has a preferred template class, <a
+href="../classes/Tilt.html">Tilt</a> will <b>always</b> use that class,
+even if it raises an exception.
+</p>
+<p>
+Template Compilation
+</p>
+<hr size="10"></hr><p>
+<a href="../classes/Tilt.html">Tilt</a> compiles generated Ruby source code
+produced by template engines and reuses it on subsequent template
+invocations. Benchmarks show this yields a 5x-10x performance increase over
+evaluating the Ruby source on each invocation.
+</p>
+<p>
+Template compilation is currently supported for these template engines:
+StringTemplate, ERB, Erubis, Haml, Nokogiri, Builder and Yajl.
+</p>
+<p>
+LICENSE
+</p>
+<hr size="5"></hr><p>
+<a href="../classes/Tilt.html">Tilt</a> is Copyright &#169; 2010 [Ryan
+Tomayko](<a href="http://tomayko.com/about">tomayko.com/about</a>) and
+distributed under the MIT license. See the `COPYING` file for more info.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

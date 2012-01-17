@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sat Jan 07 02:35:29 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# <a href="../classes/RSpec.html">RSpec</a> Mocks
+</p>
+<p>
+rspec-mocks is a test-double framework for rspec with support for method
+stubs, fakes, and message expectations on generated test-doubles and real
+objects alike.
+</p>
+<p>
+## Install
+</p>
+<pre>
+    gem install rspec       # for rspec-core, rspec-expectations, rspec-mocks
+    gem install rspec-mocks # for rspec-mocks only
+</pre>
+<p>
+## Test Doubles
+</p>
+<p>
+A Test Double is an object that stands in for a real object in a test. <a
+href="../classes/RSpec.html">RSpec</a> creates test doubles that support
+method stubs and message expectations.
+</p>
+<p>
+```ruby book = double(&#8220;book&#8221;) ```
+</p>
+<p>
+## Method Stubs
+</p>
+<p>
+A method stub is an implementation that returns a pre-determined value.
+Method stubs can be declared on test doubles or real objects using the same
+syntax. rspec-mocks supports 3 forms for declaring method stubs:
+</p>
+<p>
+```ruby book.stub(:title) { &#8220;The <a
+href="../classes/RSpec.html">RSpec</a> Book&#8221; } book.stub(:title =>
+&#8220;The <a href="../classes/RSpec.html">RSpec</a> Book&#8221;)
+book.stub(:title).and_return(&#8220;The <a
+href="../classes/RSpec.html">RSpec</a> Book&#8221;) ```
+</p>
+<p>
+You can also use this shortcut, which creates a test double and declares a
+method stub in one statement:
+</p>
+<p>
+```ruby book = double(&#8220;book&#8221;, :title => &#8220;The <a
+href="../classes/RSpec.html">RSpec</a> Book&#8221;) ```
+</p>
+<p>
+The first argment is a name, which is used for documentation and appears in
+failure messages. If you don&#8217;t care about the name, you can leave it
+out, making the combined instantiation/stub declaration very terse:
+</p>
+<p>
+```ruby double(:foo => &#8216;bar&#8217;) ```
+</p>
+<p>
+This is particularly nice when providing a list of test doubles to a method
+that iterates through them:
+</p>
+<p>
+```ruby order.calculate_total_price(stub(:price => 1.99),stub(:price =>
+2.99)) ```
+</p>
+<p>
+## Consecutive return values
+</p>
+<p>
+When a stub might be invoked more than once, you can provide additional
+arguments to `and_return`. The invocations cycle through the list. The last
+value is returned for any subsequent invocations:
+</p>
+<p>
+```ruby die.stub(:roll).and_return(1,2,3) die.roll # => 1 die.roll # => 2
+die.roll # => 3 die.roll # => 3 die.roll # => 3 ```
+</p>
+<p>
+To return an array in a single invocation, declare an array:
+</p>
+<p>
+```ruby team.stub(:players).and_return([stub(:name =>
+&#8220;David&#8221;)]) ```
+</p>
+<p>
+## Message Expectations
+</p>
+<p>
+A message expectation is an expectation that the test double will receive a
+message some time before the example ends. If the message is received, the
+expectation is satisfied. If not, the example fails.
+</p>
+<p>
+```ruby validator = double(&#8220;validator&#8221;)
+validator.should_receive(:validate).with(&#8220;02134&#8221;) zipcode =
+Zipcode.new(&#8220;02134&#8221;, validator) zipcode.valid? ```
+</p>
+<p>
+## Nomenclature
+</p>
+<p>
+### Mock Objects and Test Stubs
+</p>
+<p>
+The names Mock Object and Test Stub suggest specialized Test Doubles. i.e.
+a Test Stub is a Test Double that only supports method stubs, and a Mock
+Object is a Test Double that supports message expectations and method
+stubs.
+</p>
+<p>
+There is a lot of overlapping nomenclature here, and there are many
+variations of these patterns (fakes, spies, etc). Keep in mind that most of
+the time we&#8217;re talking about method-level concepts that are
+variations of method stubs and message expectations, and we&#8217;re
+applying to them to <em>one</em> generic kind of object: a Test Double.
+</p>
+<p>
+### Test-Specific Extension
+</p>
+<p>
+a.k.a. Partial Stub/Mock, a Test-Specific Extension is an extension of a
+real object in a system that is instrumented with test-double like
+behaviour in the context of a test. This technique is very common in Ruby
+because we often see class objects acting as global namespaces for methods.
+For example, in Rails:
+</p>
+<p>
+```ruby person = double(&#8220;person&#8221;) Person.stub(:find) { person }
+```
+</p>
+<p>
+In this case we&#8217;re instrumenting Person to return the person object
+we&#8217;ve defined whenever it receives the `find` message. We can do this
+with any object in a system because rspec-mocks adds the `stub` and
+`should_receive` methods to every object. When we use either, <a
+href="../classes/RSpec.html">RSpec</a> replaces the method we&#8217;re
+stubbing or mocking with its own test-double-like method. At the end of the
+example, <a href="../classes/RSpec.html">RSpec</a> verifies any message
+expectations, and then restores the original methods.
+</p>
+<p>
+## Expecting Arguments
+</p>
+<p>
+```ruby double.should_receive(:msg).with(*args)
+double.should_not_receive(:msg).with(*args) ```
+</p>
+<p>
+## Argument Matchers
+</p>
+<p>
+Arguments that are passed to `with` are compared with actual arguments
+received using ==. In cases in which you want to specify things about the
+arguments rather than the arguments themselves, you can use any of the
+matchers that ship with rspec-expectations. They don&#8217;t all make
+syntactic sense (they were primarily designed for use with
+RSpec::Expectations), but you are free to create your own custom
+RSpec::Matchers.
+</p>
+<p>
+rspec-mocks also adds some keyword Symbols that you can use to specify
+certain kinds of arguments:
+</p>
+<p>
+```ruby double.should_receive(:msg).with(no_args())
+double.should_receive(:msg).with(any_args())
+double.should_receive(:msg).with(1, kind_of(Numeric), &#8220;b&#8221;) 2nd
+argument can any kind of Numeric double.should_receive(:msg).with(1,
+boolean(), &#8220;b&#8221;) 2nd argument can true or false
+double.should_receive(:msg).with(1, /abc/, &#8220;b&#8221;) 2nd argument
+can be any String matching the submitted Regexp
+double.should_receive(:msg).with(1, anything(), &#8220;b&#8221;) 2nd
+argument can be anything at all double.should_receive(:msg).with(1,
+ducktype(:abs, :div), &#8220;b&#8221;)
+</p>
+<pre>
+                    #2nd argument can be object that responds to #abs and #div
+</pre>
+<p>
+```
+</p>
+<p>
+## Receive Counts
+</p>
+<p>
+```ruby double.should_receive(:msg).once double.should_receive(:msg).twice
+double.should_receive(:msg).exactly(n).times
+double.should_receive(:msg).at_least(:once)
+double.should_receive(:msg).at_least(:twice)
+double.should_receive(:msg).at_least(n).times
+double.should_receive(:msg).at_most(:once)
+double.should_receive(:msg).at_most(:twice)
+double.should_receive(:msg).at_most(n).times
+double.should_receive(:msg).any_number_of_times ```
+</p>
+<p>
+## Ordering
+</p>
+<p>
+```ruby double.should_receive(:msg).ordered
+double.should_receive(:other_msg).ordered
+</p>
+<pre>
+  #This will fail if the messages are received out of order
+</pre>
+<p>
+```
+</p>
+<p>
+## Setting Reponses
+</p>
+<p>
+Whether you are setting a message expectation or a method stub, you can
+tell the object precisely how to respond. The most generic way is to pass a
+block to `stub` or `should_receive`:
+</p>
+<p>
+```ruby double.should_receive(:msg) { value } ```
+</p>
+<p>
+When the double receives the `msg` message, it evaluates the block and
+returns the result.
+</p>
+<p>
+```ruby double.should_receive(:msg).and_return(value)
+double.should_receive(:msg).exactly(3).times.and_return(value1, value2,
+value3)
+</p>
+<pre>
+  # returns value1 the first time, value2 the second, etc
+</pre>
+<p>
+double.should_receive(:msg).and_raise(error)
+</p>
+<pre>
+  #error can be an instantiated object or a class
+  #if it is a class, it must be instantiable with no args
+</pre>
+<p>
+double.should_receive(:msg).and_throw(:msg)
+double.should_receive(:msg).and_yield(values,to,yield)
+double.should_receive(:msg).and_yield(values,to,yield).and_yield(some,other,values,this,time)
+</p>
+<pre>
+  # for methods that yield to a block multiple times
+</pre>
+<p>
+```
+</p>
+<p>
+Any of these responses can be applied to a stub as well
+</p>
+<p>
+```ruby double.stub(:msg).and_return(value)
+double.stub(:msg).and_return(value1, value2, value3)
+double.stub(:msg).and_raise(error) double.stub(:msg).and_throw(:msg)
+double.stub(:msg).and_yield(values,to,yield)
+double.stub(:msg).and_yield(values,to,yield).and_yield(some,other,values,this,time)
+```
+</p>
+<p>
+## Arbitrary Handling
+</p>
+<p>
+Once in a while you&#8217;ll find that the available expectations
+don&#8217;t solve the particular problem you are trying to solve. Imagine
+that you expect the message to come with an Array argument that has a
+specific length, but you don&#8217;t care what is in it. You could do this:
+</p>
+<p>
+```ruby double.should_receive(:msg) do |arg|
+</p>
+<pre>
+  arg.size.should eq(7)
+</pre>
+<p>
+end ```
+</p>
+<p>
+## Combining Expectation Details
+</p>
+<p>
+Combining the message name with specific arguments, receive counts and
+responses you can get quite a bit of detail in your expectations:
+</p>
+<p>
+```ruby double.should_receive(:<<).with(&#8220;illegal
+value&#8221;).once.and_raise(ArgumentError) ```
+</p>
+<p>
+While this is a good thing when you really need it, you probably
+don&#8217;t really need it! Take care to specify only the things that
+matter to the behavior of your code.
+</p>
+<p>
+## Further Reading
+</p>
+<p>
+There are many different viewpoints about the meaning of mocks and stubs.
+If you are interested in learning more, here is some recommended reading:
+</p>
+<ul>
+<li>Mock Objects: <a
+href="http://www.mockobjects.com/">www.mockobjects.com/</a>
+
+</li>
+<li>Endo-Testing: <a
+href="http://www.mockobjects.com/files/endotesting.pdf">www.mockobjects.com/files/endotesting.pdf</a>
+
+</li>
+<li>Mock Roles, Not Objects: <a
+href="http://www.mockobjects.com/files/mockrolesnotobjects.pdf">www.mockobjects.com/files/mockrolesnotobjects.pdf</a>
+
+</li>
+<li>Test Double Patterns: <a
+href="http://xunitpatterns.com/Test%20Double%20Patterns.html">xunitpatterns.com/Test%20Double%20Patterns.html</a>
+
+</li>
+<li>Mocks aren&#8217;t stubs: <a
+href="http://www.martinfowler.com/articles/mocksArentStubs.html">www.martinfowler.com/articles/mocksArentStubs.html</a>
+
+</li>
+</ul>
+<p>
+## Also see
+</p>
+<ul>
+<li>[<a
+href="http://github.com/rspec/rspec](http://github.com/rspec/rspec">github.com/rspec/rspec](http://github.com/rspec/rspec</a>)
+
+</li>
+<li>[<a
+href="http://github.com/rspec/rspec-core](http://github.com/rspec/rspec-core">github.com/rspec/rspec-core](http://github.com/rspec/rspec-core</a>)
+
+</li>
+<li>[<a
+href="http://github.com/rspec/rspec-expectations](http://github.com/rspec/rspec-expectations">github.com/rspec/rspec-expectations](http://github.com/rspec/rspec-expectations</a>)
+
+</li>
+</ul>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

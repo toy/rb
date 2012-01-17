@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sun Oct 02 01:01:21 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2><a href="../classes/HasScope.html">HasScope</a></h2>
+<p>
+Has scope allows you to easily create controller filters based on your
+resources named scopes. Imagine the following model called graduations:
+</p>
+<pre>
+  class Graduation &lt; ActiveRecord::Base
+    named_scope :featured, :conditions =&gt; { :featured =&gt; true }
+    named_scope :by_degree, proc {|degree| { :conditions =&gt; { :degree =&gt; degree } } }
+  end
+</pre>
+<p>
+You can use those named scopes as filters by declaring them on your
+controller:
+</p>
+<pre>
+  class GraduationsController &lt; ApplicationController
+    has_scope :featured, :type =&gt; :boolean
+    has_scope :by_degree
+  end
+</pre>
+<p>
+Now, if you want to apply them to an specific resource, you just need to
+call <tt>apply_scopes</tt>:
+</p>
+<pre>
+  class GraduationsController &lt; ApplicationController
+    has_scope :featured, :type =&gt; :boolean
+    has_scope :by_degree
+    has_scope :by_period, :using =&gt; [:started_at, :ended_at]
+
+    def index
+      @graduations = apply_scopes(Graduation).all
+    end
+  end
+</pre>
+<p>
+Then for each request:
+</p>
+<pre>
+  /graduations
+  #=&gt; acts like a normal request
+
+  /graduations?featured=true
+  #=&gt; calls the named scope and bring featured graduations
+
+  /graduations?params[by_period][started_at]=20100701&amp;params[by_period][ended_at]=20101013
+  #=&gt; brings graduations in the given period
+
+  /graduations?featured=true&amp;by_degree=phd
+  #=&gt; brings featured graduations with phd degree
+</pre>
+<p>
+You can retrieve all the scopes applied in one action with
+<tt>current_scopes</tt> method. In the last case, it would return: {
+:featured => true, :by_degree => &#8220;phd&#8221; }.
+</p>
+<h2>Installation</h2>
+<p>
+<a href="../classes/HasScope.html">HasScope</a> is available as gem on
+Gemcutter, so just run the following:
+</p>
+<pre>
+    sudo gem install has_scope
+</pre>
+<p>
+If you want it as plugin, just do:
+</p>
+<pre>
+    script/plugin install git://github.com/plataformatec/has_scope.git
+</pre>
+<h2>Options</h2>
+<p>
+<a href="../classes/HasScope.html">HasScope</a> supports several options:
+</p>
+<ul>
+<li><tt>:type</tt> - Checks the type of the parameter sent. If set to :boolean
+it just calls the named scope, without any argument. By default, it does
+not allow hashes or arrays to be given, except if type :hash or :array are
+set.
+
+</li>
+<li><tt>:only</tt> - In which actions the scope is applied.
+
+</li>
+<li><tt>:except</tt> - In which actions the scope is not applied.
+
+</li>
+<li><tt>:as</tt> - The key in the params hash expected to find the scope.
+Defaults to the scope name.
+
+</li>
+<li><tt>:using</tt> - The subkeys to be used as args when type is a hash.
+
+</li>
+<li><tt>:if</tt> - Specifies a method, proc or string to call to determine if
+the scope should apply.
+
+</li>
+<li><tt>:unless</tt> - Specifies a method, proc or string to call to determine
+if the scope should NOT apply.
+
+</li>
+<li><tt>:default</tt> - Default value for the scope. Whenever supplied the
+scope is always called.
+
+</li>
+<li><tt>:allow_blank</tt> - Blank values are not sent to scopes by default. Set
+to true to overwrite.
+
+</li>
+</ul>
+<h2>Block usage</h2>
+<p>
+has_scope also accepts a block. The controller, current scope and value are
+yielded to the block so the user can apply the scope on its own. This is
+useful in case we need to manipulate the given value:
+</p>
+<pre>
+  has_scope :category do |controller, scope, value|
+    value != &quot;all&quot; ? scope.by_category(value) : scope
+  end
+</pre>
+<p>
+When used with booleans, it just receives two arguments and is just invoked
+if true is given:
+</p>
+<pre>
+  has_scope :not_voted_by_me, :type =&gt; :boolean do |controller, scope|
+    scope.not_voted_by(controller.current_user.id)
+  end
+</pre>
+<h2>Bugs and Feedback</h2>
+<p>
+If you discover any bugs or want to drop a line, feel free to create an
+issue on GitHub.
+</p>
+<p>
+<a
+href="http://github.com/plataformatec/has_scope/issues">github.com/plataformatec/has_scope/issues</a>
+</p>
+<p>
+MIT License. Copyright 2009 Plataforma Tecnologia. <a
+href="http://blog.plataformatec.com.br">blog.plataformatec.com.br</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

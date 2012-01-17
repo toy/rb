@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Nokogiri::XSLT::Stylesheet</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Nokogiri::XSLT::Stylesheet 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/ext/nokogiri/xml_attribute_decl_c.html">ext/nokogiri/xml_attribute_decl.c</a></li>
+            
+            <li><a href="../../../files/lib/nokogiri/xslt/stylesheet_rb.html">lib/nokogiri/xslt/stylesheet.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A <a href="Stylesheet.html">Stylesheet</a> represents an <a
+href="../XSLT.html">XSLT</a> <a href="Stylesheet.html">Stylesheet</a>
+object. <a href="Stylesheet.html">Stylesheet</a> creation is done through
+<a href="../../Nokogiri.html#M000529">Nokogiri.XSLT</a>. Here is an example
+of transforming an <a href="../XML/Document.html">XML::Document</a> with a
+Stylesheet:
+</p>
+<pre>
+  doc   = Nokogiri::XML(File.read('some_file.xml'))
+  xslt  = Nokogiri::XSLT(File.read('some_transformer.xslt'))
+
+  puts xslt.transform(doc)
+</pre>
+<p>
+See <a
+href="Stylesheet.html#M000030">Nokogiri::XSLT::Stylesheet#transform</a> for
+more transformation information.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000526">apply_to</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000027">parse_stylesheet_doc</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000029">serialize</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000030">transform</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000526">
+                    
+                    <a name="M000526"></a><b>apply_to</b>(document, params = [])
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Apply an <a href="../XSLT.html">XSLT</a> stylesheet to an <a
+href="../XML/Document.html">XML::Document</a>. <tt>params</tt> is an array
+of strings used as <a href="../XSLT.html">XSLT</a> parameters. returns
+serialized document
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000526_source')" id="l_M000526_source">show</a>
+                        
+                    </p>
+                    <div id="M000526_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/nokogiri/xslt/stylesheet.rb, line 20</span>
+20:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">apply_to</span> <span class="ruby-identifier">document</span>, <span class="ruby-identifier">params</span> = []
+21:         <span class="ruby-identifier">serialize</span>(<span class="ruby-identifier">transform</span>(<span class="ruby-identifier">document</span>, <span class="ruby-identifier">params</span>))
+22:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000029">
+                    
+                    <a name="M000029"></a><b>serialize(document)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Serialize <tt>document</tt> to an xml string.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000029_source')" id="l_M000029_source">show</a>
+                        
+                    </p>
+                    <div id="M000029_source" class="dyn-source">
+                        <pre>static VALUE serialize(VALUE self, VALUE xmlobj)
+{
+    xmlDocPtr xml ;
+    xsltStylesheetPtr ss ;
+    xmlChar* doc_ptr ;
+    int doc_len ;
+    VALUE rval ;
+
+    Data_Get_Struct(xmlobj, xmlDoc, xml);
+    Data_Get_Struct(self, xsltStylesheet, ss);
+    xsltSaveResultToString(&amp;doc_ptr, &amp;doc_len, xml, ss);
+    rval = NOKOGIRI_STR_NEW(doc_ptr, doc_len);
+    xmlFree(doc_ptr);
+    return rval ;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000030">
+                    
+                    <a name="M000030"></a><b>transform(document, params = [])
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Apply an <a href="../XSLT.html">XSLT</a> stylesheet to an <a
+href="../XML/Document.html">XML::Document</a>. <tt>params</tt> is an array
+of strings used as <a href="../XSLT.html">XSLT</a> parameters. returns <a
+href="../XML/Document.html">Nokogiri::XML::Document</a>
+</p>
+<p>
+Example:
+</p>
+<pre>
+  doc   = Nokogiri::XML(File.read(ARGV[0]))
+  xslt  = Nokogiri::XSLT(File.read(ARGV[1]))
+  puts xslt.transform(doc, ['key', 'value'])
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000030_source')" id="l_M000030_source">show</a>
+                        
+                    </p>
+                    <div id="M000030_source" class="dyn-source">
+                        <pre>static VALUE transform(int argc, VALUE* argv, VALUE self)
+{
+    VALUE xmldoc, paramobj ;
+    xmlDocPtr xml ;
+    xmlDocPtr result ;
+    xsltStylesheetPtr ss ;
+    const char** params ;
+    long param_len, j ;
+
+    rb_scan_args(argc, argv, &quot;11&quot;, &amp;xmldoc, &amp;paramobj);
+    if (NIL_P(paramobj)) { paramobj = rb_ary_new2(0L) ; }
+    if (!rb_obj_is_kind_of(xmldoc, cNokogiriXmlDocument))
+      rb_raise(rb_eArgError, &quot;argument must be a Nokogiri::XML::Document&quot;);
+
+    /* handle hashes as arguments. */
+    if(T_HASH == TYPE(paramobj)) {
+      paramobj = rb_funcall(paramobj, rb_intern(&quot;to_a&quot;), 0);
+      paramobj = rb_funcall(paramobj, rb_intern(&quot;flatten&quot;), 0);
+    }
+
+    Check_Type(paramobj, T_ARRAY);
+
+    Data_Get_Struct(xmldoc, xmlDoc, xml);
+    Data_Get_Struct(self, xsltStylesheet, ss);
+
+    param_len = RARRAY_LEN(paramobj);
+    params = calloc((size_t)param_len+1, sizeof(char*));
+    for (j = 0 ; j &lt; param_len ; j++) {
+      VALUE entry = rb_ary_entry(paramobj, j);
+      const char * ptr = StringValuePtr(entry);
+      params[j] = ptr;
+    }
+    params[param_len] = 0 ;
+
+    result = xsltApplyStylesheet(ss, xml, params);
+    free(params);
+
+    if (!result) rb_raise(rb_eRuntimeError, &quot;could not perform xslt transform on document&quot;);
+
+    return Nokogiri_wrap_xml_document((VALUE)0, result) ;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000027">
+                    
+                    <a name="M000027"></a><b>parse_stylesheet_doc(document)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Parse a stylesheet from <tt>document</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000027_source')" id="l_M000027_source">show</a>
+                        
+                    </p>
+                    <div id="M000027_source" class="dyn-source">
+                        <pre>static VALUE parse_stylesheet_doc(VALUE klass, VALUE xmldocobj)
+{
+    xmlDocPtr xml ;
+    xsltStylesheetPtr ss ;
+    Data_Get_Struct(xmldocobj, xmlDoc, xml);
+    exsltRegisterAll();
+
+    xsltSetGenericErrorFunc(NULL, xslt_generic_error_handler);
+
+    ss = xsltParseStylesheetDoc(xmlCopyDoc(xml, 1)); /* 1 =&gt; recursive */
+
+    xsltSetGenericErrorFunc(NULL, NULL);
+
+    return Data_Wrap_Struct(klass, NULL, dealloc, ss);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

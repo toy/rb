@@ -1,0 +1,1 @@
+var tree = [["","","files",[["","","ext",[["","","syslog",[["syslog.c","files/ext/syslog/syslog_c.html","",[]],["test.rb","files/ext/syslog/test_rb.html","",[]]]]]]]],["Syslog","classes/Syslog.html","",[["Constants","classes/Syslog/Constants.html","",[]]]],["TestSyslog","classes/TestSyslog.html"," < Test::Unit::TestCase",[]]]

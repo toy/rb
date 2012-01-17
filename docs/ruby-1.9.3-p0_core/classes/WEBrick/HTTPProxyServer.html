@@ -1,0 +1,808 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>WEBrick::HTTPProxyServer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            WEBrick::HTTPProxyServer 
+            
+                <span class="parent">&lt; 
+                    
+                    HTTPServer
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/webrick/httpproxy_rb.html">lib/webrick/httpproxy.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+An HTTP Proxy server which proxies GET, HEAD and POST requests.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008036">choose_header</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008022">do_CONNECT</a>,</li>
+                
+                <li><a href="#M008024">do_GET</a>,</li>
+                
+                <li><a href="#M008028">do_HEAD</a>,</li>
+                
+                <li><a href="#M008030">do_OPTIONS</a>,</li>
+                
+                <li><a href="#M008029">do_POST</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008016">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008050">perform_proxy_request</a>,</li>
+                
+                <li><a href="#M008018">proxy_auth</a>,</li>
+                
+                <li><a href="#M008020">proxy_service</a>,</li>
+                
+                <li><a href="#M008019">proxy_uri</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M008017">service</a>,</li>
+                
+                <li><a href="#M008040">set_cookie</a>,</li>
+                
+                <li><a href="#M008046">set_via</a>,</li>
+                
+                <li><a href="#M008047">setup_proxy_header</a>,</li>
+                
+                <li><a href="#M008048">setup_upstream_proxy_authentication</a>,</li>
+                
+                <li><a href="#M008035">split_field</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">HopByHop</td>
+            <td>=</td>
+            <td class="attr-value">%w( connection keep-alive proxy-authenticate upgrade                    proxy-authorization te trailers transfer-encoding )</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Some header fields should not be transferred.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ShouldNotTransfer</td>
+            <td>=</td>
+            <td class="attr-value">%w( set-cookie proxy-connection )</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008016">
+                    
+                    <a name="M008016"></a><b>new</b>(config={}, default=Config::HTTP)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Proxy server configurations. The proxy server handles the following
+configuration items in addition to those supported by HTTPServer:
+</p>
+<table>
+<tr><td valign="top">:ProxyAuthProc:</td><td>Called with a request and response to authorize a request
+
+</td></tr>
+<tr><td valign="top">:ProxyVia:</td><td>Appended to the via header
+
+</td></tr>
+<tr><td valign="top">:ProxyURI:</td><td>The proxy server&#8217;s <a href="../URI.html">URI</a>
+
+</td></tr>
+<tr><td valign="top">:ProxyContentHandler:</td><td>Called with a request and resopnse and allows modification of the response
+
+</td></tr>
+<tr><td valign="top">:ProxyTimeout:</td><td>Sets the proxy timeouts to 30 seconds for open and 60 seconds for read
+operations
+
+</td></tr>
+</table>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008016_source')" id="l_M008016_source">show</a>
+                        
+                    </p>
+                    <div id="M008016_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 54</span>
+54:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">config</span>={}, <span class="ruby-identifier">default</span>=<span class="ruby-constant">Config</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>)
+55:       <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">config</span>, <span class="ruby-identifier">default</span>)
+56:       <span class="ruby-identifier">c</span> = <span class="ruby-ivar">@config</span>
+57:       <span class="ruby-ivar">@via</span> = <span class="ruby-node">&quot;#{c[:HTTPVersion]} #{c[:ServerName]}:#{c[:Port]}&quot;</span>
+58:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008022">
+                    
+                    <a name="M008022"></a><b>do_CONNECT</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008022_source')" id="l_M008022_source">show</a>
+                        
+                    </p>
+                    <div id="M008022_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 102</span>
+102:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_CONNECT</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+103:       <span class="ruby-comment cmt"># Proxy Authentication</span>
+104:       <span class="ruby-identifier">proxy_auth</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+105: 
+106:       <span class="ruby-identifier">ua</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:WEBrickSocket</span>]  <span class="ruby-comment cmt"># User-Agent</span>
+107:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">InternalServerError</span>,
+108:         <span class="ruby-value str">&quot;[BUG] cannot get socket&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">ua</span>
+109: 
+110:       <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span> = <span class="ruby-identifier">req</span>.<span class="ruby-identifier">unparsed_uri</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>, <span class="ruby-value">2</span>)
+111:       <span class="ruby-comment cmt"># Proxy authentication for upstream proxy server</span>
+112:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">proxy</span> = <span class="ruby-identifier">proxy_uri</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+113:         <span class="ruby-identifier">proxy_request_line</span> = <span class="ruby-node">&quot;CONNECT #{host}:#{port} HTTP/1.0&quot;</span>
+114:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">proxy</span>.<span class="ruby-identifier">userinfo</span>
+115:           <span class="ruby-identifier">credentials</span> = <span class="ruby-value str">&quot;Basic &quot;</span> <span class="ruby-operator">+</span> [<span class="ruby-identifier">proxy</span>.<span class="ruby-identifier">userinfo</span>].<span class="ruby-identifier">pack</span>(<span class="ruby-value str">&quot;m&quot;</span>).<span class="ruby-identifier">delete</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+116:         <span class="ruby-keyword kw">end</span>
+117:         <span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span> = <span class="ruby-identifier">proxy</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">proxy</span>.<span class="ruby-identifier">port</span>
+118:       <span class="ruby-keyword kw">end</span>
+119: 
+120:       <span class="ruby-keyword kw">begin</span>
+121:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT: upstream proxy is `#{host}:#{port}'.&quot;</span>)
+122:         <span class="ruby-identifier">os</span> = <span class="ruby-constant">TCPSocket</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">host</span>, <span class="ruby-identifier">port</span>)     <span class="ruby-comment cmt"># origin server</span>
+123: 
+124:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">proxy</span>
+125:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;CONNECT: sending a Request-Line&quot;</span>)
+126:           <span class="ruby-identifier">os</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">proxy_request_line</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">CRLF</span>
+127:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT: &gt; #{proxy_request_line}&quot;</span>)
+128:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">credentials</span>
+129:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;CONNECT: sending a credentials&quot;</span>)
+130:             <span class="ruby-identifier">os</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;Proxy-Authorization: &quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">credentials</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">CRLF</span>
+131:           <span class="ruby-keyword kw">end</span>
+132:           <span class="ruby-identifier">os</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">CRLF</span>
+133:           <span class="ruby-identifier">proxy_status_line</span> = <span class="ruby-identifier">os</span>.<span class="ruby-identifier">gets</span>(<span class="ruby-constant">LF</span>)
+134:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;CONNECT: read a Status-Line form the upstream server&quot;</span>)
+135:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT: &lt; #{proxy_status_line}&quot;</span>)
+136:           <span class="ruby-keyword kw">if</span> <span class="ruby-regexp re">%r{^HTTP/\d+\.\d+\s+200\s*}</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">proxy_status_line</span>
+137:             <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">line</span> = <span class="ruby-identifier">os</span>.<span class="ruby-identifier">gets</span>(<span class="ruby-constant">LF</span>)
+138:               <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-node">/\A(#{CRLF}|#{LF})\z/o</span><span class="ruby-identifier">m</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">line</span>
+139:             <span class="ruby-keyword kw">end</span>
+140:           <span class="ruby-keyword kw">else</span>
+141:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">BadGateway</span>
+142:           <span class="ruby-keyword kw">end</span>
+143:         <span class="ruby-keyword kw">end</span>
+144:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT #{host}:#{port}: succeeded&quot;</span>)
+145:         <span class="ruby-identifier">res</span>.<span class="ruby-identifier">status</span> = <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">RC_OK</span>
+146:       <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+147:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT #{host}:#{port}: failed `#{ex.message}'&quot;</span>)
+148:         <span class="ruby-identifier">res</span>.<span class="ruby-identifier">set_error</span>(<span class="ruby-identifier">ex</span>)
+149:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">EOFError</span>
+150:       <span class="ruby-keyword kw">ensure</span>
+151:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">handler</span> = <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyContentHandler</span>]
+152:           <span class="ruby-identifier">handler</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+153:         <span class="ruby-keyword kw">end</span>
+154:         <span class="ruby-identifier">res</span>.<span class="ruby-identifier">send_response</span>(<span class="ruby-identifier">ua</span>)
+155:         <span class="ruby-identifier">access_log</span>(<span class="ruby-ivar">@config</span>, <span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+156: 
+157:         <span class="ruby-comment cmt"># Should clear request-line not to send the sesponse twice.</span>
+158:         <span class="ruby-comment cmt"># see: HTTPServer#run</span>
+159:         <span class="ruby-identifier">req</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-constant">NullReader</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">nil</span>
+160:       <span class="ruby-keyword kw">end</span>
+161: 
+162:       <span class="ruby-keyword kw">begin</span>
+163:         <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">fds</span> = <span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-identifier">select</span>([<span class="ruby-identifier">ua</span>, <span class="ruby-identifier">os</span>])
+164:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">fds</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">ua</span>)
+165:             <span class="ruby-identifier">buf</span> = <span class="ruby-identifier">ua</span>.<span class="ruby-identifier">sysread</span>(<span class="ruby-value">1024</span>);
+166:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT: #{buf.bytesize} byte from User-Agent&quot;</span>)
+167:             <span class="ruby-identifier">os</span>.<span class="ruby-identifier">syswrite</span>(<span class="ruby-identifier">buf</span>)
+168:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">fds</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">os</span>)
+169:             <span class="ruby-identifier">buf</span> = <span class="ruby-identifier">os</span>.<span class="ruby-identifier">sysread</span>(<span class="ruby-value">1024</span>);
+170:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT: #{buf.bytesize} byte from #{host}:#{port}&quot;</span>)
+171:             <span class="ruby-identifier">ua</span>.<span class="ruby-identifier">syswrite</span>(<span class="ruby-identifier">buf</span>)
+172:           <span class="ruby-keyword kw">end</span>
+173:         <span class="ruby-keyword kw">end</span>
+174:       <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+175:         <span class="ruby-identifier">os</span>.<span class="ruby-identifier">close</span>
+176:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;CONNECT #{host}:#{port}: closed&quot;</span>)
+177:       <span class="ruby-keyword kw">end</span>
+178: 
+179:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">EOFError</span>
+180:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008024">
+                    
+                    <a name="M008024"></a><b>do_GET</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008024_source')" id="l_M008024_source">show</a>
+                        
+                    </p>
+                    <div id="M008024_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 182</span>
+182:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_GET</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+183:       <span class="ruby-identifier">perform_proxy_request</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">http</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span><span class="ruby-operator">|</span>
+184:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span>)
+185:       <span class="ruby-keyword kw">end</span>
+186:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008028">
+                    
+                    <a name="M008028"></a><b>do_HEAD</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008028_source')" id="l_M008028_source">show</a>
+                        
+                    </p>
+                    <div id="M008028_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 188</span>
+188:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_HEAD</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+189:       <span class="ruby-identifier">perform_proxy_request</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">http</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span><span class="ruby-operator">|</span>
+190:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">head</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span>)
+191:       <span class="ruby-keyword kw">end</span>
+192:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008030">
+                    
+                    <a name="M008030"></a><b>do_OPTIONS</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008030_source')" id="l_M008030_source">show</a>
+                        
+                    </p>
+                    <div id="M008030_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 200</span>
+200:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_OPTIONS</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+201:       <span class="ruby-identifier">res</span>[<span class="ruby-value str">'allow'</span>] = <span class="ruby-value str">&quot;GET,HEAD,POST,OPTIONS,CONNECT&quot;</span>
+202:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008029">
+                    
+                    <a name="M008029"></a><b>do_POST</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008029_source')" id="l_M008029_source">show</a>
+                        
+                    </p>
+                    <div id="M008029_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 194</span>
+194:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_POST</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+195:       <span class="ruby-identifier">perform_proxy_request</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">http</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span><span class="ruby-operator">|</span>
+196:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">post</span>(<span class="ruby-identifier">path</span>, <span class="ruby-identifier">req</span>.<span class="ruby-identifier">body</span> <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&quot;</span>, <span class="ruby-identifier">header</span>)
+197:       <span class="ruby-keyword kw">end</span>
+198:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008018">
+                    
+                    <a name="M008018"></a><b>proxy_auth</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008018_source')" id="l_M008018_source">show</a>
+                        
+                    </p>
+                    <div id="M008018_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 70</span>
+70:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">proxy_auth</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+71:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">proc</span> = <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyAuthProc</span>]
+72:         <span class="ruby-identifier">proc</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+73:       <span class="ruby-keyword kw">end</span>
+74:       <span class="ruby-identifier">req</span>.<span class="ruby-identifier">header</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-value str">&quot;proxy-authorization&quot;</span>)
+75:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008020">
+                    
+                    <a name="M008020"></a><b>proxy_service</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008020_source')" id="l_M008020_source">show</a>
+                        
+                    </p>
+                    <div id="M008020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 82</span>
+ 82:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">proxy_service</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+ 83:       <span class="ruby-comment cmt"># Proxy Authentication</span>
+ 84:       <span class="ruby-identifier">proxy_auth</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+ 85: 
+ 86:       <span class="ruby-keyword kw">begin</span>
+ 87:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;do_#{req.request_method}&quot;</span>, <span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+ 88:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NoMethodError</span>
+ 89:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">MethodNotAllowed</span>,
+ 90:           <span class="ruby-node">&quot;unsupported method `#{req.request_method}'.&quot;</span>
+ 91:       <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+ 92:         <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;#{err.class}: #{err.message}&quot;</span>)
+ 93:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTTPStatus</span><span class="ruby-operator">::</span><span class="ruby-constant">ServiceUnavailable</span>, <span class="ruby-identifier">err</span>.<span class="ruby-identifier">message</span>
+ 94:       <span class="ruby-keyword kw">end</span>
+ 95: 
+ 96:       <span class="ruby-comment cmt"># Process contents</span>
+ 97:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">handler</span> = <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyContentHandler</span>]
+ 98:         <span class="ruby-identifier">handler</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+ 99:       <span class="ruby-keyword kw">end</span>
+100:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008019">
+                    
+                    <a name="M008019"></a><b>proxy_uri</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008019_source')" id="l_M008019_source">show</a>
+                        
+                    </p>
+                    <div id="M008019_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 77</span>
+77:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">proxy_uri</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+78:       <span class="ruby-comment cmt"># should return upstream proxy server's URI</span>
+79:       <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyURI</span>]
+80:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008017">
+                    
+                    <a name="M008017"></a><b>service</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008017_source')" id="l_M008017_source">show</a>
+                        
+                    </p>
+                    <div id="M008017_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 60</span>
+60:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">service</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+61:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">request_method</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;CONNECT&quot;</span>
+62:         <span class="ruby-identifier">do_CONNECT</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+63:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">req</span>.<span class="ruby-identifier">unparsed_uri</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">%r!^http://!</span>
+64:         <span class="ruby-identifier">proxy_service</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+65:       <span class="ruby-keyword kw">else</span>
+66:         <span class="ruby-keyword kw">super</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+67:       <span class="ruby-keyword kw">end</span>
+68:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M008036">
+                    
+                    <a name="M008036"></a><b>choose_header</b>(src, dst)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008036_source')" id="l_M008036_source">show</a>
+                        
+                    </p>
+                    <div id="M008036_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 212</span>
+212:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">choose_header</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dst</span>)
+213:       <span class="ruby-identifier">connections</span> = <span class="ruby-identifier">split_field</span>(<span class="ruby-identifier">src</span>[<span class="ruby-value str">'connection'</span>])
+214:       <span class="ruby-identifier">src</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+215:         <span class="ruby-identifier">key</span> = <span class="ruby-identifier">key</span>.<span class="ruby-identifier">downcase</span>
+216:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">HopByHop</span>.<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">key</span>)          <span class="ruby-operator">||</span> <span class="ruby-comment cmt"># RFC2616: 13.5.1</span>
+217:            <span class="ruby-identifier">connections</span>.<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">key</span>)       <span class="ruby-operator">||</span> <span class="ruby-comment cmt"># RFC2616: 14.10</span>
+218:            <span class="ruby-constant">ShouldNotTransfer</span>.<span class="ruby-identifier">member?</span>(<span class="ruby-identifier">key</span>)    <span class="ruby-comment cmt"># pragmatics</span>
+219:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;choose_header: `#{key}: #{value}'&quot;</span>)
+220:           <span class="ruby-keyword kw">next</span>
+221:         <span class="ruby-keyword kw">end</span>
+222:         <span class="ruby-identifier">dst</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+223:       }
+224:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008050">
+                    
+                    <a name="M008050"></a><b>perform_proxy_request</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008050_source')" id="l_M008050_source">show</a>
+                        
+                    </p>
+                    <div id="M008050_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 273</span>
+273:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">perform_proxy_request</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+274:       <span class="ruby-identifier">uri</span> = <span class="ruby-identifier">req</span>.<span class="ruby-identifier">request_uri</span>
+275:       <span class="ruby-identifier">path</span> = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>.<span class="ruby-identifier">dup</span>
+276:       <span class="ruby-identifier">path</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;?&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">query</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">query</span>
+277:       <span class="ruby-identifier">header</span> = <span class="ruby-identifier">setup_proxy_header</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+278:       <span class="ruby-identifier">upstream</span> = <span class="ruby-identifier">setup_upstream_proxy_authentication</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>, <span class="ruby-identifier">header</span>)
+279:       <span class="ruby-identifier">response</span> = <span class="ruby-keyword kw">nil</span>
+280: 
+281:       <span class="ruby-identifier">http</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">port</span>, <span class="ruby-identifier">upstream</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">upstream</span>.<span class="ruby-identifier">port</span>)
+282:       <span class="ruby-identifier">http</span>.<span class="ruby-identifier">start</span> <span class="ruby-keyword kw">do</span>
+283:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyTimeout</span>]
+284:           <span class="ruby-comment cmt">##################################   these issues are</span>
+285:           <span class="ruby-identifier">http</span>.<span class="ruby-identifier">open_timeout</span> = <span class="ruby-value">30</span>   <span class="ruby-comment cmt"># secs  #   necessary (maybe bacause</span>
+286:           <span class="ruby-identifier">http</span>.<span class="ruby-identifier">read_timeout</span> = <span class="ruby-value">60</span>   <span class="ruby-comment cmt"># secs  #   Ruby's bug, but why?)</span>
+287:           <span class="ruby-comment cmt">##################################</span>
+288:         <span class="ruby-keyword kw">end</span>
+289:         <span class="ruby-identifier">response</span> = <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">http</span>, <span class="ruby-identifier">path</span>, <span class="ruby-identifier">header</span>)
+290:       <span class="ruby-keyword kw">end</span>
+291: 
+292:       <span class="ruby-comment cmt"># Persistent connection requirements are mysterious for me.</span>
+293:       <span class="ruby-comment cmt"># So I will close the connection in every response.</span>
+294:       <span class="ruby-identifier">res</span>[<span class="ruby-value str">'proxy-connection'</span>] = <span class="ruby-value str">&quot;close&quot;</span>
+295:       <span class="ruby-identifier">res</span>[<span class="ruby-value str">'connection'</span>] = <span class="ruby-value str">&quot;close&quot;</span>
+296: 
+297:       <span class="ruby-comment cmt"># Convert Net::HTTP::HTTPResponse to WEBrick::HTTPResponse</span>
+298:       <span class="ruby-identifier">res</span>.<span class="ruby-identifier">status</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">code</span>.<span class="ruby-identifier">to_i</span>
+299:       <span class="ruby-identifier">choose_header</span>(<span class="ruby-identifier">response</span>, <span class="ruby-identifier">res</span>)
+300:       <span class="ruby-identifier">set_cookie</span>(<span class="ruby-identifier">response</span>, <span class="ruby-identifier">res</span>)
+301:       <span class="ruby-identifier">set_via</span>(<span class="ruby-identifier">res</span>)
+302:       <span class="ruby-identifier">res</span>.<span class="ruby-identifier">body</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">body</span>
+303:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008040">
+                    
+                    <a name="M008040"></a><b>set_cookie</b>(src, dst)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="../Net/HTTP.html">Net::HTTP</a> is stupid about the multiple
+header fields. Here is workaround:
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008040_source')" id="l_M008040_source">show</a>
+                        
+                    </p>
+                    <div id="M008040_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 228</span>
+228:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_cookie</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dst</span>)
+229:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">str</span> = <span class="ruby-identifier">src</span>[<span class="ruby-value str">'set-cookie'</span>]
+230:         <span class="ruby-identifier">cookies</span> = []
+231:         <span class="ruby-identifier">str</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,\s*/</span>).<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">token</span><span class="ruby-operator">|</span>
+232:           <span class="ruby-keyword kw">if</span> <span class="ruby-regexp re">/^[^=]+;/o</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">token</span>
+233:             <span class="ruby-identifier">cookies</span>[<span class="ruby-value">-1</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;, &quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">token</span>
+234:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-regexp re">/=/o</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">token</span>
+235:             <span class="ruby-identifier">cookies</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">token</span>
+236:           <span class="ruby-keyword kw">else</span>
+237:             <span class="ruby-identifier">cookies</span>[<span class="ruby-value">-1</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;, &quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">token</span>
+238:           <span class="ruby-keyword kw">end</span>
+239:         }
+240:         <span class="ruby-identifier">dst</span>.<span class="ruby-identifier">cookies</span>.<span class="ruby-identifier">replace</span>(<span class="ruby-identifier">cookies</span>)
+241:       <span class="ruby-keyword kw">end</span>
+242:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008046">
+                    
+                    <a name="M008046"></a><b>set_via</b>(h)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008046_source')" id="l_M008046_source">show</a>
+                        
+                    </p>
+                    <div id="M008046_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 244</span>
+244:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_via</span>(<span class="ruby-identifier">h</span>)
+245:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@config</span>[<span class="ruby-identifier">:ProxyVia</span>]
+246:         <span class="ruby-keyword kw">if</span>  <span class="ruby-identifier">h</span>[<span class="ruby-value str">'via'</span>]
+247:           <span class="ruby-identifier">h</span>[<span class="ruby-value str">'via'</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;, &quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-ivar">@via</span>
+248:         <span class="ruby-keyword kw">else</span>
+249:           <span class="ruby-identifier">h</span>[<span class="ruby-value str">'via'</span>] = <span class="ruby-ivar">@via</span>
+250:         <span class="ruby-keyword kw">end</span>
+251:       <span class="ruby-keyword kw">end</span>
+252:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008047">
+                    
+                    <a name="M008047"></a><b>setup_proxy_header</b>(req, res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008047_source')" id="l_M008047_source">show</a>
+                        
+                    </p>
+                    <div id="M008047_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 254</span>
+254:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">setup_proxy_header</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+255:       <span class="ruby-comment cmt"># Choose header fields to transfer</span>
+256:       <span class="ruby-identifier">header</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>
+257:       <span class="ruby-identifier">choose_header</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">header</span>)
+258:       <span class="ruby-identifier">set_via</span>(<span class="ruby-identifier">header</span>)
+259:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">header</span>
+260:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008048">
+                    
+                    <a name="M008048"></a><b>setup_upstream_proxy_authentication</b>(req, res, header)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008048_source')" id="l_M008048_source">show</a>
+                        
+                    </p>
+                    <div id="M008048_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 262</span>
+262:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">setup_upstream_proxy_authentication</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>, <span class="ruby-identifier">header</span>)
+263:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">upstream</span> = <span class="ruby-identifier">proxy_uri</span>(<span class="ruby-identifier">req</span>, <span class="ruby-identifier">res</span>)
+264:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">upstream</span>.<span class="ruby-identifier">userinfo</span>
+265:           <span class="ruby-identifier">header</span>[<span class="ruby-value str">'proxy-authorization'</span>] =
+266:             <span class="ruby-value str">&quot;Basic &quot;</span> <span class="ruby-operator">+</span> [<span class="ruby-identifier">upstream</span>.<span class="ruby-identifier">userinfo</span>].<span class="ruby-identifier">pack</span>(<span class="ruby-value str">&quot;m&quot;</span>).<span class="ruby-identifier">delete</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+267:         <span class="ruby-keyword kw">end</span>
+268:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">upstream</span>
+269:       <span class="ruby-keyword kw">end</span>
+270:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">FakeProxyURI</span>
+271:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M008035">
+                    
+                    <a name="M008035"></a><b>split_field</b>(f)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M008035_source')" id="l_M008035_source">show</a>
+                        
+                    </p>
+                    <div id="M008035_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/webrick/httpproxy.rb, line 210</span>
+210:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">split_field</span>(<span class="ruby-identifier">f</span>) <span class="ruby-identifier">f</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,\s+/</span>).<span class="ruby-identifier">collect</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">i</span>.<span class="ruby-identifier">downcase</span> } <span class="ruby-operator">:</span> [] <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

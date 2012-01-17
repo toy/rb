@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>NewRelic::Control::LoggingMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            NewRelic::Control::LoggingMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/new_relic/control/logging_methods_rb.html">lib/new_relic/control/logging_methods.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Contains methods that relate to locating, creating, and writing to the log
+file and/or standard out
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000712">find_or_create_file_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000700">log</a>,</li>
+                
+                <li><a href="#M000701">log!</a>,</li>
+                
+                <li><a href="#M000711">log_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000707">set_log_format!</a>,</li>
+                
+                <li><a href="#M000703">set_log_level!</a>,</li>
+                
+                <li><a href="#M000709">setup_log</a>,</li>
+                
+                <li><a href="#M000702">should_log?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000710">to_stdout</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>log_file</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000712">
+                    
+                    <a name="M000712"></a><b>find_or_create_file_path</b>(path_setting)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000712_source')" id="l_M000712_source">show</a>
+                        
+                    </p>
+                    <div id="M000712_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 113</span>
+113:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_or_create_file_path</span>(<span class="ruby-identifier">path_setting</span>)
+114:         <span class="ruby-keyword kw">for</span> <span class="ruby-identifier">abs_path</span> <span class="ruby-keyword kw">in</span> [ <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">path_setting</span>),
+115:                           <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-identifier">root</span>, <span class="ruby-identifier">path_setting</span>)) ] <span class="ruby-keyword kw">do</span>
+116:           <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span>(<span class="ruby-identifier">abs_path</span>) <span class="ruby-operator">||</span> (<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">abs_path</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">nil</span>)
+117:             <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">abs_path</span>[<span class="ruby-regexp re">%r{^(.*?)/?$}</span>]
+118:           <span class="ruby-keyword kw">end</span>
+119:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000700">
+                    
+                    <a name="M000700"></a><b>log</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+returns either the log set up with <a
+href="LoggingMethods.html#M000709">setup_log</a> or else a new logger
+pointing to standard out, if we&#8217;re trying to log before a log exists
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000700_source')" id="l_M000700_source">show</a>
+                        
+                    </p>
+                    <div id="M000700_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 13</span>
+13:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log</span>
+14:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@log</span>
+15:           <span class="ruby-identifier">l</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">STDOUT</span>)
+16:           <span class="ruby-identifier">l</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">INFO</span>          
+17:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">l</span>
+18:         <span class="ruby-keyword kw">end</span>
+19:         <span class="ruby-ivar">@log</span>
+20:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000701">
+                    
+                    <a name="M000701"></a><b>log!</b>(msg, level=:info)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+send the given message to STDOUT so that it shows up in the console. This
+should be used for important informational messages at boot. The <a
+href="LoggingMethods.html#M000710">to_stdout</a> may be implemented
+differently by different config subclasses. This will NOT print anything if
+tracers are not enabled
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000701_source')" id="l_M000701_source">show</a>
+                        
+                    </p>
+                    <div id="M000701_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 26</span>
+26:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log!</span>(<span class="ruby-identifier">msg</span>, <span class="ruby-identifier">level</span>=<span class="ruby-identifier">:info</span>)
+27:         <span class="ruby-identifier">to_stdout</span> <span class="ruby-identifier">msg</span>
+28:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">should_log?</span>
+29:         <span class="ruby-identifier">log</span>.<span class="ruby-identifier">send</span> <span class="ruby-identifier">level</span>, <span class="ruby-identifier">msg</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@log</span>
+30:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000711">
+                    
+                    <a name="M000711"></a><b>log_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets up and caches the log path, attempting to create it if it does not
+exist. If it does not succeed, it prints an error and returns nil. This
+comes from the configuration variable &#8216;log_file_path&#8217; in the
+configuration file.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000711_source')" id="l_M000711_source">show</a>
+                        
+                    </p>
+                    <div id="M000711_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 97</span>
+ 97:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log_path</span>
+ 98:         <span class="ruby-keyword kw">return</span> <span class="ruby-ivar">@log_path</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@log_path</span>
+ 99:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">log_to_stdout?</span>
+100:           <span class="ruby-ivar">@log_path</span> = <span class="ruby-keyword kw">nil</span>
+101:         <span class="ruby-keyword kw">else</span>
+102:           <span class="ruby-keyword kw">if</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'NEW_RELIC_LOG'</span>]
+103:             <span class="ruby-identifier">log_path_setting</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-constant">ENV</span>[<span class="ruby-value str">'NEW_RELIC_LOG'</span>])
+104:           <span class="ruby-keyword kw">else</span>
+105:             <span class="ruby-identifier">log_path_setting</span> = <span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'log_file_path'</span>, <span class="ruby-value str">'log'</span>)
+106:           <span class="ruby-keyword kw">end</span>
+107:           <span class="ruby-ivar">@log_path</span> = <span class="ruby-identifier">find_or_create_file_path</span>(<span class="ruby-identifier">log_path_setting</span>)
+108:           <span class="ruby-identifier">log!</span>(<span class="ruby-node">&quot;Error creating log directory #{log_path_setting}, using standard out for logging.&quot;</span>, <span class="ruby-identifier">:warn</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@log_path</span>
+109:         <span class="ruby-keyword kw">end</span>
+110:         <span class="ruby-ivar">@log_path</span>
+111:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000707">
+                    
+                    <a name="M000707"></a><b>set_log_format!</b>(logger)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+patches the logger&#8217;s format_message method to change the format just
+for our logger
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000707_source')" id="l_M000707_source">show</a>
+                        
+                    </p>
+                    <div id="M000707_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 56</span>
+56:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_log_format!</span>(<span class="ruby-identifier">logger</span>)
+57:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">format_message</span>(<span class="ruby-identifier">severity</span>, <span class="ruby-identifier">timestamp</span>, <span class="ruby-identifier">progname</span>, <span class="ruby-identifier">msg</span>)
+58:           <span class="ruby-identifier">prefix</span> = <span class="ruby-ivar">@logdev</span>.<span class="ruby-identifier">dev</span> <span class="ruby-operator">==</span> <span class="ruby-constant">STDOUT</span> <span class="ruby-value">? </span><span class="ruby-value str">'** [NewRelic]'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>
+59:           <span class="ruby-identifier">prefix</span> <span class="ruby-operator">+</span> <span class="ruby-node">&quot;[#{timestamp.strftime(&quot;%m/%d/%y %H:%M:%S %z&quot;)} #{Socket.gethostname} (#{$$})] #{severity} : #{msg}\n&quot;</span>
+60:         <span class="ruby-keyword kw">end</span>
+61:         <span class="ruby-identifier">logger</span>
+62:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000703">
+                    
+                    <a name="M000703"></a><b>set_log_level!</b>(logger)
+                    
+                </div>
+                
+                <div class="description">
+                  <pre>
+ set the log level as specified in the config file
+
+ Possible values are from the Logger class: debug, info, warn,
+</pre>
+<p>
+error, and fatal
+</p>
+<pre>
+ Defaults to info
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000703_source')" id="l_M000703_source">show</a>
+                        
+                    </p>
+                    <div id="M000703_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 43</span>
+43:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">set_log_level!</span>(<span class="ruby-identifier">logger</span>)
+44:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">fetch</span>(<span class="ruby-value str">&quot;log_level&quot;</span>,<span class="ruby-value str">&quot;info&quot;</span>).<span class="ruby-identifier">downcase</span>
+45:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;debug&quot;</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">DEBUG</span>
+46:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;info&quot;</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">INFO</span>
+47:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;warn&quot;</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">WARN</span>
+48:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;error&quot;</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">ERROR</span>
+49:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;fatal&quot;</span> <span class="ruby-keyword kw">then</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">FATAL</span>
+50:           <span class="ruby-keyword kw">else</span> <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">INFO</span>
+51:         <span class="ruby-keyword kw">end</span>
+52:         <span class="ruby-identifier">logger</span>
+53:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000709">
+                    
+                    <a name="M000709"></a><b>setup_log</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Create the logger using the configuration variables
+</p>
+<p>
+<a href="../Control.html">Control</a> subclasses may override this, but it
+can be called multiple times.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000709_source')" id="l_M000709_source">show</a>
+                        
+                    </p>
+                    <div id="M000709_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 67</span>
+67:       <span class="ruby-keyword kw">def</span>  <span class="ruby-identifier">setup_log</span><span class="ruby-identifier">setup_log</span>
+68:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">log_to_stdout?</span>
+69:           <span class="ruby-ivar">@log</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">STDOUT</span>) 
+70:         <span class="ruby-keyword kw">else</span>
+71:           <span class="ruby-ivar">@log_file</span> = <span class="ruby-node">&quot;#{log_path}/#{log_file_name}&quot;</span>
+72:           <span class="ruby-ivar">@log</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@log_file</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">nil</span>
+73:           <span class="ruby-ivar">@log</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">STDOUT</span>) <span class="ruby-comment cmt"># failsafe to STDOUT</span>
+74:         <span class="ruby-keyword kw">end</span>
+75:         
+76:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@log</span>
+77:           <span class="ruby-identifier">set_log_format!</span>(<span class="ruby-ivar">@log</span>)
+78:           <span class="ruby-identifier">set_log_level!</span>(<span class="ruby-ivar">@log</span>)
+79:         <span class="ruby-keyword kw">end</span>
+80:         <span class="ruby-comment cmt"># note this is not the variable from above - it is the `log`</span>
+81:         <span class="ruby-comment cmt"># method, which returns a default logger if none is setup</span>
+82:         <span class="ruby-comment cmt"># above</span>
+83:         <span class="ruby-identifier">log</span>
+84:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000702">
+                    
+                    <a name="M000702"></a><b>should_log?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if the agent has settings, and the agent is enabled, otherwise false
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000702_source')" id="l_M000702_source">show</a>
+                        
+                    </p>
+                    <div id="M000702_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 34</span>
+34:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">should_log?</span>
+35:         <span class="ruby-ivar">@settings</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">agent_enabled?</span>
+36:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000710">
+                    
+                    <a name="M000710"></a><b>to_stdout</b>(msg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+simply puts a message to standard out, prepended with the &#8217;**
+[NewRelic]&#8217; sigil to make sure people know where the message comes
+from. This should be used sparingly
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000710_source')" id="l_M000710_source">show</a>
+                        
+                    </p>
+                    <div id="M000710_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/new_relic/control/logging_methods.rb, line 89</span>
+89:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_stdout</span>(<span class="ruby-identifier">msg</span>)
+90:         <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;** [NewRelic] &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">msg</span>
+91:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

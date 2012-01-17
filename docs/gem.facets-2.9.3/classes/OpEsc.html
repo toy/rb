@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpEsc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            OpEsc 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/standard/facets/opesc_rb.html">lib/standard/facets/opesc.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="OpEsc.html">OpEsc</a></h1>
+<p>
+NOTE: As of v3.0 of <a href="Facets.html">Facets</a> these have been
+renamed:
+</p>
+<pre>
+   op_plus_self   -&gt; op_plus
+   op_minus_self  -&gt; op_minus
+   op_plus        -&gt; op_add
+   op_minus       -&gt; op_sub
+   op_case_eq     -&gt; op_case
+</pre>
+<p>
+TODO: In the future we might also rename:
+</p>
+<pre>
+   op_lshift      -&gt; op_push
+   op_rshift      -&gt; op_pull
+   op_store       -&gt; op_index
+   op_fetch       -&gt; op_index  (b/c [] and []= in same file)
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000981">escape</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000982">method_to_filename</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">OPERATORS</td>
+            <td>=</td>
+            <td class="attr-value">%w{ +@ -@ + - ** * / % ~ &lt;=&gt; &lt;&lt; &gt;&gt; &lt; &gt; === == =~ &lt;= &gt;= | &amp; ^ []= [] }</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OPERATORS_REGEXP</td>
+            <td>=</td>
+            <td class="attr-value">Regexp.new( '(' &lt;&lt; OPERATORS.collect{ |k| Regexp.escape(k) }.join('|') &lt;&lt; ')' )</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OPERATORS_ESC_TABLE</td>
+            <td>=</td>
+            <td class="attr-value">{       &quot;+@&quot;   =&gt; &quot;op_plus&quot;,       &quot;-@&quot;   =&gt; &quot;op_minus&quot;,       &quot;+&quot;    =&gt; &quot;op_add&quot;,       &quot;-&quot;    =&gt; &quot;op_sub&quot;,       &quot;**&quot;   =&gt; &quot;op_pow&quot;,       &quot;*&quot;    =&gt; &quot;op_mul&quot;,       &quot;/&quot;    =&gt; &quot;op_div&quot;,       &quot;%&quot;    =&gt; &quot;op_mod&quot;,       &quot;~&quot;    =&gt; &quot;op_tilde&quot;,       &quot;&lt;=&gt;&quot;  =&gt; &quot;op_cmp&quot;,       &quot;&lt;&lt;&quot;   =&gt; &quot;op_lshift&quot;,  #push?       &quot;&gt;&gt;&quot;   =&gt; &quot;op_rshift&quot;,  #pull?       &quot;&lt;&quot;    =&gt; &quot;op_lt&quot;,       &quot;&gt;&quot;    =&gt; &quot;op_gt&quot;,       &quot;===&quot;  =&gt; &quot;op_case&quot;,       &quot;==&quot;   =&gt; &quot;op_equal&quot;,       &quot;=~&quot;   =&gt; &quot;op_apply&quot;,       &quot;&lt;=&quot;   =&gt; &quot;op_lt_eq&quot;,       &quot;&gt;=&quot;   =&gt; &quot;op_gt_eq&quot;,       &quot;|&quot;    =&gt; &quot;op_or&quot;,       &quot;&amp;&quot;    =&gt; &quot;op_and&quot;,       &quot;^&quot;    =&gt; &quot;op_xor&quot;,       &quot;[]=&quot;  =&gt; &quot;op_store&quot;,       &quot;[]&quot;   =&gt; &quot;op_fetch&quot;   }</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000981">
+                    
+                    <a name="M000981"></a><b>escape</b>(str)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Applies operator escape&#8217;s according to OPERATORS_ESCAPE_TABLE.
+</p>
+<pre>
+  OpEsc.escape('-') #=&gt; &quot;op_sub&quot;
+</pre>
+<p>
+CREDIT: Trans
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000981_source')" id="l_M000981_source">show</a>
+                        
+                    </p>
+                    <div id="M000981_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/standard/facets/opesc.rb, line 55</span>
+55:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">escape</span>(<span class="ruby-identifier">str</span>)
+56:     <span class="ruby-identifier">str</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-constant">OPERATORS_REGEXP</span>){ <span class="ruby-constant">OPERATORS_ESC_TABLE</span>[<span class="ruby-identifier">$1</span>] }
+57:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000982">
+                    
+                    <a name="M000982"></a><b>method_to_filename</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000982_source')" id="l_M000982_source">show</a>
+                        
+                    </p>
+                    <div id="M000982_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/standard/facets/opesc.rb, line 60</span>
+60:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">method_to_filename</span>(<span class="ruby-identifier">name</span>)
+61:     <span class="ruby-identifier">fname</span> = <span class="ruby-identifier">escape</span>(<span class="ruby-identifier">name</span>)
+62:     <span class="ruby-identifier">fname</span> = <span class="ruby-identifier">fname</span>[<span class="ruby-value">0</span><span class="ruby-operator">...</span><span class="ruby-value">-1</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">fname</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/[\!\=\?]$/</span>
+63:     <span class="ruby-identifier">fname</span>
+64:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

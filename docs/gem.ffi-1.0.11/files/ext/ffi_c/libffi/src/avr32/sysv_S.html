@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>sysv.S</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            sysv.S
+        </h1>
+        <ul class="files">
+            <li>ext/ffi_c/libffi/src/avr32/sysv.S</li>
+            <li>Last modified: Sun Nov 27 22:44:59 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+/*
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;
+</p>
+<pre>
+   sysv.S - Copyright (c) 2009  Bradley Smith &lt;brad@brad-smith.co.uk&gt;
+
+   AVR32 Foreign Function Interface
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   ``Software''), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+   --------------------------------------------------------------------- */
+</pre>
+<p>
+define LIBFFI_ASM include <fficonfig.h> include <ffi.h>
+</p>
+<pre>
+    /* r12:  ffi_prep_args
+     * r11:  &amp;ecif
+     * r10:  size
+     * r9:   cif-&gt;flags
+     * r8:   ecif.rvalue
+     * sp+0: cif-&gt;rstruct_flag
+     * sp+4: fn */
+
+    .text
+    .align  1
+    .globl  ffi_call_SYSV
+    .type   ffi_call_SYSV, @function
+</pre>
+<p>
+ffi_call_SYSV:
+</p>
+<pre>
+    stm     --sp, r0,r1,lr
+    stm     --sp, r8-r12
+    mov     r0, sp
+
+    /* Make room for all of the new args. */
+    sub     sp, r10
+    /* Pad to make way for potential skipped registers */
+    sub     sp, 20
+
+    /* Call ffi_prep_args(stack, &amp;ecif). */
+    /* r11 already set */
+    mov     r1, r12
+    mov     r12, sp
+    icall   r1
+
+    /* Save new argument size */
+    mov     r1, r12
+
+    /* Move first 5 parameters in registers. */
+    ldm     sp++, r8-r12
+
+    /* call (fn) (...). */
+    ld.w    r1, r0[36]
+    icall   r1
+
+    /* Remove the space we pushed for the args. */
+    mov     sp, r0
+
+    /* Load r1 with the rstruct flag. */
+    ld.w    r1, sp[32]
+
+    /* Load r9 with the return type code. */
+    ld.w    r9, sp[12]
+
+    /* Load r8 with the return value pointer. */
+    ld.w    r8, sp[16]
+
+    /* If the return value pointer is NULL, assume no return value. */
+    cp.w    r8, 0
+    breq    .Lend
+
+    /* Check if return type is actually a struct */
+    cp.w    r1, 0
+    breq    1f
+
+    /* Return 8bit */
+    cp.w    r9, FFI_TYPE_UINT8
+    breq    .Lstore8
+
+    /* Return 16bit */
+    cp.w    r9, FFI_TYPE_UINT16
+    breq    .Lstore16
+</pre>
+<p>
+1:
+</p>
+<pre>
+    /* Return 32bit */
+    cp.w    r9, FFI_TYPE_UINT32
+    breq    .Lstore32
+    cp.w    r9, FFI_TYPE_UINT16
+    breq    .Lstore32
+    cp.w    r9, FFI_TYPE_UINT8
+    breq    .Lstore32
+
+    /* Return 64bit */
+    cp.w    r9, FFI_TYPE_UINT64
+    breq    .Lstore64
+
+    /* Didn't match anything */
+    bral    .Lend
+</pre>
+<p>
+.Lstore64:
+</p>
+<pre>
+    st.w    r8[0], r11
+    st.w    r8[4], r10
+    bral    .Lend
+</pre>
+<p>
+.Lstore32:
+</p>
+<pre>
+    st.w    r8[0], r12
+    bral    .Lend
+</pre>
+<p>
+.Lstore16:
+</p>
+<pre>
+    st.h    r8[0], r12
+    bral    .Lend
+</pre>
+<p>
+.Lstore8:
+</p>
+<pre>
+    st.b    r8[0], r12
+    bral    .Lend
+</pre>
+<p>
+.Lend:
+</p>
+<pre>
+    sub     sp, -20
+    ldm     sp++, r0,r1,pc
+
+    .size   ffi_call_SYSV, . - ffi_call_SYSV
+
+    /* r12:  __ctx
+     * r11:  __rstruct_flag
+     * r10:  __inner */
+
+    .align  1
+    .globl  ffi_closure_SYSV
+    .type   ffi_closure_SYSV, @function
+</pre>
+<p>
+ffi_closure_SYSV:
+</p>
+<pre>
+    stm     --sp, r0,lr
+    mov     r0, r11
+    mov     r8, r10
+    sub     r10, sp, -8
+    sub     sp, 12
+    st.w    sp[8], sp
+    sub     r11, sp, -8
+    icall   r8
+
+    /* Check if return type is actually a struct */
+    cp.w    r0, 0
+    breq    1f
+
+    /* Return 8bit */
+    cp.w    r12, FFI_TYPE_UINT8
+    breq    .Lget8
+
+    /* Return 16bit */
+    cp.w    r12, FFI_TYPE_UINT16
+    breq    .Lget16
+</pre>
+<p>
+1:
+</p>
+<pre>
+    /* Return 32bit */
+    cp.w    r12, FFI_TYPE_UINT32
+    breq    .Lget32
+    cp.w    r12, FFI_TYPE_UINT16
+    breq    .Lget32
+    cp.w    r12, FFI_TYPE_UINT8
+    breq    .Lget32
+
+    /* Return 64bit */
+    cp.w    r12, FFI_TYPE_UINT64
+    breq    .Lget64
+
+    /* Didn't match anything */
+    bral    .Lclend
+</pre>
+<p>
+.Lget64:
+</p>
+<pre>
+    ld.w    r11, sp[0]
+    ld.w    r10, sp[4]
+    bral    .Lclend
+</pre>
+<p>
+.Lget32:
+</p>
+<pre>
+    ld.w    r12, sp[0]
+    bral    .Lclend
+</pre>
+<p>
+.Lget16:
+</p>
+<pre>
+    ld.uh   r12, sp[0]
+    bral    .Lclend
+</pre>
+<p>
+.Lget8:
+</p>
+<pre>
+    ld.ub   r12, sp[0]
+    bral    .Lclend
+</pre>
+<p>
+.Lclend:
+</p>
+<pre>
+    sub     sp, -12
+    ldm     sp++, r0,lr
+    sub     sp, -20
+    mov     pc, lr
+
+    .size   ffi_closure_SYSV, . - ffi_closure_SYSV
+</pre>
+<p>
+if defined <em>ELF</em> &amp;&amp; defined <em>linux</em>
+</p>
+<pre>
+    .section    .note.GNU-stack,&quot;&quot;,@progbits
+</pre>
+<p>
+endif
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

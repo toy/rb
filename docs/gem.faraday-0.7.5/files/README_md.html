@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Sun Oct 09 20:12:35 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+faraday
+</p>
+<h6>=</h6>
+<p>
+Modular HTTP client library using middleware heavily inspired by Rack.
+</p>
+<p>
+This mess is gonna get raw, like sushi. So, haters to the left.
+</p>
+<p>
+Usage
+</p>
+<hr size="3"></hr><pre>
+    conn = Faraday.new(:url =&gt; 'http://sushi.com') do |builder|
+      builder.use Faraday::Request::UrlEncoded  # convert request params as &quot;www-form-urlencoded&quot;
+      builder.use Faraday::Request::JSON        # encode request params as json
+      builder.use Faraday::Response::Logger     # log the request to STDOUT
+      builder.use Faraday::Adapter::NetHttp     # make http requests with Net::HTTP
+
+      # or, use shortcuts:
+      builder.request  :url_encoded
+      builder.request  :json
+      builder.response :logger
+      builder.adapter  :net_http
+    end
+
+    ## GET ##
+
+    response = conn.get '/nigiri/sake.json'     # GET http://sushi.com/nigiri/sake.json
+    response.body
+
+    conn.get '/nigiri', 'X-Awesome' =&gt; true     # custom request header
+
+    conn.get do |req|                           # GET http://sushi.com/search?page=2&amp;limit=100
+      req.url '/search', :page =&gt; 2
+      req.params['limit'] = 100
+    end
+
+    ## POST ##
+
+    conn.post '/nigiri', { :name =&gt; 'Maguro' }  # POST &quot;name=maguro&quot; to http://sushi.com/nigiri
+
+    # post payload as JSON instead of &quot;www-form-urlencoded&quot; encoding:
+    conn.post '/nigiri', payload, 'Content-Type' =&gt; 'application/json'
+
+    # a more verbose way:
+    conn.post do |req|
+      req.url '/nigiri'
+      req.headers['Content-Type'] = 'application/json'
+      req.body = { :name =&gt; 'Unagi' }
+    end
+</pre>
+<p>
+If you&#8217;re ready to roll with just the bare minimum:
+</p>
+<pre>
+    # default stack (net/http), no extra middleware:
+    response = Faraday.get 'http://sushi.com/nigiri/sake.json'
+</pre>
+<p>
+Advanced middleware usage
+</p>
+<hr size="10"></hr><p>
+The order in which middleware is stacked is important. Like with Rack, the
+first middleware on the list wraps all others, while the last middleware is
+the innermost one, so that&#8217;s usually the adapter.
+</p>
+<pre>
+    conn = Faraday.new(:url =&gt; 'http://sushi.com') do |builder|
+      # POST/PUT params encoders:
+      builder.request  :multipart
+      builder.request  :url_encoded
+      builder.request  :json
+
+      builder.adapter  :net_http
+    end
+</pre>
+<p>
+This request middleware setup affects POST/PUT requests in the following
+way:
+</p>
+<ol>
+<li>`Request::Multipart` checks for files in the payload, otherwise leaves
+everything untouched;
+
+</li>
+<li>`Request::UrlEncoded` encodes as
+&#8220;application/x-www-form-urlencoded&#8221; if not already encoded or
+of another type
+
+</li>
+<li>`Request::JSON` encodes as &#8220;application/json&#8220; if not already
+encoded or of another type
+
+</li>
+</ol>
+<p>
+Because &#8220;UrlEncoded&#8221; is higher on the stack than JSON encoder,
+it will get to process the request first. Swapping them means giving the
+other priority. Specifying the &#8220;Content-Type&#8221; for the request
+is explicitly stating which middleware should process it.
+</p>
+<p>
+Examples:
+</p>
+<pre>
+    payload = { :name =&gt; 'Maguro' }
+
+    # post payload as JSON instead of urlencoded:
+    conn.post '/nigiri', payload, 'Content-Type' =&gt; 'application/json'
+
+    # uploading a file:
+    payload = { :profile_pic =&gt; Faraday::UploadIO.new('avatar.jpg', 'image/jpeg') }
+
+    # &quot;Multipart&quot; middleware detects files and encodes with &quot;multipart/form-data&quot;:
+    conn.put '/profile', payload
+</pre>
+<p>
+Writing middleware
+</p>
+<hr size="10"></hr><p>
+Middleware are classes that respond to `call()`. They wrap the
+request/response cycle.
+</p>
+<pre>
+    def call(env)
+      # do something with the request
+
+      @app.call(env).on_complete do
+        # do something with the response
+      end
+    end
+</pre>
+<p>
+It&#8217;s important to do all processing of the response only in the
+`on_complete` block. This enables middleware to work in parallel mode where
+requests are asynchronous.
+</p>
+<p>
+The `env` is a hash with symbol keys that contains info about the request
+and, later, response. Some keys are:
+</p>
+<pre>
+    # request phase
+    :method - :get, :post, ...
+    :url    - URI for the current request; also contains GET parameters
+    :body   - POST parameters for :post/:put requests
+    :request_headers
+
+    # response phase
+    :status - HTTP response status code, such as 200
+    :body   - the response body
+    :response_headers
+</pre>
+<p>
+Testing
+</p>
+<hr size="5"></hr><pre>
+    # It's possible to define stubbed request outside a test adapter block.
+    stubs = Faraday::Adapter::Test::Stubs.new do |stub|
+      stub.get('/tamago') { [200, {}, 'egg'] }
+    end
+
+    # You can pass stubbed request to the test adapter or define them in a block
+    # or a combination of the two.
+    test = Faraday.new do |builder|
+      builder.adapter :test, stubs do |stub|
+        stub.get('/ebi') {[ 200, {}, 'shrimp' ]}
+      end
+    end
+
+    # It's also possible to stub additional requests after the connection has
+    # been initialized. This is useful for testing.
+    stubs.get('/uni') {[ 200, {}, 'urchin' ]}
+
+    resp = test.get '/tamago'
+    resp.body # =&gt; 'egg'
+    resp = test.get '/ebi'
+    resp.body # =&gt; 'shrimp'
+    resp = test.get '/uni'
+    resp.body # =&gt; 'urchin'
+    resp = test.get '/else' #=&gt; raises &quot;no such stub&quot; error
+
+    # If you like, you can treat your stubs as mocks by verifying that all of
+    # the stubbed calls were made. NOTE that this feature is still fairly
+    # experimental: It will not verify the order or count of any stub, only that
+    # it was called once during the course of the test.
+    stubs.verify_stubbed_calls
+</pre>
+<p>
+TODO
+</p>
+<hr size="2"></hr><ul>
+<li>support streaming requests/responses
+
+</li>
+<li>better stubbing API
+
+</li>
+<li>Support timeouts
+
+</li>
+<li>Add curb, em-http, fast_http
+
+</li>
+</ul>
+<p>
+Note on Patches/Pull Requests
+</p>
+<hr size="10"></hr><ul>
+<li>Fork the project.
+
+</li>
+<li>Make your feature addition or bug fix.
+
+</li>
+<li>Add tests for it. This is important so I don&#8217;t break it in a future
+version unintentionally.
+
+</li>
+<li>Commit, do not mess with rakefile, version, or history. (if you want to
+have your own version, that is fine but bump version in a commit by itself
+I can ignore when I pull)
+
+</li>
+<li>Send me a pull request. Bonus points for topic branches.
+
+</li>
+</ul>
+<p>
+Supported Rubies
+</p>
+<hr size="10"></hr><p>
+This library aims to support and is [tested against](<a
+href="http://travis-ci.org/technoweenie/faraday">travis-ci.org/technoweenie/faraday</a>)
+the following Ruby implementations:
+</p>
+<ul>
+<li>Ruby 1.8.7
+
+</li>
+<li>Ruby 1.9.1
+
+</li>
+<li>Ruby 1.9.2
+
+</li>
+<li>[Rubinius](<a href="http://rubini.us">rubini.us</a>)
+
+</li>
+<li>[Ruby Enterprise Edition](<a
+href="http://www.rubyenterpriseedition.com/">www.rubyenterpriseedition.com/</a>)
+
+</li>
+</ul>
+<p>
+If something doesn&#8217;t work on one of these interpreters, it should be
+considered a bug.
+</p>
+<p>
+This library may inadvertently work (or seem to work) on other Ruby
+implementations, however support will only be provided for the versions
+listed above.
+</p>
+<p>
+If you would like this library to support another Ruby version, you may
+volunteer to be a maintainer. Being a maintainer entails making sure all
+tests run and pass on that implementation. When something breaks on your
+implementation, you will be personally responsible for providing patches in
+a timely fashion. If critical issues for a particular implementation exist
+at the time of a major release, support for that Ruby version may be
+dropped.
+</p>
+<p>
+Copyright
+</p>
+<hr size="7"></hr><p>
+Copyright &#169; 2009-2011 rick, hobson. See [LICENSE][license] for
+details.
+</p>
+<p>
+[license]: <a
+href="https://github.com/technoweenie/faraday/blob/master/LICENSE.md">github.com/technoweenie/faraday/blob/master/LICENSE.md</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

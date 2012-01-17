@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>NewRelic::Agent::Database::ConnectionManager</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            NewRelic::Agent::Database::ConnectionManager 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/new_relic/agent/database_rb.html">lib/new_relic/agent/database.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000105">close_connections</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000102">get_connection</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>Singleton</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000105">
+                    
+                    <a name="M000105"></a><b>close_connections</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Closes all the connections in the internal connection cache
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000105_source')" id="l_M000105_source">show</a>
+                        
+                    </p>
+                    <div id="M000105_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/database.rb, line 140</span>
+140:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">close_connections</span>
+141:           <span class="ruby-ivar">@connections</span> <span class="ruby-operator">||=</span> {}
+142:           <span class="ruby-ivar">@connections</span>.<span class="ruby-identifier">values</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">connection</span><span class="ruby-operator">|</span>
+143:             <span class="ruby-keyword kw">begin</span>
+144:               <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">disconnect!</span>
+145:             <span class="ruby-keyword kw">rescue</span>
+146:             <span class="ruby-keyword kw">end</span>
+147:           <span class="ruby-keyword kw">end</span>
+148:           
+149:           <span class="ruby-ivar">@connections</span> = {}
+150:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000102">
+                    
+                    <a name="M000102"></a><b>get_connection</b>(config)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a cached connection for a given ActiveRecord configuration - these
+are stored or reopened as needed, and if we cannot get one, we ignore it
+and move on without explaining the sql
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000102_source')" id="l_M000102_source">show</a>
+                        
+                    </p>
+                    <div id="M000102_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/database.rb, line 122</span>
+122:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_connection</span>(<span class="ruby-identifier">config</span>)
+123:           <span class="ruby-ivar">@connections</span> <span class="ruby-operator">||=</span> {}
+124:           
+125:           <span class="ruby-identifier">connection</span> = <span class="ruby-ivar">@connections</span>[<span class="ruby-identifier">config</span>]
+126:           
+127:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">connection</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">connection</span>
+128:           
+129:           <span class="ruby-keyword kw">begin</span>
+130:             <span class="ruby-identifier">connection</span> = <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>.<span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{config[:adapter]}_connection&quot;</span>, <span class="ruby-identifier">config</span>)
+131:             <span class="ruby-ivar">@connections</span>[<span class="ruby-identifier">config</span>] = <span class="ruby-identifier">connection</span>
+132:           <span class="ruby-keyword kw">rescue</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+133:             <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span>.<span class="ruby-identifier">agent</span>.<span class="ruby-identifier">log</span>.<span class="ruby-identifier">error</span>(<span class="ruby-node">&quot;Caught exception #{e} trying to get connection to DB for explain. Control: #{config}&quot;</span>)
+134:             <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span>.<span class="ruby-identifier">agent</span>.<span class="ruby-identifier">log</span>.<span class="ruby-identifier">error</span>(<span class="ruby-identifier">e</span>.<span class="ruby-identifier">backtrace</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>))
+135:             <span class="ruby-keyword kw">nil</span>
+136:           <span class="ruby-keyword kw">end</span>
+137:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

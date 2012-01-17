@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sat Oct 01 23:38:46 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>Stringex</h1>
+<p>
+Some [hopefully] useful extensions to Ruby&#8217;s String class. It is made
+up of three libraries: ActsAsUrl, Unidecoder, and StringExtensions.
+</p>
+<h2>ActsAsUrl</h2>
+<p>
+This library is designed to create URI-friendly representations of an
+attribute, for use in generating urls from your attributes. Basic usage is
+just calling the method:
+</p>
+<pre>
+  # Inside your model
+  acts_as_url :title
+</pre>
+<p>
+which will populate the <tt>url</tt> attribute on the object with the
+converted contents of the <tt>title</tt> attribute. This behavior can be
+customized by adding the following options to the arguments of the
+<tt>acts_as_url</tt> method:
+</p>
+<table>
+<tr><td valign="top"><tt>:url_attribute</tt>:</td><td>The name of the attribute to use for storing the generated url string.
+Default is <tt>:url</tt>
+
+</td></tr>
+<tr><td valign="top"><tt>:scope</tt>:</td><td>The name of model attribute to scope unique urls to. There is no default
+here.
+
+</td></tr>
+<tr><td valign="top"><tt>:only_when_blank</tt>:</td><td>If true, the url generation will only happen when <tt>:url_attribute</tt>
+is blank. Default is false (meaning url generation will happen always)
+
+</td></tr>
+<tr><td valign="top"><tt>:sync_url</tt>:</td><td>If set to true, the url field will be updated when changes are made to the
+attribute it is based on. Default is false.
+
+</td></tr>
+</table>
+<p>
+In order to use the generated url attribute, you will probably want to
+override <tt>to_param</tt> like so, in your Model:
+</p>
+<pre>
+  # Inside your model
+  def to_param
+    url # or whatever you set :url_attribute to
+  end
+</pre>
+<p>
+Routing called via named routes like <tt>foo_path(@foo)</tt> will
+automatically use the url. In your controllers you will need to call
+<tt>Foo.find_by_url(params[:id])</tt> instead of the regular find.
+Don&#8217;t look for <tt>params[:url]</tt> unless you set it explicitly in
+the routing, <tt>to_param</tt> will generate <tt>params[:id]</tt>.
+</p>
+<p>
+Unlike other permalink solutions, ActsAsUrl doesn&#8217;t rely on Iconv
+(which is inconsistent across platforms and doesn&#8217;t provide great
+transliteration as is) but instead uses a transliteration scheme (see the
+code for Unidecoder) which produces much better results for Unicode
+characters. It also mixes in some custom helpers to translate common
+characters into a more URI-friendly format rather than just dump them
+completely. Examples:
+</p>
+<pre>
+   # A simple prelude
+   &quot;simple English&quot;.to_url =&gt; &quot;simple-english&quot;
+   &quot;it's nothing at all&quot;.to_url =&gt; &quot;its-nothing-at-all&quot;
+   &quot;rock &amp; roll&quot;.to_url =&gt; &quot;rock-and-roll&quot;
+
+   # Let's show off
+   &quot;$12 worth of Ruby power&quot;.to_url =&gt; &quot;12-dollars-worth-of-ruby-power&quot;
+   &quot;10% off if you act now&quot;.to_url =&gt; &quot;10-percent-off-if-you-act-now&quot;
+
+   # You don't even wanna trust Iconv for this next part
+   &quot;kick it en Français&quot;.to_url =&gt; &quot;kick-it-en-francais&quot;
+   &quot;rock it Español style&quot;.to_url =&gt; &quot;rock-it-espanol-style&quot;
+   &quot;tell your readers 你好&quot;.to_url =&gt; &quot;tell-your-readers-ni-hao&quot;
+</pre>
+<p>
+Compare those results with the ones produced on my Intel Mac by a leading
+permalink plugin:
+</p>
+<pre>
+  &quot;simple English&quot; # =&gt; &quot;simple-english&quot;
+  &quot;it's nothing at all&quot; # =&gt; &quot;it-s-nothing-at-all&quot;
+  &quot;rock &amp; roll&quot; # =&gt; &quot;rock-roll&quot;
+
+  &quot;$12 worth of Ruby power&quot; # =&gt; &quot;12-worth-of-ruby-power&quot;
+  &quot;10% off if you act now&quot; # =&gt; &quot;10-off-if-you-act-now&quot;
+
+  &quot;kick it en Français&quot; # =&gt; &quot;kick-it-en-francais&quot;
+  &quot;rock it Español style&quot; # =&gt; &quot;rock-it-espan-ol-style&quot;
+  &quot;tell your readers 你好&quot; # =&gt; &quot;tell-your-readers&quot;
+</pre>
+<p>
+Not so great, actually.
+</p>
+<p>
+Note: No offense is intended to the author[s] of whatever plugins might
+produce such results. It&#8217;s not your faults Iconv sucks.
+</p>
+<h2>Unidecoder</h2>
+<p>
+This library converts Unicode [and accented Ascii] characters to their
+plain-text Ascii equivalents. This is a port of Perl&#8217;s Unidecode and
+provides eminently superior and more reliable results than Iconv.
+(Seriously, Iconv&#8230; A plague on both your houses! [sic])
+</p>
+<p>
+You probably won&#8217;t ever need to run Unidecoder by itself.
+StringExtensions adds String#to_ascii which wraps all of Unidecoder&#8217;s
+functionality. For anyone interested, details of the implementation can be
+read about in the original implementation of <a
+href="http://interglacial.com/~sburke/tpj/as_html/tpj22.html">Text::Unidecode</a>.
+Extensive examples can be found in the tests.
+</p>
+<h2>StringExtensions</h2>
+<p>
+A collection of extensions on Ruby&#8217;s String class. Please see the
+documentation for string_extensions module for more information.
+There&#8217;s not much to explain about them really.
+</p>
+<h2>Note to users of Devise</h2>
+<p>
+You&#8217;ll need to add a <tt>:find_by =&gt; :url</tt> to your
+<tt>load_and_authorize_resource</tt>. Here&#8217;s an example:
+</p>
+<pre>
+  load_and_authorize_resource :class =&gt; &quot;Whatever&quot;, :message =&gt; &quot;Not authorized&quot;, :find_by =&gt; :url
+</pre>
+<h2>Thanks &amp; Acknowledgements</h2>
+<p>
+If it&#8217;s not obvious, some of the code for ActsAsUrl is based on Rick
+Olsen&#8217;s <a
+href="http://svn.techno-weenie.net/projects/plugins/permalink_fu/">permalink_fu</a>
+plugin. Unidecoder is a Ruby port of Sean Burke&#8217;s <a
+href="http://interglacial.com/~sburke/tpj/as_html/tpj22.html">Text::Unidecode</a>
+module for Perl. And, finally, the bulk of <a
+href="../classes/LuckySneaks/StringExtensions.html#M000005">strip_html_tags</a>
+in StringExtensions was stolen from Tobias Lütke&#8217;s Regex in <a
+href="http://typosphere.org/">Typo</a>.
+</p>
+<p>
+copyright &#169; 2008 Lucky Sneaks, released under the MIT license
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

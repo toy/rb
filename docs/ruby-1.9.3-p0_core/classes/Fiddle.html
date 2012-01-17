@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Fiddle</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Fiddle 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/ext/fiddle/closure_c.html">ext/fiddle/closure.c</a></li>
+            
+            <li><a href="../files/ext/fiddle/fiddle_c.html">ext/fiddle/fiddle.c</a></li>
+            
+            <li><a href="../files/ext/fiddle/lib/fiddle/closure_rb.html">ext/fiddle/lib/fiddle/closure.rb</a></li>
+            
+            <li><a href="../files/ext/fiddle/lib/fiddle/function_rb.html">ext/fiddle/lib/fiddle/function.rb</a></li>
+            
+            <li><a href="../files/ext/fiddle/lib/fiddle_rb.html">ext/fiddle/lib/fiddle.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+include <fiddle.h>
+</p>
+<p>
+VALUE cFiddleClosure;
+</p>
+<p>
+typedef struct {
+</p>
+<pre>
+    void * code;
+    ffi_closure *pcl;
+    ffi_cif cif;
+    int argc;
+    ffi_type **argv;
+</pre>
+<p>
+} fiddle_closure;
+</p>
+<p>
+if defined(MACOSX) || defined(__linux) || defined(<em>OpenBSD</em>) define
+DONT_USE_FFI_CLOSURE_ALLOC endif
+</p>
+<p>
+static void dealloc(void * ptr) {
+</p>
+<pre>
+    fiddle_closure * cls = (fiddle_closure *)ptr;
+</pre>
+<p>
+ifndef DONT_USE_FFI_CLOSURE_ALLOC
+</p>
+<pre>
+    ffi_closure_free(cls-&gt;pcl);
+</pre>
+<p>
+else
+</p>
+<pre>
+    munmap(cls-&gt;pcl, sizeof(cls-&gt;pcl));
+</pre>
+<p>
+endif
+</p>
+<pre>
+    if (cls-&gt;argv) xfree(cls-&gt;argv);
+    xfree(cls);
+</pre>
+<p>
+}
+</p>
+<p>
+static size_t closure_memsize(const void * ptr) {
+</p>
+<pre>
+    fiddle_closure * cls = (fiddle_closure *)ptr;
+    size_t size = 0;
+
+    if (ptr) {
+  size += sizeof(*cls);
+</pre>
+<p>
+if !defined(FFI_NO_RAW_API) || !FFI_NO_RAW_API
+</p>
+<pre>
+  size += ffi_raw_size(&amp;cls-&gt;cif);
+</pre>
+<p>
+endif
+</p>
+<pre>
+  size += sizeof(*cls-&gt;argv);
+  size += sizeof(ffi_closure);
+    }
+    return size;
+</pre>
+<p>
+}
+</p>
+<p>
+const rb_data_type_t closure_data_type = {
+</p>
+<pre>
+    &quot;fiddle/closure&quot;,
+    {0, dealloc, closure_memsize,},
+</pre>
+<p>
+};
+</p>
+<p>
+void callback(ffi_cif *cif, void *resp, void **args, void *ctx) {
+</p>
+<pre>
+    VALUE self      = (VALUE)ctx;
+    VALUE rbargs    = rb_iv_get(self, &quot;@args&quot;);
+    VALUE ctype     = rb_iv_get(self, &quot;@ctype&quot;);
+    int argc        = RARRAY_LENINT(rbargs);
+    VALUE params    = rb_ary_tmp_new(argc);
+    VALUE ret;
+    VALUE cPointer;
+    int i, type;
+
+    cPointer = rb_const_get(mFiddle, rb_intern(&quot;Pointer&quot;));
+
+    for (i = 0; i &lt; argc; i++) {
+        type = NUM2INT(RARRAY_PTR(rbargs)[i]);
+        switch (type) {
+    case TYPE_VOID:
+      argc = 0;
+      break;
+    case TYPE_INT:
+      rb_ary_push(params, INT2NUM(*(int *)args[i]));
+      break;
+    case TYPE_VOIDP:
+      rb_ary_push(params,
+      rb_funcall(cPointer, rb_intern(&quot;[]&quot;), 1,
+           PTR2NUM(*(void **)args[i])));
+      break;
+    case TYPE_LONG:
+      rb_ary_push(params, LONG2NUM(*(long *)args[i]));
+      break;
+    case TYPE_CHAR:
+      rb_ary_push(params, INT2NUM(*(char *)args[i]));
+      break;
+    case TYPE_DOUBLE:
+      rb_ary_push(params, rb_float_new(*(double *)args[i]));
+      break;
+    case TYPE_FLOAT:
+      rb_ary_push(params, rb_float_new(*(float *)args[i]));
+      break;
+</pre>
+<p>
+if HAVE_LONG_LONG
+</p>
+<pre>
+    case TYPE_LONG_LONG:
+      rb_ary_push(params, rb_ull2inum(*(unsigned LONG_LONG *)args[i]));
+      break;
+</pre>
+<p>
+endif
+</p>
+<pre>
+    default:
+      rb_raise(rb_eRuntimeError, &quot;closure args: %d&quot;, type);
+        }
+    }
+
+    ret = rb_funcall2(self, rb_intern(&quot;call&quot;), argc, RARRAY_PTR(params));
+    RB_GC_GUARD(params);
+
+    type = NUM2INT(ctype);
+    switch (type) {
+      case TYPE_VOID:
+  break;
+      case TYPE_LONG:
+   (long *)resp = NUM2LONG(ret);
+  break;
+      case TYPE_CHAR:
+      case TYPE_SHORT:
+      case TYPE_INT:
+   (ffi_sarg *)resp = NUM2INT(ret);
+  break;
+      case TYPE_VOIDP:
+   (void **)resp = NUM2PTR(ret);
+  break;
+      case TYPE_DOUBLE:
+   (double *)resp = NUM2DBL(ret);
+  break;
+      case TYPE_FLOAT:
+   (float *)resp = (float)NUM2DBL(ret);
+  break;
+</pre>
+<p>
+if HAVE_LONG_LONG
+</p>
+<pre>
+      case TYPE_LONG_LONG:
+   (unsigned LONG_LONG *)resp = rb_big2ull(ret);
+  break;
+</pre>
+<p>
+endif
+</p>
+<pre>
+      default:
+  rb_raise(rb_eRuntimeError, &quot;closure retval: %d&quot;, type);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+static VALUE allocate(VALUE klass) {
+</p>
+<pre>
+    fiddle_closure * closure;
+
+    VALUE i = TypedData_Make_Struct(klass, fiddle_closure,
+      &amp;closure_data_type, closure);
+</pre>
+<p>
+ifndef DONT_USE_FFI_CLOSURE_ALLOC
+</p>
+<pre>
+    closure-&gt;pcl = ffi_closure_alloc(sizeof(ffi_closure), &amp;closure-&gt;code);
+</pre>
+<p>
+else
+</p>
+<pre>
+    closure-&gt;pcl = mmap(NULL, sizeof(ffi_closure), PROT_READ | PROT_WRITE,
+        MAP_ANON | MAP_PRIVATE, -1, 0);
+</pre>
+<p>
+endif
+</p>
+<pre>
+    return i;
+</pre>
+<p>
+}
+</p>
+<p>
+static VALUE initialize(int rbargc, VALUE argv[], VALUE self) {
+</p>
+<pre>
+    VALUE ret;
+    VALUE args;
+    VALUE abi;
+    fiddle_closure * cl;
+    ffi_cif * cif;
+    ffi_closure *pcl;
+    ffi_status result;
+    int i, argc;
+
+    if (2 == rb_scan_args(rbargc, argv, &quot;21&quot;, &amp;ret, &amp;args, &amp;abi))
+  abi = INT2NUM(FFI_DEFAULT_ABI);
+
+    Check_Type(args, T_ARRAY);
+
+    argc = RARRAY_LENINT(args);
+
+    TypedData_Get_Struct(self, fiddle_closure, &amp;closure_data_type, cl);
+
+    cl-&gt;argv = (ffi_type **)xcalloc(argc + 1, sizeof(ffi_type *));
+
+    for (i = 0; i &lt; argc; i++) {
+        int type = NUM2INT(RARRAY_PTR(args)[i]);
+        cl-&gt;argv[i] = INT2FFI_TYPE(type);
+    }
+    cl-&gt;argv[argc] = NULL;
+
+    rb_iv_set(self, &quot;@ctype&quot;, ret);
+    rb_iv_set(self, &quot;@args&quot;, args);
+
+    cif = &amp;cl-&gt;cif;
+    pcl = cl-&gt;pcl;
+
+    result = ffi_prep_cif(cif, NUM2INT(abi), argc,
+                INT2FFI_TYPE(NUM2INT(ret)),
+    cl-&gt;argv);
+
+    if (FFI_OK != result)
+  rb_raise(rb_eRuntimeError, &quot;error prepping CIF %d&quot;, result);
+</pre>
+<p>
+ifndef DONT_USE_FFI_CLOSURE_ALLOC
+</p>
+<pre>
+    result = ffi_prep_closure_loc(pcl, cif, callback,
+    (void *)self, cl-&gt;code);
+</pre>
+<p>
+else
+</p>
+<pre>
+    result = ffi_prep_closure(pcl, cif, callback, (void *)self);
+    cl-&gt;code = (void *)pcl;
+    mprotect(pcl, sizeof(pcl), PROT_READ | PROT_EXEC);
+</pre>
+<p>
+endif
+</p>
+<pre>
+    if (FFI_OK != result)
+  rb_raise(rb_eRuntimeError, &quot;error prepping closure %d&quot;, result);
+
+    return self;
+</pre>
+<p>
+}
+</p>
+<p>
+static VALUE to_i(VALUE self) {
+</p>
+<pre>
+    fiddle_closure * cl;
+    void *code;
+
+    TypedData_Get_Struct(self, fiddle_closure, &amp;closure_data_type, cl);
+
+    code = cl-&gt;code;
+
+    return PTR2NUM(code);
+</pre>
+<p>
+}
+</p>
+<p>
+void Init_fiddle_closure() { if 0
+</p>
+<pre>
+    mFiddle = rb_define_module(&quot;Fiddle&quot;);
+</pre>
+<p>
+# &#8212;
+</p>
+<pre>
+       == Description
+
+       A libffi wrapper.
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009107">last_error</a>,</li>
+                
+                <li><a href="#M009108">last_error=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009105">win32_last_error</a>,</li>
+                
+                <li><a href="#M009106">win32_last_error=</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Fiddle/Closure.html">Fiddle::Closure</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Fiddle/Function.html">Fiddle::Function</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_VOID</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_VOID">TYPE_VOID</a>
+</p>
+<p>
+C type - void
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_VOIDP</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_VOIDP">TYPE_VOIDP</a>
+</p>
+<p>
+C type - void*
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_CHAR</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_CHAR">TYPE_CHAR</a>
+</p>
+<p>
+C type - char
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_SHORT</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_SHORT">TYPE_SHORT</a>
+</p>
+<p>
+C type - short
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_INT</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_INT">TYPE_INT</a>
+</p>
+<p>
+C type - int
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_LONG</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_LONG">TYPE_LONG</a>
+</p>
+<p>
+C type - long
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_LONG_LONG</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_LONG_LONG">TYPE_LONG_LONG</a>
+</p>
+<p>
+C type - long long
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_FLOAT</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_FLOAT">TYPE_FLOAT</a>
+</p>
+<p>
+C type - float
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_DOUBLE</td>
+            <td>=</td>
+            <td class="attr-value">Document-const</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="Fiddle.html#TYPE_DOUBLE">TYPE_DOUBLE</a>
+</p>
+<p>
+C type - double
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">WINDOWS</td>
+            <td>=</td>
+            <td class="attr-value">Qtrue</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Returns a boolean regarding whether the host is WIN32
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">WINDOWS</td>
+            <td>=</td>
+            <td class="attr-value">Qfalse</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Returns a boolean regarding whether the host is WIN32
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">Pointer</td>
+            <td>=</td>
+            <td class="attr-value">DL::CPtr</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+A reference to DL::CPtr
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009107">
+                    
+                    <a name="M009107"></a><b>last_error</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the last <tt>Error</tt> of the current executing <tt>Thread</tt> or
+nil if none
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009107_source')" id="l_M009107_source">show</a>
+                        
+                    </p>
+                    <div id="M009107_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/fiddle/lib/fiddle.rb, line 25</span>
+25:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">last_error</span>
+26:     <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:__FIDDLE_LAST_ERROR__</span>]
+27:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009108">
+                    
+                    <a name="M009108"></a><b>last_error=</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the last <tt>Error</tt> of the current executing <tt>Thread</tt> to
+<tt>error</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009108_source')" id="l_M009108_source">show</a>
+                        
+                    </p>
+                    <div id="M009108_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/fiddle/lib/fiddle.rb, line 30</span>
+30:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">last_error=</span> <span class="ruby-identifier">error</span>
+31:     <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:__DL2_LAST_ERROR__</span>] = <span class="ruby-identifier">error</span>
+32:     <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:__FIDDLE_LAST_ERROR__</span>] = <span class="ruby-identifier">error</span>
+33:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009105">
+                    
+                    <a name="M009105"></a><b>win32_last_error</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the last win32 <tt>Error</tt> of the current executing
+<tt>Thread</tt> or nil if none
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009105_source')" id="l_M009105_source">show</a>
+                        
+                    </p>
+                    <div id="M009105_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/fiddle/lib/fiddle.rb, line 14</span>
+14:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">win32_last_error</span>
+15:       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:__FIDDLE_WIN32_LAST_ERROR__</span>]
+16:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009106">
+                    
+                    <a name="M009106"></a><b>win32_last_error=</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the last win32 <tt>Error</tt> of the current executing <tt>Thread</tt>
+to <tt>error</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009106_source')" id="l_M009106_source">show</a>
+                        
+                    </p>
+                    <div id="M009106_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/fiddle/lib/fiddle.rb, line 19</span>
+19:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">win32_last_error=</span> <span class="ruby-identifier">error</span>
+20:       <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">current</span>[<span class="ruby-identifier">:__FIDDLE_WIN32_LAST_ERROR__</span>] = <span class="ruby-identifier">error</span>
+21:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>SPAWNED_PROCESSES</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            SPAWNED_PROCESSES
+        </h1>
+        <ul class="files">
+            <li>docs/old/SPAWNED_PROCESSES</li>
+            <li>Last modified: Thu Dec 15 01:00:51 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="../../../classes/EventMachine.html">EventMachine</a> (EM) adds two
+different formalisms for lightweight concurrency to the Ruby
+programmer&#8217;s toolbox: spawned processes and deferrables. This note
+will show you how to use spawned processes. For more information, see the
+separate document LIGHTWEIGHT_CONCURRENCY.
+</p>
+<h3>What are Spawned Processes?</h3>
+<p>
+Spawned Processes in <a
+href="../../../classes/EventMachine.html">EventMachine</a> are inspired
+directly by the &#8220;processes&#8221; found in the Erlang programming
+language. EM deliberately borrows much (but not all) of Erlang&#8217;s
+terminology. However, EM&#8217;s spawned processes differ from
+Erlang&#8217;s in ways that reflect not only Ruby style, but also the fact
+that Ruby is not a functional language like Erlang.
+</p>
+<p>
+Let&#8217;s proceed with a complete, working code sample that we will
+analyze line by line. Here&#8217;s an EM implementation of the
+&#8220;ping-pong&#8221; program that also appears in the Erlang tutorial:
+</p>
+<pre>
+ require 'eventmachine'
+
+ EM.run {
+   pong = EM.spawn {|x, ping|
+     puts &quot;Pong received #{x}&quot;
+     ping.notify( x-1 )
+   }
+
+   ping = EM.spawn {|x|
+     if x &gt; 0
+       puts &quot;Pinging #{x}&quot;
+       pong.notify x, self
+     else
+       EM.stop
+     end
+   }
+
+   ping.notify 3
+ }
+</pre>
+<p>
+If you run this program, you&#8217;ll see the following output:
+</p>
+<pre>
+ Pinging 3
+ Pong received 3
+ Pinging 2
+ Pong received 2
+ Pinging 1
+ Pong received 1
+</pre>
+<p>
+Let&#8217;s take it step by step.
+</p>
+<p>
+<a href="../../../classes/EventMachine.html#M000375">EventMachine#spawn</a>
+works very much like the built-in function spawn in Erlang. It returns a
+reference to a Ruby object of class <a
+href="../../../classes/EventMachine/SpawnedProcess.html">EventMachine::SpawnedProcess</a>,
+which is actually a schedulable entity. In Erlang, the value returned from
+spawn is called a &#8220;process identifier&#8221; or &#8220;pid.&#8221;
+But we&#8217;ll refer to the Ruby object returned from EM#spawn simply as a
+&#8220;spawned process.&#8220;
+</p>
+<p>
+You pass a Ruby block with zero or more parameters to <a
+href="../../../classes/EventMachine.html#M000375">EventMachine#spawn</a>.
+Like all Ruby blocks, this one is a closure, so it can refer to variables
+defined in the local context when you call EM#spawn.
+</p>
+<p>
+However, the code block passed to EM#spawn does NOT execute immediately by
+default. Rather, it will execute only when the Spawned Object is
+&#8220;notified.&#8221; In Erlang, this process is called &#8220;message
+passing,&#8221; and is done with the operator !, but in Ruby it&#8217;s
+done simply by calling the notify method of a spawned-process object. The
+parameters you pass to notify must match those defined in the block that
+was originally passed to EM#spawn.
+</p>
+<p>
+When you call the notify method of a spawned-process object, EM&#8217;s
+reactor core will execute the code block originally passed to EM#spawn, at
+some point in the future. (notify itself merely adds a notification to the
+object&#8217;s message queue and ALWAYS returns immediately.)
+</p>
+<p>
+When a SpawnedProcess object executes a notification, it does so in the
+context of the SpawnedProcess object itself. The notified code block can
+see local context from the point at which EM#spawn was called. However, the
+value of &#8220;self&#8221; inside the notified code block is a reference
+to the SpawnedProcesss object itself.
+</p>
+<p>
+An EM spawned process is nothing more than a Ruby object with a message
+queue attached to it. You can have any number of spawned processes in your
+program without compromising scalability. You can notify a spawned process
+any number of times, and each notification will cause a
+&#8220;message&#8221; to be placed in the queue of the spawned process.
+Spawned processes with non-empty message queues are scheduled for execution
+automatically by the EM reactor. Spawned processes with no visible
+references are garbage-collected like any other Ruby object.
+</p>
+<p>
+Back to our code sample:
+</p>
+<pre>
+   pong = EM.spawn {|x, ping|
+     puts &quot;Pong received #{x}&quot;
+     ping.notify( x-1 )
+   }
+</pre>
+<p>
+This simply creates a spawned process and assigns it to the local variable
+pong. You can see that the spawned code block takes a numeric parameter and
+a reference to another spawned process. When pong is notified, it expects
+to receive arguments corresponding to these two parameters. It simply
+prints out the number it receives as the first argument. Then it notifies
+the spawned process referenced by the second argument, passing it the first
+argument minus 1.
+</p>
+<p>
+And then the block ends, which is crucial because otherwise nothing else
+can run. (Remember that in LC, scheduled entities run to completion and are
+never preempted.)
+</p>
+<p>
+On to the next bit of the code sample:
+</p>
+<pre>
+   ping = EM.spawn {|x|
+     if x &gt; 0
+       puts &quot;Pinging #{x}&quot;
+       pong.notify x, self
+     else
+       EM.stop
+     end
+   }
+</pre>
+<p>
+Here, we&#8217;re spawning a process that takes a single (numeric)
+parameter. If the parameter is greater than zero, the block writes it to
+the console. It then notifies the spawned process referenced by the pong
+local variable, passing as arguments its number argument, and a reference
+to itself. The latter reference, as you saw above, is used by pong to send
+a return notification.
+</p>
+<p>
+If the ping process receives a zero value, it will stop the reactor loop
+and end the program.
+</p>
+<p>
+Now we&#8217;ve created a pair of spawned processes, but nothing else has
+happened. If we stop now, the program will spin in the EM reactor loop,
+doing nothing at all. Our spawned processes will never be scheduled for
+execution.
+</p>
+<p>
+But look at the next line in the code sample:
+</p>
+<pre>
+   ping.notify 3
+</pre>
+<p>
+This line gets the ping-pong ball rolling. We call ping&#8217;s notify
+method, passing the argument 3. This causes a message to be sent to the
+ping spawned process. The message contains the single argument, and it
+causes the EM reactor to schedule the ping process. And this in turn
+results in the execution of the Ruby code block passed to EM#spawn when
+ping was created. Everything else proceeds as a result of the messages that
+are subsequently passed to each other by the spawned processes.
+</p>
+<p>
+[TODO, present the outbound network i/o use case, and clarify that spawned
+processes are interleaved with normal i/o operations and don&#8217;t
+interfere with them at all. Also, blame Erlang for the confusing term
+&#8220;process&#8221;]
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

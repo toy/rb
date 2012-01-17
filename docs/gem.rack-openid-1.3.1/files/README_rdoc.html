@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sun Oct 02 01:02:19 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="../classes/Rack/OpenID.html">Rack::OpenID</a></h1>
+<p>
+Provides a more HTTPish API around the ruby-openid library.
+</p>
+<h3>Usage</h3>
+<p>
+You trigger an OpenID request similar to HTTP authentication. From your
+app, return a &#8220;401 Unauthorized&#8221; and a
+&#8220;WWW-Authenticate&#8221; header with the identifier you would like to
+validate.
+</p>
+<p>
+On competition, the OpenID response is automatically verified and assigned
+to <tt><a href="http://"rack.openid.response"">env</a></tt>.
+</p>
+<h3>Rack Example</h3>
+<pre>
+  MyApp = lambda { |env|
+    if resp = env[&quot;rack.openid.response&quot;]
+      case resp.status
+      when :success
+        ...
+      when :failure
+        ...
+    else
+      [401, {&quot;WWW-Authenticate&quot; =&gt; 'OpenID identifier=&quot;http://example.com/&quot;'}, []]
+    end
+  }
+
+  use Rack::OpenID
+  run MyApp
+</pre>
+<h3>Sinatra Example</h3>
+<pre>
+  # Session needs to be before Rack::OpenID
+  use Rack::Session::Cookie
+
+  require 'rack/openid'
+  use Rack::OpenID
+
+  get '/login' do
+    erb :login
+  end
+
+  post '/login' do
+    if resp = request.env[&quot;rack.openid.response&quot;]
+      if resp.status == :success
+        &quot;Welcome: #{resp.display_identifier}&quot;
+      else
+        &quot;Error: #{resp.status}&quot;
+      end
+    else
+      headers 'WWW-Authenticate' =&gt; Rack::OpenID.build_header(
+        :identifier =&gt; params[&quot;openid_identifier&quot;]
+      )
+      throw :halt, [401, 'got openid?']
+    end
+  end
+
+  enable :inline_templates
+
+  __END__
+
+  @@ login
+  &lt;form action=&quot;/login&quot; method=&quot;post&quot;&gt;
+    &lt;p&gt;
+      &lt;label for=&quot;openid_identifier&quot;&gt;OpenID:&lt;/label&gt;
+      &lt;input id=&quot;openid_identifier&quot; name=&quot;openid_identifier&quot; type=&quot;text&quot; /&gt;
+    &lt;/p&gt;
+
+    &lt;p&gt;
+      &lt;input name=&quot;commit&quot; type=&quot;submit&quot; value=&quot;Sign in&quot; /&gt;
+    &lt;/p&gt;
+  &lt;/form&gt;
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

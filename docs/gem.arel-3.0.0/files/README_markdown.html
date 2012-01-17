@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.markdown</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.markdown
+        </h1>
+        <ul class="files">
+            <li>README.markdown</li>
+            <li>Last modified: Sat Jan 14 13:05:38 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# ARel [![Build Status](<a
+href="https://secure.travis-ci.org/rails/arel.png)](http://travis-ci.org/rails/arel">secure.travis-ci.org/rails/arel.png)](http://travis-ci.org/rails/arel</a>)
+[![Dependency Status](<a
+href="https://gemnasium.com/rails/arel.png)](https://gemnasium.com/rails/arel">gemnasium.com/rails/arel.png)](https://gemnasium.com/rails/arel</a>)
+</p>
+<ul>
+<li><a href="http://github.com/rails/arel">github.com/rails/arel</a>
+
+</li>
+</ul>
+<p>
+## DESCRIPTION
+</p>
+<p>
+<a href="../classes/Arel.html">Arel</a> is a SQL AST manager for Ruby. It
+</p>
+<ol>
+<li>Simplifies the generation of complex SQL queries
+
+</li>
+<li>Adapts to various RDBMS systems
+
+</li>
+</ol>
+<p>
+It is intended to be a framework framework; that is, you can build your own
+ORM with it, focusing on innovative object and collection modeling as
+opposed to database compatibility and query generation.
+</p>
+<p>
+## Status
+</p>
+<p>
+For the moment, <a href="../classes/Arel.html">Arel</a> uses
+ActiveRecord&#8217;s connection adapters to connect to the various engines,
+connection pooling, perform quoting, and do type conversion.
+</p>
+<p>
+## A Gentle Introduction
+</p>
+<p>
+Generating a query with ARel is simple. For example, in order to produce
+</p>
+<pre>
+    SELECT * FROM users
+</pre>
+<p>
+you construct a table relation and convert it to sql:
+</p>
+<pre>
+    users = Arel::Table.new(:users)
+    query = users.project(Arel.sql('*'))
+    query.to_sql
+</pre>
+<p>
+### More Sophisticated Queries
+</p>
+<p>
+Here is a whirlwind tour through the most common relational operators.
+These will probably cover 80% of all interaction with the database.
+</p>
+<p>
+First is the &#8216;restriction&#8217; operator, `where`:
+</p>
+<pre>
+    users.where(users[:name].eq('amy'))
+    # =&gt; SELECT * FROM users WHERE users.name = 'amy'
+</pre>
+<p>
+What would, in SQL, be part of the `SELECT` clause is called in <a
+href="../classes/Arel.html">Arel</a> a `projection`:
+</p>
+<pre>
+    users.project(users[:id]) # =&gt; SELECT users.id FROM users
+</pre>
+<p>
+Joins resemble SQL strongly:
+</p>
+<pre>
+    users.join(photos).on(users[:id].eq(photos[:user_id]))
+    # =&gt; SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
+</pre>
+<p>
+What are called `LIMIT` and `OFFSET` in SQL are called `take` and `skip` in
+Arel:
+</p>
+<pre>
+    users.take(5) # =&gt; SELECT * FROM users LIMIT 5
+    users.skip(4) # =&gt; SELECT * FROM users OFFSET 4
+</pre>
+<p>
+`GROUP BY` is called `group`:
+</p>
+<pre>
+    users.group(users[:name]) # =&gt; SELECT * FROM users GROUP BY name
+</pre>
+<p>
+The best property of the Relational Algebra is its
+&#8220;composability&#8221;, or closure under all operations. For example,
+to restrict AND project, just &#8220;chain&#8221; the method invocations:
+</p>
+<pre>
+    users                                 \
+      .where(users[:name].eq('amy'))      \
+      .project(users[:id])                \
+    # =&gt; SELECT users.id FROM users WHERE users.name = 'amy'
+</pre>
+<p>
+All operators are chainable in this way, and they are chainable any number
+of times, in any order.
+</p>
+<pre>
+    users.where(users[:name].eq('bob')).where(users[:age].lt(25))
+</pre>
+<p>
+Of course, many of the operators take multiple arguments, so the last
+example can be written more tersely:
+</p>
+<pre>
+    users.where(users[:name].eq('bob'), users[:age].lt(25))
+</pre>
+<p>
+The `OR` operator works like this:
+</p>
+<pre>
+    users.where(users[:name].eq('bob').or(users[:age].lt(25)))
+</pre>
+<p>
+The `AND` operator behaves similarly.
+</p>
+<p>
+### The Crazy Features
+</p>
+<p>
+The examples above are fairly simple and other libraries match or come
+close to matching the expressiveness of <a
+href="../classes/Arel.html">Arel</a> (e.g., `Sequel` in Ruby).
+</p>
+<p>
+#### Inline math operations
+</p>
+<p>
+Suppose we have a table `products` with prices in different currencies. And
+we have a table currency_rates, of constantly changing currency rates. In
+Arel:
+</p>
+<pre>
+    products = Arel::Table.new(:products)
+    products.columns # =&gt; [products[:id], products[:name], products[:price], products[:currency_id]]
+
+    currency_rates = Arel::Table.new(:currency_rates)
+    currency_rates.columns # =&gt; [currency_rates[:from_id], currency_rates[:to_id], currency_rates[:date], currency_rates[:rate]]
+</pre>
+<p>
+Now, to order products by price in user preferred currency simply call:
+</p>
+<pre>
+    products.
+      join(:currency_rates).on(products[:currency_id].eq(currency_rates[:from_id])).
+      where(currency_rates[:to_id].eq(user_preferred_currency), currency_rates[:date].eq(Date.today)).
+      order(products[:price] * currency_rates[:rate])
+</pre>
+<p>
+#### Complex Joins
+</p>
+<p>
+Where <a href="../classes/Arel.html">Arel</a> really shines in its ability
+to handle complex joins and aggregations. As a first example, let&#8217;s
+consider an &#8220;adjacency list&#8221;, a tree represented in a table.
+Suppose we have a table `comments`, representing a threaded discussion:
+</p>
+<pre>
+    comments = Arel::Table.new(:comments)
+</pre>
+<p>
+And this table has the following attributes:
+</p>
+<pre>
+    comments.columns # =&gt; [comments[:id], comments[:body], comments[:parent_id]]
+</pre>
+<p>
+The `parent_id` column is a foreign key from the `comments` table to
+itself. Now, joining a table to itself requires aliasing in SQL. In fact,
+you may alias in <a href="../classes/Arel.html">Arel</a> as well:
+</p>
+<pre>
+    replies = comments.alias
+    comments_with_replies = \
+      comments.join(replies).on(replies[:parent_id].eq(comments[:id]))
+    # =&gt; SELECT * FROM comments INNER JOIN comments AS comments_2 WHERE comments_2.parent_id = comments.id
+</pre>
+<p>
+This will return the first comment&#8217;s reply&#8217;s body.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

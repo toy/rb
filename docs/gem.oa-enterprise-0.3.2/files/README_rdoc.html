@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Fri Oct 21 20:08:00 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>OmniAuth::Enterprise</h1>
+<p>
+<a href="../classes/OmniAuth.html">OmniAuth</a> strategies for use in your
+intranet.
+</p>
+<h2>Installation</h2>
+<p>
+To get just enterprise functionality:
+</p>
+<pre>
+    gem install oa-enterprise
+</pre>
+<p>
+For the full auth suite:
+</p>
+<pre>
+    gem install omniauth
+</pre>
+<h2>CAS</h2>
+<p>
+Use the CAS strategy as a middleware in your application:
+</p>
+<pre>
+    require 'omniauth/enterprise'
+
+    use OmniAuth::Strategies::CAS, :server =&gt; 'http://cas.mycompany.com/cas'
+</pre>
+<p>
+Then simply direct users to &#8216;/auth/cas&#8217; to have them sign in
+via your company&#8217;s CAS server. See <a
+href="../classes/OmniAuth/Strategies/CAS/Configuration.html">OmniAuth::Strategies::CAS::Configuration</a>
+for more configuration options.
+</p>
+<h2>LDAP</h2>
+<p>
+Use the LDAP strategy as a middleware in your application:
+</p>
+<pre>
+    require 'omniauth/enterprise'
+    use OmniAuth::Strategies::LDAP,
+        :title =&gt; &quot;My LDAP&quot;,
+        :host =&gt; '10.101.10.1',
+        :port =&gt; 389,
+        :method =&gt; :plain,
+        :base =&gt; 'dc=intridea, dc=com',
+        :uid =&gt; 'sAMAccountName',
+        :name_proc =&gt; Proc.new {|name| name.gsub(/@.*$/,'')}
+        :bind_dn =&gt; 'default_bind_dn'
+        :password =&gt; 'password'
+</pre>
+<p>
+All of the listed options are required, with the exception of :name_proc,
+:bind_dn, and :password Allowed values of :method are: :plain, :ssl, :tls.
+</p>
+<p>
+:bind_dn and :password are used to perform the initial binding if user
+lookup is needed. If the user lookup returns result, the DN attribute from
+the result set is used to perform the final binding. This is needed only
+when the LDAP server requires DN to be used for binding and you may only
+want user to using email or username in the login form.
+</p>
+<p>
+:uid is the LDAP attribute name for the user name in the login form.
+typically AD would be &#8216;sAMAccountName&#8217; or
+&#8216;UserPrincipalName&#8217;, while OpenLDAP is &#8216;uid&#8217;. You
+can also use &#8216;dn&#8217;, if your user choose the put in the dn in the
+login form (but usually is too long for user to remember or know).
+</p>
+<p>
+:name_proc allows you to match the user name entered with the format of the
+:uid attributes. For example, value of &#8216;sAMAccountName&#8217; in AD
+contains only the windows user name. If your user prefers use email to
+login, a name_proc as above will trim the email string down to just the
+windows name. In summary, :name_proc helps you to fill the gap between the
+authentication and user lookup process.
+</p>
+<p>
+:try_sasl and :sasl_mechanisms are optional. Use them to initialize a SASL
+connection to server. Allowed values are &#8216;DIGEST-MD5&#8217; and
+&#8216;GSS-SPNEGO&#8217;. If you are not familiar with these authentication
+methods, please just avoid them.
+</p>
+<p>
+Direct users to &#8216;/auth/ldap&#8217; to have them authenticated via
+your company&#8217;s LDAP server.
+</p>
+<h2>SAML</h2>
+<p>
+Use the SAML strategy as a middleware in your application:
+</p>
+<pre>
+    require 'omniauth/enterprise'
+    use OmniAuth::Strategies::SAML,
+        :assertion_consumer_service_url =&gt; &quot;consumer_service_url&quot;,
+        :issuer                         =&gt; &quot;issuer&quot;,
+        :idp_sso_target_url             =&gt; &quot;idp_sso_target_url&quot;,
+        :idp_cert_fingerprint           =&gt; &quot;E7:91:B2:E1:...&quot;,
+        :name_identifier_format         =&gt; &quot;urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress&quot;
+</pre>
+<p>
+:assertion_consumer_service_url
+</p>
+<pre>
+  The URL at which the SAML assertion should be received.
+</pre>
+<p>
+:issuer
+</p>
+<pre>
+  The name of your application. Some identity providers might need this to establish the
+  identity of the service provider requesting the login.
+</pre>
+<p>
+:idp_sso_target_url
+</p>
+<pre>
+  The URL to which the authentication request should be sent. This would be on the identity provider.
+</pre>
+<p>
+:idp_cert_fingerprint
+</p>
+<pre>
+  The certificate fingerprint, e.g. &quot;90:CC:16:F0:8D:A6:D1:C6:BB:27:2D:BA:93:80:1A:1F:16:8E:4E:08&quot;.
+  This is provided from the identity provider when setting up the relationship.
+</pre>
+<p>
+:name_identifier_format
+</p>
+<pre>
+  Describes the format of the username required by this application.
+  If you need the email address, use &quot;urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress&quot;.
+  See http://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf section 8.3 for
+  other options. Note that the identity provider might not support all options.
+</pre>
+<h2>Multiple Strategies</h2>
+<p>
+If you&#8217;re using multiple strategies together, use OmniAuth&#8217;s
+Builder. That&#8217;s what it&#8217;s there for:
+</p>
+<pre>
+    require 'omniauth/enterprise'
+    require 'omniauth/oauth'  # for Campfire
+    require 'openid/store/filesystem'
+
+    use OmniAuth::Builder do
+      provider :cas, :server =&gt; 'http://cas.mycompany.com/cas'
+      provider :campfire
+    end
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

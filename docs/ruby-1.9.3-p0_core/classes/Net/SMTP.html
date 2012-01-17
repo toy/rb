@@ -1,0 +1,3069 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SMTP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::SMTP 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/net/smtp_rb.html">lib/net/smtp.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="SMTP.html">Net::SMTP</a></h1>
+<h2>What is This Library?</h2>
+<p>
+This library provides functionality to send internet mail via <a
+href="SMTP.html">SMTP</a>, the Simple Mail Transfer Protocol. For details
+of <a href="SMTP.html">SMTP</a> itself, see [RFC2821] (<a
+href="http://www.ietf.org/rfc/rfc2821.txt">www.ietf.org/rfc/rfc2821.txt</a>).
+</p>
+<h2>What is This Library NOT?</h2>
+<p>
+This library does NOT provide functions to compose internet mails. You must
+create them by yourself. If you want better mail support, try RubyMail or
+TMail. You can get both libraries from RAA. (<a
+href="http://www.ruby-lang.org/en/raa.html">www.ruby-lang.org/en/raa.html</a>)
+</p>
+<p>
+FYI: the official documentation on internet mail is: [RFC2822] (<a
+href="http://www.ietf.org/rfc/rfc2822.txt">www.ietf.org/rfc/rfc2822.txt</a>).
+</p>
+<h2>Examples</h2>
+<h3>Sending Messages</h3>
+<p>
+You must open a connection to an <a href="SMTP.html">SMTP</a> server before
+sending messages. The first argument is the address of your <a
+href="SMTP.html">SMTP</a> server, and the second argument is the port
+number. Using <a href="SMTP.html#M003439">SMTP.start</a> with a block is
+the simplest way to do this. This way, the <a href="SMTP.html">SMTP</a>
+connection is closed automatically after the block is executed.
+</p>
+<pre>
+    require 'net/smtp'
+    Net::SMTP.start('your.smtp.server', 25) do |smtp|
+      # Use the SMTP object smtp only in this block.
+    end
+</pre>
+<p>
+Replace &#8216;your.smtp.server&#8217; with your <a
+href="SMTP.html">SMTP</a> server. Normally your system manager or internet
+provider supplies a server for you.
+</p>
+<p>
+Then you can send messages.
+</p>
+<pre>
+    msgstr = &lt;&lt;END_OF_MESSAGE
+    From: Your Name &lt;your@mail.address&gt;
+    To: Destination Address &lt;someone@example.com&gt;
+    Subject: test message
+    Date: Sat, 23 Jun 2001 16:26:43 +0900
+    Message-Id: &lt;unique.message.id.string@example.com&gt;
+
+    This is a test message.
+    END_OF_MESSAGE
+
+    require 'net/smtp'
+    Net::SMTP.start('your.smtp.server', 25) do |smtp|
+      smtp.send_message msgstr,
+                        'your@mail.address',
+                        'his_address@example.com'
+    end
+</pre>
+<h3>Closing the Session</h3>
+<p>
+You MUST close the <a href="SMTP.html">SMTP</a> session after sending
+messages, by calling the <a href="SMTP.html#M003442">finish</a> method:
+</p>
+<pre>
+    # using SMTP#finish
+    smtp = Net::SMTP.start('your.smtp.server', 25)
+    smtp.send_message msgstr, 'from@address', 'to@address'
+    smtp.finish
+</pre>
+<p>
+You can also use the block form of <a
+href="SMTP.html#M003439">SMTP.start</a>/<a
+href="SMTP.html#M003439">SMTP#start</a>. This closes the <a
+href="SMTP.html">SMTP</a> session automatically:
+</p>
+<pre>
+    # using block form of SMTP.start
+    Net::SMTP.start('your.smtp.server', 25) do |smtp|
+      smtp.send_message msgstr, 'from@address', 'to@address'
+    end
+</pre>
+<p>
+I strongly recommend this scheme. This form is simpler and more robust.
+</p>
+<h3>HELO domain</h3>
+<p>
+In almost all situations, you must provide a third argument to <a
+href="SMTP.html#M003439">SMTP.start</a>/<a
+href="SMTP.html#M003439">SMTP#start</a>. This is the domain name which you
+are on (the host to send mail from). It is called the &#8220;HELO
+domain&#8221;. The <a href="SMTP.html">SMTP</a> server will judge whether
+it should send or reject the <a href="SMTP.html">SMTP</a> session by
+inspecting the HELO domain.
+</p>
+<pre>
+    Net::SMTP.start('your.smtp.server', 25,
+                    'mail.from.domain') { |smtp| ... }
+</pre>
+<h3><a href="SMTP.html">SMTP</a> Authentication</h3>
+<p>
+The <a href="SMTP.html">Net::SMTP</a> class supports three authentication
+schemes; PLAIN, LOGIN and CRAM MD5. (<a href="SMTP.html">SMTP</a>
+Authentication: [RFC2554]) To use <a href="SMTP.html">SMTP</a>
+authentication, pass extra arguments to <a
+href="SMTP.html#M003439">SMTP.start</a>/<a
+href="SMTP.html#M003439">SMTP#start</a>.
+</p>
+<pre>
+    # PLAIN
+    Net::SMTP.start('your.smtp.server', 25, 'mail.from.domain',
+                    'Your Account', 'Your Password', :plain)
+    # LOGIN
+    Net::SMTP.start('your.smtp.server', 25, 'mail.from.domain',
+                    'Your Account', 'Your Password', :login)
+
+    # CRAM MD5
+    Net::SMTP.start('your.smtp.server', 25, 'mail.from.domain',
+                    'Your Account', 'Your Password', :cram_md5)
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003422">auth_capable?</a>,</li>
+                
+                <li><a href="#M003459">auth_cram_md5</a>,</li>
+                
+                <li><a href="#M003458">auth_login</a>,</li>
+                
+                <li><a href="#M003461">auth_method</a>,</li>
+                
+                <li><a href="#M003457">auth_plain</a>,</li>
+                
+                <li><a href="#M003456">authenticate</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003464">base64_encode</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003418">capable?</a>,</li>
+                
+                <li><a href="#M003423">capable_auth_types</a>,</li>
+                
+                <li><a href="#M003421">capable_cram_md5_auth?</a>,</li>
+                
+                <li><a href="#M003420">capable_login_auth?</a>,</li>
+                
+                <li><a href="#M003419">capable_plain_auth?</a>,</li>
+                
+                <li><a href="#M003417">capable_starttls?</a>,</li>
+                
+                <li><a href="#M003463">check_auth_args</a>,</li>
+                
+                <li><a href="#M003487">check_auth_continue</a>,</li>
+                
+                <li><a href="#M003460">check_auth_method</a>,</li>
+                
+                <li><a href="#M003486">check_auth_response</a>,</li>
+                
+                <li><a href="#M003485">check_continue</a>,</li>
+                
+                <li><a href="#M003484">check_response</a>,</li>
+                
+                <li><a href="#M003465">cram_md5_response</a>,</li>
+                
+                <li><a href="#M003466">cram_secret</a>,</li>
+                
+                <li><a href="#M003483">critical</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003475">data</a>,</li>
+                
+                <li><a href="#M003437">debug_output=</a>,</li>
+                
+                <li><a href="#M003411">default_port</a>,</li>
+                
+                <li><a href="#M003414">default_ssl_context</a>,</li>
+                
+                <li><a href="#M003412">default_submission_port</a>,</li>
+                
+                <li><a href="#M003413">default_tls_port</a>,</li>
+                
+                <li><a href="#M003429">disable_ssl</a>,</li>
+                
+                <li><a href="#M003435">disable_starttls</a>,</li>
+                
+                <li><a href="#M003428">disable_tls</a>,</li>
+                
+                <li><a href="#M003449">do_finish</a>,</li>
+                
+                <li><a href="#M003448">do_helo</a>,</li>
+                
+                <li><a href="#M003444">do_start</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003469">ehlo</a>,</li>
+                
+                <li><a href="#M003427">enable_ssl</a>,</li>
+                
+                <li><a href="#M003433">enable_starttls</a>,</li>
+                
+                <li><a href="#M003434">enable_starttls_auto</a>,</li>
+                
+                <li><a href="#M003426">enable_tls</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003442">finish</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003480">get_response</a>,</li>
+                
+                <li><a href="#M003479">getok</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003468">helo</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003416">inspect</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003497">logging</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003470">mailfrom</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003415">new</a>,</li>
+                
+                <li><a href="#M003447">new_internet_message_io</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003454">open_message_stream</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>Q</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003478">quit</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003473">rcptto</a>,</li>
+                
+                <li><a href="#M003471">rcptto_list</a>,</li>
+                
+                <li><a href="#M003436">read_timeout=</a>,</li>
+                
+                <li><a href="#M003455">ready</a>,</li>
+                
+                <li><a href="#M003482">recv_response</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003451">send_mail</a>,</li>
+                
+                <li><a href="#M003450">send_message</a>,</li>
+                
+                <li><a href="#M003452">sendmail</a>,</li>
+                
+                <li><a href="#M003438">set_debug_output</a>,</li>
+                
+                <li><a href="#M003425">ssl?</a>,</li>
+                
+                <li><a href="#M003445">ssl_socket</a>,</li>
+                
+                <li><a href="#M003439">start</a>,</li>
+                
+                <li><a href="#M003441">start</a>,</li>
+                
+                <li><a href="#M003440">started?</a>,</li>
+                
+                <li><a href="#M003467">starttls</a>,</li>
+                
+                <li><a href="#M003430">starttls?</a>,</li>
+                
+                <li><a href="#M003431">starttls_always?</a>,</li>
+                
+                <li><a href="#M003432">starttls_auto?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003443">tcp_socket</a>,</li>
+                
+                <li><a href="#M003424">tls?</a>,</li>
+                
+                <li><a href="#M003446">tlsconnect</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="SMTP/Response.html">Net::SMTP::Response</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">Revision</td>
+            <td>=</td>
+            <td class="attr-value">%q$Revision$.split[1]</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_AUTH_TYPE</td>
+            <td>=</td>
+            <td class="attr-value">:plain</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Authentication
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">IMASK</td>
+            <td>=</td>
+            <td class="attr-value">0x36</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">OMASK</td>
+            <td>=</td>
+            <td class="attr-value">0x5c</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">CRAM_BUFSIZE</td>
+            <td>=</td>
+            <td class="attr-value">64</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>esmtp</td>
+            <td class='attr-desc'><p>
+<a href="../Set.html">Set</a> whether to use ESMTP or not. This should be
+done before calling <a href="SMTP.html#M003439">start</a>. Note that if <a
+href="SMTP.html#M003439">start</a> is called in ESMTP mode, and the
+connection fails due to a ProtocolError, the <a href="SMTP.html">SMTP</a>
+object will automatically switch to plain <a href="SMTP.html">SMTP</a> mode
+and retry (but not vice versa).
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>address</td>
+            <td class='attr-desc'><p>
+The address of the <a href="SMTP.html">SMTP</a> server to connect to.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>port</td>
+            <td class='attr-desc'><p>
+The port number of the <a href="SMTP.html">SMTP</a> server to connect to.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>open_timeout</td>
+            <td class='attr-desc'><p>
+Seconds to wait while attempting to open a connection. If the connection
+cannot be opened within this time, a TimeoutError is raised.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>read_timeout</td>
+            <td class='attr-desc'><p>
+Seconds to wait while reading one block (by one read(2) call). If the
+read(2) call does not complete within this time, a TimeoutError is raised.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003411">
+                    
+                    <a name="M003411"></a><b>default_port</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The default <a href="SMTP.html">SMTP</a> port number, 25.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003411_source')" id="l_M003411_source">show</a>
+                        
+                    </p>
+                    <div id="M003411_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 178</span>
+178:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_port</span>
+179:       <span class="ruby-value">25</span>
+180:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003414">
+                    
+                    <a name="M003414"></a><b>default_ssl_context</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003414_source')" id="l_M003414_source">show</a>
+                        
+                    </p>
+                    <div id="M003414_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 196</span>
+196:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_ssl_context</span>
+197:       <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSLContext</span>.<span class="ruby-identifier">new</span>
+198:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003412">
+                    
+                    <a name="M003412"></a><b>default_submission_port</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The default mail submission port number, 587.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003412_source')" id="l_M003412_source">show</a>
+                        
+                    </p>
+                    <div id="M003412_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 183</span>
+183:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_submission_port</span>
+184:       <span class="ruby-value">587</span>
+185:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003413">
+                    
+                    <a name="M003413"></a><b>default_tls_port</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The default SMTPS port number, 465.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003413_source')" id="l_M003413_source">show</a>
+                        
+                    </p>
+                    <div id="M003413_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 188</span>
+188:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_tls_port</span>
+189:       <span class="ruby-value">465</span>
+190:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003415">
+                    
+                    <a name="M003415"></a><b>new</b>(address, port = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="SMTP.html">Net::SMTP</a> object.
+</p>
+<p>
+<tt>address</tt> is the hostname or ip address of your <a
+href="SMTP.html">SMTP</a> server. <tt>port</tt> is the port to connect to;
+it defaults to port 25.
+</p>
+<p>
+This method does not open the TCP connection. You can use <a
+href="SMTP.html#M003439">SMTP.start</a> instead of <a
+href="SMTP.html#M003415">SMTP.new</a> if you want to do everything at once.
+Otherwise, follow <a href="SMTP.html#M003415">SMTP.new</a> with <a
+href="SMTP.html#M003439">SMTP#start</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003415_source')" id="l_M003415_source">show</a>
+                        
+                    </p>
+                    <div id="M003415_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 211</span>
+211:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">address</span>, <span class="ruby-identifier">port</span> = <span class="ruby-keyword kw">nil</span>)
+212:       <span class="ruby-ivar">@address</span> = <span class="ruby-identifier">address</span>
+213:       <span class="ruby-ivar">@port</span> = (<span class="ruby-identifier">port</span> <span class="ruby-operator">||</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_port</span>)
+214:       <span class="ruby-ivar">@esmtp</span> = <span class="ruby-keyword kw">true</span>
+215:       <span class="ruby-ivar">@capabilities</span> = <span class="ruby-keyword kw">nil</span>
+216:       <span class="ruby-ivar">@socket</span> = <span class="ruby-keyword kw">nil</span>
+217:       <span class="ruby-ivar">@started</span> = <span class="ruby-keyword kw">false</span>
+218:       <span class="ruby-ivar">@open_timeout</span> = <span class="ruby-value">30</span>
+219:       <span class="ruby-ivar">@read_timeout</span> = <span class="ruby-value">60</span>
+220:       <span class="ruby-ivar">@error_occured</span> = <span class="ruby-keyword kw">false</span>
+221:       <span class="ruby-ivar">@debug_output</span> = <span class="ruby-keyword kw">nil</span>
+222:       <span class="ruby-ivar">@tls</span> = <span class="ruby-keyword kw">false</span>
+223:       <span class="ruby-ivar">@starttls</span> = <span class="ruby-keyword kw">false</span>
+224:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-keyword kw">nil</span>
+225:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003439">
+                    
+                    <a name="M003439"></a><b>start</b>(address, port = nil, helo = 'localhost', user = nil, secret = nil, authtype = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="SMTP.html">Net::SMTP</a> object and connects to the
+server.
+</p>
+<p>
+This method is equivalent to:
+</p>
+<pre>
+  Net::SMTP.new(address, port).start(helo_domain, account, password, authtype)
+</pre>
+<h3>Example</h3>
+<pre>
+    Net::SMTP.start('your.smtp.server') do |smtp|
+      smtp.send_message msgstr, 'from@example.com', ['dest@example.com']
+    end
+</pre>
+<h3>Block Usage</h3>
+<p>
+If called with a block, the newly-opened <a href="SMTP.html">Net::SMTP</a>
+object is yielded to the block, and automatically closed when the block
+finishes. If called without a block, the newly-opened <a
+href="SMTP.html">Net::SMTP</a> object is returned to the caller, and it is
+the caller&#8217;s responsibility to close it when finished.
+</p>
+<h3>Parameters</h3>
+<p>
+<tt>address</tt> is the hostname or ip address of your smtp server.
+</p>
+<p>
+<tt>port</tt> is the port to connect to; it defaults to port 25.
+</p>
+<p>
+<tt>helo</tt> is the <em>HELO</em> <em>domain</em> provided by the client
+to the server (see overview comments); it defaults to
+&#8216;localhost&#8217;.
+</p>
+<p>
+The remaining arguments are used for <a href="SMTP.html">SMTP</a>
+authentication, if required or desired. <tt>user</tt> is the account name;
+<tt>secret</tt> is your password or other authentication token; and
+<tt>authtype</tt> is the authentication type, one of :plain, :login, or
+:cram_md5. See the discussion of <a href="SMTP.html">SMTP</a>
+Authentication in the overview notes.
+</p>
+<h3>Errors</h3>
+<p>
+This method may raise:
+</p>
+<ul>
+<li><a href="SMTPAuthenticationError.html">Net::SMTPAuthenticationError</a>
+
+</li>
+<li><a href="SMTPServerBusy.html">Net::SMTPServerBusy</a>
+
+</li>
+<li><a href="SMTPSyntaxError.html">Net::SMTPSyntaxError</a>
+
+</li>
+<li><a href="SMTPFatalError.html">Net::SMTPFatalError</a>
+
+</li>
+<li><a href="SMTPUnknownError.html">Net::SMTPUnknownError</a>
+
+</li>
+<li><a href="../IOError.html">IOError</a>
+
+</li>
+<li>TimeoutError
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003439_source')" id="l_M003439_source">show</a>
+                        
+                    </p>
+                    <div id="M003439_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 454</span>
+454:     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">address</span>, <span class="ruby-identifier">port</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">helo</span> = <span class="ruby-value str">'localhost'</span>,
+455:                    <span class="ruby-identifier">user</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">secret</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">authtype</span> = <span class="ruby-keyword kw">nil</span>,
+456:                    <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)   <span class="ruby-comment cmt"># :yield: smtp</span>
+457:       <span class="ruby-identifier">new</span>(<span class="ruby-identifier">address</span>, <span class="ruby-identifier">port</span>).<span class="ruby-identifier">start</span>(<span class="ruby-identifier">helo</span>, <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+458:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003459">
+                    
+                    <a name="M003459"></a><b>auth_cram_md5</b>(user, secret)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003459_source')" id="l_M003459_source">show</a>
+                        
+                    </p>
+                    <div id="M003459_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 752</span>
+752:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_cram_md5</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>)
+753:       <span class="ruby-identifier">check_auth_args</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+754:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">critical</span> {
+755:         <span class="ruby-identifier">res0</span> = <span class="ruby-identifier">get_response</span>(<span class="ruby-value str">'AUTH CRAM-MD5'</span>)
+756:         <span class="ruby-identifier">check_auth_continue</span> <span class="ruby-identifier">res0</span>
+757:         <span class="ruby-identifier">crammed</span> = <span class="ruby-identifier">cram_md5_response</span>(<span class="ruby-identifier">secret</span>, <span class="ruby-identifier">res0</span>.<span class="ruby-identifier">cram_md5_challenge</span>)
+758:         <span class="ruby-identifier">get_response</span>(<span class="ruby-identifier">base64_encode</span>(<span class="ruby-node">&quot;#{user} #{crammed}&quot;</span>))
+759:       }
+760:       <span class="ruby-identifier">check_auth_response</span> <span class="ruby-identifier">res</span>
+761:       <span class="ruby-identifier">res</span>
+762:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003458">
+                    
+                    <a name="M003458"></a><b>auth_login</b>(user, secret)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003458_source')" id="l_M003458_source">show</a>
+                        
+                    </p>
+                    <div id="M003458_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 741</span>
+741:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_login</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>)
+742:       <span class="ruby-identifier">check_auth_args</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+743:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">critical</span> {
+744:         <span class="ruby-identifier">check_auth_continue</span> <span class="ruby-identifier">get_response</span>(<span class="ruby-value str">'AUTH LOGIN'</span>)
+745:         <span class="ruby-identifier">check_auth_continue</span> <span class="ruby-identifier">get_response</span>(<span class="ruby-identifier">base64_encode</span>(<span class="ruby-identifier">user</span>))
+746:         <span class="ruby-identifier">get_response</span>(<span class="ruby-identifier">base64_encode</span>(<span class="ruby-identifier">secret</span>))
+747:       }
+748:       <span class="ruby-identifier">check_auth_response</span> <span class="ruby-identifier">res</span>
+749:       <span class="ruby-identifier">res</span>
+750:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003457">
+                    
+                    <a name="M003457"></a><b>auth_plain</b>(user, secret)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003457_source')" id="l_M003457_source">show</a>
+                        
+                    </p>
+                    <div id="M003457_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 732</span>
+732:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_plain</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>)
+733:       <span class="ruby-identifier">check_auth_args</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+734:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">critical</span> {
+735:         <span class="ruby-identifier">get_response</span>(<span class="ruby-value str">'AUTH PLAIN '</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">base64_encode</span>(<span class="ruby-node">&quot;\0#{user}\0#{secret}&quot;</span>))
+736:       }
+737:       <span class="ruby-identifier">check_auth_response</span> <span class="ruby-identifier">res</span>
+738:       <span class="ruby-identifier">res</span>
+739:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003456">
+                    
+                    <a name="M003456"></a><b>authenticate</b>(user, secret, authtype = DEFAULT_AUTH_TYPE)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003456_source')" id="l_M003456_source">show</a>
+                        
+                    </p>
+                    <div id="M003456_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 726</span>
+726:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">authenticate</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span> = <span class="ruby-constant">DEFAULT_AUTH_TYPE</span>)
+727:       <span class="ruby-identifier">check_auth_method</span> <span class="ruby-identifier">authtype</span>
+728:       <span class="ruby-identifier">check_auth_args</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+729:       <span class="ruby-identifier">send</span> <span class="ruby-identifier">auth_method</span>(<span class="ruby-identifier">authtype</span>), <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+730:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003423">
+                    
+                    <a name="M003423"></a><b>capable_auth_types</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns supported authentication methods on this server. You cannot get
+valid value before opening <a href="SMTP.html">SMTP</a> session.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003423_source')" id="l_M003423_source">show</a>
+                        
+                    </p>
+                    <div id="M003423_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 283</span>
+283:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable_auth_types</span>
+284:       <span class="ruby-keyword kw">return</span> [] <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@capabilities</span>
+285:       <span class="ruby-keyword kw">return</span> [] <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@capabilities</span>[<span class="ruby-value str">'AUTH'</span>]
+286:       <span class="ruby-ivar">@capabilities</span>[<span class="ruby-value str">'AUTH'</span>]
+287:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003421">
+                    
+                    <a name="M003421"></a><b>capable_cram_md5_auth?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if server advertises AUTH CRAM-MD5. You cannot get valid value before
+opening <a href="SMTP.html">SMTP</a> session.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003421_source')" id="l_M003421_source">show</a>
+                        
+                    </p>
+                    <div id="M003421_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 270</span>
+270:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable_cram_md5_auth?</span>
+271:       <span class="ruby-identifier">auth_capable?</span>(<span class="ruby-value str">'CRAM-MD5'</span>)
+272:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003420">
+                    
+                    <a name="M003420"></a><b>capable_login_auth?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if server advertises AUTH LOGIN. You cannot get valid value before
+opening <a href="SMTP.html">SMTP</a> session.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003420_source')" id="l_M003420_source">show</a>
+                        
+                    </p>
+                    <div id="M003420_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 264</span>
+264:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable_login_auth?</span>
+265:       <span class="ruby-identifier">auth_capable?</span>(<span class="ruby-value str">'LOGIN'</span>)
+266:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003419">
+                    
+                    <a name="M003419"></a><b>capable_plain_auth?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if server advertises AUTH PLAIN. You cannot get valid value before
+opening <a href="SMTP.html">SMTP</a> session.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003419_source')" id="l_M003419_source">show</a>
+                        
+                    </p>
+                    <div id="M003419_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 258</span>
+258:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable_plain_auth?</span>
+259:       <span class="ruby-identifier">auth_capable?</span>(<span class="ruby-value str">'PLAIN'</span>)
+260:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003417">
+                    
+                    <a name="M003417"></a><b>capable_starttls?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if server advertises STARTTLS. You cannot get valid value before
+opening <a href="SMTP.html">SMTP</a> session.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003417_source')" id="l_M003417_source">show</a>
+                        
+                    </p>
+                    <div id="M003417_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 246</span>
+246:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable_starttls?</span>
+247:       <span class="ruby-identifier">capable?</span>(<span class="ruby-value str">'STARTTLS'</span>)
+248:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003475">
+                    
+                    <a name="M003475"></a><b>data</b>(msgstr = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This method sends a message. If <tt>msgstr</tt> is given, sends it as a
+message. If block is given, yield a message writer stream. You must write
+message before the block is closed.
+</p>
+<pre>
+  # Example 1 (by string)
+  smtp.data(&lt;&lt;EndMessage)
+  From: john@example.com
+  To: betty@example.com
+  Subject: I found a bug
+
+  Check vm.c:58879.
+  EndMessage
+
+  # Example 2 (by block)
+  smtp.data {|f|
+    f.puts &quot;From: john@example.com&quot;
+    f.puts &quot;To: betty@example.com&quot;
+    f.puts &quot;Subject: I found a bug&quot;
+    f.puts &quot;&quot;
+    f.puts &quot;Check vm.c:58879.&quot;
+  }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003475_source')" id="l_M003475_source">show</a>
+                        
+                    </p>
+                    <div id="M003475_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 886</span>
+886:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">data</span>(<span class="ruby-identifier">msgstr</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)   <span class="ruby-comment cmt">#:yield: stream</span>
+887:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msgstr</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">block</span>
+888:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;message and block are exclusive&quot;</span>
+889:       <span class="ruby-keyword kw">end</span>
+890:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">msgstr</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">block</span>
+891:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;message or block is required&quot;</span>
+892:       <span class="ruby-keyword kw">end</span>
+893:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">critical</span> {
+894:         <span class="ruby-identifier">check_continue</span> <span class="ruby-identifier">get_response</span>(<span class="ruby-value str">'DATA'</span>)
+895:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">msgstr</span>
+896:           <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">write_message</span> <span class="ruby-identifier">msgstr</span>
+897:         <span class="ruby-keyword kw">else</span>
+898:           <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">write_message_by_block</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+899:         <span class="ruby-keyword kw">end</span>
+900:         <span class="ruby-identifier">recv_response</span>()
+901:       }
+902:       <span class="ruby-identifier">check_response</span> <span class="ruby-identifier">res</span>
+903:       <span class="ruby-identifier">res</span>
+904:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003437">
+                    
+                    <a name="M003437"></a><b>debug_output=</b>(arg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+WARNING: This method causes serious security holes. Use this method for
+only debugging.
+</p>
+<p>
+<a href="../Set.html">Set</a> an output stream for debug logging. You must
+call this before <a href="SMTP.html#M003439">start</a>.
+</p>
+<pre>
+  # example
+  smtp = Net::SMTP.new(addr, port)
+  smtp.set_debug_output $stderr
+  smtp.start do |smtp|
+    ....
+  end
+</pre>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003438">set_debug_output</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003437_source')" id="l_M003437_source">show</a>
+                        
+                    </p>
+                    <div id="M003437_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 396</span>
+396:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">debug_output=</span>(<span class="ruby-identifier">arg</span>)
+397:       <span class="ruby-ivar">@debug_output</span> = <span class="ruby-identifier">arg</span>
+398:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003429">
+                    
+                    <a name="M003429"></a><b>disable_ssl</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003428">disable_tls</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003435">
+                    
+                    <a name="M003435"></a><b>disable_starttls</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Disables SMTP/TLS (STARTTLS) for this object. Must be called before the
+connection is established to have any effect.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003435_source')" id="l_M003435_source">show</a>
+                        
+                    </p>
+                    <div id="M003435_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 354</span>
+354:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">disable_starttls</span>
+355:       <span class="ruby-ivar">@starttls</span> = <span class="ruby-keyword kw">false</span>
+356:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-keyword kw">nil</span>
+357:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003428">
+                    
+                    <a name="M003428"></a><b>disable_tls</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Disables SMTP/TLS for this object. Must be called before the connection is
+established to have any effect.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003429">disable_ssl</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003428_source')" id="l_M003428_source">show</a>
+                        
+                    </p>
+                    <div id="M003428_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 310</span>
+310:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">disable_tls</span>
+311:       <span class="ruby-ivar">@tls</span> = <span class="ruby-keyword kw">false</span>
+312:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-keyword kw">nil</span>
+313:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003469">
+                    
+                    <a name="M003469"></a><b>ehlo</b>(domain)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003469_source')" id="l_M003469_source">show</a>
+                        
+                    </p>
+                    <div id="M003469_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 824</span>
+824:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ehlo</span>(<span class="ruby-identifier">domain</span>)
+825:       <span class="ruby-identifier">getok</span>(<span class="ruby-node">&quot;EHLO #{domain}&quot;</span>)
+826:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003427">
+                    
+                    <a name="M003427"></a><b>enable_ssl</b>(context = SMTP.default_ssl_context)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003426">enable_tls</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003433">
+                    
+                    <a name="M003433"></a><b>enable_starttls</b>(context = SMTP.default_ssl_context)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enables SMTP/TLS (STARTTLS) for this object. <tt>context</tt> is a <a
+href="../OpenSSL/SSL/SSLContext.html">OpenSSL::SSL::SSLContext</a> object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003433_source')" id="l_M003433_source">show</a>
+                        
+                    </p>
+                    <div id="M003433_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 336</span>
+336:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">enable_starttls</span>(<span class="ruby-identifier">context</span> = <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_ssl_context</span>)
+337:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">'openssl library not installed'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">OpenSSL</span>)
+338:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;SMTPS and STARTTLS is exclusive&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@tls</span>
+339:       <span class="ruby-ivar">@starttls</span> = <span class="ruby-identifier">:always</span>
+340:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-identifier">context</span>
+341:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003434">
+                    
+                    <a name="M003434"></a><b>enable_starttls_auto</b>(context = SMTP.default_ssl_context)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enables SMTP/TLS (STARTTLS) for this object if server accepts.
+<tt>context</tt> is a <a
+href="../OpenSSL/SSL/SSLContext.html">OpenSSL::SSL::SSLContext</a> object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003434_source')" id="l_M003434_source">show</a>
+                        
+                    </p>
+                    <div id="M003434_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 345</span>
+345:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">enable_starttls_auto</span>(<span class="ruby-identifier">context</span> = <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_ssl_context</span>)
+346:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">'openssl library not installed'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">OpenSSL</span>)
+347:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;SMTPS and STARTTLS is exclusive&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@tls</span>
+348:       <span class="ruby-ivar">@starttls</span> = <span class="ruby-identifier">:auto</span>
+349:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-identifier">context</span>
+350:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003426">
+                    
+                    <a name="M003426"></a><b>enable_tls</b>(context = SMTP.default_ssl_context)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enables SMTP/TLS (SMTPS: <a href="SMTP.html">SMTP</a> over direct TLS
+connection) for this object. Must be called before the connection is
+established to have any effect. <tt>context</tt> is a <a
+href="../OpenSSL/SSL/SSLContext.html">OpenSSL::SSL::SSLContext</a> object.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003427">enable_ssl</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003426_source')" id="l_M003426_source">show</a>
+                        
+                    </p>
+                    <div id="M003426_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 299</span>
+299:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">enable_tls</span>(<span class="ruby-identifier">context</span> = <span class="ruby-constant">SMTP</span>.<span class="ruby-identifier">default_ssl_context</span>)
+300:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">'openssl library not installed'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">OpenSSL</span>)
+301:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;SMTPS and STARTTLS is exclusive&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@starttls</span>
+302:       <span class="ruby-ivar">@tls</span> = <span class="ruby-keyword kw">true</span>
+303:       <span class="ruby-ivar">@ssl_context</span> = <span class="ruby-identifier">context</span>
+304:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003442">
+                    
+                    <a name="M003442"></a><b>finish</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finishes the <a href="SMTP.html">SMTP</a> session and closes TCP
+connection. Raises <a href="../IOError.html">IOError</a> if not started.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003442_source')" id="l_M003442_source">show</a>
+                        
+                    </p>
+                    <div id="M003442_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 532</span>
+532:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">finish</span>
+533:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">IOError</span>, <span class="ruby-value str">'not yet started'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">started?</span>
+534:       <span class="ruby-identifier">do_finish</span>
+535:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003468">
+                    
+                    <a name="M003468"></a><b>helo</b>(domain)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003468_source')" id="l_M003468_source">show</a>
+                        
+                    </p>
+                    <div id="M003468_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 820</span>
+820:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">helo</span>(<span class="ruby-identifier">domain</span>)
+821:       <span class="ruby-identifier">getok</span>(<span class="ruby-node">&quot;HELO #{domain}&quot;</span>)
+822:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003416">
+                    
+                    <a name="M003416"></a><b>inspect</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Provide human-readable stringification of class state.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003416_source')" id="l_M003416_source">show</a>
+                        
+                    </p>
+                    <div id="M003416_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 228</span>
+228:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">inspect</span>
+229:       <span class="ruby-node">&quot;#&lt;#{self.class} #{@address}:#{@port} started=#{@started}&gt;&quot;</span>
+230:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003470">
+                    
+                    <a name="M003470"></a><b>mailfrom</b>(from_addr)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003470_source')" id="l_M003470_source">show</a>
+                        
+                    </p>
+                    <div id="M003470_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 828</span>
+828:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mailfrom</span>(<span class="ruby-identifier">from_addr</span>)
+829:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$SAFE</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+830:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">SecurityError</span>, <span class="ruby-value str">'tainted from_addr'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">from_addr</span>.<span class="ruby-identifier">tainted?</span>
+831:       <span class="ruby-keyword kw">end</span>
+832:       <span class="ruby-identifier">getok</span>(<span class="ruby-node">&quot;MAIL FROM:&lt;#{from_addr}&gt;&quot;</span>)
+833:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003454">
+                    
+                    <a name="M003454"></a><b>open_message_stream</b>(from_addr, *to_addrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens a message writer stream and gives it to the block. The stream is
+valid only in the block, and has these methods:
+</p>
+<table>
+<tr><td valign="top">puts(str = &#8217;&#8217;):</td><td>outputs STR and CR LF.
+
+</td></tr>
+<tr><td valign="top">print(str):</td><td>outputs STR.
+
+</td></tr>
+<tr><td valign="top">printf(fmt, *args):</td><td>outputs sprintf(fmt,*args).
+
+</td></tr>
+<tr><td valign="top">write(str):</td><td>outputs STR and returns the length of written bytes.
+
+</td></tr>
+<tr><td valign="top"><<(str):</td><td>outputs STR and returns self.
+
+</td></tr>
+</table>
+<p>
+If a single CR (&#8220;r&#8220;) or LF (&#8220;n&#8220;) is found in the
+message, it is converted to the CR LF pair. You cannot send a binary
+message with this method.
+</p>
+<h3>Parameters</h3>
+<p>
+<tt>from_addr</tt> is a <a href="../String.html">String</a> representing
+the source mail address.
+</p>
+<p>
+<tt>to_addr</tt> is a <a href="../String.html">String</a> or Strings or <a
+href="../Array.html">Array</a> of Strings, representing the destination
+mail address or addresses.
+</p>
+<h3>Example</h3>
+<pre>
+    Net::SMTP.start('smtp.example.com', 25) do |smtp|
+      smtp.open_message_stream('from@example.com', ['dest@example.com']) do |f|
+        f.puts 'From: from@example.com'
+        f.puts 'To: dest@example.com'
+        f.puts 'Subject: test message'
+        f.puts
+        f.puts 'This is a test message.'
+      end
+    end
+</pre>
+<h3>Errors</h3>
+<p>
+This method may raise:
+</p>
+<ul>
+<li><a href="SMTPServerBusy.html">Net::SMTPServerBusy</a>
+
+</li>
+<li><a href="SMTPSyntaxError.html">Net::SMTPSyntaxError</a>
+
+</li>
+<li><a href="SMTPFatalError.html">Net::SMTPFatalError</a>
+
+</li>
+<li><a href="SMTPUnknownError.html">Net::SMTPUnknownError</a>
+
+</li>
+<li><a href="../IOError.html">IOError</a>
+
+</li>
+<li>TimeoutError
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003455">ready</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003454_source')" id="l_M003454_source">show</a>
+                        
+                    </p>
+                    <div id="M003454_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 710</span>
+710:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open_message_stream</span>(<span class="ruby-identifier">from_addr</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">to_addrs</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)   <span class="ruby-comment cmt"># :yield: stream</span>
+711:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">IOError</span>, <span class="ruby-value str">'closed session'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@socket</span>
+712:       <span class="ruby-identifier">mailfrom</span> <span class="ruby-identifier">from_addr</span>
+713:       <span class="ruby-identifier">rcptto_list</span>(<span class="ruby-identifier">to_addrs</span>) {<span class="ruby-identifier">data</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)}
+714:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003478">
+                    
+                    <a name="M003478"></a><b>quit</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003478_source')" id="l_M003478_source">show</a>
+                        
+                    </p>
+                    <div id="M003478_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 906</span>
+906:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">quit</span>
+907:       <span class="ruby-identifier">getok</span>(<span class="ruby-value str">'QUIT'</span>)
+908:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003473">
+                    
+                    <a name="M003473"></a><b>rcptto</b>(to_addr)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003473_source')" id="l_M003473_source">show</a>
+                        
+                    </p>
+                    <div id="M003473_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 856</span>
+856:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rcptto</span>(<span class="ruby-identifier">to_addr</span>)
+857:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$SAFE</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+858:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">SecurityError</span>, <span class="ruby-value str">'tainted to_addr'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">to_addr</span>.<span class="ruby-identifier">tainted?</span>
+859:       <span class="ruby-keyword kw">end</span>
+860:       <span class="ruby-identifier">getok</span>(<span class="ruby-node">&quot;RCPT TO:&lt;#{to_addr}&gt;&quot;</span>)
+861:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003471">
+                    
+                    <a name="M003471"></a><b>rcptto_list</b>(to_addrs)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003471_source')" id="l_M003471_source">show</a>
+                        
+                    </p>
+                    <div id="M003471_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 835</span>
+835:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rcptto_list</span>(<span class="ruby-identifier">to_addrs</span>)
+836:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'mail destination not given'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">to_addrs</span>.<span class="ruby-identifier">empty?</span>
+837:       <span class="ruby-identifier">ok_users</span> = []
+838:       <span class="ruby-identifier">unknown_users</span> = []
+839:       <span class="ruby-identifier">to_addrs</span>.<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">addr</span><span class="ruby-operator">|</span>
+840:         <span class="ruby-keyword kw">begin</span>
+841:           <span class="ruby-identifier">rcptto</span> <span class="ruby-identifier">addr</span>
+842:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SMTPAuthenticationError</span>
+843:           <span class="ruby-identifier">unknown_users</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">addr</span>.<span class="ruby-identifier">dump</span>
+844:         <span class="ruby-keyword kw">else</span>
+845:           <span class="ruby-identifier">ok_users</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">addr</span>
+846:         <span class="ruby-keyword kw">end</span>
+847:       <span class="ruby-keyword kw">end</span>
+848:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'mail destination not given'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ok_users</span>.<span class="ruby-identifier">empty?</span>
+849:       <span class="ruby-identifier">ret</span> = <span class="ruby-keyword kw">yield</span>
+850:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">unknown_users</span>.<span class="ruby-identifier">empty?</span>
+851:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">SMTPAuthenticationError</span>, <span class="ruby-node">&quot;failed to deliver for #{unknown_users.join(', ')}&quot;</span>
+852:       <span class="ruby-keyword kw">end</span>
+853:       <span class="ruby-identifier">ret</span>
+854:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003436">
+                    
+                    <a name="M003436"></a><b>read_timeout=</b>(sec)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="../Set.html">Set</a> the number of seconds to wait until
+timing-out a read(2) call.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003436_source')" id="l_M003436_source">show</a>
+                        
+                    </p>
+                    <div id="M003436_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 377</span>
+377:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_timeout=</span>(<span class="ruby-identifier">sec</span>)
+378:       <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">read_timeout</span> = <span class="ruby-identifier">sec</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@socket</span>
+379:       <span class="ruby-ivar">@read_timeout</span> = <span class="ruby-identifier">sec</span>
+380:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003455">
+                    
+                    <a name="M003455"></a><b>ready</b>(from_addr, *to_addrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003454">open_message_stream</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003451">
+                    
+                    <a name="M003451"></a><b>send_mail</b>(msgstr, from_addr, *to_addrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003450">send_message</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003450">
+                    
+                    <a name="M003450"></a><b>send_message</b>(msgstr, from_addr, *to_addrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sends <tt>msgstr</tt> as a message. Single CR (&#8220;r&#8220;) and LF
+(&#8220;n&#8220;) found in the <tt>msgstr</tt>, are converted into the CR
+LF pair. You cannot send a binary message with this method. <tt>msgstr</tt>
+should include both the message headers and body.
+</p>
+<p>
+<tt>from_addr</tt> is a <a href="../String.html">String</a> representing
+the source mail address.
+</p>
+<p>
+<tt>to_addr</tt> is a <a href="../String.html">String</a> or Strings or <a
+href="../Array.html">Array</a> of Strings, representing the destination
+mail address or addresses.
+</p>
+<h3>Example</h3>
+<pre>
+    Net::SMTP.start('smtp.example.com') do |smtp|
+      smtp.send_message msgstr,
+                        'from@example.com',
+                        ['dest@example.com', 'dest2@example.com']
+    end
+</pre>
+<h3>Errors</h3>
+<p>
+This method may raise:
+</p>
+<ul>
+<li><a href="SMTPServerBusy.html">Net::SMTPServerBusy</a>
+
+</li>
+<li><a href="SMTPSyntaxError.html">Net::SMTPSyntaxError</a>
+
+</li>
+<li><a href="SMTPFatalError.html">Net::SMTPFatalError</a>
+
+</li>
+<li><a href="SMTPUnknownError.html">Net::SMTPUnknownError</a>
+
+</li>
+<li><a href="../IOError.html">IOError</a>
+
+</li>
+<li>TimeoutError
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003451">send_mail</a>
+                    
+                    <a href="SMTP.html#M003452">sendmail</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003450_source')" id="l_M003450_source">show</a>
+                        
+                    </p>
+                    <div id="M003450_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 657</span>
+657:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">send_message</span>(<span class="ruby-identifier">msgstr</span>, <span class="ruby-identifier">from_addr</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">to_addrs</span>)
+658:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">IOError</span>, <span class="ruby-value str">'closed session'</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@socket</span>
+659:       <span class="ruby-identifier">mailfrom</span> <span class="ruby-identifier">from_addr</span>
+660:       <span class="ruby-identifier">rcptto_list</span>(<span class="ruby-identifier">to_addrs</span>) {<span class="ruby-identifier">data</span> <span class="ruby-identifier">msgstr</span>}
+661:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003452">
+                    
+                    <a name="M003452"></a><b>sendmail</b>(msgstr, from_addr, *to_addrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003450">send_message</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003438">
+                    
+                    <a name="M003438"></a><b>set_debug_output</b>(arg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003437">debug_output=</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003425">
+                    
+                    <a name="M003425"></a><b>ssl?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="SMTP.html#M003424">tls?</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003441">
+                    
+                    <a name="M003441"></a><b>start</b>(helo = 'localhost', user = nil, secret = nil, authtype = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens a TCP connection and starts the <a href="SMTP.html">SMTP</a> session.
+</p>
+<h3>Parameters</h3>
+<p>
+<tt>helo</tt> is the <em>HELO</em> <em>domain</em> that you&#8217;ll
+dispatch mails from; see the discussion in the overview notes.
+</p>
+<p>
+If both of <tt>user</tt> and <tt>secret</tt> are given, <a
+href="SMTP.html">SMTP</a> authentication will be attempted using the AUTH
+command. <tt>authtype</tt> specifies the type of authentication to attempt;
+it must be one of :login, :plain, and :cram_md5. See the notes on <a
+href="SMTP.html">SMTP</a> Authentication in the overview.
+</p>
+<h3>Block Usage</h3>
+<p>
+When this methods is called with a block, the newly-started <a
+href="SMTP.html">SMTP</a> object is yielded to the block, and automatically
+closed after the block call finishes. Otherwise, it is the caller&#8217;s
+responsibility to close the session when finished.
+</p>
+<h3>Example</h3>
+<p>
+This is very similar to the class method <a
+href="SMTP.html#M003439">SMTP.start</a>.
+</p>
+<pre>
+    require 'net/smtp'
+    smtp = Net::SMTP.new('smtp.mail.server', 25)
+    smtp.start(helo_domain, account, password, authtype) do |smtp|
+      smtp.send_message msgstr, 'from@example.com', ['dest@example.com']
+    end
+</pre>
+<p>
+The primary use of this method (as opposed to <a
+href="SMTP.html#M003439">SMTP.start</a>) is probably to set debugging (<a
+href="SMTP.html#M003438">set_debug_output</a>) or ESMTP (esmtp=), which
+must be done before the session is started.
+</p>
+<h3>Errors</h3>
+<p>
+If session has already been started, an <a
+href="../IOError.html">IOError</a> will be raised.
+</p>
+<p>
+This method may raise:
+</p>
+<ul>
+<li><a href="SMTPAuthenticationError.html">Net::SMTPAuthenticationError</a>
+
+</li>
+<li><a href="SMTPServerBusy.html">Net::SMTPServerBusy</a>
+
+</li>
+<li><a href="SMTPSyntaxError.html">Net::SMTPSyntaxError</a>
+
+</li>
+<li><a href="SMTPFatalError.html">Net::SMTPFatalError</a>
+
+</li>
+<li><a href="SMTPUnknownError.html">Net::SMTPUnknownError</a>
+
+</li>
+<li><a href="../IOError.html">IOError</a>
+
+</li>
+<li>TimeoutError
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003441_source')" id="l_M003441_source">show</a>
+                        
+                    </p>
+                    <div id="M003441_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 515</span>
+515:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start</span>(<span class="ruby-identifier">helo</span> = <span class="ruby-value str">'localhost'</span>,
+516:               <span class="ruby-identifier">user</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">secret</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">authtype</span> = <span class="ruby-keyword kw">nil</span>)   <span class="ruby-comment cmt"># :yield: smtp</span>
+517:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+518:         <span class="ruby-keyword kw">begin</span>
+519:           <span class="ruby-identifier">do_start</span> <span class="ruby-identifier">helo</span>, <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span>
+520:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">yield</span>(<span class="ruby-keyword kw">self</span>)
+521:         <span class="ruby-keyword kw">ensure</span>
+522:           <span class="ruby-identifier">do_finish</span>
+523:         <span class="ruby-keyword kw">end</span>
+524:       <span class="ruby-keyword kw">else</span>
+525:         <span class="ruby-identifier">do_start</span> <span class="ruby-identifier">helo</span>, <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span>
+526:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">self</span>
+527:       <span class="ruby-keyword kw">end</span>
+528:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003440">
+                    
+                    <a name="M003440"></a><b>started?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<tt>true</tt> if the <a href="SMTP.html">SMTP</a> session has been started.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003440_source')" id="l_M003440_source">show</a>
+                        
+                    </p>
+                    <div id="M003440_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 461</span>
+461:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">started?</span>
+462:       <span class="ruby-ivar">@started</span>
+463:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003467">
+                    
+                    <a name="M003467"></a><b>starttls</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="SMTP.html">SMTP</a> command dispatcher
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003467_source')" id="l_M003467_source">show</a>
+                        
+                    </p>
+                    <div id="M003467_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 816</span>
+816:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">starttls</span>
+817:       <span class="ruby-identifier">getok</span>(<span class="ruby-value str">'STARTTLS'</span>)
+818:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003430">
+                    
+                    <a name="M003430"></a><b>starttls?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns truth value if this object uses STARTTLS. If this object always
+uses STARTTLS, returns :always. If this object uses STARTTLS when the
+server support TLS, returns :auto.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003430_source')" id="l_M003430_source">show</a>
+                        
+                    </p>
+                    <div id="M003430_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 320</span>
+320:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">starttls?</span>
+321:       <span class="ruby-ivar">@starttls</span>
+322:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003431">
+                    
+                    <a name="M003431"></a><b>starttls_always?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if this object uses STARTTLS.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003431_source')" id="l_M003431_source">show</a>
+                        
+                    </p>
+                    <div id="M003431_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 325</span>
+325:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">starttls_always?</span>
+326:       <span class="ruby-ivar">@starttls</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:always</span>
+327:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003432">
+                    
+                    <a name="M003432"></a><b>starttls_auto?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if this object uses STARTTLS when server advertises STARTTLS.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003432_source')" id="l_M003432_source">show</a>
+                        
+                    </p>
+                    <div id="M003432_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 330</span>
+330:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">starttls_auto?</span>
+331:       <span class="ruby-ivar">@starttls</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:auto</span>
+332:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003424">
+                    
+                    <a name="M003424"></a><b>tls?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+true if this object uses SMTP/TLS (SMTPS).
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="SMTP.html#M003425">ssl?</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003424_source')" id="l_M003424_source">show</a>
+                        
+                    </p>
+                    <div id="M003424_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 290</span>
+290:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tls?</span>
+291:       <span class="ruby-ivar">@tls</span>
+292:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003422">
+                    
+                    <a name="M003422"></a><b>auth_capable?</b>(type)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003422_source')" id="l_M003422_source">show</a>
+                        
+                    </p>
+                    <div id="M003422_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 274</span>
+274:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_capable?</span>(<span class="ruby-identifier">type</span>)
+275:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@capabilities</span>
+276:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@capabilities</span>[<span class="ruby-value str">'AUTH'</span>]
+277:       <span class="ruby-ivar">@capabilities</span>[<span class="ruby-value str">'AUTH'</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">type</span>)
+278:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003461">
+                    
+                    <a name="M003461"></a><b>auth_method</b>(type)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003461_source')" id="l_M003461_source">show</a>
+                        
+                    </p>
+                    <div id="M003461_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 772</span>
+772:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_method</span>(<span class="ruby-identifier">type</span>)
+773:       <span class="ruby-node">&quot;auth_#{type.to_s.downcase}&quot;</span>.<span class="ruby-identifier">intern</span>
+774:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003464">
+                    
+                    <a name="M003464"></a><b>base64_encode</b>(str)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003464_source')" id="l_M003464_source">show</a>
+                        
+                    </p>
+                    <div id="M003464_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 785</span>
+785:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">base64_encode</span>(<span class="ruby-identifier">str</span>)
+786:       <span class="ruby-comment cmt"># expects &quot;str&quot; may not become too long</span>
+787:       [<span class="ruby-identifier">str</span>].<span class="ruby-identifier">pack</span>(<span class="ruby-value str">'m'</span>).<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\s+/</span>, <span class="ruby-value str">''</span>)
+788:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003418">
+                    
+                    <a name="M003418"></a><b>capable?</b>(key)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003418_source')" id="l_M003418_source">show</a>
+                        
+                    </p>
+                    <div id="M003418_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 250</span>
+250:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">capable?</span>(<span class="ruby-identifier">key</span>)
+251:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@capabilities</span>
+252:       <span class="ruby-ivar">@capabilities</span>[<span class="ruby-identifier">key</span>] <span class="ruby-operator">?</span> <span class="ruby-keyword kw">true</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">false</span>
+253:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003463">
+                    
+                    <a name="M003463"></a><b>check_auth_args</b>(user, secret, authtype = DEFAULT_AUTH_TYPE)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003463_source')" id="l_M003463_source">show</a>
+                        
+                    </p>
+                    <div id="M003463_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 776</span>
+776:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_auth_args</span>(<span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span> = <span class="ruby-constant">DEFAULT_AUTH_TYPE</span>)
+777:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">user</span>
+778:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'SMTP-AUTH requested but missing user name'</span>
+779:       <span class="ruby-keyword kw">end</span>
+780:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">secret</span>
+781:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'SMTP-AUTH requested but missing secret phrase'</span>
+782:       <span class="ruby-keyword kw">end</span>
+783:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003487">
+                    
+                    <a name="M003487"></a><b>check_auth_continue</b>(res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003487_source')" id="l_M003487_source">show</a>
+                        
+                    </p>
+                    <div id="M003487_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 964</span>
+964:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_auth_continue</span>(<span class="ruby-identifier">res</span>)
+965:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">continue?</span>
+966:         <span class="ruby-identifier">raise</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">exception_class</span>, <span class="ruby-identifier">res</span>.<span class="ruby-identifier">message</span>
+967:       <span class="ruby-keyword kw">end</span>
+968:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003460">
+                    
+                    <a name="M003460"></a><b>check_auth_method</b>(type)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003460_source')" id="l_M003460_source">show</a>
+                        
+                    </p>
+                    <div id="M003460_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 766</span>
+766:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_auth_method</span>(<span class="ruby-identifier">type</span>)
+767:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">auth_method</span>(<span class="ruby-identifier">type</span>), <span class="ruby-keyword kw">true</span>)
+768:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-node">&quot;wrong authentication type #{type}&quot;</span>
+769:       <span class="ruby-keyword kw">end</span>
+770:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003486">
+                    
+                    <a name="M003486"></a><b>check_auth_response</b>(res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003486_source')" id="l_M003486_source">show</a>
+                        
+                    </p>
+                    <div id="M003486_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 958</span>
+958:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_auth_response</span>(<span class="ruby-identifier">res</span>)
+959:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">success?</span>
+960:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">SMTPAuthenticationError</span>, <span class="ruby-identifier">res</span>.<span class="ruby-identifier">message</span>
+961:       <span class="ruby-keyword kw">end</span>
+962:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003485">
+                    
+                    <a name="M003485"></a><b>check_continue</b>(res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003485_source')" id="l_M003485_source">show</a>
+                        
+                    </p>
+                    <div id="M003485_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 952</span>
+952:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_continue</span>(<span class="ruby-identifier">res</span>)
+953:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">continue?</span>
+954:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">SMTPUnknownError</span>, <span class="ruby-node">&quot;could not get 3xx (#{res.status})&quot;</span>
+955:       <span class="ruby-keyword kw">end</span>
+956:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003484">
+                    
+                    <a name="M003484"></a><b>check_response</b>(res)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003484_source')" id="l_M003484_source">show</a>
+                        
+                    </p>
+                    <div id="M003484_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 946</span>
+946:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_response</span>(<span class="ruby-identifier">res</span>)
+947:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">success?</span>
+948:         <span class="ruby-identifier">raise</span> <span class="ruby-identifier">res</span>.<span class="ruby-identifier">exception_class</span>, <span class="ruby-identifier">res</span>.<span class="ruby-identifier">message</span>
+949:       <span class="ruby-keyword kw">end</span>
+950:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003465">
+                    
+                    <a name="M003465"></a><b>cram_md5_response</b>(secret, challenge)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+CRAM-MD5: [RFC2195]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003465_source')" id="l_M003465_source">show</a>
+                        
+                    </p>
+                    <div id="M003465_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 794</span>
+794:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cram_md5_response</span>(<span class="ruby-identifier">secret</span>, <span class="ruby-identifier">challenge</span>)
+795:       <span class="ruby-identifier">tmp</span> = <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">digest</span>(<span class="ruby-identifier">cram_secret</span>(<span class="ruby-identifier">secret</span>, <span class="ruby-constant">IMASK</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">challenge</span>)
+796:       <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">hexdigest</span>(<span class="ruby-identifier">cram_secret</span>(<span class="ruby-identifier">secret</span>, <span class="ruby-constant">OMASK</span>) <span class="ruby-operator">+</span> <span class="ruby-identifier">tmp</span>)
+797:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003466">
+                    
+                    <a name="M003466"></a><b>cram_secret</b>(secret, mask)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003466_source')" id="l_M003466_source">show</a>
+                        
+                    </p>
+                    <div id="M003466_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 801</span>
+801:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cram_secret</span>(<span class="ruby-identifier">secret</span>, <span class="ruby-identifier">mask</span>)
+802:       <span class="ruby-identifier">secret</span> = <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">digest</span>(<span class="ruby-identifier">secret</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">secret</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">CRAM_BUFSIZE</span>
+803:       <span class="ruby-identifier">buf</span> = <span class="ruby-identifier">secret</span>.<span class="ruby-identifier">ljust</span>(<span class="ruby-constant">CRAM_BUFSIZE</span>, <span class="ruby-value str">&quot;\0&quot;</span>)
+804:       <span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-identifier">buf</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+805:         <span class="ruby-identifier">buf</span>[<span class="ruby-identifier">i</span>] = (<span class="ruby-identifier">buf</span>[<span class="ruby-identifier">i</span>].<span class="ruby-identifier">ord</span> <span class="ruby-operator">^</span> <span class="ruby-identifier">mask</span>).<span class="ruby-identifier">chr</span>
+806:       <span class="ruby-keyword kw">end</span>
+807:       <span class="ruby-identifier">buf</span>
+808:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003483">
+                    
+                    <a name="M003483"></a><b>critical</b>(&amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003483_source')" id="l_M003483_source">show</a>
+                        
+                    </p>
+                    <div id="M003483_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 936</span>
+936:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">critical</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+937:       <span class="ruby-keyword kw">return</span> <span class="ruby-value str">'200 dummy reply code'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@error_occured</span>
+938:       <span class="ruby-keyword kw">begin</span>
+939:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">yield</span>()
+940:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span>
+941:         <span class="ruby-ivar">@error_occured</span> = <span class="ruby-keyword kw">true</span>
+942:         <span class="ruby-identifier">raise</span>
+943:       <span class="ruby-keyword kw">end</span>
+944:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003449">
+                    
+                    <a name="M003449"></a><b>do_finish</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003449_source')" id="l_M003449_source">show</a>
+                        
+                    </p>
+                    <div id="M003449_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 612</span>
+612:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_finish</span>
+613:       <span class="ruby-identifier">quit</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@socket</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">closed?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-ivar">@error_occured</span>
+614:     <span class="ruby-keyword kw">ensure</span>
+615:       <span class="ruby-ivar">@started</span> = <span class="ruby-keyword kw">false</span>
+616:       <span class="ruby-ivar">@error_occured</span> = <span class="ruby-keyword kw">false</span>
+617:       <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@socket</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">closed?</span>
+618:       <span class="ruby-ivar">@socket</span> = <span class="ruby-keyword kw">nil</span>
+619:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003448">
+                    
+                    <a name="M003448"></a><b>do_helo</b>(helo_domain)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003448_source')" id="l_M003448_source">show</a>
+                        
+                    </p>
+                    <div id="M003448_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 600</span>
+600:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_helo</span>(<span class="ruby-identifier">helo_domain</span>)
+601:       <span class="ruby-identifier">res</span> = <span class="ruby-ivar">@esmtp</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">ehlo</span>(<span class="ruby-identifier">helo_domain</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">helo</span>(<span class="ruby-identifier">helo_domain</span>)
+602:       <span class="ruby-ivar">@capabilities</span> = <span class="ruby-identifier">res</span>.<span class="ruby-identifier">capabilities</span>
+603:     <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SMTPError</span>
+604:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@esmtp</span>
+605:         <span class="ruby-ivar">@esmtp</span> = <span class="ruby-keyword kw">false</span>
+606:         <span class="ruby-ivar">@error_occured</span> = <span class="ruby-keyword kw">false</span>
+607:         <span class="ruby-keyword kw">retry</span>
+608:       <span class="ruby-keyword kw">end</span>
+609:       <span class="ruby-identifier">raise</span>
+610:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003444">
+                    
+                    <a name="M003444"></a><b>do_start</b>(helo_domain, user, secret, authtype)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003444_source')" id="l_M003444_source">show</a>
+                        
+                    </p>
+                    <div id="M003444_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 543</span>
+543:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">do_start</span>(<span class="ruby-identifier">helo_domain</span>, <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, <span class="ruby-identifier">authtype</span>)
+544:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">IOError</span>, <span class="ruby-value str">'SMTP session already started'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@started</span>
+545:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">user</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">secret</span>
+546:         <span class="ruby-identifier">check_auth_method</span>(<span class="ruby-identifier">authtype</span> <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_AUTH_TYPE</span>)
+547:         <span class="ruby-identifier">check_auth_args</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>
+548:       <span class="ruby-keyword kw">end</span>
+549:       <span class="ruby-identifier">s</span> = <span class="ruby-identifier">timeout</span>(<span class="ruby-ivar">@open_timeout</span>) { <span class="ruby-identifier">tcp_socket</span>(<span class="ruby-ivar">@address</span>, <span class="ruby-ivar">@port</span>) }
+550:       <span class="ruby-identifier">logging</span> <span class="ruby-node">&quot;Connection opened: #{@address}:#{@port}&quot;</span>
+551:       <span class="ruby-ivar">@socket</span> = <span class="ruby-identifier">new_internet_message_io</span>(<span class="ruby-identifier">tls?</span> <span class="ruby-value">? </span><span class="ruby-identifier">tlsconnect</span>(<span class="ruby-identifier">s</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">s</span>)
+552:       <span class="ruby-identifier">check_response</span> <span class="ruby-identifier">critical</span> { <span class="ruby-identifier">recv_response</span>() }
+553:       <span class="ruby-identifier">do_helo</span> <span class="ruby-identifier">helo_domain</span>
+554:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">starttls_always?</span> <span class="ruby-keyword kw">or</span> (<span class="ruby-identifier">capable_starttls?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">starttls_auto?</span>)
+555:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">capable_starttls?</span>
+556:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">SMTPUnsupportedCommand</span>,
+557:               <span class="ruby-value str">&quot;STARTTLS is not supported on this server&quot;</span>
+558:         <span class="ruby-keyword kw">end</span>
+559:         <span class="ruby-identifier">starttls</span>
+560:         <span class="ruby-ivar">@socket</span> = <span class="ruby-identifier">new_internet_message_io</span>(<span class="ruby-identifier">tlsconnect</span>(<span class="ruby-identifier">s</span>))
+561:         <span class="ruby-comment cmt"># helo response may be different after STARTTLS</span>
+562:         <span class="ruby-identifier">do_helo</span> <span class="ruby-identifier">helo_domain</span>
+563:       <span class="ruby-keyword kw">end</span>
+564:       <span class="ruby-identifier">authenticate</span> <span class="ruby-identifier">user</span>, <span class="ruby-identifier">secret</span>, (<span class="ruby-identifier">authtype</span> <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_AUTH_TYPE</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">user</span>
+565:       <span class="ruby-ivar">@started</span> = <span class="ruby-keyword kw">true</span>
+566:     <span class="ruby-keyword kw">ensure</span>
+567:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@started</span>
+568:         <span class="ruby-comment cmt"># authentication failed, cancel connection.</span>
+569:         <span class="ruby-identifier">s</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">s</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">closed?</span>
+570:         <span class="ruby-ivar">@socket</span> = <span class="ruby-keyword kw">nil</span>
+571:       <span class="ruby-keyword kw">end</span>
+572:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003480">
+                    
+                    <a name="M003480"></a><b>get_response</b>(reqline)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003480_source')" id="l_M003480_source">show</a>
+                        
+                    </p>
+                    <div id="M003480_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 921</span>
+921:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_response</span>(<span class="ruby-identifier">reqline</span>)
+922:       <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">writeline</span> <span class="ruby-identifier">reqline</span>
+923:       <span class="ruby-identifier">recv_response</span>()
+924:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003479">
+                    
+                    <a name="M003479"></a><b>getok</b>(reqline)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003479_source')" id="l_M003479_source">show</a>
+                        
+                    </p>
+                    <div id="M003479_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 912</span>
+912:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">getok</span>(<span class="ruby-identifier">reqline</span>)
+913:       <span class="ruby-identifier">res</span> = <span class="ruby-identifier">critical</span> {
+914:         <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">writeline</span> <span class="ruby-identifier">reqline</span>
+915:         <span class="ruby-identifier">recv_response</span>()
+916:       }
+917:       <span class="ruby-identifier">check_response</span> <span class="ruby-identifier">res</span>
+918:       <span class="ruby-identifier">res</span>
+919:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003497">
+                    
+                    <a name="M003497"></a><b>logging</b>(msg)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003497_source')" id="l_M003497_source">show</a>
+                        
+                    </p>
+                    <div id="M003497_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 1049</span>
+1049:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">logging</span>(<span class="ruby-identifier">msg</span>)
+1050:       <span class="ruby-ivar">@debug_output</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">msg</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;\n&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@debug_output</span>
+1051:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003447">
+                    
+                    <a name="M003447"></a><b>new_internet_message_io</b>(s)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003447_source')" id="l_M003447_source">show</a>
+                        
+                    </p>
+                    <div id="M003447_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 593</span>
+593:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">new_internet_message_io</span>(<span class="ruby-identifier">s</span>)
+594:       <span class="ruby-identifier">io</span> = <span class="ruby-constant">InternetMessageIO</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">s</span>)
+595:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read_timeout</span> = <span class="ruby-ivar">@read_timeout</span>
+596:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">debug_output</span> = <span class="ruby-ivar">@debug_output</span>
+597:       <span class="ruby-identifier">io</span>
+598:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003482">
+                    
+                    <a name="M003482"></a><b>recv_response</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003482_source')" id="l_M003482_source">show</a>
+                        
+                    </p>
+                    <div id="M003482_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 926</span>
+926:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">recv_response</span>
+927:       <span class="ruby-identifier">buf</span> = <span class="ruby-value str">''</span>
+928:       <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+929:         <span class="ruby-identifier">line</span> = <span class="ruby-ivar">@socket</span>.<span class="ruby-identifier">readline</span>
+930:         <span class="ruby-identifier">buf</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">line</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;\n&quot;</span>
+931:         <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">line</span>[<span class="ruby-value">3</span>,<span class="ruby-value">1</span>] <span class="ruby-operator">==</span> <span class="ruby-value str">'-'</span>   <span class="ruby-comment cmt"># &quot;210-PIPELINING&quot;</span>
+932:       <span class="ruby-keyword kw">end</span>
+933:       <span class="ruby-constant">Response</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">buf</span>)
+934:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003445">
+                    
+                    <a name="M003445"></a><b>ssl_socket</b>(socket, context)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003445_source')" id="l_M003445_source">show</a>
+                        
+                    </p>
+                    <div id="M003445_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 574</span>
+574:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ssl_socket</span>(<span class="ruby-identifier">socket</span>, <span class="ruby-identifier">context</span>)
+575:       <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSLSocket</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">socket</span>, <span class="ruby-identifier">context</span>
+576:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003443">
+                    
+                    <a name="M003443"></a><b>tcp_socket</b>(address, port)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003443_source')" id="l_M003443_source">show</a>
+                        
+                    </p>
+                    <div id="M003443_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 539</span>
+539:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tcp_socket</span>(<span class="ruby-identifier">address</span>, <span class="ruby-identifier">port</span>)
+540:       <span class="ruby-constant">TCPSocket</span>.<span class="ruby-identifier">open</span> <span class="ruby-identifier">address</span>, <span class="ruby-identifier">port</span>
+541:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003446">
+                    
+                    <a name="M003446"></a><b>tlsconnect</b>(s)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003446_source')" id="l_M003446_source">show</a>
+                        
+                    </p>
+                    <div id="M003446_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/smtp.rb, line 578</span>
+578:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tlsconnect</span>(<span class="ruby-identifier">s</span>)
+579:       <span class="ruby-identifier">verified</span> = <span class="ruby-keyword kw">false</span>
+580:       <span class="ruby-identifier">s</span> = <span class="ruby-identifier">ssl_socket</span>(<span class="ruby-identifier">s</span>, <span class="ruby-ivar">@ssl_context</span>)
+581:       <span class="ruby-identifier">logging</span> <span class="ruby-value str">&quot;TLS connection started&quot;</span>
+582:       <span class="ruby-identifier">s</span>.<span class="ruby-identifier">sync_close</span> = <span class="ruby-keyword kw">true</span>
+583:       <span class="ruby-identifier">s</span>.<span class="ruby-identifier">connect</span>
+584:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@ssl_context</span>.<span class="ruby-identifier">verify_mode</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSL</span><span class="ruby-operator">::</span><span class="ruby-constant">VERIFY_NONE</span>
+585:         <span class="ruby-identifier">s</span>.<span class="ruby-identifier">post_connection_check</span>(<span class="ruby-ivar">@address</span>)
+586:       <span class="ruby-keyword kw">end</span>
+587:       <span class="ruby-identifier">verified</span> = <span class="ruby-keyword kw">true</span>
+588:       <span class="ruby-identifier">s</span>
+589:     <span class="ruby-keyword kw">ensure</span>
+590:       <span class="ruby-identifier">s</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">verified</span>
+591:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

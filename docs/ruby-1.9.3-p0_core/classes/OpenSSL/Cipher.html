@@ -1,0 +1,991 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenSSL::Cipher</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            OpenSSL::Cipher 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/ext/openssl/lib/openssl/cipher_rb.html">ext/openssl/lib/openssl/cipher.rb</a></li>
+            
+            <li><a href="../../files/ext/openssl/ossl_c.html">ext/openssl/ossl.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+let rdoc know about mOSSL
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009394">block_size</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009379">ciphers</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009383">decrypt</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009382">encrypt</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009386">final</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009391">iv=</a>,</li>
+                
+                <li><a href="#M009392">iv_len</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>K</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009388">key=</a>,</li>
+                
+                <li><a href="#M009390">key_len</a>,</li>
+                
+                <li><a href="#M009389">key_len=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009387">name</a>,</li>
+                
+                <li><a href="#M009380">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009395">padding=</a>,</li>
+                
+                <li><a href="#M009384">pkcs5_keyivgen</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009267">random_iv</a>,</li>
+                
+                <li><a href="#M009266">random_key</a>,</li>
+                
+                <li><a href="#M009381">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M009385">update</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Cipher/Cipher.html">OpenSSL::Cipher::Cipher</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Cipher/CipherError.html">OpenSSL::Cipher::CipherError</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009379">
+                    
+                    <a name="M009379"></a><b>Cipher.ciphers &rarr; array[string...]
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the names of all available ciphers in an array.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009379_source')" id="l_M009379_source">show</a>
+                        
+                    </p>
+                    <div id="M009379_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_s_ciphers(VALUE self)
+{
+    VALUE ary;
+
+    ary = rb_ary_new();
+    OBJ_NAME_do_all_sorted(OBJ_NAME_TYPE_CIPHER_METH,
+                    (void(*)(const OBJ_NAME*,void*))add_cipher_name_to_ary,
+                    (void*)ary);
+
+    return ary;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009380">
+                    
+                    <a name="M009380"></a><b>Cipher.new(string) &rarr; cipher
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The string must contain a valid cipher name like &#8220;AES-128-CBC&#8221;
+or &#8220;3DES&#8221;.
+</p>
+<p>
+A list of cipher names is available by calling <a
+href="Cipher.html#M009379">OpenSSL::Cipher.ciphers</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009380_source')" id="l_M009380_source">show</a>
+                        
+                    </p>
+                    <div id="M009380_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_initialize(VALUE self, VALUE str)
+{
+    EVP_CIPHER_CTX *ctx;
+    const EVP_CIPHER *cipher;
+    char *name;
+    unsigned char key[EVP_MAX_KEY_LENGTH];
+
+    name = StringValuePtr(str);
+    GetCipherInit(self, ctx);
+    if (ctx) {
+  ossl_raise(rb_eRuntimeError, &quot;Cipher already inititalized!&quot;);
+    }
+    AllocCipher(self, ctx);
+    EVP_CIPHER_CTX_init(ctx);
+    if (!(cipher = EVP_get_cipherbyname(name))) {
+  ossl_raise(rb_eRuntimeError, &quot;unsupported cipher algorithm (%s)&quot;, name);
+    }
+    /*
+     * The EVP which has EVP_CIPH_RAND_KEY flag (such as DES3) allows
+     * uninitialized key, but other EVPs (such as AES) does not allow it.
+     * Calling EVP_CipherUpdate() without initializing key causes SEGV so we
+     * set the data filled with &quot;\0&quot; as the key by default.
+     */
+    memset(key, 0, EVP_MAX_KEY_LENGTH);
+    if (EVP_CipherInit_ex(ctx, cipher, NULL, key, NULL, -1) != 1)
+  ossl_raise(eCipherError, NULL);
+
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M009394">
+                    
+                    <a name="M009394"></a><b>cipher.block_size &rarr; integer
+</b>
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009394_source')" id="l_M009394_source">show</a>
+                        
+                    </p>
+                    <div id="M009394_source" class="dyn-source">
+                        <pre>static VALUE ossl_cipher_block_size() </pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009383">
+                    
+                    <a name="M009383"></a><b>cipher.decrypt &rarr; self
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Make sure to call .encrypt or .decrypt before using any of the following
+methods:
+</p>
+<ul>
+<li>[key=, iv=, <a href="Cipher.html#M009266">random_key</a>, <a
+href="Cipher.html#M009267">random_iv</a>, <a
+href="Cipher.html#M009384">pkcs5_keyivgen</a>]
+
+</li>
+</ul>
+<p>
+Internally calls EVP_CipherInit_ex(ctx, NULL, NULL, NULL, NULL, 0).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009383_source')" id="l_M009383_source">show</a>
+                        
+                    </p>
+                    <div id="M009383_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_decrypt(int argc, VALUE *argv, VALUE self)
+{
+    return ossl_cipher_init(argc, argv, self, 0);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009382">
+                    
+                    <a name="M009382"></a><b>cipher.encrypt &rarr; self
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Make sure to call .encrypt or .decrypt before using any of the following
+methods:
+</p>
+<ul>
+<li>[key=, iv=, <a href="Cipher.html#M009266">random_key</a>, <a
+href="Cipher.html#M009267">random_iv</a>, <a
+href="Cipher.html#M009384">pkcs5_keyivgen</a>]
+
+</li>
+</ul>
+<p>
+Internally calls EVP_CipherInit_ex(ctx, NULL, NULL, NULL, NULL, 1).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009382_source')" id="l_M009382_source">show</a>
+                        
+                    </p>
+                    <div id="M009382_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_encrypt(int argc, VALUE *argv, VALUE self)
+{
+    return ossl_cipher_init(argc, argv, self, 1);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009386">
+                    
+                    <a name="M009386"></a><b>cipher.final &rarr; aString
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the remaining data held in the cipher object. Further calls to
+update() or final() will return garbage.
+</p>
+<p>
+See EVP_CipherFinal_ex for further information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009386_source')" id="l_M009386_source">show</a>
+                        
+                    </p>
+                    <div id="M009386_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_final(VALUE self)
+{
+    EVP_CIPHER_CTX *ctx;
+    int out_len;
+    VALUE str;
+
+    GetCipher(self, ctx);
+    str = rb_str_new(0, EVP_CIPHER_CTX_block_size(ctx));
+    if (!EVP_CipherFinal_ex(ctx, (unsigned char *)RSTRING_PTR(str), &amp;out_len))
+  ossl_raise(eCipherError, NULL);
+    assert(out_len &lt;= RSTRING_LEN(str));
+    rb_str_set_len(str, out_len);
+
+    return str;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009391">
+                    
+                    <a name="M009391"></a><b>cipher.iv = string &rarr; string
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the cipher iv.
+</p>
+<p>
+Only call this method after calling cipher.encrypt or cipher.decrypt.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009391_source')" id="l_M009391_source">show</a>
+                        
+                    </p>
+                    <div id="M009391_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_set_iv(VALUE self, VALUE iv)
+{
+    EVP_CIPHER_CTX *ctx;
+
+    StringValue(iv);
+    GetCipher(self, ctx);
+
+    if (RSTRING_LEN(iv) &lt; EVP_CIPHER_CTX_iv_length(ctx))
+        ossl_raise(eCipherError, &quot;iv length too short&quot;);
+
+    if (EVP_CipherInit_ex(ctx, NULL, NULL, NULL, (unsigned char *)RSTRING_PTR(iv), -1) != 1)
+  ossl_raise(eCipherError, NULL);
+
+    return iv;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009392">
+                    
+                    <a name="M009392"></a><b>cipher.iv_len &rarr; integer
+</b>
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009392_source')" id="l_M009392_source">show</a>
+                        
+                    </p>
+                    <div id="M009392_source" class="dyn-source">
+                        <pre>static VALUE ossl_cipher_iv_length() </pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009388">
+                    
+                    <a name="M009388"></a><b>cipher.key = string &rarr; string
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the cipher key.
+</p>
+<p>
+Only call this method after calling cipher.encrypt or cipher.decrypt.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009388_source')" id="l_M009388_source">show</a>
+                        
+                    </p>
+                    <div id="M009388_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_set_key(VALUE self, VALUE key)
+{
+    EVP_CIPHER_CTX *ctx;
+
+    StringValue(key);
+    GetCipher(self, ctx);
+
+    if (RSTRING_LEN(key) &lt; EVP_CIPHER_CTX_key_length(ctx))
+        ossl_raise(eCipherError, &quot;key length too short&quot;);
+
+    if (EVP_CipherInit_ex(ctx, NULL, NULL, (unsigned char *)RSTRING_PTR(key), NULL, -1) != 1)
+        ossl_raise(eCipherError, NULL);
+
+    return key;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009390">
+                    
+                    <a name="M009390"></a><b>cipher.key_len &rarr; integer
+</b>
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009390_source')" id="l_M009390_source">show</a>
+                        
+                    </p>
+                    <div id="M009390_source" class="dyn-source">
+                        <pre>static VALUE ossl_cipher_key_length() </pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009389">
+                    
+                    <a name="M009389"></a><b>cipher.key_len = integer &rarr; integer
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the key length of the cipher. If the cipher is a fixed length cipher
+then attempting to set the key length to any value other than the fixed
+value is an error.
+</p>
+<p>
+Under normal circumstances you do not need to call this method (and
+probably shouldn&#8217;t).
+</p>
+<p>
+See EVP_CIPHER_CTX_set_key_length for further information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009389_source')" id="l_M009389_source">show</a>
+                        
+                    </p>
+                    <div id="M009389_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_set_key_length(VALUE self, VALUE key_length)
+{
+    int len = NUM2INT(key_length);
+    EVP_CIPHER_CTX *ctx;
+
+    GetCipher(self, ctx);
+    if (EVP_CIPHER_CTX_set_key_length(ctx, len) != 1)
+        ossl_raise(eCipherError, NULL);
+
+    return key_length;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009387">
+                    
+                    <a name="M009387"></a><b>cipher.name &rarr; string
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the name of the cipher which may differ slightly from the original
+name provided.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009387_source')" id="l_M009387_source">show</a>
+                        
+                    </p>
+                    <div id="M009387_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_name(VALUE self)
+{
+    EVP_CIPHER_CTX *ctx;
+
+    GetCipher(self, ctx);
+
+    return rb_str_new2(EVP_CIPHER_name(EVP_CIPHER_CTX_cipher(ctx)));
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009395">
+                    
+                    <a name="M009395"></a><b>cipher.padding = integer &rarr; integer
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Enables or disables padding. By default encryption operations are padded
+using standard block padding and the padding is checked and removed when
+decrypting. If the pad parameter is zero then no padding is performed, the
+total amount of data encrypted or decrypted must then be a multiple of the
+block size or an error will occur.
+</p>
+<p>
+See EVP_CIPHER_CTX_set_padding for further information.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009395_source')" id="l_M009395_source">show</a>
+                        
+                    </p>
+                    <div id="M009395_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_set_padding(VALUE self, VALUE padding)
+{
+    EVP_CIPHER_CTX *ctx;
+    int pad = NUM2INT(padding);
+
+    GetCipher(self, ctx);
+    if (EVP_CIPHER_CTX_set_padding(ctx, pad) != 1)
+  ossl_raise(eCipherError, NULL);
+    return padding;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009384">
+                    
+                    <a name="M009384"></a><b>cipher.pkcs5_keyivgen(pass [, salt [, iterations [, digest]]] ) &rarr; nil
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Generates and sets the key/iv based on a password.
+</p>
+<p>
+WARNING: This method is only <a href="PKCS5.html">PKCS5</a> v1.5 compliant
+when using RC2, RC4-40, or DES with MD5 or SHA1. Using anything else (like
+AES) will generate the key/iv using an <a
+href="../OpenSSL.html">OpenSSL</a> specific method. Use a <a
+href="PKCS5.html">PKCS5</a> v2 key generation method instead.
+</p>
+<h3>Parameters</h3>
+<p>
+<tt>salt</tt> must be an 8 byte string if provided. <tt>iterations</tt> is
+a integer with a default of 2048. <tt>digest</tt> is a <a
+href="Digest.html">Digest</a> object that defaults to &#8216;MD5&#8217;
+</p>
+<p>
+A minimum of 1000 iterations is recommended.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009384_source')" id="l_M009384_source">show</a>
+                        
+                    </p>
+                    <div id="M009384_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_pkcs5_keyivgen(int argc, VALUE *argv, VALUE self)
+{
+    EVP_CIPHER_CTX *ctx;
+    const EVP_MD *digest;
+    VALUE vpass, vsalt, viter, vdigest;
+    unsigned char key[EVP_MAX_KEY_LENGTH], iv[EVP_MAX_IV_LENGTH], *salt = NULL;
+    int iter;
+
+    rb_scan_args(argc, argv, &quot;13&quot;, &amp;vpass, &amp;vsalt, &amp;viter, &amp;vdigest);
+    StringValue(vpass);
+    if(!NIL_P(vsalt)){
+  StringValue(vsalt);
+  if(RSTRING_LEN(vsalt) != PKCS5_SALT_LEN)
+      ossl_raise(eCipherError, &quot;salt must be an 8-octet string&quot;);
+  salt = (unsigned char *)RSTRING_PTR(vsalt);
+    }
+    iter = NIL_P(viter) ? 2048 : NUM2INT(viter);
+    digest = NIL_P(vdigest) ? EVP_md5() : GetDigestPtr(vdigest);
+    GetCipher(self, ctx);
+    EVP_BytesToKey(EVP_CIPHER_CTX_cipher(ctx), digest, salt,
+       (unsigned char *)RSTRING_PTR(vpass), RSTRING_LENINT(vpass), iter, key, iv);
+    if (EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, -1) != 1)
+  ossl_raise(eCipherError, NULL);
+    OPENSSL_cleanse(key, sizeof key);
+    OPENSSL_cleanse(iv, sizeof iv);
+
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009267">
+                    
+                    <a name="M009267"></a><b>random_iv</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Generate, set, and return a random iv. You must call cipher.encrypt or
+cipher.decrypt before calling this method.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009267_source')" id="l_M009267_source">show</a>
+                        
+                    </p>
+                    <div id="M009267_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/openssl/lib/openssl/cipher.rb, line 54</span>
+54:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">random_iv</span>
+55:       <span class="ruby-identifier">str</span> = <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">Random</span>.<span class="ruby-identifier">random_bytes</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">iv_len</span>)
+56:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">iv</span> = <span class="ruby-identifier">str</span>
+57:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>
+58:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009266">
+                    
+                    <a name="M009266"></a><b>random_key</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Generate, set, and return a random key. You must call cipher.encrypt or
+cipher.decrypt before calling this method.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009266_source')" id="l_M009266_source">show</a>
+                        
+                    </p>
+                    <div id="M009266_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File ext/openssl/lib/openssl/cipher.rb, line 46</span>
+46:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">random_key</span>
+47:       <span class="ruby-identifier">str</span> = <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">Random</span>.<span class="ruby-identifier">random_bytes</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">key_len</span>)
+48:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">key</span> = <span class="ruby-identifier">str</span>
+49:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">str</span>
+50:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009381">
+                    
+                    <a name="M009381"></a><b>cipher.reset &rarr; self
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Internally calls EVP_CipherInit_ex(ctx, NULL, NULL, NULL, NULL, -1).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009381_source')" id="l_M009381_source">show</a>
+                        
+                    </p>
+                    <div id="M009381_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_reset(VALUE self)
+{
+    EVP_CIPHER_CTX *ctx;
+
+    GetCipher(self, ctx);
+    if (EVP_CipherInit_ex(ctx, NULL, NULL, NULL, NULL, -1) != 1)
+  ossl_raise(eCipherError, NULL);
+
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M009385">
+                    
+                    <a name="M009385"></a><b>cipher.update(data [, buffer]) &rarr; string or buffer
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <h3>Parameters</h3>
+<p>
+<tt>data</tt> is a nonempty string. <tt>buffer</tt> is an optional string
+to store the result.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M009385_source')" id="l_M009385_source">show</a>
+                        
+                    </p>
+                    <div id="M009385_source" class="dyn-source">
+                        <pre>static VALUE
+ossl_cipher_update(int argc, VALUE *argv, VALUE self)
+{
+    EVP_CIPHER_CTX *ctx;
+    unsigned char *in;
+    int in_len, out_len;
+    VALUE data, str;
+
+    rb_scan_args(argc, argv, &quot;11&quot;, &amp;data, &amp;str);
+
+    StringValue(data);
+    in = (unsigned char *)RSTRING_PTR(data);
+    if ((in_len = RSTRING_LENINT(data)) == 0)
+        ossl_raise(rb_eArgError, &quot;data must not be empty&quot;);
+    GetCipher(self, ctx);
+    out_len = in_len+EVP_CIPHER_CTX_block_size(ctx);
+
+    if (NIL_P(str)) {
+        str = rb_str_new(0, out_len);
+    } else {
+        StringValue(str);
+        rb_str_resize(str, out_len);
+    }
+
+    if (!EVP_CipherUpdate(ctx, (unsigned char *)RSTRING_PTR(str), &amp;out_len, in, in_len))
+  ossl_raise(eCipherError, NULL);
+    assert(out_len &lt; RSTRING_LEN(str));
+    rb_str_set_len(str, out_len);
+
+    return str;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

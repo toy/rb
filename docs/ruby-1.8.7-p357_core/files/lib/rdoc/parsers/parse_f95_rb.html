@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>parse_f95.rb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            parse_f95.rb
+        </h1>
+        <ul class="files">
+            <li>lib/rdoc/parsers/parse_f95.rb</li>
+            <li>Last modified: Tue Jan 03 02:38:56 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>parse_f95.rb - Fortran95 Parser</h1>
+<h2>Overview</h2>
+<p>
+&#8220;parse_f95.rb&#8220; parses Fortran95 files with suffixes
+&#8220;f90&#8221;, &#8220;F90&#8221;, &#8220;f95&#8221; and
+&#8220;F95&#8221;. Fortran95 files are expected to be conformed to
+Fortran95 standards.
+</p>
+<h2>Rules</h2>
+<p>
+Fundamental rules are same as that of the Ruby parser. But comment markers
+are &#8217;!&#8217; not &#8217;#&#8217;.
+</p>
+<h3>Correspondence between <a href="../../../../classes/RDoc.html">RDoc</a> documentation and Fortran95 programs</h3>
+<p>
+&#8220;parse_f95.rb&#8220; parses main programs, modules, subroutines,
+functions, derived-types, public variables, public constants, defined
+operators and defined assignments. These components are described in items
+of <a href="../../../../classes/RDoc.html">RDoc</a> documentation, as
+follows.
+</p>
+<table>
+<tr><td valign="top">Files :</td><td>Files (same as Ruby)
+
+</td></tr>
+<tr><td valign="top">Classes :</td><td>Modules
+
+</td></tr>
+<tr><td valign="top">Methods :</td><td>Subroutines, functions, variables, constants, derived-types, defined
+operators, defined assignments
+
+</td></tr>
+<tr><td valign="top">Required files :</td><td>Files in which imported modules, external subroutines and external
+functions are defined.
+
+</td></tr>
+<tr><td valign="top">Included Modules :</td><td><a href="../../../../classes/List.html">List</a> of imported modules
+
+</td></tr>
+<tr><td valign="top">Attributes :</td><td><a href="../../../../classes/List.html">List</a> of derived-types, <a
+href="../../../../classes/List.html">List</a> of imported modules all of
+whose components are published again
+
+</td></tr>
+</table>
+<p>
+Components listed in &#8216;Methods&#8217; (subroutines, functions,
+&#8230;) defined in modules are described in the item of
+&#8216;Classes&#8217;. On the other hand, components defined in main
+programs or as external procedures are described in the item of
+&#8216;Files&#8217;.
+</p>
+<h3>Components parsed by default</h3>
+<p>
+By default, documentation on public components (subroutines, functions,
+variables, constants, derived-types, defined operators, defined
+assignments) are generated. With &#8220;&#8212;all&#8221; option,
+documentation on all components are generated (almost same as the Ruby
+parser).
+</p>
+<h3>Information parsed automatically</h3>
+<p>
+The following information is automatically parsed.
+</p>
+<ul>
+<li>Types of arguments
+
+</li>
+<li>Types of variables and constants
+
+</li>
+<li>Types of variables in the derived types, and initial values
+
+</li>
+<li>NAMELISTs and types of variables in them, and initial values
+
+</li>
+</ul>
+<p>
+Aliases by interface statement are described in the item of
+&#8216;Methods&#8217;.
+</p>
+<p>
+Components which are imported from other modules and published again are
+described in the item of &#8216;Methods&#8217;.
+</p>
+<h3>Format of comment blocks</h3>
+<p>
+Comment blocks should be written as follows. Comment blocks are considered
+to be ended when the line without &#8217;!&#8217; appears. The indentation
+is not necessary.
+</p>
+<pre>
+     ! (Top of file)
+     !
+     ! Comment blocks for the files.
+     !
+     !--
+     ! The comment described in the part enclosed by
+     ! &quot;!--&quot; and &quot;!++&quot; is ignored.
+     !++
+     !
+     module hogehoge
+       !
+       ! Comment blocks for the modules (or the programs).
+       !
+
+       private
+
+       logical            :: a     ! a private variable
+       real, public       :: b     ! a public variable
+       integer, parameter :: c = 0 ! a public constant
+
+       public :: c
+       public :: MULTI_ARRAY
+       public :: hoge, foo
+
+       type MULTI_ARRAY
+         !
+         ! Comment blocks for the derived-types.
+         !
+         real, pointer :: var(:) =&gt;null() ! Comments block for the variables.
+         integer       :: num = 0
+       end type MULTI_ARRAY
+
+     contains
+
+       subroutine hoge( in,   &amp;   ! Comment blocks between continuation lines are ignored.
+           &amp;            out )
+         !
+         ! Comment blocks for the subroutines or functions
+         !
+         character(*),intent(in):: in ! Comment blocks for the arguments.
+         character(*),intent(out),allocatable,target  :: in
+                                      ! Comment blocks can be
+                                      ! written under Fortran statements.
+
+         character(32) :: file ! This comment parsed as a variable in below NAMELIST.
+         integer       :: id
+
+         namelist /varinfo_nml/ file, id
+                 !
+                 ! Comment blocks for the NAMELISTs.
+                 ! Information about variables are described above.
+                 !
+
+       ....
+
+       end subroutine hoge
+
+       integer function foo( in )
+         !
+         ! This part is considered as comment block.
+
+         ! Comment blocks under blank lines are ignored.
+         !
+         integer, intent(in):: inA ! This part is considered as comment block.
+
+                                   ! This part is ignored.
+
+       end function foo
+
+       subroutine hide( in,   &amp;
+         &amp;              out )      !:nodoc:
+         !
+         ! If &quot;!:nodoc:&quot; is described at end-of-line in subroutine
+         ! statement as above, the subroutine is ignored.
+         ! This assignment can be used to modules, subroutines,
+         ! functions, variables, constants, derived-types,
+         ! defined operators, defined assignments,
+         ! list of imported modules (&quot;use&quot; statement).
+         !
+
+       ....
+
+       end subroutine hide
+
+     end module hogehoge
+</pre>
+
+    </div>
+    
+
+    
+    <div class="sectiontitle">Required Files</div>
+    <ul>
+        
+        <li>rdoc/code_objects</li>
+        
+    </ul>
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="../../../../classes/RDoc.html">RDoc</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Rinda::TupleSpace</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Rinda::TupleSpace 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rinda/tuplespace_rb.html">lib/rinda/tuplespace.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+The Tuplespace manages access to the tuples it contains, ensuring mutual
+exclusion requirements are met.
+</p>
+<p>
+The <tt>sec</tt> option for the write, take, move, read and notify methods
+may either be a number of seconds or a Renewer object.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005630">create_entry</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>K</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005632">keep_clean</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005618">move</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005637">need_keeper?</a>,</li>
+                
+                <li><a href="#M005614">new</a>,</li>
+                
+                <li><a href="#M005629">notify</a>,</li>
+                
+                <li><a href="#M005634">notify_event</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005625">read</a>,</li>
+                
+                <li><a href="#M005626">read_all</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005636">start_keeper</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005617">take</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M005615">write</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="../DRb/DRbServer/InvokeMethod18Mixin.html">DRb::DRbServer::InvokeMethod18Mixin</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../JSON.html">JSON</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M005614">
+                    
+                    <a name="M005614"></a><b>new</b>(period=60)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="TupleSpace.html">TupleSpace</a>. <tt>period</tt> is
+used to control how often to look for dead tuples after modifications to
+the <a href="TupleSpace.html">TupleSpace</a>.
+</p>
+<p>
+If no dead tuples are found <tt>period</tt> seconds after the last
+modification, the <a href="TupleSpace.html">TupleSpace</a> will stop
+looking for dead tuples.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005614_source')" id="l_M005614_source">show</a>
+                        
+                    </p>
+                    <div id="M005614_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 438</span>
+438:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">period</span>=<span class="ruby-value">60</span>)
+439:       <span class="ruby-keyword kw">super</span>()
+440:       <span class="ruby-ivar">@bag</span> = <span class="ruby-constant">TupleBag</span>.<span class="ruby-identifier">new</span>
+441:       <span class="ruby-ivar">@read_waiter</span> = <span class="ruby-constant">TupleBag</span>.<span class="ruby-identifier">new</span>
+442:       <span class="ruby-ivar">@take_waiter</span> = <span class="ruby-constant">TupleBag</span>.<span class="ruby-identifier">new</span>
+443:       <span class="ruby-ivar">@notify_waiter</span> = <span class="ruby-constant">TupleBag</span>.<span class="ruby-identifier">new</span>
+444:       <span class="ruby-ivar">@period</span> = <span class="ruby-identifier">period</span>
+445:       <span class="ruby-ivar">@keeper</span> = <span class="ruby-keyword kw">nil</span>
+446:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M005618">
+                    
+                    <a name="M005618"></a><b>move</b>(port, tuple, sec=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Moves <tt>tuple</tt> to <tt>port</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005618_source')" id="l_M005618_source">show</a>
+                        
+                    </p>
+                    <div id="M005618_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 485</span>
+485:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">move</span>(<span class="ruby-identifier">port</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>=<span class="ruby-keyword kw">nil</span>)
+486:       <span class="ruby-identifier">template</span> = <span class="ruby-constant">WaitTemplateEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-keyword kw">self</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+487:       <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">template</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+488:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+489:         <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">find</span>(<span class="ruby-identifier">template</span>)
+490:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>
+491:           <span class="ruby-identifier">port</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">port</span>
+492:           <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">entry</span>)
+493:           <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'take'</span>, <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>)
+494:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>
+495:         <span class="ruby-keyword kw">end</span>
+496:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestExpiredError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expired?</span>
+497: 
+498:         <span class="ruby-keyword kw">begin</span>
+499:           <span class="ruby-ivar">@take_waiter</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">template</span>)
+500:           <span class="ruby-identifier">start_keeper</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expires</span>
+501:           <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+502:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestCanceledError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">canceled?</span>
+503:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestExpiredError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expired?</span>
+504:             <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">find</span>(<span class="ruby-identifier">template</span>)
+505:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>
+506:               <span class="ruby-identifier">port</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">port</span>
+507:               <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">entry</span>)
+508:               <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'take'</span>, <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>)
+509:               <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>
+510:             <span class="ruby-keyword kw">end</span>
+511:             <span class="ruby-identifier">template</span>.<span class="ruby-identifier">wait</span>
+512:           <span class="ruby-keyword kw">end</span>
+513:         <span class="ruby-keyword kw">ensure</span>
+514:           <span class="ruby-ivar">@take_waiter</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">template</span>)
+515:         <span class="ruby-keyword kw">end</span>
+516:       <span class="ruby-keyword kw">end</span>
+517:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005629">
+                    
+                    <a name="M005629"></a><b>notify</b>(event, tuple, sec=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Registers for notifications of <tt>event</tt>. Returns a <a
+href="NotifyTemplateEntry.html">NotifyTemplateEntry</a>. See <a
+href="NotifyTemplateEntry.html">NotifyTemplateEntry</a> for examples of how
+to listen for notifications.
+</p>
+<p>
+<tt>event</tt> can be:
+</p>
+<table>
+<tr><td valign="top">&#8216;write&#8217;:</td><td>A tuple was added
+
+</td></tr>
+<tr><td valign="top">&#8216;take&#8217;:</td><td>A tuple was taken or moved
+
+</td></tr>
+<tr><td valign="top">&#8216;delete&#8217;:</td><td>A tuple was lost after being overwritten or expiring
+
+</td></tr>
+</table>
+<p>
+The <a href="TupleSpace.html">TupleSpace</a> will also notify you of the
+&#8216;close&#8217; event when the <a
+href="NotifyTemplateEntry.html">NotifyTemplateEntry</a> has expired.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005629_source')" id="l_M005629_source">show</a>
+                        
+                    </p>
+                    <div id="M005629_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 568</span>
+568:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">notify</span>(<span class="ruby-identifier">event</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>=<span class="ruby-keyword kw">nil</span>)
+569:       <span class="ruby-identifier">template</span> = <span class="ruby-constant">NotifyTemplateEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-keyword kw">self</span>, <span class="ruby-identifier">event</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+570:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+571:         <span class="ruby-ivar">@notify_waiter</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">template</span>)
+572:       <span class="ruby-keyword kw">end</span>
+573:       <span class="ruby-identifier">template</span>
+574:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005625">
+                    
+                    <a name="M005625"></a><b>read</b>(tuple, sec=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Reads <tt>tuple</tt>, but does not remove it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005625_source')" id="l_M005625_source">show</a>
+                        
+                    </p>
+                    <div id="M005625_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 522</span>
+522:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>=<span class="ruby-keyword kw">nil</span>)
+523:       <span class="ruby-identifier">template</span> = <span class="ruby-constant">WaitTemplateEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-keyword kw">self</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+524:       <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">template</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+525:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+526:         <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">find</span>(<span class="ruby-identifier">template</span>)
+527:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>
+528:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestExpiredError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expired?</span>
+529: 
+530:         <span class="ruby-keyword kw">begin</span>
+531:           <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">template</span>)
+532:           <span class="ruby-identifier">start_keeper</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expires</span>
+533:           <span class="ruby-identifier">template</span>.<span class="ruby-identifier">wait</span>
+534:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestCanceledError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">canceled?</span>
+535:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">RequestExpiredError</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">expired?</span>
+536:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">template</span>.<span class="ruby-identifier">found</span>
+537:         <span class="ruby-keyword kw">ensure</span>
+538:           <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">template</span>)
+539:         <span class="ruby-keyword kw">end</span>
+540:       <span class="ruby-keyword kw">end</span>
+541:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005626">
+                    
+                    <a name="M005626"></a><b>read_all</b>(tuple)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns all tuples matching <tt>tuple</tt>. Does not remove the found
+tuples.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005626_source')" id="l_M005626_source">show</a>
+                        
+                    </p>
+                    <div id="M005626_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 546</span>
+546:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_all</span>(<span class="ruby-identifier">tuple</span>)
+547:       <span class="ruby-identifier">template</span> = <span class="ruby-constant">WaitTemplateEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-keyword kw">self</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-keyword kw">nil</span>)
+548:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+549:         <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">find_all</span>(<span class="ruby-identifier">template</span>)
+550:         <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">collect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+551:           <span class="ruby-identifier">e</span>.<span class="ruby-identifier">value</span>
+552:         <span class="ruby-keyword kw">end</span>
+553:       <span class="ruby-keyword kw">end</span>
+554:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005617">
+                    
+                    <a name="M005617"></a><b>take</b>(tuple, sec=nil, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes <tt>tuple</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005617_source')" id="l_M005617_source">show</a>
+                        
+                    </p>
+                    <div id="M005617_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 478</span>
+478:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">take</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+479:       <span class="ruby-identifier">move</span>(<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+480:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005615">
+                    
+                    <a name="M005615"></a><b>write</b>(tuple, sec=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Adds <tt>tuple</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005615_source')" id="l_M005615_source">show</a>
+                        
+                    </p>
+                    <div id="M005615_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 451</span>
+451:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>=<span class="ruby-keyword kw">nil</span>)
+452:       <span class="ruby-identifier">entry</span> = <span class="ruby-identifier">create_entry</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+453:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+454:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">expired?</span>
+455:           <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">find_all_template</span>(<span class="ruby-identifier">entry</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">template</span><span class="ruby-operator">|</span>
+456:             <span class="ruby-identifier">template</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">tuple</span>)
+457:           <span class="ruby-keyword kw">end</span>
+458:           <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'write'</span>, <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>)
+459:           <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'delete'</span>, <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>)
+460:         <span class="ruby-keyword kw">else</span>
+461:           <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">entry</span>)
+462:           <span class="ruby-identifier">start_keeper</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">expires</span>
+463:           <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">find_all_template</span>(<span class="ruby-identifier">entry</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">template</span><span class="ruby-operator">|</span>
+464:             <span class="ruby-identifier">template</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">tuple</span>)
+465:           <span class="ruby-keyword kw">end</span>
+466:           <span class="ruby-ivar">@take_waiter</span>.<span class="ruby-identifier">find_all_template</span>(<span class="ruby-identifier">entry</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">template</span><span class="ruby-operator">|</span>
+467:             <span class="ruby-identifier">template</span>.<span class="ruby-identifier">signal</span>
+468:           <span class="ruby-keyword kw">end</span>
+469:           <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'write'</span>, <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">value</span>)
+470:         <span class="ruby-keyword kw">end</span>
+471:       <span class="ruby-keyword kw">end</span>
+472:       <span class="ruby-identifier">entry</span>
+473:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M005630">
+                    
+                    <a name="M005630"></a><b>create_entry</b>(tuple, sec)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005630_source')" id="l_M005630_source">show</a>
+                        
+                    </p>
+                    <div id="M005630_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 578</span>
+578:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_entry</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+579:       <span class="ruby-constant">TupleEntry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">tuple</span>, <span class="ruby-identifier">sec</span>)
+580:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005632">
+                    
+                    <a name="M005632"></a><b>keep_clean</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Removes dead tuples.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005632_source')" id="l_M005632_source">show</a>
+                        
+                    </p>
+                    <div id="M005632_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 585</span>
+585:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">keep_clean</span>
+586:       <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+587:         <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">delete_unless_alive</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+588:           <span class="ruby-identifier">e</span>.<span class="ruby-identifier">signal</span>
+589:         <span class="ruby-keyword kw">end</span>
+590:         <span class="ruby-ivar">@take_waiter</span>.<span class="ruby-identifier">delete_unless_alive</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+591:           <span class="ruby-identifier">e</span>.<span class="ruby-identifier">signal</span>
+592:         <span class="ruby-keyword kw">end</span>
+593:         <span class="ruby-ivar">@notify_waiter</span>.<span class="ruby-identifier">delete_unless_alive</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+594:           <span class="ruby-identifier">e</span>.<span class="ruby-identifier">notify</span>([<span class="ruby-value str">'close'</span>])
+595:         <span class="ruby-keyword kw">end</span>
+596:         <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">delete_unless_alive</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+597:           <span class="ruby-identifier">notify_event</span>(<span class="ruby-value str">'delete'</span>, <span class="ruby-identifier">e</span>.<span class="ruby-identifier">value</span>)
+598:         <span class="ruby-keyword kw">end</span>
+599:       <span class="ruby-keyword kw">end</span>
+600:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005637">
+                    
+                    <a name="M005637"></a><b>need_keeper?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Checks the tuplespace to see if it needs cleaning.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005637_source')" id="l_M005637_source">show</a>
+                        
+                    </p>
+                    <div id="M005637_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 632</span>
+632:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">need_keeper?</span>
+633:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@bag</span>.<span class="ruby-identifier">has_expires?</span>
+634:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@read_waiter</span>.<span class="ruby-identifier">has_expires?</span>
+635:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@take_waiter</span>.<span class="ruby-identifier">has_expires?</span>
+636:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@notify_waiter</span>.<span class="ruby-identifier">has_expires?</span>
+637:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005634">
+                    
+                    <a name="M005634"></a><b>notify_event</b>(event, tuple)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Notifies all registered listeners for <tt>event</tt> of a status change of
+<tt>tuple</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005634_source')" id="l_M005634_source">show</a>
+                        
+                    </p>
+                    <div id="M005634_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 606</span>
+606:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">notify_event</span>(<span class="ruby-identifier">event</span>, <span class="ruby-identifier">tuple</span>)
+607:       <span class="ruby-identifier">ev</span> = [<span class="ruby-identifier">event</span>, <span class="ruby-identifier">tuple</span>]
+608:       <span class="ruby-ivar">@notify_waiter</span>.<span class="ruby-identifier">find_all_template</span>(<span class="ruby-identifier">ev</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">template</span><span class="ruby-operator">|</span>
+609:         <span class="ruby-identifier">template</span>.<span class="ruby-identifier">notify</span>(<span class="ruby-identifier">ev</span>)
+610:       <span class="ruby-keyword kw">end</span>
+611:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M005636">
+                    
+                    <a name="M005636"></a><b>start_keeper</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a thread that scans the tuplespace for expired tuples.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M005636_source')" id="l_M005636_source">show</a>
+                        
+                    </p>
+                    <div id="M005636_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rinda/tuplespace.rb, line 616</span>
+616:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">start_keeper</span>
+617:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@keeper</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-ivar">@keeper</span>.<span class="ruby-identifier">alive?</span>
+618:       <span class="ruby-ivar">@keeper</span> = <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">do</span>
+619:         <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+620:           <span class="ruby-identifier">sleep</span>(<span class="ruby-ivar">@period</span>)
+621:           <span class="ruby-identifier">synchronize</span> <span class="ruby-keyword kw">do</span>
+622:             <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">need_keeper?</span>
+623:             <span class="ruby-identifier">keep_clean</span>
+624:           <span class="ruby-keyword kw">end</span>
+625:         <span class="ruby-keyword kw">end</span>
+626:       <span class="ruby-keyword kw">end</span>
+627:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

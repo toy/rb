@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Sat Oct 01 23:37:25 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2>Description</h2>
+<p>
+<a href="../classes/Bond.html">Bond</a> is on a mission to improve
+autocompletion in ruby, especially for irb/ripl. Aside from doing
+everything irb&#8217;s can do and fixing its quirks, <a
+href="../classes/Bond.html">Bond</a> can autocomplete argument(s) to
+methods, uniquely completing per module, per method and per argument. <a
+href="../classes/Bond.html">Bond</a> brings ruby autocompletion closer to
+bash/zsh as it provides a configuration system and a DSL for creating
+custom completions and completion rules. With this configuration system,
+users can customize their autocompletions and share it with others. <a
+href="../classes/Bond.html">Bond</a> can also load completions that ship
+with gems. <a href="../classes/Bond.html">Bond</a> is able to offer more
+than irb&#8217;s completion since it uses the full line of input when
+completing as opposed to irb&#8217;s last-word approach.
+</p>
+<h2>Install</h2>
+<p>
+To use bond with <a
+href="http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html">Readline</a>
+(version >= 5.6 recommended) or JLine for JRuby users, install the gem
+with:
+</p>
+<pre>
+    gem install bond
+</pre>
+<p>
+To use bond with <a href="https://github.com/luislavena/rb-readline">a pure
+ruby readline</a> i.e. Windows users or users without Readline:
+</p>
+<pre>
+    gem install bond rb-readline -- --without-readline
+</pre>
+<p>
+To use bond without readline support (and presumably use your own readline
+plugin):
+</p>
+<pre>
+    gem install bond -- --without-readline
+</pre>
+<h2>Setup</h2>
+<p>
+If you&#8217;re using <a href="http://github.com/cldwalker/ripl">ripl</a>
+instead of irb, bond is already setup.
+</p>
+<p>
+To start off, replace irb&#8217;s completion (require
+&#8216;irb/completion&#8217;) with Bond&#8217;s enhanced version in your
+irbrc:
+</p>
+<pre>
+  require 'bond'
+  Bond.start
+  # For users using a pure ruby readline
+  Bond.start :readline =&gt; :ruby
+</pre>
+<p>
+This setup gives you more consistent method completion on any object,
+customizable completions and argument completion of some 80+ methods
+including Hash#[], Kernel#system, Kernel#require and some Rails methods.
+</p>
+<h2>Method Argument Completion</h2>
+<p>
+By default, <a href="../classes/Bond.html">Bond</a> autocompletes arguments
+for a number of core methods:
+</p>
+<pre>
+  $ ripl
+  # require completes gems and anything in $LOAD_PATH
+  &gt;&gt; require 'rb[TAB]
+  rbconfig.rb          rbconfig/
+  &gt;&gt; require 'rbconfig
+  &gt;&gt; require 'rbconfig.rb'
+
+  # hash methods can complete their keys
+  &gt;&gt; CONFIG::CONFIG[TAB]
+  &gt;&gt; CONFIG::CONFIG['m[TAB]
+  &gt;&gt; CONFIG::CONFIG['mandir'
+  &gt;&gt; CONFIG::CONFIG['mandir']
+
+  &gt;&gt; ENV['CO[TAB]
+  COLUMNS       COMMAND_MODE
+  &gt;&gt; ENV['COL[TAB]
+  &gt;&gt; ENV['COLUMNS'
+  &gt;&gt; ENV['COLUMNS']
+
+  # array methods can complete their elements
+  &gt;&gt; %w{ab bc cd de}.delete '[TAB]
+  ab  bc  cd  de
+  &gt;&gt; %w{ab  bc  cd  de}.delete 'a[TAB]
+  &gt;&gt; %w{ab  bc  cd  de}.delete 'ab'
+
+  # system can complete shell commands
+  &gt;&gt; system 'ec[TAB]
+  &gt;&gt; system 'echo
+  &gt;&gt; system 'echo'
+</pre>
+<p>
+<a href="../classes/Bond.html">Bond</a> also comes with some basic Rails
+completions, mostly for attributes/columns of models:
+</p>
+<pre>
+  $ script/console
+  &gt;&gt; Url.column_names
+  =&gt; [&quot;id&quot;, &quot;name&quot;, &quot;description&quot;, &quot;created_at&quot;, &quot;updated_at&quot;]
+  &gt;&gt; Url.create :n[TAB]
+  &gt;&gt; Url.create :name
+  ...
+  &gt;&gt; Url.first.update_attribute :d[TAB]
+  &gt;&gt; Url.first.update_attribute :description
+  ...
+</pre>
+<p>
+To see more methods whose arguments can be completed:
+</p>
+<pre>
+  &gt;&gt; puts Bond.list_methods
+  ActiveRecord::Base#[]
+  ActiveRecord::Base#attribute_for_inspect
+  ...
+</pre>
+<h2>Multiple Arguments</h2>
+<p>
+Every time a comma appears after a method, <a
+href="../classes/Bond.html">Bond</a> starts a new completion. This allows a
+method to complete multiple arguments. <b>Each</b> argument can be have a
+unique set of completions since a completion action is aware of what
+argument it is currently completing. Take for example the completion for
+Object#send:
+</p>
+<pre>
+  &gt;&gt; Bond.send :me[TAB]
+  &gt;&gt; Bond.send :method
+  &gt;&gt; Bond.send :method, [TAB]
+  agent       complete    config      recomplete  spy         start
+  &gt;&gt; Bond.send :method, :a[TAB]
+  &gt;&gt; Bond.send :method, :agent
+  =&gt; #&lt;Method: Module#agent&gt;
+</pre>
+<p>
+Notice the arguments were completed differently: the first completing for
+Bond.send and the second for Bond.method. The second argument was only able
+to complete because there&#8217;s a completion for Module#method. Using
+Object#send it&#8217;s possible to use completions defined for private
+methods i.e. Module#remove_const:
+</p>
+<pre>
+  &gt;&gt; Bond.send :remove_const, :A[TAB]
+  :Agent            :AnywhereMission
+  &gt;&gt; Bond.send :remove_const, :Ag[TAB]
+  &gt;&gt; Bond.send :remove_const, :Agent
+</pre>
+<p>
+Since <a href="../classes/Bond.html">Bond</a> uses a comma to delimit
+completions, methods whose last argument is a hash can have their hash keys
+autocompleted. Revisiting the above Rails example:
+</p>
+<pre>
+  &gt;&gt; Url.create :n[TAB]
+  &gt;&gt; Url.create :name
+  &gt;&gt; Url.create :name=&gt;'example.com', :d[TAB]
+  &gt;&gt; Url.create :name=&gt;'example.com', :description
+  ...
+  &gt;&gt; Url.first.update_attributes :d[TAB]
+  &gt;&gt; Url.first.update_attributes :description
+  &gt;&gt; Url.first.update_attributes :description=&gt;'zzz', :u[TAB]
+  &gt;&gt; Url.first.update_attributes :description=&gt;'zzz', :updated_at
+  ...
+</pre>
+<h2>Creating Completions</h2>
+<p>
+Bond&#8217;s completion resembles bash/zsh&#8217;s. When <a
+href="../classes/Bond.html#M000110">Bond.start</a> is called, <a
+href="../classes/Bond.html">Bond</a> looks up completion files in multiple
+places: ~/.bondrc and ~/.bond/completions/*.rb. Here&#8217;s how bash and
+bond completion definitions compare in their config files:
+</p>
+<pre>
+  # Bash
+  complete -W &quot;one two three&quot; example
+  complete -F _example example
+
+  # Bond
+  complete(:method=&gt;'example') { %w{one two three} }
+  complete(:method=&gt;'example', :action=&gt;'_example')
+</pre>
+<p>
+To read up on the wealth of completion types one can make, see the docs for
+<a href="../classes/Bond.html#M000106">Bond.complete</a>.
+</p>
+<h3>Creating Argument Completions for Methods</h3>
+<p>
+While the above method completion was a static list, most completions will
+dynamically generate completions based on the method&#8217;s receiver
+(object). Let&#8217;s look at such an example with Hash#[] :
+</p>
+<pre>
+  complete(:method=&gt;&quot;Hash#[]&quot;) {|e| e.object.keys }
+</pre>
+<p>
+As you can see, the currently typed object is available as the :object
+attribute of the block&#8217;s argument, a <a
+href="../classes/Bond/Input.html">Bond::Input</a> object. This object can
+offer other useful attributes describing what the user has typed. For
+example, the :argument attribute holds the current argument number being
+completed. Here&#8217;s a completion that uses this attribute to complete
+differently for the first argument and remaining arguments:
+</p>
+<pre>
+   complete(:method=&gt;'example') {|e| e.argument &gt; 1 ? %w{verbose force noop} : %w{one two three} }
+</pre>
+<h3>Creating Other Completions</h3>
+<p>
+First you should know <a href="../classes/Bond.html">Bond</a> works: A user
+creates completion missions with <a
+href="../classes/Bond.html#M000110">Bond.start</a> and its config files
+(which are just <a href="../classes/Bond.html#M000106">Bond.complete</a>
+calls). When a user autocompletes, <a
+href="../classes/Bond.html#M000114">Bond.agent</a> looks up missions in the
+<b>order</b> they were defined and completes with the first one that
+matches. The exception to this ordering are :method completions.
+</p>
+<p>
+To create a completion, <a
+href="../classes/Bond.html#M000106">Bond.complete</a> needs a regexp to
+match the user input and an action to generate completions when it matches.
+If the completion isn&#8217;t working, use <a
+href="../classes/Bond.html#M000108">Bond.spy</a> to see which completion is
+executing. If a completion needs to be placed before existing completions,
+use the :place option.
+</p>
+<h2>Irb&#8217;s Incorrect Completions</h2>
+<p>
+There are a number of incorrect completions irb gives for object methods.
+<a href="../classes/Bond.html">Bond</a> fixes all of the ones described
+below.
+</p>
+<p>
+Irb completes anything surrounded with &#8217;{}&#8217; the same:
+</p>
+<pre>
+  $ irb
+  &gt;&gt; proc {}.c[TAB]
+  }.call     }.class    }.clear    }.clone    }.collect
+  &gt;&gt; %w{ab bc}.c[TAB]
+  }.call     }.class    }.clear    }.clone    }.collect
+  &gt;&gt; %r{ab bc}.c[TAB]
+  }.call     }.class    }.clear    }.clone    }.collect
+  &gt;&gt; {}.c[TAB]
+  }.call     }.class    }.clear    }.clone    }.collect
+  &gt;&gt; {}.call
+  NoMethodError: undefined method `call' for {}:Hash
+          from (irb):1
+</pre>
+<p>
+There are a number of cases where irb gives a default completion because it
+doesn&#8217;t know what else to do.
+</p>
+<pre>
+  # The default completion
+  &gt;&gt; self.[TAB]
+  Display all 496 possibilities? (y or n)
+
+  # And all of these cases are apparently the same:
+  &gt;&gt; nil.[TAB]
+  Display all 496 possibilities? (y or n)
+  &gt;&gt; false.[TAB]
+  Display all 496 possibilities? (y or n)
+  &gt;&gt; true.[TAB]
+  Display all 496 possibilities? (y or n)
+  # Regular expressions with spaces
+  &gt;&gt; /man oh man/.[TAB]
+  Display all 496 possibilities? (y or n)
+  # Grouped expressions
+ &gt;&gt; (3 + 4).[TAB]
+ Display all 496 possibilities? (y or n)
+
+ # Nested hashes and arrays
+ &gt;&gt; {:a=&gt;{:a=&gt;1}}.[TAB]
+ Display all 496 possibilities? (y or n)
+ &gt;&gt; [[1,2], [3,4]].[TAB]
+ Display all 496 possibilities? (y or n)
+
+ # Any object produced from a method call
+ &gt;&gt; 'awesome'.to_sym.[TAB]
+ Display all 496 possibilities? (y or n)
+ &gt;&gt; :dude.to_s.[TAB]
+ Display all 496 possibilities? (y or n)
+</pre>
+<p>
+Ranges don&#8217;t get much love
+</p>
+<pre>
+  &gt;&gt; (2..4).[TAB]
+  # Nothing happens
+</pre>
+<h2>Limitations</h2>
+<p>
+If on a Mac and using Editline as a Readline replacement (Readline::VERSION
+=~ /editline/i), <a href="../classes/Bond.html">Bond</a> will probably not
+work consistently. I strongly recommend switching to the official Readline.
+If using rvm, <a
+href="http://niwos.com/2010/03/19/rvm-on-osx-snow-leopard-readline-errors/">this
+post</a> has good instructions for reinstalling ruby with the official
+Readline.
+</p>
+<h2>Credits</h2>
+<ul>
+<li>Csaba Hank for <a
+href="http://www.creo.hu/~csaba/ruby/irb-enhancements/doc/files/README.html">providing
+the C extension</a> which <a href="../classes/Bond.html">Bond</a> uses to
+read Readline&#8217;s full buffer.
+
+</li>
+<li>Takao Kouji for <a
+href="http://svn.ruby-lang.org/cgi-bin/viewvc.cgi/trunk/ext/readline/readline.c?view=diff&r1=24018&r2=24019">commiting</a>
+this Readline enhancement to ruby 1.9.2.
+
+</li>
+<li>pd for compatibility with emacs&#8217; inf-ruby mode.
+
+</li>
+<li>timcharper for improving extconf.rb.
+
+</li>
+<li>headius for jruby support
+
+</li>
+</ul>
+<h2>Links</h2>
+<ul>
+<li><a
+href="http://tagaholic.me/2010/05/07/screencast-of-argument-autocompletion-for-methods-in-irb.html">tagaholic.me/2010/05/07/screencast-of-argument-autocompletion-for-methods-in-irb.html</a>
+
+</li>
+<li><a
+href="http://tagaholic.me/2009/07/16/bond-from-irb-with-completion-love.html">tagaholic.me/2009/07/16/bond-from-irb-with-completion-love.html</a>
+
+</li>
+<li><a
+href="http://tagaholic.me/2009/07/22/better-irb-completion-with-bond.html">tagaholic.me/2009/07/22/better-irb-completion-with-bond.html</a>
+
+</li>
+<li><a
+href="http://tagaholic.me/2009/07/23/mini-irb-and-mini-script-console.html">tagaholic.me/2009/07/23/mini-irb-and-mini-script-console.html</a>
+
+</li>
+</ul>
+<h2>Todo</h2>
+<ul>
+<li>Make completion actions more synonymous with argument types.
+
+</li>
+<li>Cache expensive completion actions.
+
+</li>
+<li>Ensure completions work when there is additional, unrelated text to the
+right of a completion.
+
+</li>
+</ul>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

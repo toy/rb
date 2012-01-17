@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Formtastic::Inputs::NumberInput</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Formtastic::Inputs::NumberInput 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/formtastic/inputs/number_input_rb.html">lib/formtastic/inputs/number_input.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Outputs a simple `<label>` with a HTML5 `<input type=&#8220;number&#8221;>`
+wrapped in the standard `<li>` wrapper. This is the default input choice
+for all database columns of the type `:float` and `:decimal`, as well as
+`:integer` columns that aren&#8217;t used for `belongs_to` associations,
+but can be applied to any text-like input with `:as => :number`.
+</p>
+<p>
+Sensible default values for the `min`, `max` and `step` attributes are
+found by reflecting on the model&#8217;s validations (when provided). An
+`IndeterminableMinimumAttributeError` exception will be raised when the
+following conditions are all true:
+</p>
+<ul>
+<li>you haven&#8217;t specified a `:min` or `:max` for the input
+
+</li>
+<li>the model&#8217;s database column type is a `:float` or `:decimal`
+
+</li>
+<li>the validation uses `:less_than` or `:greater_than`
+
+</li>
+</ul>
+<p>
+The solution is to either:
+</p>
+<ul>
+<li>manually specify the `:min` or `:max` for the input
+
+</li>
+<li>change the database column type to an `:integer` (if appropriate)
+
+</li>
+<li>change the validations to use `:less_than_or_equal_to` or
+`:greater_than_or_equal_to`
+
+</li>
+</ul>
+<p>
+@example Full form context and output
+</p>
+<pre>
+  &lt;%= semantic_form_for(@user) do |f| %&gt;
+    &lt;%= f.inputs do %&gt;
+      &lt;%= f.input :shoe_size, :as =&gt; :number %&gt;
+    &lt;% end %&gt;
+  &lt;% end %&gt;
+
+  &lt;form...&gt;
+    &lt;fieldset&gt;
+      &lt;ol&gt;
+        &lt;li class=&quot;numeric&quot;&gt;
+          &lt;label for=&quot;user_shoe_size&quot;&gt;Shoe size&lt;/label&gt;
+          &lt;input type=&quot;number&quot; id=&quot;user_shoe_size&quot; name=&quot;user[shoe_size]&quot;&gt;
+        &lt;/li&gt;
+      &lt;/ol&gt;
+    &lt;/fieldset&gt;
+  &lt;/form&gt;
+</pre>
+<p>
+@example Default HTML5 min/max/step attributes are detected from the
+numericality validations
+</p>
+<pre>
+  class Person &lt; ActiveRecord::Base
+    validates_numericality_of :age,
+      :less_than_or_equal_to =&gt; 100,
+      :greater_than_or_equal_to =&gt; 18,
+      :only_integer =&gt; true
+  end
+
+  &lt;%= f.input :age, :as =&gt; :number %&gt;
+
+  &lt;li class=&quot;numeric&quot;&gt;
+    &lt;label for=&quot;persom_age&quot;&gt;Age&lt;/label&gt;
+    &lt;input type=&quot;number&quot; id=&quot;person_age&quot; name=&quot;person[age]&quot; min=&quot;18&quot; max=&quot;100&quot; step=&quot;1&quot;&gt;
+  &lt;/li&gt;
+</pre>
+<p>
+@example Pass attributes down to the `<input>` tag with :input_html
+</p>
+<pre>
+ &lt;%= f.input :shoe_size, :as =&gt; :number, :input_html =&gt; { :min =&gt; 3, :max =&gt; 15, :step =&gt; 1, :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example Min/max/step also work as options
+</p>
+<pre>
+ &lt;%= f.input :shoe_size, :as =&gt; :number, :min =&gt; 3, :max =&gt; 15, :step =&gt; 1, :input_html =&gt; { :class =&gt; &quot;special&quot; } %&gt;
+</pre>
+<p>
+@example Use :in with a Range as a shortcut for :min/:max
+</p>
+<pre>
+ &lt;%= f.input :shoe_size, :as =&gt; :number, :in =&gt; 3..15, :step =&gt; 1 %&gt;
+ &lt;%= f.input :shoe_size, :as =&gt; :number, :input_html =&gt; { :in =&gt; 3..15, :step =&gt; 1 } %&gt;
+</pre>
+<p>
+@see Formtastic::Helpers::InputsHelper#input InputsHelper#input for full
+documetation of all possible options. @see <a
+href="http://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_numericality_of">api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_numericality_of</a>
+Rails&#8217; Numericality validation documentation
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000206">in_option</a>,</li>
+                
+                <li><a href="#M000202">input_html_options</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000205">max_option</a>,</li>
+                
+                <li><a href="#M000204">min_option</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000203">step_option</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000201">to_html</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="Base/Stringish.html">Formtastic::Inputs::Base::Stringish</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Base::Stringish</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000206">
+                    
+                    <a name="M000206"></a><b>in_option</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000206_source')" id="l_M000206_source">show</a>
+                        
+                    </p>
+                    <div id="M000206_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 112</span>
+112:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">in_option</span>
+113:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:in</span>]
+114:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000202">
+                    
+                    <a name="M000202"></a><b>input_html_options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000202_source')" id="l_M000202_source">show</a>
+                        
+                    </p>
+                    <div id="M000202_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 81</span>
+81:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">input_html_options</span>
+82:         <span class="ruby-identifier">defaults</span> = <span class="ruby-keyword kw">super</span>
+83:         
+84:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">in_option</span>
+85:           <span class="ruby-identifier">defaults</span>[<span class="ruby-identifier">:min</span>] = <span class="ruby-identifier">in_option</span>.<span class="ruby-identifier">to_a</span>.<span class="ruby-identifier">min</span>
+86:           <span class="ruby-identifier">defaults</span>[<span class="ruby-identifier">:max</span>] = <span class="ruby-identifier">in_option</span>.<span class="ruby-identifier">to_a</span>.<span class="ruby-identifier">max</span>
+87:         <span class="ruby-keyword kw">else</span>
+88:           <span class="ruby-identifier">defaults</span>[<span class="ruby-identifier">:min</span>]  <span class="ruby-operator">||=</span> <span class="ruby-identifier">min_option</span>
+89:           <span class="ruby-identifier">defaults</span>[<span class="ruby-identifier">:max</span>]  <span class="ruby-operator">||=</span> <span class="ruby-identifier">max_option</span>
+90:         <span class="ruby-keyword kw">end</span>
+91:         <span class="ruby-identifier">defaults</span>[<span class="ruby-identifier">:step</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">step_option</span>
+92:         <span class="ruby-identifier">defaults</span>
+93:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000205">
+                    
+                    <a name="M000205"></a><b>max_option</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000205_source')" id="l_M000205_source">show</a>
+                        
+                    </p>
+                    <div id="M000205_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 107</span>
+107:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">max_option</span>
+108:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:max</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:max</span>)
+109:         <span class="ruby-identifier">validation_max</span>
+110:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000204">
+                    
+                    <a name="M000204"></a><b>min_option</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000204_source')" id="l_M000204_source">show</a>
+                        
+                    </p>
+                    <div id="M000204_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 102</span>
+102:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">min_option</span>
+103:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:min</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:min</span>)
+104:         <span class="ruby-identifier">validation_min</span>
+105:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000203">
+                    
+                    <a name="M000203"></a><b>step_option</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000203_source')" id="l_M000203_source">show</a>
+                        
+                    </p>
+                    <div id="M000203_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 95</span>
+ 95:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">step_option</span>
+ 96:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:step</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:step</span>)
+ 97:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">validation_step</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">validation_step</span>
+ 98:         <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">validation_integer_only?</span>
+ 99:         <span class="ruby-value str">&quot;any&quot;</span>
+100:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000201">
+                    
+                    <a name="M000201"></a><b>to_html</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000201_source')" id="l_M000201_source">show</a>
+                        
+                    </p>
+                    <div id="M000201_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/formtastic/inputs/number_input.rb, line 74</span>
+74:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_html</span>
+75:         <span class="ruby-identifier">input_wrapping</span> <span class="ruby-keyword kw">do</span>
+76:           <span class="ruby-identifier">label_html</span> <span class="ruby-operator">&lt;&lt;</span>
+77:           <span class="ruby-identifier">builder</span>.<span class="ruby-identifier">number_field</span>(<span class="ruby-identifier">method</span>, <span class="ruby-identifier">input_html_options</span>)
+78:         <span class="ruby-keyword kw">end</span>
+79:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>POpen4</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            POpen4 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/popen4_rb.html">lib/popen4.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="POpen4.html">POpen4</a> provides the Rubyist a single API across
+platforms for executing a command in a child process with handles on
+stdout, stderr, and stdin streams as well as access to the process ID and
+exit status.
+</p>
+<p>
+Consider the following example (borrowed from Open4):
+</p>
+<pre>
+  require 'rubygems'
+  require 'popen4'
+
+  status =
+    POpen4::popen4(&quot;cmd&quot;) do |stdout, stderr, stdin, pid|
+      stdin.puts &quot;echo hello world!&quot;
+      stdin.puts &quot;echo ERROR! 1&gt;&amp;2&quot;
+      stdin.puts &quot;exit&quot;
+      stdin.close
+
+      puts &quot;pid        : #{ pid }&quot;
+      puts &quot;stdout     : #{ stdout.read.strip }&quot;
+      puts &quot;stderr     : #{ stderr.read.strip }&quot;
+    end
+
+  puts &quot;status     : #{ status.inspect }&quot;
+  puts &quot;exitstatus : #{ status.exitstatus }&quot;
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000000">popen4</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000000">
+                    
+                    <a name="M000000"></a><b>popen4</b>(command, mode = &quot;t&quot;)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Starts a new process and hands IO objects representing the subprocess
+stdout, stderr, stdin streams and the pid (respectively) to the block
+supplied. If the command could not be started, return nil.
+</p>
+<p>
+The mode argument may be set to t[ext] or b[inary] and is used only on
+Windows platforms.
+</p>
+<p>
+The stdin stream and/or pid may be omitted from the block parameter list if
+they are not required.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
+                        
+                    </p>
+                    <div id="M000000_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/popen4.rb, line 45</span>
+45:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">popen4</span>(<span class="ruby-identifier">command</span>, <span class="ruby-identifier">mode</span> = <span class="ruby-value str">&quot;t&quot;</span>) <span class="ruby-comment cmt"># :yields: stdout, stderr, stdin, pid</span>
+46: 
+47:       <span class="ruby-identifier">err_output</span> = <span class="ruby-keyword kw">nil</span>
+48:       <span class="ruby-constant">Open4</span>.<span class="ruby-identifier">popen4</span>(<span class="ruby-identifier">command</span>, <span class="ruby-identifier">mode</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">stdin</span>,<span class="ruby-identifier">stdout</span>,<span class="ruby-identifier">stderr</span>,<span class="ruby-identifier">pid</span><span class="ruby-operator">|</span>
+49:         <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stderr</span>, <span class="ruby-identifier">stdin</span>, <span class="ruby-identifier">pid</span>
+50: 
+51:         <span class="ruby-comment cmt"># On windows we will always get an exit status of 3 unless</span>
+52:         <span class="ruby-comment cmt"># we read to the end of the streams so we do this on all platforms</span>
+53:         <span class="ruby-comment cmt"># so that our behavior is always the same.</span>
+54:         <span class="ruby-identifier">stdout</span>.<span class="ruby-identifier">read</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">stdout</span>.<span class="ruby-identifier">eof?</span>
+55: 
+56:         <span class="ruby-comment cmt"># On windows executing a non existent command does not raise an error</span>
+57:         <span class="ruby-comment cmt"># (as in unix) so on unix we return nil instead of a status object and</span>
+58:         <span class="ruby-comment cmt"># on windows we try to determine if we couldn't start the command and</span>
+59:         <span class="ruby-comment cmt"># return nil instead of the Process::Status object.</span>
+60:         <span class="ruby-identifier">stderr</span>.<span class="ruby-identifier">rewind</span>
+61:         <span class="ruby-identifier">err_output</span> = <span class="ruby-identifier">stderr</span>.<span class="ruby-identifier">read</span>
+62:       <span class="ruby-keyword kw">end</span>
+63: 
+64:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">$?</span>
+65:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

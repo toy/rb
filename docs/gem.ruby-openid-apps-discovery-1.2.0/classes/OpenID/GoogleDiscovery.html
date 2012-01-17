@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>OpenID::GoogleDiscovery</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            OpenID::GoogleDiscovery 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/gapps_openid_rb.html">lib/gapps_openid.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Handles the bulk of Google&#8217;s modified discovery prototcol See <a
+href="http://groups.google.com/group/google-federated-login-api/web/openid-discovery-for-hosted-domains">groups.google.com/group/google-federated-login-api/web/openid-discovery-for-hosted-domains</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000005">discover_site</a>,</li>
+                
+                <li><a href="#M000004">discover_user</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000006">fetch_host_meta</a>,</li>
+                
+                <li><a href="#M000008">fetch_secure_xrds</a>,</li>
+                
+                <li><a href="#M000007">fetch_url</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000011">get_cache</a>,</li>
+                
+                <li><a href="#M000009">get_user_xrds_url</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000002">perform_discovery</a>,</li>
+                
+                <li><a href="#M000010">put_cache</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000003">site_identifier?</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">NAMESPACES</td>
+            <td>=</td>
+            <td class="attr-value">{       'xrds' =&gt; 'xri://$xrd*($v*2.0)',       'xrd' =&gt; 'xri://$xrds',       'openid' =&gt; 'http://namespace.google.com/openid/xmlns'     }</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b>discover_site</b>(domain)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Handles discovery for a domain
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 137</span>
+137:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discover_site</span>(<span class="ruby-identifier">domain</span>)
+138:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Discovering domain #{domain}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+139:       <span class="ruby-identifier">url</span> = <span class="ruby-identifier">fetch_host_meta</span>(<span class="ruby-identifier">domain</span>)
+140:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">url</span>.<span class="ruby-identifier">nil?</span>
+141:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;#{domain} is not a Google Apps domain, aborting&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+142:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-comment cmt"># Not a Google Apps domain</span>
+143:       <span class="ruby-keyword kw">end</span>
+144:       <span class="ruby-identifier">xrds</span>, <span class="ruby-identifier">secure</span> = <span class="ruby-identifier">fetch_secure_xrds</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">url</span>)
+145:       
+146:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">xrds</span>.<span class="ruby-identifier">nil?</span>
+147:         <span class="ruby-comment cmt"># TODO - Need to propogate secure discovery info up through stack</span>
+148:         <span class="ruby-identifier">endpoints</span> = <span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">OpenIDServiceEndpoint</span>.<span class="ruby-identifier">from_xrds</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">xrds</span>)
+149:         <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">domain</span>, <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">get_op_or_user_services</span>(<span class="ruby-identifier">endpoints</span>)]
+150:       <span class="ruby-keyword kw">end</span>
+151:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+152:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>discover_user</b>(domain, claimed_id)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Handles discovery for a user&#8217;s claimed ID.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 110</span>
+110:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discover_user</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">claimed_id</span>)
+111:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Discovering user identity #{claimed_id} for domain #{domain}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+112:       <span class="ruby-identifier">url</span> = <span class="ruby-identifier">fetch_host_meta</span>(<span class="ruby-identifier">domain</span>)
+113:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">url</span>.<span class="ruby-identifier">nil?</span>
+114:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;#{domain} is not a Google Apps domain, aborting&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+115:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-comment cmt"># Not a Google Apps domain</span>
+116:       <span class="ruby-keyword kw">end</span>
+117: 
+118:       <span class="ruby-identifier">xrds</span>, <span class="ruby-identifier">signed</span> = <span class="ruby-identifier">fetch_secure_xrds</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">url</span>)
+119: 
+120:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">xrds</span>.<span class="ruby-identifier">nil?</span>
+121:         <span class="ruby-comment cmt"># TODO - Need to propogate secure discovery info up through stack</span>
+122:         <span class="ruby-identifier">user_url</span>, <span class="ruby-identifier">authority</span> = <span class="ruby-identifier">get_user_xrds_url</span>(<span class="ruby-identifier">xrds</span>, <span class="ruby-identifier">claimed_id</span>)
+123:         <span class="ruby-identifier">user_xrds</span>, <span class="ruby-identifier">signed</span> = <span class="ruby-identifier">fetch_secure_xrds</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">user_url</span>, <span class="ruby-keyword kw">false</span>)
+124:       
+125:         <span class="ruby-comment cmt"># No user xrds -- likely that identifier was just OP identifier</span>
+126:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">user_xrds</span>.<span class="ruby-identifier">nil?</span>
+127:           <span class="ruby-identifier">endpoints</span> = <span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">OpenIDServiceEndpoint</span>.<span class="ruby-identifier">from_xrds</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">xrds</span>)
+128:           <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">claimed_id</span>, <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">get_op_or_user_services</span>(<span class="ruby-identifier">endpoints</span>)]
+129:         <span class="ruby-keyword kw">end</span>
+130:       
+131:         <span class="ruby-identifier">endpoints</span> = <span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">OpenIDServiceEndpoint</span>.<span class="ruby-identifier">from_xrds</span>(<span class="ruby-identifier">claimed_id</span>, <span class="ruby-identifier">user_xrds</span>)
+132:         <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">claimed_id</span>, <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">get_op_or_user_services</span>(<span class="ruby-identifier">endpoints</span>)]
+133:       <span class="ruby-keyword kw">end</span>
+134:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000006">
+                    
+                    <a name="M000006"></a><b>fetch_host_meta</b>(domain)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Kickstart the discovery process by checking against Google&#8217;s
+well-known location for hosted domains. This gives us the location of the
+site&#8217;s XRDS doc
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
+                        
+                    </p>
+                    <div id="M000006_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 156</span>
+156:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_host_meta</span>(<span class="ruby-identifier">domain</span>) 
+157:       <span class="ruby-identifier">cached_value</span> = <span class="ruby-identifier">get_cache</span>(<span class="ruby-identifier">domain</span>)
+158:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">cached_value</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">cached_value</span>.<span class="ruby-identifier">nil?</span>
+159:       
+160:       <span class="ruby-identifier">host_meta_url</span> = <span class="ruby-node">&quot;https://www.google.com/accounts/o8/.well-known/host-meta?hd=#{CGI::escape(domain)}&quot;</span>
+161:       <span class="ruby-identifier">http_resp</span> = <span class="ruby-identifier">fetch_url</span>(<span class="ruby-identifier">host_meta_url</span>)
+162:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">nil?</span>
+163: 
+164:       <span class="ruby-identifier">matches</span> = <span class="ruby-regexp re">/Link: &lt;(.*)&gt;/</span>.<span class="ruby-identifier">match</span>( <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">body</span> )
+165:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">matches</span>.<span class="ruby-identifier">nil?</span> 
+166:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;No link tag found at #{host_meta_url}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+167:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+168:       <span class="ruby-keyword kw">end</span>
+169:       <span class="ruby-identifier">put_cache</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">matches</span>[<span class="ruby-value">1</span>])
+170:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">matches</span>[<span class="ruby-value">1</span>]
+171:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000008">
+                    
+                    <a name="M000008"></a><b>fetch_secure_xrds</b>(authority, url, cache=true)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Fetches the XRDS and verifies the signature and authority for the doc
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
+                        
+                    </p>
+                    <div id="M000008_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 183</span>
+183:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_secure_xrds</span>(<span class="ruby-identifier">authority</span>, <span class="ruby-identifier">url</span>, <span class="ruby-identifier">cache</span>=<span class="ruby-keyword kw">true</span>) 
+184:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">url</span>.<span class="ruby-identifier">nil?</span>
+185: 
+186:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Retrieving XRDS from #{url}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+187:  
+188:       <span class="ruby-identifier">cached_xrds</span> = <span class="ruby-identifier">get_cache</span>(<span class="ruby-node">&quot;XRDS_#{url}&quot;</span>)
+189:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">cached_xrds</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">cached_xrds</span>.<span class="ruby-identifier">nil?</span>
+190: 
+191:       <span class="ruby-identifier">http_resp</span> = <span class="ruby-identifier">fetch_url</span>(<span class="ruby-identifier">url</span>)
+192:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">nil?</span>
+193: 
+194:       <span class="ruby-identifier">body</span> = <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">body</span>
+195:       <span class="ruby-identifier">put_cache</span>(<span class="ruby-node">&quot;XRDS_#{url}&quot;</span>, <span class="ruby-identifier">body</span>)
+196: 
+197:       <span class="ruby-identifier">signature</span> = <span class="ruby-identifier">http_resp</span>[<span class="ruby-value str">&quot;Signature&quot;</span>]
+198:       <span class="ruby-identifier">signed_by</span> = <span class="ruby-constant">SimpleSign</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">body</span>, <span class="ruby-identifier">signature</span>)
+199: 
+200:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">signed_by</span>.<span class="ruby-identifier">nil?</span>
+201:         <span class="ruby-identifier">put_cache</span>(<span class="ruby-node">&quot;XRDS_#{url}&quot;</span>, <span class="ruby-identifier">body</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cache</span>
+202:         <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">body</span>, <span class="ruby-keyword kw">false</span>]      
+203:       <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">signed_by</span>.<span class="ruby-identifier">casecmp</span>(<span class="ruby-identifier">authority</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">signed_by</span>.<span class="ruby-identifier">casecmp</span>(<span class="ruby-value str">'hosted-id.google.com'</span>)
+204:         <span class="ruby-identifier">put_cache</span>(<span class="ruby-node">&quot;XRDS_#{url}&quot;</span>, <span class="ruby-identifier">body</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">cache</span>
+205:         <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">body</span>, <span class="ruby-keyword kw">true</span>]
+206:       <span class="ruby-keyword kw">else</span>
+207:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">warn</span>(<span class="ruby-node">&quot;Expected signature from #{authority} but found #{signed_by}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>        
+208:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-comment cmt"># Signed, but not by the right domain.</span>
+209:       <span class="ruby-keyword kw">end</span>
+210:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000007">
+                    
+                    <a name="M000007"></a><b>fetch_url</b>(url)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
+                        
+                    </p>
+                    <div id="M000007_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 173</span>
+173:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_url</span>(<span class="ruby-identifier">url</span>)
+174:       <span class="ruby-identifier">http_resp</span> = <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">url</span>)
+175:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">code</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">&quot;200&quot;</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">http_resp</span>.<span class="ruby-identifier">code</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">&quot;206&quot;</span>
+176:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Received #{http_resp.code} when fetching #{url}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+177:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+178:       <span class="ruby-keyword kw">end</span>
+179:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">http_resp</span>
+180:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>get_cache</b>(key)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 231</span>
+231:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_cache</span>(<span class="ruby-identifier">key</span>)
+232:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">cache</span>.<span class="ruby-identifier">nil?</span>
+233:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">cache</span>.<span class="ruby-identifier">read</span>(<span class="ruby-node">&quot;__GAPPS_OPENID__#{key}&quot;</span>)
+234:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000009">
+                    
+                    <a name="M000009"></a><b>get_user_xrds_url</b>(xrds, claimed_id)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Process the URITemplate in the XRDS to derive the location of the claimed
+id&#8217;s XRDS
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000009_source')" id="l_M000009_source">show</a>
+                        
+                    </p>
+                    <div id="M000009_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 213</span>
+213:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_user_xrds_url</span>(<span class="ruby-identifier">xrds</span>, <span class="ruby-identifier">claimed_id</span>)
+214:       <span class="ruby-identifier">types_to_match</span> = [<span class="ruby-value str">'http://www.iana.org/assignments/relation/describedby'</span>]
+215:       <span class="ruby-identifier">services</span> = <span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">Yadis</span><span class="ruby-operator">::</span><span class="ruby-identifier">apply_filter</span>(<span class="ruby-identifier">claimed_id</span>, <span class="ruby-identifier">xrds</span>)
+216:       <span class="ruby-identifier">services</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span> <span class="ruby-identifier">service</span> <span class="ruby-operator">|</span> 
+217:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">service</span>.<span class="ruby-identifier">match_types</span>(<span class="ruby-identifier">types_to_match</span>) 
+218:           <span class="ruby-identifier">template</span> = <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">XPath</span>.<span class="ruby-identifier">first</span>(<span class="ruby-identifier">service</span>.<span class="ruby-identifier">service_element</span>, <span class="ruby-value str">'//openid:URITemplate'</span>, <span class="ruby-constant">NAMESPACES</span>)
+219:           <span class="ruby-identifier">authority</span> = <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">XPath</span>.<span class="ruby-identifier">first</span>(<span class="ruby-identifier">service</span>.<span class="ruby-identifier">service_element</span>, <span class="ruby-value str">'//openid:NextAuthority'</span>, <span class="ruby-constant">NAMESPACES</span>)
+220:           <span class="ruby-identifier">url</span> = <span class="ruby-identifier">template</span>.<span class="ruby-identifier">text</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">'{%uri}'</span>, <span class="ruby-constant">CGI</span><span class="ruby-operator">::</span><span class="ruby-identifier">escape</span>(<span class="ruby-identifier">claimed_id</span>))
+221:           <span class="ruby-keyword kw">return</span> [<span class="ruby-identifier">url</span>, <span class="ruby-identifier">authority</span>.<span class="ruby-identifier">text</span>]
+222:         <span class="ruby-keyword kw">end</span>
+223:       <span class="ruby-keyword kw">end</span>
+224:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000002">
+                    
+                    <a name="M000002"></a><b>perform_discovery</b>(uri)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Main entry point for discovery. Attempts to detect whether or not the URI
+is a raw domain name (&#8216;mycompany.com&#8217;) vs. a user&#8217;s
+claimed ID (&#8216;<a
+href="http://mycompany.com/openid?id=12345">mycompany.com/openid?id=12345</a>&#8217;)
+and performs the site or user discovery appropriately
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000002_source')" id="l_M000002_source">show</a>
+                        
+                    </p>
+                    <div id="M000002_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 88</span>
+ 88:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">perform_discovery</span>(<span class="ruby-identifier">uri</span>)
+ 89:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Performing discovery for #{uri}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+ 90:       <span class="ruby-keyword kw">begin</span>
+ 91:         <span class="ruby-identifier">domain</span> = <span class="ruby-identifier">uri</span>
+ 92:         <span class="ruby-identifier">parsed_uri</span> = <span class="ruby-constant">URI</span><span class="ruby-operator">::</span><span class="ruby-identifier">parse</span>(<span class="ruby-identifier">uri</span>)
+ 93:         <span class="ruby-identifier">domain</span> = <span class="ruby-identifier">parsed_uri</span>.<span class="ruby-identifier">host</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">parsed_uri</span>.<span class="ruby-identifier">host</span>.<span class="ruby-identifier">nil?</span>
+ 94:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">site_identifier?</span>(<span class="ruby-identifier">parsed_uri</span>)
+ 95:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">discover_site</span>(<span class="ruby-identifier">domain</span>)
+ 96:         <span class="ruby-keyword kw">end</span>
+ 97:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">discover_user</span>(<span class="ruby-identifier">domain</span>, <span class="ruby-identifier">uri</span>)
+ 98:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+ 99:         <span class="ruby-comment cmt"># If we fail, just return nothing and fallback on default discovery mechanisms</span>
+100:         <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">warn</span>(<span class="ruby-node">&quot;Unexpected exception performing discovery for id #{uri}: #{e}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">nil?</span>
+101:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span>
+102:       <span class="ruby-keyword kw">end</span>
+103:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>put_cache</b>(key, item)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 226</span>
+226:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">put_cache</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">item</span>)
+227:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">cache</span>.<span class="ruby-identifier">nil?</span>
+228:       <span class="ruby-constant">OpenID</span>.<span class="ruby-identifier">cache</span>.<span class="ruby-identifier">write</span>(<span class="ruby-node">&quot;__GAPPS_OPENID__#{key}&quot;</span>, <span class="ruby-identifier">item</span>)
+229:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b>site_identifier?</b>(parsed_uri)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/gapps_openid.rb, line 105</span>
+105:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">site_identifier?</span>(<span class="ruby-identifier">parsed_uri</span>)
+106:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">parsed_uri</span>.<span class="ruby-identifier">scheme</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">parsed_uri</span>.<span class="ruby-identifier">path</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">parsed_uri</span>.<span class="ruby-identifier">path</span>.<span class="ruby-identifier">strip</span>.<span class="ruby-identifier">empty?</span>
+107:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

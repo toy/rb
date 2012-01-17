@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Rack::Cache::MetaStore::MemCacheBase</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Rack::Cache::MetaStore::MemCacheBase 
+            
+                <span class="parent">&lt; 
+                    
+                    MetaStore
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/rack/cache/metastore_rb.html">lib/rack/cache/metastore.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Stores request/response pairs in memcached. Keys are not stored directly
+since memcached has a 250-byte limit on key names. Instead, the SHA1
+hexdigest of the key is used.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000112">resolve</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>cache</td>
+            <td class='attr-desc'><p>
+The MemCache object used to communicated with the memcached daemon.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>resolve</b>(uri)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Create MemCache store for the given URI. The URI must specify a host and
+may specify a port, namespace, and options:
+</p>
+<p>
+memcached://example.com:11211/namespace?opt1=val1&amp;opt2=val2
+</p>
+<p>
+Query parameter names and values are documented with the memcached library:
+<a href="http://tinyurl.com/4upqnd">tinyurl.com/4upqnd</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rack/cache/metastore.rb, line 286</span>
+286:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">resolve</span>(<span class="ruby-identifier">uri</span>)
+287:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:scheme</span>)
+288:           <span class="ruby-identifier">server</span> = <span class="ruby-node">&quot;#{uri.host}:#{uri.port || '11211'}&quot;</span>
+289:           <span class="ruby-identifier">options</span> = <span class="ruby-identifier">parse_query</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">query</span>)
+290:           <span class="ruby-identifier">options</span>.<span class="ruby-identifier">keys</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span><span class="ruby-operator">|</span>
+291:             <span class="ruby-identifier">value</span> =
+292:               <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">value</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">key</span>)
+293:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'true'</span> ; <span class="ruby-keyword kw">true</span>
+294:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'false'</span> ; <span class="ruby-keyword kw">false</span>
+295:               <span class="ruby-keyword kw">else</span> <span class="ruby-identifier">value</span>.<span class="ruby-identifier">to_sym</span>
+296:               <span class="ruby-keyword kw">end</span>
+297:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">key</span>.<span class="ruby-identifier">to_sym</span>] = <span class="ruby-identifier">value</span>
+298:           <span class="ruby-keyword kw">end</span>
+299: 
+300:           <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:namespace</span>] = <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">path</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/^\//</span>, <span class="ruby-value str">''</span>)
+301: 
+302:           <span class="ruby-identifier">new</span> <span class="ruby-identifier">server</span>, <span class="ruby-identifier">options</span>
+303:         <span class="ruby-keyword kw">else</span>
+304:           <span class="ruby-comment cmt"># if the object provided is not a URI, pass it straight through</span>
+305:           <span class="ruby-comment cmt"># to the underlying implementation.</span>
+306:           <span class="ruby-identifier">new</span> <span class="ruby-identifier">uri</span>
+307:         <span class="ruby-keyword kw">end</span>
+308:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

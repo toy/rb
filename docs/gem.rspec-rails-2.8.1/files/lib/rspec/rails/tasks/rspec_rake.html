@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>rspec.rake</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            rspec.rake
+        </h1>
+        <ul class="files">
+            <li>lib/rspec/rails/tasks/rspec.rake</li>
+            <li>Last modified: Sat Jan 07 02:36:00 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+require &#8216;rspec/core&#8217; require &#8216;rspec/core/rake_task&#8217;
+if default =
+Rake.application.instance_variable_get(&#8217;@tasks&#8217;)[&#8216;default&#8217;]
+</p>
+<pre>
+  default.prerequisites.delete('test')
+</pre>
+<p>
+end
+</p>
+<p>
+spec_prereq = Rails.configuration.generators.options[:rails][:orm] ==
+:active_record ? &#8220;db:test:prepare&#8221; : :noop task :noop do; end
+task :default => :spec
+</p>
+<p>
+task :stats => &#8220;spec:statsetup&#8220;
+</p>
+<p>
+desc &#8220;Run all specs in spec directory (excluding plugin specs)&#8221;
+RSpec::Core::RakeTask.new(:spec => spec_prereq)
+</p>
+<p>
+namespace :spec do
+</p>
+<pre>
+  [:requests, :models, :controllers, :views, :helpers, :mailers, :lib, :routing].each do |sub|
+    desc &quot;Run the code examples in spec/#{sub}&quot;
+    RSpec::Core::RakeTask.new(sub =&gt; spec_prereq) do |t|
+      t.pattern = &quot;./spec/#{sub}/**/*_spec.rb&quot;
+    end
+  end
+
+  desc &quot;Run all specs with rcov&quot;
+  RSpec::Core::RakeTask.new(:rcov =&gt; spec_prereq) do |t|
+    t.rcov = true
+    t.pattern = &quot;./spec/**/*_spec.rb&quot;
+    t.rcov_opts = '--exclude /gems/,/Library/,/usr/,lib/tasks,.bundle,config,/lib/rspec/,/lib/rspec-,spec'
+  end
+
+  task :statsetup do
+    require 'rails/code_statistics'
+    ::STATS_DIRECTORIES &lt;&lt; %w(Model\ specs spec/models) if File.exist?('spec/models')
+    ::STATS_DIRECTORIES &lt;&lt; %w(View\ specs spec/views) if File.exist?('spec/views')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Controller\ specs spec/controllers) if File.exist?('spec/controllers')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Helper\ specs spec/helpers) if File.exist?('spec/helpers')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Library\ specs spec/lib) if File.exist?('spec/lib')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Mailer\ specs spec/mailers) if File.exist?('spec/mailers')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Routing\ specs spec/routing) if File.exist?('spec/routing')
+    ::STATS_DIRECTORIES &lt;&lt; %w(Request\ specs spec/requests) if File.exist?('spec/requests')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Model specs&quot; if File.exist?('spec/models')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;View specs&quot; if File.exist?('spec/views')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Controller specs&quot; if File.exist?('spec/controllers')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Helper specs&quot; if File.exist?('spec/helpers')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Library specs&quot; if File.exist?('spec/lib')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Mailer specs&quot; if File.exist?('spec/mailers')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Routing specs&quot; if File.exist?('spec/routing')
+    ::CodeStatistics::TEST_TYPES &lt;&lt; &quot;Request specs&quot; if File.exist?('spec/requests')
+  end
+</pre>
+<p>
+end
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>API_CHANGES.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            API_CHANGES.rdoc
+        </h1>
+        <ul class="files">
+            <li>API_CHANGES.rdoc</li>
+            <li>Last modified: Sun Dec 04 23:58:05 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>API Changes</h1>
+<ul>
+<li><a
+href="../classes/SQLite3/Database.html#M000047">SQLite3::Database#execute</a>
+only accepts an array for bind parameters.
+
+</li>
+<li><a href="../classes/SQLite3/ResultSet.html">SQLite3::ResultSet</a> used to
+query the database for the first row, regardless of whether the user asked
+for it or not. I have removed that so that rows will not be returned until
+the user asks for them. This is a subtle but sometimes important change in
+behavior.
+
+<p>
+83882d2208ed189361617d5ab8532a325aaf729d
+</p>
+</li>
+<li><a
+href="../classes/SQLite3/Database.html#M000024">SQLite3::Database#trace</a>
+now takes either a block or an object that responds to &#8220;call&#8221;.
+The previous implementation passed around a VALUE that was cast to a void
+*. This is dangerous because the value could get garbage collected before
+the proc was called. If the user wants data passed around with the block,
+they should use variables available to the closure or create an object.
+
+</li>
+<li>SQLite3::Statement#step automatically converts to ruby types, where before
+all values were automatically yielded as strings. This will only be a
+problem for people who were accessing information about the database that
+wasn&#8217;t previously passed through the pure ruby conversion code.
+
+</li>
+<li><a
+href="../classes/SQLite3/Database.html#M000029">SQLite3::Database#errmsg</a>
+no longer takes a parameter to return error messages as UTF-16. Do people
+even use that? I opt for staying UTF-8 when possible. See
+test_integration.rb test_errmsg_utf16
+
+</li>
+<li>SQLite3::Database#authorize same changes as trace
+
+</li>
+<li>test/test_tc_database.rb was removed because we no longer use the Driver
+design pattern.
+
+</li>
+</ul>
+<h1>Garbage Collection Strategy</h1>
+<p>
+All statements keep pointers back to their respective database connections.
+The @connection instance variable on the Statement handle keeps the
+database connection alive. Memory allocated for a statement handler will be
+freed in two cases:
+</p>
+<ul>
+<li>close is called on the statement
+
+</li>
+<li>The <a href="../classes/SQLite3/Database.html">SQLite3::Database</a> object
+gets garbage collected
+
+</li>
+</ul>
+<p>
+We can&#8217;t free the memory for the statement in the garbage collection
+function for the statement handler. The reason is because there exists a
+race condition. We cannot guarantee the order in which objects will be
+garbage collected. So, it is possible that a connection and a statement are
+up for garbage collection. If the database connection were to be
+free&#8217;d before the statement, then boom. Instead we&#8217;ll be
+conservative and free unclosed statements when the connection is
+terminated.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

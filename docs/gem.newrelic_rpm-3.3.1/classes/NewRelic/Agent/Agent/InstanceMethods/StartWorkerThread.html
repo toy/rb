@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>NewRelic::Agent::Agent::InstanceMethods::StartWorkerThread</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            NewRelic::Agent::Agent::InstanceMethods::StartWorkerThread 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../../files/lib/new_relic/agent/agent_rb.html">lib/new_relic/agent/agent.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+All of this module used to be contained in the start_worker_thread method -
+this is an artifact of refactoring and can be moved, renamed, etc at will
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000077">catch_errors</a>,</li>
+                
+                <li><a href="#M000070">check_sql_sampler_status</a>,</li>
+                
+                <li><a href="#M000069">check_transaction_sampler_status</a>,</li>
+                
+                <li><a href="#M000072">create_and_run_worker_loop</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000078">deferred_work!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000074">handle_force_disconnect</a>,</li>
+                
+                <li><a href="#M000073">handle_force_restart</a>,</li>
+                
+                <li><a href="#M000076">handle_other_error</a>,</li>
+                
+                <li><a href="#M000075">handle_server_connection_problem</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000071">log_worker_loop_start</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000077">
+                    
+                    <a name="M000077"></a><b>catch_errors</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+a wrapper method to handle all the errors that can happen in the connection
+and worker thread system. This guarantees a no-throw from the background
+thread.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000077_source')" id="l_M000077_source">show</a>
+                        
+                    </p>
+                    <div id="M000077_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 532</span>
+532:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">catch_errors</span>
+533:             <span class="ruby-keyword kw">yield</span>
+534:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span><span class="ruby-operator">::</span><span class="ruby-constant">ForceRestartException</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+535:             <span class="ruby-identifier">handle_force_restart</span>(<span class="ruby-identifier">e</span>)
+536:             <span class="ruby-keyword kw">retry</span>
+537:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span><span class="ruby-operator">::</span><span class="ruby-constant">ForceDisconnectException</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+538:             <span class="ruby-identifier">handle_force_disconnect</span>(<span class="ruby-identifier">e</span>)
+539:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span><span class="ruby-operator">::</span><span class="ruby-constant">ServerConnectionException</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+540:             <span class="ruby-identifier">handle_server_connection_problem</span>(<span class="ruby-identifier">e</span>)
+541:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+542:             <span class="ruby-identifier">handle_other_error</span>(<span class="ruby-identifier">e</span>)
+543:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000070">
+                    
+                    <a name="M000070"></a><b>check_sql_sampler_status</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000070_source')" id="l_M000070_source">show</a>
+                        
+                    </p>
+                    <div id="M000070_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 468</span>
+468:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_sql_sampler_status</span>
+469:             <span class="ruby-comment cmt"># disable sql sampling if disabled by the server</span>
+470:             <span class="ruby-comment cmt"># and we're not in dev mode</span>
+471:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@sql_sampler</span>.<span class="ruby-identifier">config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'enabled'</span>, <span class="ruby-keyword kw">true</span>) <span class="ruby-operator">&amp;&amp;</span> [<span class="ruby-value str">'raw'</span>, <span class="ruby-value str">'obfuscated'</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-ivar">@sql_sampler</span>.<span class="ruby-identifier">config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'record_sql'</span>, <span class="ruby-value str">'obfuscated'</span>).<span class="ruby-identifier">to_s</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-ivar">@transaction_sampler</span>.<span class="ruby-identifier">config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'enabled'</span>, <span class="ruby-keyword kw">true</span>)
+472:               <span class="ruby-ivar">@sql_sampler</span>.<span class="ruby-identifier">enable</span>
+473:             <span class="ruby-keyword kw">else</span>
+474:               <span class="ruby-ivar">@sql_sampler</span>.<span class="ruby-identifier">disable</span>
+475:             <span class="ruby-keyword kw">end</span>
+476:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000069">
+                    
+                    <a name="M000069"></a><b>check_transaction_sampler_status</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+disable transaction sampling if disabled by the server and we&#8217;re not
+in dev mode
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000069_source')" id="l_M000069_source">show</a>
+                        
+                    </p>
+                    <div id="M000069_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 460</span>
+460:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check_transaction_sampler_status</span>
+461:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">control</span>.<span class="ruby-identifier">developer_mode?</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@should_send_samples</span>
+462:               <span class="ruby-ivar">@transaction_sampler</span>.<span class="ruby-identifier">enable</span>
+463:             <span class="ruby-keyword kw">else</span>
+464:               <span class="ruby-ivar">@transaction_sampler</span>.<span class="ruby-identifier">disable</span>
+465:             <span class="ruby-keyword kw">end</span>
+466:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000072">
+                    
+                    <a name="M000072"></a><b>create_and_run_worker_loop</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates the worker loop and loads it with the instructions it should run
+every @report_period seconds
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000072_source')" id="l_M000072_source">show</a>
+                        
+                    </p>
+                    <div id="M000072_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 487</span>
+487:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_and_run_worker_loop</span>
+488:             <span class="ruby-ivar">@worker_loop</span> = <span class="ruby-constant">WorkerLoop</span>.<span class="ruby-identifier">new</span>
+489:             <span class="ruby-ivar">@worker_loop</span>.<span class="ruby-identifier">run</span>(<span class="ruby-ivar">@report_period</span>) <span class="ruby-keyword kw">do</span>
+490:               <span class="ruby-identifier">save_or_transmit_data</span>
+491:             <span class="ruby-keyword kw">end</span>
+492:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000078">
+                    
+                    <a name="M000078"></a><b>deferred_work!</b>(connection_options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This is the method that is run in a new thread in order to background the
+harvesting and sending of data during the normal operation of the agent.
+</p>
+<p>
+Takes connection options that determine how we should connect to the
+server, and loops endlessly - typically we never return from this method
+unless we&#8217;re shutting down the agent
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000078_source')" id="l_M000078_source">show</a>
+                        
+                    </p>
+                    <div id="M000078_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 553</span>
+553:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">deferred_work!</span>(<span class="ruby-identifier">connection_options</span>)
+554:             <span class="ruby-identifier">catch_errors</span> <span class="ruby-keyword kw">do</span>
+555:               <span class="ruby-constant">NewRelic</span><span class="ruby-operator">::</span><span class="ruby-constant">Agent</span>.<span class="ruby-identifier">disable_all_tracing</span> <span class="ruby-keyword kw">do</span>
+556:                 <span class="ruby-comment cmt"># We try to connect.  If this returns false that means</span>
+557:                 <span class="ruby-comment cmt"># the server rejected us for a licensing reason and we should</span>
+558:                 <span class="ruby-comment cmt"># just exit the thread.  If it returns nil</span>
+559:                 <span class="ruby-comment cmt"># that means it didn't try to connect because we're in the master.</span>
+560:                 <span class="ruby-identifier">connect</span>(<span class="ruby-identifier">connection_options</span>)
+561:                 <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@connected</span>
+562:                   <span class="ruby-identifier">check_transaction_sampler_status</span>
+563:                   <span class="ruby-identifier">check_sql_sampler_status</span>
+564:                   <span class="ruby-identifier">log_worker_loop_start</span>
+565:                   <span class="ruby-identifier">create_and_run_worker_loop</span>
+566:                   <span class="ruby-comment cmt"># never reaches here unless there is a problem or</span>
+567:                   <span class="ruby-comment cmt"># the agent is exiting</span>
+568:                 <span class="ruby-keyword kw">else</span>
+569:                   <span class="ruby-identifier">log</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;No connection.  Worker thread ending.&quot;</span>
+570:                 <span class="ruby-keyword kw">end</span>
+571:               <span class="ruby-keyword kw">end</span>
+572:             <span class="ruby-keyword kw">end</span>
+573:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000074">
+                    
+                    <a name="M000074"></a><b>handle_force_disconnect</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+when a disconnect is requested, stop the current thread, which is the
+worker thread that gathers data and talks to the server.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000074_source')" id="l_M000074_source">show</a>
+                        
+                    </p>
+                    <div id="M000074_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 508</span>
+508:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_force_disconnect</span>(<span class="ruby-identifier">error</span>)
+509:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">error</span> <span class="ruby-node">&quot;New Relic forced this agent to disconnect (#{error.message})&quot;</span>
+510:             <span class="ruby-identifier">disconnect</span>
+511:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000073">
+                    
+                    <a name="M000073"></a><b>handle_force_restart</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Handles the case where the server tells us to restart - this clears the
+data, clears connection attempts, and waits a while to reconnect.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000073_source')" id="l_M000073_source">show</a>
+                        
+                    </p>
+                    <div id="M000073_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 497</span>
+497:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_force_restart</span>(<span class="ruby-identifier">error</span>)
+498:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">info</span> <span class="ruby-identifier">error</span>.<span class="ruby-identifier">message</span>
+499:             <span class="ruby-identifier">reset_stats</span>
+500:             <span class="ruby-ivar">@metric_ids</span> = {}
+501:             <span class="ruby-ivar">@connected</span> = <span class="ruby-keyword kw">nil</span>
+502:             <span class="ruby-identifier">sleep</span> <span class="ruby-value">30</span>
+503:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000076">
+                    
+                    <a name="M000076"></a><b>handle_other_error</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Handles an unknown error in the worker thread by logging it and
+disconnecting the agent, since we are now in an unknown state
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000076_source')" id="l_M000076_source">show</a>
+                        
+                    </p>
+                    <div id="M000076_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 524</span>
+524:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_other_error</span>(<span class="ruby-identifier">error</span>)
+525:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">error</span> <span class="ruby-node">&quot;Terminating worker loop: #{error.class.name}: #{error.message}\n  #{error.backtrace.join(&quot;\n  &quot;)}&quot;</span>
+526:             <span class="ruby-identifier">disconnect</span>
+527:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000075">
+                    
+                    <a name="M000075"></a><b>handle_server_connection_problem</b>(error)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+there is a problem with connecting to the server, so we stop trying to
+connect and shut down the agent
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000075_source')" id="l_M000075_source">show</a>
+                        
+                    </p>
+                    <div id="M000075_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 515</span>
+515:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_server_connection_problem</span>(<span class="ruby-identifier">error</span>)
+516:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">error</span> <span class="ruby-value str">&quot;Unable to establish connection with the server.  Run with log level set to debug for more information.&quot;</span>
+517:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;#{error.class.name}: #{error.message}\n#{error.backtrace.first}&quot;</span>)
+518:             <span class="ruby-identifier">disconnect</span>
+519:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000071">
+                    
+                    <a name="M000071"></a><b>log_worker_loop_start</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+logs info about the worker loop so users can see when the agent actually
+begins running in the background
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000071_source')" id="l_M000071_source">show</a>
+                        
+                    </p>
+                    <div id="M000071_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/new_relic/agent/agent.rb, line 480</span>
+480:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log_worker_loop_start</span>
+481:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">info</span> <span class="ruby-node">&quot;Reporting performance data every #{@report_period} seconds.&quot;</span>
+482:             <span class="ruby-identifier">log</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;Running worker loop&quot;</span>
+483:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

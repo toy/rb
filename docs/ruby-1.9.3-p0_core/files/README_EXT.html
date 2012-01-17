@@ -1,0 +1,851 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.EXT</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.EXT
+        </h1>
+        <ul class="files">
+            <li>README.EXT</li>
+            <li>Last modified: Tue Nov 29 08:39:08 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+." <a href="README_EXT.html">README.EXT</a> - -*- Text -*- created at: Mon
+Aug 7 16:45:54 JST 1995
+</p>
+<p>
+This document explains how to make extension libraries for Ruby.
+</p>
+<ol>
+<li>Basic knowledge
+
+</li>
+</ol>
+<p>
+In C, variables have types and data do not have types. In contrast, Ruby
+variables do not have a static type, and data themselves have types, so
+data will need to be converted between the languages.
+</p>
+<p>
+<a href="../classes/Data.html">Data</a> in Ruby are represented by the C
+type `VALUE&#8217;. Each VALUE data has its data-type.
+</p>
+<p>
+To retrieve C data from a VALUE, you need to:
+</p>
+<pre>
+ (1) Identify the VALUE's data type
+ (2) Convert the VALUE into C data
+</pre>
+<p>
+Converting to the wrong data type may cause serious problems.
+</p>
+<p>
+1.1 Data-types
+</p>
+<p>
+The Ruby interpreter has the following data types:
+</p>
+<pre>
+        T_NIL          nil
+        T_OBJECT       ordinary object
+        T_CLASS                class
+        T_MODULE       module
+        T_FLOAT                floating point number
+        T_STRING       string
+        T_REGEXP       regular expression
+        T_ARRAY                array
+        T_HASH         associative array
+        T_STRUCT       (Ruby) structure
+        T_BIGNUM       multi precision integer
+        T_FIXNUM       Fixnum(31bit or 63bit integer)
+        T_COMPLEX       complex number
+        T_RATIONAL      rational number
+        T_FILE         IO
+        T_TRUE         true
+        T_FALSE                false
+        T_DATA         data
+        T_SYMBOL        symbol
+</pre>
+<p>
+In addition, there are several other types used internally:
+</p>
+<pre>
+        T_ICLASS
+        T_MATCH
+        T_UNDEF
+        T_NODE
+        T_ZOMBIE
+</pre>
+<p>
+Most of the types are represented by C structures.
+</p>
+<p>
+1.2 Check <a href="../classes/Data.html">Data</a> Type of the VALUE
+</p>
+<p>
+The macro TYPE() defined in ruby.h shows the data type of the VALUE. TYPE()
+returns the constant number T_XXXX described above. To handle data types,
+your code will look something like this:
+</p>
+<pre>
+  switch (TYPE(obj)) {
+    case T_FIXNUM:
+      /* process Fixnum */
+      break;
+    case T_STRING:
+      /* process String */
+      break;
+    case T_ARRAY:
+      /* process Array */
+      break;
+    default:
+      /* raise exception */
+      rb_raise(rb_eTypeError, &quot;not valid value&quot;);
+      break;
+  }
+</pre>
+<p>
+There is the data-type check function
+</p>
+<pre>
+  void Check_Type(VALUE value, int type)
+</pre>
+<p>
+which raises an exception if the VALUE does not have the type specified.
+</p>
+<p>
+There are also faster check macros for fixnums and nil.
+</p>
+<pre>
+  FIXNUM_P(obj)
+  NIL_P(obj)
+</pre>
+<p>
+1.3 Convert VALUE into C data
+</p>
+<p>
+The data for type T_NIL, T_FALSE, T_TRUE are nil, false, true respectively.
+They are singletons for the data type. The equivalent C constants are:
+Qnil, Qfalse, Qtrue. Note that Qfalse is false in C also (i.e. 0), but not
+Qnil.
+</p>
+<p>
+The T_FIXNUM data is a 31bit or 63bit length fixed integer. This size is
+depend on the size of long: if long is 32bit then T_FIXNUM is 31bit, if
+long is 64bit then T_FIXNUM is 63bit. T_FIXNUM can be converted to a C
+integer by using the FIX2INT() macro or FIX2LONG(). Though you have to
+check that the data is really FIXNUM before using them, they are faster.
+FIX2LONG() never raises exceptions, but FIX2INT() raises <a
+href="../classes/RangeError.html">RangeError</a> if the result is bigger or
+smaller than the size of int. There are also NUM2INT() and NUM2LONG() which
+converts any Ruby numbers into C integers. These macros includes a type
+check, so an exception will be raised if the conversion failed. NUM2DBL()
+can be used to retrieve the double float value in the same way.
+</p>
+<p>
+You can use the macros StringValue() and StringValuePtr() to get a char*
+from a VALUE. StringValue(var) replaces var&#8217;s value with the result
+of &#8220;var.to_str()&#8221;. StringValuePtr(var) does same replacement
+and returns char* representation of var. These macros will skip the
+replacement if var is a <a href="../classes/String.html">String</a>. Notice
+that the macros take only the lvalue as their argument, to change the value
+of var in place.
+</p>
+<p>
+You can also use the macro named StringValueCStr(). This is just like
+StringValuePtr(), but always add nul character at the end of the result. If
+the result contains nul character, this macro causes the <a
+href="../classes/ArgumentError.html">ArgumentError</a> exception.
+StringValuePtr() doesn&#8217;t guarantee the existence of a nul at the end
+of the result, and the result may contain nul.
+</p>
+<p>
+Other data types have corresponding C structures, e.g. struct RArray for
+T_ARRAY etc. The VALUE of the type which has the corresponding structure
+can be cast to retrieve the pointer to the struct. The casting macro will
+be of the form RXXXX for each data type; for instance, RARRAY(obj). See
+&#8220;ruby.h&#8220;.
+</p>
+<p>
+There are some accessing macros for structure members, for example
+`RSTRING_LEN(str)&#8217; to get the size of the Ruby <a
+href="../classes/String.html">String</a> object. The allocated region can
+be accessed by `RSTRING_PTR(str)&#8217;. For arrays, use
+`RARRAY_LEN(ary)&#8217; and `RARRAY_PTR(ary)&#8217; respectively.
+</p>
+<p>
+Notice: Do not change the value of the structure directly, unless you are
+responsible for the result. This ends up being the cause of interesting
+bugs.
+</p>
+<p>
+1.4 Convert C data into VALUE
+</p>
+<p>
+To convert C data to Ruby values:
+</p>
+<pre>
+  * FIXNUM
+
+    left shift 1 bit, and turn on LSB.
+
+  * Other pointer values
+
+    cast to VALUE.
+</pre>
+<p>
+You can determine whether a VALUE is pointer or not by checking its LSB.
+</p>
+<p>
+Notice Ruby does not allow arbitrary pointer values to be a VALUE. They
+should be pointers to the structures which Ruby knows about. The known
+structures are defined in <ruby.h>.
+</p>
+<p>
+To convert C numbers to Ruby values, use these macros.
+</p>
+<pre>
+  INT2FIX()     for integers within 31bits.
+  INT2NUM()     for arbitrary sized integer.
+</pre>
+<p>
+INT2NUM() converts an integer into a <a
+href="../classes/Bignum.html">Bignum</a> if it is out of the FIXNUM range,
+but is a bit slower.
+</p>
+<p>
+1.5 Manipulating Ruby data
+</p>
+<p>
+As I already mentioned, it is not recommended to modify an object&#8217;s
+internal structure. To manipulate objects, use the functions supplied by
+the Ruby interpreter. Some (not all) of the useful functions are listed
+below:
+</p>
+<pre>
+ String functions
+
+  rb_str_new(const char *ptr, long len)
+
+    Creates a new Ruby string.
+
+  rb_str_new2(const char *ptr)
+  rb_str_new_cstr(const char *ptr)
+
+    Creates a new Ruby string from a C string.  This is equivalent to
+    rb_str_new(ptr, strlen(ptr)).
+
+  rb_tainted_str_new(const char *ptr, long len)
+
+    Creates a new tainted Ruby string.  Strings from external data
+    sources should be tainted.
+
+  rb_tainted_str_new2(const char *ptr)
+  rb_tainted_str_new_cstr(const char *ptr)
+
+    Creates a new tainted Ruby string from a C string.
+
+  rb_sprintf(const char *format, ...)
+  rb_vsprintf(const char *format, va_list ap)
+
+    Creates a new Ruby string with printf(3) format.
+
+  rb_str_cat(VALUE str, const char *ptr, long len)
+
+    Appends len bytes of data from ptr to the Ruby string.
+
+  rb_str_cat2(VALUE str, const char* ptr)
+
+    Appends C string ptr to Ruby string str.  This function is
+    equivalent to rb_str_cat(str, ptr, strlen(ptr)).
+
+  rb_str_catf(VALUE str, const char* format, ...)
+  rb_str_vcatf(VALUE str, const char* format, va_list ap)
+
+    Appends C string format and successive arguments to Ruby string
+    str according to a printf-like format.  These functions are
+    equivalent to rb_str_cat2(str, rb_sprintf(format, ...)) and
+    rb_str_cat2(str, rb_vsprintf(format, ap)), respectively.
+
+  rb_enc_str_new(const char *ptr, long len, rb_encoding *enc)
+
+    Creates a new Ruby string with the specified encoding.
+
+  rb_usascii_str_new(const char *ptr, long len)
+  rb_usascii_str_new_cstr(const char *ptr)
+
+    Creates a new Ruby string with encoding US-ASCII.
+
+  rb_str_resize(VALUE str, long len)
+
+    Resizes Ruby string to len bytes.  If str is not modifiable, this
+    function raises an exception.  The length of str must be set in
+    advance.  If len is less than the old length the content beyond
+    len bytes is discarded, else if len is greater than the old length
+    the content beyond the old length bytes will not be preserved but
+    will be garbage.  Note that RSTRING_PTR(str) may change by calling
+    this function.
+
+  rb_str_set_len(VALUE str, long len)
+
+    Sets the length of Ruby string.  If str is not modifiable, this
+    function raises an exception.  This function preserves the content
+    upto len bytes, regardless RSTRING_LEN(str).  len must not exceed
+    the capacity of str.
+
+ Array functions
+
+  rb_ary_new()
+
+    Creates an array with no elements.
+
+  rb_ary_new2(long len)
+
+    Creates an array with no elements, allocating internal buffer
+    for len elements.
+
+  rb_ary_new3(long n, ...)
+
+    Creates an n-element array from the arguments.
+
+  rb_ary_new4(long n, VALUE *elts)
+
+    Creates an n-element array from a C array.
+
+  rb_ary_to_ary(VALUE obj)
+
+    Converts the object into an array.
+    Equivalent to Object#to_ary.
+
+ There are many functions to operate an array.
+ They may dump core if other types are given.
+
+  rb_ary_aref(argc, VALUE *argv, VALUE ary)
+
+    Equivaelent to Array#[].
+
+  rb_ary_entry(VALUE ary, long offset)
+
+    ary[offset]
+
+  rb_ary_subseq(VALUE ary, long beg, long len)
+
+    ary[beg, len]
+
+  rb_ary_push(VALUE ary, VALUE val)
+  rb_ary_pop(VALUE ary)
+  rb_ary_shift(VALUE ary)
+  rb_ary_unshift(VALUE ary, VALUE val)
+</pre>
+<ol>
+<li>Extending Ruby with C
+
+</li>
+</ol>
+<p>
+2.1 Adding new features to Ruby
+</p>
+<p>
+You can add new features (classes, methods, etc.) to the Ruby interpreter.
+Ruby provides APIs for defining the following things:
+</p>
+<pre>
+ * Classes, Modules
+ * Methods, Singleton Methods
+ * Constants
+</pre>
+<p>
+2.1.1 Class/module definition
+</p>
+<p>
+To define a class or module, use the functions below:
+</p>
+<pre>
+  VALUE rb_define_class(const char *name, VALUE super)
+  VALUE rb_define_module(const char *name)
+</pre>
+<p>
+These functions return the newly created class or module. You may want to
+save this reference into a variable to use later.
+</p>
+<p>
+To define nested classes or modules, use the functions below:
+</p>
+<pre>
+  VALUE rb_define_class_under(VALUE outer, const char *name, VALUE super)
+  VALUE rb_define_module_under(VALUE outer, const char *name)
+</pre>
+<p>
+2.1.2 Method/singleton method definition
+</p>
+<p>
+To define methods or singleton methods, use these functions:
+</p>
+<pre>
+  void rb_define_method(VALUE klass, const char *name,
+                        VALUE (*func)(), int argc)
+
+  void rb_define_singleton_method(VALUE object, const char *name,
+                                  VALUE (*func)(), int argc)
+</pre>
+<p>
+The `argc&#8217; represents the number of the arguments to the C function,
+which must be less than 17. But I doubt you&#8217;ll need that many.
+</p>
+<p>
+If `argc&#8217; is negative, it specifies the calling sequence, not number
+of the arguments.
+</p>
+<p>
+If argc is -1, the function will be called as:
+</p>
+<pre>
+  VALUE func(int argc, VALUE *argv, VALUE obj)
+</pre>
+<p>
+where argc is the actual number of arguments, argv is the C array of the
+arguments, and obj is the receiver.
+</p>
+<p>
+If argc is -2, the arguments are passed in a Ruby array. The function will
+be called like:
+</p>
+<pre>
+  VALUE func(VALUE obj, VALUE args)
+</pre>
+<p>
+where obj is the receiver, and args is the Ruby array containing actual
+arguments.
+</p>
+<p>
+There are some more functions to define methods. One takes an ID as the
+name of method to be defined. See 2.2.2 for IDs.
+</p>
+<pre>
+  void rb_define_method_id(VALUE klass, ID name,
+                           VALUE (*func)(ANYARGS), int argc)
+</pre>
+<p>
+There are two functions to define private/protected methods:
+</p>
+<pre>
+  void rb_define_private_method(VALUE klass, const char *name,
+                                VALUE (*func)(), int argc)
+  void rb_define_protected_method(VALUE klass, const char *name,
+                                  VALUE (*func)(), int argc)
+</pre>
+<p>
+At last, rb_define_module_function defines a module functions, which are
+private AND singleton methods of the module. For example, sqrt is the
+module function defined in <a href="../classes/Math.html">Math</a> module.
+It can be called in the following way:
+</p>
+<pre>
+  Math.sqrt(4)
+</pre>
+<p>
+or
+</p>
+<pre>
+  include Math
+  sqrt(4)
+</pre>
+<p>
+To define module functions, use:
+</p>
+<pre>
+  void rb_define_module_function(VALUE module, const char *name,
+                                 VALUE (*func)(), int argc)
+</pre>
+<p>
+In addition, function-like methods, which are private methods defined in
+the Kernel module, can be defined using:
+</p>
+<pre>
+  void rb_define_global_function(const char *name, VALUE (*func)(), int argc)
+</pre>
+<p>
+To define an alias for the method,
+</p>
+<pre>
+  void rb_define_alias(VALUE module, const char* new, const char* old);
+</pre>
+<p>
+To define a reader/writer for an attribute,
+</p>
+<pre>
+  void rb_define_attr(VALUE klass, const char *name, int read, int write)
+</pre>
+<p>
+To define and undefine the `allocate&#8217; class method,
+</p>
+<pre>
+  void rb_define_alloc_func(VALUE klass, VALUE (*func)(VALUE klass));
+  void rb_undef_alloc_func(VALUE klass);
+</pre>
+<p>
+func has to take the klass as the argument and return a newly allocated
+instance. This instance should be as empty as possible, without any
+expensive (including external) resources.
+</p>
+<p>
+2.1.3 Constant definition
+</p>
+<p>
+We have 2 functions to define constants:
+</p>
+<pre>
+  void rb_define_const(VALUE klass, const char *name, VALUE val)
+  void rb_define_global_const(const char *name, VALUE val)
+</pre>
+<p>
+The former is to define a constant under specified class/module. The latter
+is to define a global constant.
+</p>
+<p>
+2.2 Use Ruby features from C
+</p>
+<p>
+There are several ways to invoke Ruby&#8217;s features from C code.
+</p>
+<p>
+2.2.1 Evaluate Ruby Programs in a <a
+href="../classes/String.html">String</a>
+</p>
+<p>
+The easiest way to use Ruby&#8217;s functionality from a C program is to
+evaluate the string as Ruby program. This function will do the job:
+</p>
+<pre>
+  VALUE rb_eval_string(const char *str)
+</pre>
+<p>
+Evaluation is done under the current context, thus current local variables
+of the innermost method (which is defined by Ruby) can be accessed.
+</p>
+<p>
+Note that the evaluation can raise an exception. There is a safer function:
+</p>
+<pre>
+  VALUE rb_eval_string_protect(const char *str, int *state)
+</pre>
+<p>
+It returns nil when an error occur. Moreover, *state is zero if str was
+successfully evaluated, or nonzero otherwise.
+</p>
+<p>
+2.2.2 ID or <a href="../classes/Symbol.html">Symbol</a>
+</p>
+<p>
+You can invoke methods directly, without parsing the string. First I need
+to explain about ID. ID is the integer number to represent Ruby&#8217;s
+identifiers such as variable names. The Ruby data type corresponding to ID
+is <a href="../classes/Symbol.html">Symbol</a>. It can be accessed from
+Ruby in the form:
+</p>
+<pre>
+ :Identifier
+</pre>
+<p>
+or
+</p>
+<pre>
+ :&quot;any kind of string&quot;
+</pre>
+<p>
+You can get the ID value from a string within C code by using
+</p>
+<pre>
+  rb_intern(const char *name)
+</pre>
+<p>
+You can retrieve ID from Ruby object (<a
+href="../classes/Symbol.html">Symbol</a> or <a
+href="../classes/String.html">String</a>) given as an argument by using
+</p>
+<pre>
+  rb_to_id(VALUE symbol)
+</pre>
+<p>
+You can convert C ID to Ruby <a href="../classes/Symbol.html">Symbol</a> by
+using
+</p>
+<pre>
+  VALUE ID2SYM(ID id)
+</pre>
+<p>
+and to convert Ruby <a href="../classes/Symbol.html">Symbol</a> object to
+ID, use
+</p>
+<pre>
+  ID SYM2ID(VALUE symbol)
+</pre>
+<p>
+2.2.3 Invoke Ruby method from C
+</p>
+<p>
+To invoke methods directly, you can use the function below
+</p>
+<pre>
+  VALUE rb_funcall(VALUE recv, ID mid, int argc, ...)
+</pre>
+<p>
+This function invokes a method on the recv, with the method name specified
+by the symbol mid.
+</p>
+<p>
+2.2.4 Accessing the variables and constants
+</p>
+<p>
+You can access class variables and instance variables using access
+functions. Also, global variables can be shared between both environments.
+There&#8217;s no way to access Ruby&#8217;s local variables.
+</p>
+<p>
+The functions to access/modify instance variables are below:
+</p>
+<pre>
+  VALUE rb_ivar_get(VALUE obj, ID id)
+  VALUE rb_ivar_set(VALUE obj, ID id, VALUE val)
+</pre>
+<p>
+id must be the symbol, which can be retrieved by rb_intern().
+</p>
+<p>
+To access the constants of the class/module:
+</p>
+<pre>
+  VALUE rb_const_get(VALUE obj, ID id)
+</pre>
+<p>
+See 2.1.3 for defining new constant.
+</p>
+<ol>
+<li>Information sharing between Ruby and C
+
+</li>
+</ol>
+<p>
+3.1 Ruby constants that C can be accessed from C
+</p>
+<p>
+As stated in section 1.3, the following Ruby constants can be referred from
+C.
+</p>
+<pre>
+  Qtrue
+  Qfalse
+</pre>
+<p>
+Boolean values. Qfalse is false in C also (i.e. 0).
+</p>
+<pre>
+  Qnil
+</pre>
+<p>
+Ruby nil in C scope.
+</p>
+<p>
+3.2 Global variables shared between C and Ruby
+</p>
+<p>
+Information can be shared between the two environments using shared global
+variables. To define them, you can use functions listed below:
+</p>
+<pre>
+  void rb_define_variable(const char *name, VALUE *var)
+</pre>
+<p>
+This function defines the variable which is shared by both environments.
+The value of the global variable pointed to by `var&#8217; can be accessed
+through Ruby&#8217;s global variable named `name&#8217;.
+</p>
+<p>
+You can define read-only (from Ruby, of course) variables using the
+function below.
+</p>
+<pre>
+  void rb_define_readonly_variable(const char *name, VALUE *var)
+</pre>
+<p>
+You can defined hooked variables. The accessor functions (getter and
+setter) are called on access to the hooked variables.
+</p>
+<pre>
+  void rb_define_hooked_variable(const char *name, VALUE *var,
+                                 VALUE (*getter)(), void (*setter)())
+</pre>
+<p>
+If you need to supply either setter or getter, just supply 0 for the hook
+you don&#8217;t need. If both hooks are 0, rb_define_hooked_variable()
+works just like rb_define_variable().
+</p>
+<p>
+The prototypes of the getter and setter functions are as follows:
+</p>
+<pre>
+  VALUE (*getter)(ID id, VALUE *var);
+  void (*setter)(VALUE val, ID id, VALUE *var);
+</pre>
+<p>
+Also you can define a Ruby global variable without a corresponding C
+variable. The value of the variable will be set/get only by hooks.
+</p>
+<pre>
+  void rb_define_virtual_variable(const char *name,
+                                  VALUE (*getter)(), void (*setter)())
+</pre>
+<p>
+The prototypes of the getter and setter functions are as follows:
+</p>
+<pre>
+  VALUE (*getter)(ID id);
+  void (*setter)(VALUE val, ID id);
+</pre>
+<p>
+3.3 Encapsulate C data into a Ruby object
+</p>
+<p>
+To wrap and objectify a C pointer as a Ruby object (so called DATA), use
+Data_Wrap_Struct().
+</p>
+<pre>
+  Data_Wrap_Struct(klass, mark, free, ptr)
+</pre>
+<p>
+Data_Wrap_Struct() returns a created DATA object. The klass argument is the
+class for the DATA object. The mark argument is the function to mark Ruby
+objects pointed by this data. The free argument is the function to free the
+pointer allocation. If this is -1, the pointer will be just freed. The
+functions mark and free will be called from garbage collector.
+</p>
+<p>
+These mark / free functions are invoked during <a
+href="../classes/GC.html">GC</a> execution. No object allocations are
+allowed during it, so do not allocate ruby objects inside them.
+</p>
+<p>
+You can allocate and wrap the structure in one step.
+</p>
+<pre>
+  Data_Make_Struct(klass, type, mark, free, sval)
+</pre>
+<p>
+This macro returns an allocated <a href="../classes/Data.html">Data</a>
+object, wrapping the pointer to the structure, which is also allocated.
+This macro works like:
+</p>
+<pre>
+  (sval = ALLOC(type), Data_Wrap_Struct(klass, mark, free, sval))
+</pre>
+<p>
+Arguments klass, mark, and free work like their counterparts in
+Data_Wrap_Struct(). A pointer to the allocated structure will be assigned
+to sval, which should be a pointer of the type specified.
+</p>
+<p>
+To retrieve the C pointer from the <a href="../classes/Data.html">Data</a>
+object, use the macro Data_Get_Struct().
+</p>
+<pre>
+  Data_Get_Struct(obj, type, sval)
+</pre>
+<p>
+A pointer to the structure will be assigned to the variable sval.
+</p>
+<p>
+See the example below for details.
+</p>
+<ol>
+<li>Example - Creating dbm extension
+
+</li>
+</ol>
+<p>
+OK, here&#8217;s the example of making an extension library. This is the
+extension to access DBMs. The full source is included in the ext/ directory
+in the Ruby&#8217;s source tree.
+</p>
+<p>
+(1) make the directory
+</p>
+<pre>
+  % mkdir ext/dbm
+</pre>
+<p>
+Make a directory for the extension library under ext directory.
+</p>
+<p>
+(2) design the library
+</p>
+<p>
+You need to design the library features, before making it.
+</p>
+<p>
+(3) write C code.
+</p>
+<p>
+You need to write C code for your extension library. If your library has
+only one source file, choosing ``LIBRARY.c&#8217;&#8217; as a file name is
+preferred. On the other hand, in case your library has multiple source
+files, avoid choosing ``LIBRARY.c&#8217;&#8217; for a file name. It may
+conflict with an intermediate file ``LIBRARY.o&#8217;&#8217; on some
+platforms. Note that some functions in mkmf library described below
+generate a file ``conftest.c&#8217;&#8217; for checking with compilation.
+You shouldn&#8217;t choose ``conftest.c&#8217;&#8217; as a name of a source
+file.
+</p>
+<p>
+Ruby will execute the initializing function named
+``Init_LIBRARY&#8217;&#8217; in the library. For example,
+``Init_dbm()&#8217;&#8217; will be executed when loading the library.
+</p>
+<p>
+Here&#8217;s the example of an initializing function.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

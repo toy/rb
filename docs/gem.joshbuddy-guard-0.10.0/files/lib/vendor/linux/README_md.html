@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>lib/vendor/linux/README.md</li>
+            <li>Last modified: Tue Dec 13 07:39:36 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# rb-inotify
+</p>
+<p>
+This is a simple wrapper over the [inotify](<a
+href="http://en.wikipedia.org/wiki/Inotify">en.wikipedia.org/wiki/Inotify</a>)
+Linux kernel subsystem for monitoring changes to files and directories. It
+uses the [FFI](<a
+href="http://wiki.github.com/ffi/ffi">wiki.github.com/ffi/ffi</a>) gem to
+avoid having to compile a C extension.
+</p>
+<p>
+[API documentation is available on rdoc.info](<a
+href="http://rdoc.info/projects/nex3/rb-inotify">rdoc.info/projects/nex3/rb-inotify</a>).
+</p>
+<p>
+## Basic Usage
+</p>
+<p>
+The API is similar to the inotify C API, but with a more Rubyish feel.
+First, create a notifier:
+</p>
+<pre>
+    notifier = INotify::Notifier.new
+</pre>
+<p>
+Then, tell it to watch the paths you&#8217;re interested in for the events
+you care about:
+</p>
+<pre>
+    notifier.watch(&quot;path/to/foo.txt&quot;, :modify) {puts &quot;foo.txt was modified!&quot;}
+    notifier.watch(&quot;path/to/bar&quot;, :moved_to, :create) do |event|
+      puts &quot;#{event.name} is now in path/to/bar!&quot;
+    end
+</pre>
+<p>
+Inotify can watch directories or individual files. It can pay attention to
+all sorts of events; for a full list, see [the inotify man page](<a
+href="http://www.tin.org/bin/man.cgi?section=7&topic=inotify">www.tin.org/bin/man.cgi?section=7&topic=inotify</a>).
+</p>
+<p>
+Finally, you get at the events themselves:
+</p>
+<pre>
+    notifier.run
+</pre>
+<p>
+This will loop infinitely, calling the appropriate callbacks when the files
+are changed. If you don&#8217;t want infinite looping, you can also block
+until there are available events, process them all at once, and then
+continue on your merry way:
+</p>
+<pre>
+    notifier.process
+</pre>
+<p>
+## Advanced Usage
+</p>
+<p>
+Sometimes it&#8217;s necessary to have finer control over the underlying IO
+operations than is provided by the simple callback API. The trick to this
+is that the {INotify::Notifier#to_io Notifier#to_io} method returns a
+fully-functional IO object, with a file descriptor and everything. This
+means, for example, that it can be passed to `IO#select`:
+</p>
+<pre>
+     # Wait 10 seconds for an event then give up
+     if IO.select([notifier.to_io], [], [], 10)
+       notifier.process
+     end
+</pre>
+<p>
+It can even be used with EventMachine:
+</p>
+<pre>
+     require 'eventmachine'
+
+     EM.run do
+       EM.watch notifier.to_io do
+         notifier.process
+       end
+     end
+</pre>
+<p>
+Unfortunately, this currently doesn&#8217;t work under JRuby. JRuby
+currently doesn&#8217;t use native file descriptors for the IO object, so
+we can&#8217;t use the notifier&#8217;s file descriptor as a stand-in.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

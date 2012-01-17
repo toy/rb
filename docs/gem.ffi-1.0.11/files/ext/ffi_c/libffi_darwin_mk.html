@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>libffi.darwin.mk</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            libffi.darwin.mk
+        </h1>
+        <ul class="files">
+            <li>ext/ffi_c/libffi.darwin.mk</li>
+            <li>Last modified: Sun Nov 27 22:44:59 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# -*- makefile -*-
+</p>
+<p>
+include ${srcdir}/libffi.gnu.mk
+</p>
+<p>
+CCACHE := $(shell type -p ccache) BUILD_DIR := $(shell pwd)
+</p>
+<p>
+INCFLAGS += -I&#8221;$(BUILD_DIR)&#8220;
+</p>
+<p>
+# Work out which arches we need to compile the lib for ARCHES := ifneq
+($(findstring -arch ppc,$(CFLAGS)),)
+</p>
+<pre>
+  ARCHES += ppc
+</pre>
+<p>
+endif
+</p>
+<p>
+ifneq ($(findstring -arch i386,$(CFLAGS)),)
+</p>
+<pre>
+  ARCHES += i386
+</pre>
+<p>
+endif
+</p>
+<p>
+ifneq ($(findstring -arch x86_64,$(CFLAGS)),)
+</p>
+<pre>
+  ARCHES += x86_64
+</pre>
+<p>
+endif
+</p>
+<p>
+ifeq ($(strip $(ARCHES)),) # Just build the one (default) architecture
+$(LIBFFI):
+</p>
+<pre>
+        @mkdir -p &quot;$(LIBFFI_BUILD_DIR)&quot;
+        @if [ ! -f &quot;$(LIBFFI_BUILD_DIR)&quot;/Makefile ]; then \
+            echo &quot;Configuring libffi&quot;; \
+            cd &quot;$(LIBFFI_BUILD_DIR)&quot; &amp;&amp; \
+                /usr/bin/env CC=&quot;$(CC)&quot; LD=&quot;$(LD)&quot; CFLAGS=&quot;$(LIBFFI_CFLAGS)&quot; \
+                /bin/sh $(LIBFFI_CONFIGURE) $(LIBFFI_HOST) &gt; /dev/null; \
+        fi
+        cd &quot;$(LIBFFI_BUILD_DIR)&quot; &amp;&amp; $(MAKE)
+</pre>
+<p>
+else # Build a fat binary and assemble build_ffi = \
+</p>
+<pre>
+        mkdir -p &quot;$(BUILD_DIR)&quot;/libffi-$(1); \
+        (if [ ! -f &quot;$(BUILD_DIR)&quot;/libffi-$(1)/Makefile ]; then \
+            echo &quot;Configuring libffi for $(1)&quot;; \
+            cd &quot;$(BUILD_DIR)&quot;/libffi-$(1) &amp;&amp; \
+              env CC=&quot;$(CCACHE) $(CC)&quot; CFLAGS=&quot;-arch $(1) $(LIBFFI_CFLAGS)&quot; LDFLAGS=&quot;-arch $(1)&quot; \
+                $(LIBFFI_CONFIGURE) --host=$(1)-apple-darwin &gt; /dev/null; \
+        fi); \
+        env MACOSX_DEPLOYMENT_TARGET=10.4 $(MAKE) -C &quot;$(BUILD_DIR)&quot;/libffi-$(1)
+</pre>
+<p>
+$(LIBFFI):
+</p>
+<pre>
+        @for arch in $(ARCHES); do $(call build_ffi,$$arch);done
+        # Assemble into a FAT (x86_64, i386, ppc) library
+        @mkdir -p &quot;$(BUILD_DIR)&quot;/libffi/.libs
+        /usr/bin/libtool -static -o $@ \
+            $(foreach arch, $(ARCHES),&quot;$(BUILD_DIR)&quot;/libffi-$(arch)/.libs/libffi_convenience.a)
+        @mkdir -p &quot;$(LIBFFI_BUILD_DIR)&quot;/include
+        $(RM) &quot;$(LIBFFI_BUILD_DIR)&quot;/include/ffi.h
+        @( \
+                printf &quot;#if defined(__i386__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-i386/include/ffi.h\&quot;\n&quot;; \
+                printf &quot;#elif defined(__x86_64__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-x86_64/include/ffi.h\&quot;\n&quot;;\
+                printf &quot;#elif defined(__ppc__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-ppc/include/ffi.h\&quot;\n&quot;;\
+                printf &quot;#endif\n&quot;;\
+        ) &gt; &quot;$(LIBFFI_BUILD_DIR)&quot;/include/ffi.h
+        @( \
+                printf &quot;#if defined(__i386__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-i386/include/ffitarget.h\&quot;\n&quot;; \
+                printf &quot;#elif defined(__x86_64__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-x86_64/include/ffitarget.h\&quot;\n&quot;;\
+                printf &quot;#elif defined(__ppc__)\n&quot;; \
+                printf &quot;#include \&quot;libffi-ppc/include/ffitarget.h\&quot;\n&quot;;\
+                printf &quot;#endif\n&quot;;\
+        ) &gt; &quot;$(LIBFFI_BUILD_DIR)&quot;/include/ffitarget.h
+</pre>
+<p>
+endif
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

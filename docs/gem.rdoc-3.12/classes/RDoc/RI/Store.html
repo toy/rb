@@ -1,0 +1,953 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RDoc::RI::Store</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RDoc::RI::Store 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/rdoc/ri/store_rb.html">lib/rdoc/ri/store.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A set of ri data.
+</p>
+<p>
+The store manages reading and writing ri data for a project (gem, path,
+etc.) and maintains a cache of methods, classes and ancestors in the store.
+</p>
+<p>
+The store maintains a <a href="Store.html#cache">cache</a> of its contents
+for faster lookup. After adding items to the store it must be flushed using
+<a href="Store.html#M000745">save_cache</a>. The cache contains the
+following structures:
+</p>
+<pre>
+   @cache = {
+     :class_methods    =&gt; {}, # class name =&gt; class methods
+     :instance_methods =&gt; {}, # class name =&gt; instance methods
+     :attributes       =&gt; {}, # class name =&gt; attributes
+     :modules          =&gt; [], # classes and modules in this store
+     :ancestors        =&gt; {}, # class name =&gt; ancestor names
+   }
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000726">ancestors</a>,</li>
+                
+                <li><a href="#M000727">attributes</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000728">cache_path</a>,</li>
+                
+                <li><a href="#M000729">class_file</a>,</li>
+                
+                <li><a href="#M000732">class_methods</a>,</li>
+                
+                <li><a href="#M000733">class_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000735">friendly_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000737">instance_methods</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000738">load_cache</a>,</li>
+                
+                <li><a href="#M000739">load_class</a>,</li>
+                
+                <li><a href="#M000740">load_method</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000741">method_file</a>,</li>
+                
+                <li><a href="#M000744">modules</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000724">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000745">save_cache</a>,</li>
+                
+                <li><a href="#M000747">save_class</a>,</li>
+                
+                <li><a href="#M000752">save_method</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>dry_run</td>
+            <td class='attr-desc'><p>
+If true this <a href="Store.html">Store</a> will not write any files
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>path</td>
+            <td class='attr-desc'><p>
+Path this store reads or writes
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>type</td>
+            <td class='attr-desc'><p>
+Type of ri datastore this was loaded from. See <a
+href="Driver.html">RDoc::RI::Driver</a>, <a
+href="Paths.html">RDoc::RI::Paths</a>.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>cache</td>
+            <td class='attr-desc'><p>
+The contents of the <a href="Store.html">Store</a>
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>encoding</td>
+            <td class='attr-desc'><p>
+The encoding of the contents in the <a href="Store.html">Store</a>
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000724">
+                    
+                    <a name="M000724"></a><b>new</b>(path, type = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new <a href="Store.html">Store</a> of <tt>type</tt> that will
+load or save to <tt>path</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000724_source')" id="l_M000724_source">show</a>
+                        
+                    </p>
+                    <div id="M000724_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 55</span>
+55:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span> <span class="ruby-identifier">path</span>, <span class="ruby-identifier">type</span> = <span class="ruby-keyword kw">nil</span>
+56:     <span class="ruby-ivar">@dry_run</span>  = <span class="ruby-keyword kw">false</span>
+57:     <span class="ruby-ivar">@type</span>     = <span class="ruby-identifier">type</span>
+58:     <span class="ruby-ivar">@path</span>     = <span class="ruby-identifier">path</span>
+59:     <span class="ruby-ivar">@encoding</span> = <span class="ruby-keyword kw">nil</span>
+60: 
+61:     <span class="ruby-ivar">@cache</span> = {
+62:       <span class="ruby-identifier">:ancestors</span>        =<span class="ruby-operator">&gt;</span> {},
+63:       <span class="ruby-identifier">:attributes</span>       =<span class="ruby-operator">&gt;</span> {},
+64:       <span class="ruby-identifier">:class_methods</span>    =<span class="ruby-operator">&gt;</span> {},
+65:       <span class="ruby-identifier">:encoding</span>         =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encoding</span>,
+66:       <span class="ruby-identifier">:instance_methods</span> =<span class="ruby-operator">&gt;</span> {},
+67:       <span class="ruby-identifier">:modules</span>          =<span class="ruby-operator">&gt;</span> [],
+68:     }
+69:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000726">
+                    
+                    <a name="M000726"></a><b>ancestors</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Ancestors cache accessor. Maps a klass name to an Array of its ancestors in
+this store. If Foo in this store inherits from <a
+href="../../Object.html">Object</a>, Kernel won&#8217;t be listed (it will
+be included from ruby&#8217;s ri store).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000726_source')" id="l_M000726_source">show</a>
+                        
+                    </p>
+                    <div id="M000726_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 76</span>
+76:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ancestors</span>
+77:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:ancestors</span>]
+78:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000727">
+                    
+                    <a name="M000727"></a><b>attributes</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attributes cache accessor. Maps a class to an Array of its attributes.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000727_source')" id="l_M000727_source">show</a>
+                        
+                    </p>
+                    <div id="M000727_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 83</span>
+83:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">attributes</span>
+84:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:attributes</span>]
+85:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000728">
+                    
+                    <a name="M000728"></a><b>cache_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Path to the cache file
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000728_source')" id="l_M000728_source">show</a>
+                        
+                    </p>
+                    <div id="M000728_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 90</span>
+90:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cache_path</span>
+91:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-ivar">@path</span>, <span class="ruby-value str">'cache.ri'</span>
+92:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000729">
+                    
+                    <a name="M000729"></a><b>class_file</b>(klass_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Path to the ri data for <tt>klass_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000729_source')" id="l_M000729_source">show</a>
+                        
+                    </p>
+                    <div id="M000729_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 97</span>
+ 97:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">class_file</span> <span class="ruby-identifier">klass_name</span>
+ 98:     <span class="ruby-identifier">name</span> = <span class="ruby-identifier">klass_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'::'</span>).<span class="ruby-identifier">last</span>
+ 99:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-identifier">class_path</span>(<span class="ruby-identifier">klass_name</span>), <span class="ruby-node">&quot;cdesc-#{name}.ri&quot;</span>
+100:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000732">
+                    
+                    <a name="M000732"></a><b>class_methods</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Class methods cache accessor. Maps a class to an Array of its class methods
+(not full name).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000732_source')" id="l_M000732_source">show</a>
+                        
+                    </p>
+                    <div id="M000732_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 106</span>
+106:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">class_methods</span>
+107:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>]
+108:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000733">
+                    
+                    <a name="M000733"></a><b>class_path</b>(klass_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Path where data for <tt>klass_name</tt> will be stored (methods or class
+data)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000733_source')" id="l_M000733_source">show</a>
+                        
+                    </p>
+                    <div id="M000733_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 113</span>
+113:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">class_path</span> <span class="ruby-identifier">klass_name</span>
+114:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-ivar">@path</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">klass_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'::'</span>)
+115:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000735">
+                    
+                    <a name="M000735"></a><b>friendly_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Friendly rendition of <a href="Store.html#path">path</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000735_source')" id="l_M000735_source">show</a>
+                        
+                    </p>
+                    <div id="M000735_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 136</span>
+136:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">friendly_path</span>
+137:     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span>
+138:     <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:gem</span>    <span class="ruby-keyword kw">then</span>
+139:       <span class="ruby-identifier">sep</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-operator">*</span>[<span class="ruby-value str">'/'</span>, <span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">ALT_SEPARATOR</span>].<span class="ruby-identifier">compact</span>)
+140:       <span class="ruby-ivar">@path</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/#{sep}doc#{sep}(.*?)#{sep}ri$/</span>
+141:       <span class="ruby-node">&quot;gem #{$1}&quot;</span>
+142:     <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:home</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">'~/.ri'</span>
+143:     <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:site</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">'ruby site'</span>
+144:     <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:system</span> <span class="ruby-keyword kw">then</span> <span class="ruby-value str">'ruby core'</span>
+145:     <span class="ruby-keyword kw">else</span> <span class="ruby-ivar">@path</span>
+146:     <span class="ruby-keyword kw">end</span>
+147:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000737">
+                    
+                    <a name="M000737"></a><b>instance_methods</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Instance methods cache accessor. Maps a class to an Array of its instance
+methods (not full name).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000737_source')" id="l_M000737_source">show</a>
+                        
+                    </p>
+                    <div id="M000737_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 157</span>
+157:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">instance_methods</span>
+158:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>]
+159:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000738">
+                    
+                    <a name="M000738"></a><b>load_cache</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Loads cache file for this store
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000738_source')" id="l_M000738_source">show</a>
+                        
+                    </p>
+                    <div id="M000738_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 164</span>
+164:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_cache</span>
+165:     <span class="ruby-comment cmt">#orig_enc = @encoding</span>
+166: 
+167:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">cache_path</span>, <span class="ruby-value str">'rb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+168:       <span class="ruby-ivar">@cache</span> = <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">load</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>
+169:     <span class="ruby-keyword kw">end</span>
+170: 
+171:     <span class="ruby-identifier">load_enc</span> = <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:encoding</span>]
+172: 
+173:     <span class="ruby-comment cmt"># TODO this feature will be time-consuming to add:</span>
+174:     <span class="ruby-comment cmt"># a) Encodings may be incompatible but transcodeable</span>
+175:     <span class="ruby-comment cmt"># b) Need to warn in the appropriate spots, wherever they may be</span>
+176:     <span class="ruby-comment cmt"># c) Need to handle cross-cache differences in encodings</span>
+177:     <span class="ruby-comment cmt"># d) Need to warn when generating into a cache with diffent encodings</span>
+178:     <span class="ruby-comment cmt">#</span>
+179:     <span class="ruby-comment cmt">#if orig_enc and load_enc != orig_enc then</span>
+180:     <span class="ruby-comment cmt">#  warn &quot;Cached encoding #{load_enc} is incompatible with #{orig_enc}\n&quot;      #       &quot;from #{path}/cache.ri&quot; unless</span>
+181:     <span class="ruby-comment cmt">#    Encoding.compatible? orig_enc, load_enc</span>
+182:     <span class="ruby-comment cmt">#end</span>
+183: 
+184:     <span class="ruby-ivar">@encoding</span> = <span class="ruby-identifier">load_enc</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@encoding</span>
+185: 
+186:     <span class="ruby-ivar">@cache</span>
+187:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>
+188:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000739">
+                    
+                    <a name="M000739"></a><b>load_class</b>(klass_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Loads ri data for <tt>klass_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000739_source')" id="l_M000739_source">show</a>
+                        
+                    </p>
+                    <div id="M000739_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 194</span>
+194:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_class</span> <span class="ruby-identifier">klass_name</span>
+195:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">class_file</span>(<span class="ruby-identifier">klass_name</span>), <span class="ruby-value str">'rb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+196:       <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">load</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>
+197:     <span class="ruby-keyword kw">end</span>
+198:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000740">
+                    
+                    <a name="M000740"></a><b>load_method</b>(klass_name, method_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Loads ri data for <tt>method_name</tt> in <tt>klass_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000740_source')" id="l_M000740_source">show</a>
+                        
+                    </p>
+                    <div id="M000740_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 203</span>
+203:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_method</span> <span class="ruby-identifier">klass_name</span>, <span class="ruby-identifier">method_name</span>
+204:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">method_file</span>(<span class="ruby-identifier">klass_name</span>, <span class="ruby-identifier">method_name</span>), <span class="ruby-value str">'rb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+205:       <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">load</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>
+206:     <span class="ruby-keyword kw">end</span>
+207:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000741">
+                    
+                    <a name="M000741"></a><b>method_file</b>(klass_name, method_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Path to the ri data for <tt>method_name</tt> in <tt>klass_name</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000741_source')" id="l_M000741_source">show</a>
+                        
+                    </p>
+                    <div id="M000741_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 212</span>
+212:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">method_file</span> <span class="ruby-identifier">klass_name</span>, <span class="ruby-identifier">method_name</span>
+213:     <span class="ruby-identifier">method_name</span> = <span class="ruby-identifier">method_name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'::'</span>).<span class="ruby-identifier">last</span>
+214:     <span class="ruby-identifier">method_name</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/#(.*)/</span>
+215:     <span class="ruby-identifier">method_type</span> = <span class="ruby-identifier">$1</span> <span class="ruby-operator">?</span> <span class="ruby-value str">'i'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">'c'</span>
+216:     <span class="ruby-identifier">method_name</span> = <span class="ruby-identifier">$1</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">$1</span>
+217: 
+218:     <span class="ruby-identifier">method_name</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-value str">''</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:ord</span> <span class="ruby-keyword kw">then</span>
+219:                     <span class="ruby-identifier">method_name</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\W/</span>) { <span class="ruby-value str">&quot;%%%02x&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">$&amp;</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">ord</span> }
+220:                   <span class="ruby-keyword kw">else</span>
+221:                     <span class="ruby-identifier">method_name</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\W/</span>) { <span class="ruby-value str">&quot;%%%02x&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">$&amp;</span>[<span class="ruby-value">0</span>] }
+222:                   <span class="ruby-keyword kw">end</span>
+223: 
+224:     <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-identifier">class_path</span>(<span class="ruby-identifier">klass_name</span>), <span class="ruby-node">&quot;#{method_name}-#{method_type}.ri&quot;</span>
+225:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000744">
+                    
+                    <a name="M000744"></a><b>modules</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Modules cache accessor. An Array of all the modules (and classes) in the
+store.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000744_source')" id="l_M000744_source">show</a>
+                        
+                    </p>
+                    <div id="M000744_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 231</span>
+231:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">modules</span>
+232:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:modules</span>]
+233:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000745">
+                    
+                    <a name="M000745"></a><b>save_cache</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Writes the cache file for this store
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000745_source')" id="l_M000745_source">show</a>
+                        
+                    </p>
+                    <div id="M000745_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 238</span>
+238:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_cache</span>
+239:     <span class="ruby-identifier">clean_cache_collection</span> <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:ancestors</span>]
+240:     <span class="ruby-identifier">clean_cache_collection</span> <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:attributes</span>]
+241:     <span class="ruby-identifier">clean_cache_collection</span> <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>]
+242:     <span class="ruby-identifier">clean_cache_collection</span> <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>]
+243: 
+244:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:modules</span>].<span class="ruby-identifier">uniq!</span>
+245:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:modules</span>].<span class="ruby-identifier">sort!</span>
+246:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:encoding</span>] = <span class="ruby-ivar">@encoding</span> <span class="ruby-comment cmt"># this gets set twice due to assert_cache</span>
+247: 
+248:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@dry_run</span>
+249: 
+250:     <span class="ruby-identifier">marshal</span> = <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span> <span class="ruby-ivar">@cache</span>
+251: 
+252:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">cache_path</span>, <span class="ruby-value str">'wb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+253:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">write</span> <span class="ruby-identifier">marshal</span>
+254:     <span class="ruby-keyword kw">end</span>
+255:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000747">
+                    
+                    <a name="M000747"></a><b>save_class</b>(klass)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Writes the ri data for <tt>klass</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000747_source')" id="l_M000747_source">show</a>
+                        
+                    </p>
+                    <div id="M000747_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 260</span>
+260:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_class</span> <span class="ruby-identifier">klass</span>
+261:     <span class="ruby-identifier">full_name</span> = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">full_name</span>
+262: 
+263:     <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">mkdir_p</span> <span class="ruby-identifier">class_path</span>(<span class="ruby-identifier">full_name</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@dry_run</span>
+264: 
+265:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:modules</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">full_name</span>
+266: 
+267:     <span class="ruby-identifier">path</span> = <span class="ruby-identifier">class_file</span> <span class="ruby-identifier">full_name</span>
+268: 
+269:     <span class="ruby-keyword kw">begin</span>
+270:       <span class="ruby-identifier">disk_klass</span> = <span class="ruby-identifier">load_class</span> <span class="ruby-identifier">full_name</span>
+271: 
+272:       <span class="ruby-identifier">klass</span> = <span class="ruby-identifier">disk_klass</span>.<span class="ruby-identifier">merge</span> <span class="ruby-identifier">klass</span>
+273:     <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ENOENT</span>
+274:     <span class="ruby-keyword kw">end</span>
+275: 
+276:     <span class="ruby-comment cmt"># BasicObject has no ancestors</span>
+277:     <span class="ruby-identifier">ancestors</span> = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">ancestors</span>.<span class="ruby-identifier">compact</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ancestor</span><span class="ruby-operator">|</span>
+278:       <span class="ruby-comment cmt"># HACK for classes we don't know about (class X &lt; RuntimeError)</span>
+279:       <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">ancestor</span> <span class="ruby-value">? </span><span class="ruby-identifier">ancestor</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">ancestor</span>.<span class="ruby-identifier">full_name</span>
+280:     <span class="ruby-keyword kw">end</span>
+281: 
+282:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:ancestors</span>][<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">||=</span> []
+283:     <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:ancestors</span>][<span class="ruby-identifier">full_name</span>].<span class="ruby-identifier">push</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">ancestors</span>)
+284: 
+285:     <span class="ruby-identifier">attributes</span> = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attribute</span><span class="ruby-operator">|</span>
+286:       <span class="ruby-node">&quot;#{attribute.definition} #{attribute.name}&quot;</span>
+287:     <span class="ruby-keyword kw">end</span>
+288: 
+289:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">then</span>
+290:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:attributes</span>][<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">||=</span> []
+291:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:attributes</span>][<span class="ruby-identifier">full_name</span>].<span class="ruby-identifier">push</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">attributes</span>)
+292:     <span class="ruby-keyword kw">end</span>
+293: 
+294:     <span class="ruby-identifier">to_delete</span> = []
+295: 
+296:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">method_list</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">then</span>
+297:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>][<span class="ruby-identifier">full_name</span>]    <span class="ruby-operator">||=</span> []
+298:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>][<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">||=</span> []
+299: 
+300:       <span class="ruby-identifier">class_methods</span>, <span class="ruby-identifier">instance_methods</span> =
+301:         <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">method_list</span>.<span class="ruby-identifier">partition</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">meth</span><span class="ruby-operator">|</span> <span class="ruby-identifier">meth</span>.<span class="ruby-identifier">singleton</span> }
+302: 
+303:       <span class="ruby-identifier">class_methods</span>    = <span class="ruby-identifier">class_methods</span>.   <span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">method</span><span class="ruby-operator">|</span> <span class="ruby-identifier">method</span>.<span class="ruby-identifier">name</span> }
+304:       <span class="ruby-identifier">instance_methods</span> = <span class="ruby-identifier">instance_methods</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">method</span><span class="ruby-operator">|</span> <span class="ruby-identifier">method</span>.<span class="ruby-identifier">name</span> }
+305: 
+306:       <span class="ruby-identifier">old</span> = <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>][<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">class_methods</span>
+307:       <span class="ruby-identifier">to_delete</span>.<span class="ruby-identifier">concat</span> <span class="ruby-identifier">old</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">method</span><span class="ruby-operator">|</span>
+308:         <span class="ruby-identifier">method_file</span> <span class="ruby-identifier">full_name</span>, <span class="ruby-node">&quot;#{full_name}::#{method}&quot;</span>
+309:       }
+310: 
+311:       <span class="ruby-identifier">old</span> = <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>][<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">-</span> <span class="ruby-identifier">instance_methods</span>
+312:       <span class="ruby-identifier">to_delete</span>.<span class="ruby-identifier">concat</span> <span class="ruby-identifier">old</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">method</span><span class="ruby-operator">|</span>
+313:         <span class="ruby-identifier">method_file</span> <span class="ruby-identifier">full_name</span>, <span class="ruby-node">&quot;#{full_name}##{method}&quot;</span>
+314:       }
+315: 
+316:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>][<span class="ruby-identifier">full_name</span>]    = <span class="ruby-identifier">class_methods</span>
+317:       <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>][<span class="ruby-identifier">full_name</span>] = <span class="ruby-identifier">instance_methods</span>
+318:     <span class="ruby-keyword kw">end</span>
+319: 
+320:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@dry_run</span>
+321: 
+322:     <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">rm_f</span> <span class="ruby-identifier">to_delete</span>
+323: 
+324:     <span class="ruby-identifier">marshal</span> = <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span> <span class="ruby-identifier">klass</span>
+325: 
+326:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">path</span>, <span class="ruby-value str">'wb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+327:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">write</span> <span class="ruby-identifier">marshal</span>
+328:     <span class="ruby-keyword kw">end</span>
+329:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000752">
+                    
+                    <a name="M000752"></a><b>save_method</b>(klass, method)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Writes the ri data for <tt>method</tt> on <tt>klass</tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000752_source')" id="l_M000752_source">show</a>
+                        
+                    </p>
+                    <div id="M000752_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/ri/store.rb, line 334</span>
+334:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">save_method</span> <span class="ruby-identifier">klass</span>, <span class="ruby-identifier">method</span>
+335:     <span class="ruby-identifier">full_name</span> = <span class="ruby-identifier">klass</span>.<span class="ruby-identifier">full_name</span>
+336: 
+337:     <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">mkdir_p</span> <span class="ruby-identifier">class_path</span>(<span class="ruby-identifier">full_name</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@dry_run</span>
+338: 
+339:     <span class="ruby-identifier">cache</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">method</span>.<span class="ruby-identifier">singleton</span> <span class="ruby-keyword kw">then</span>
+340:               <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:class_methods</span>]
+341:             <span class="ruby-keyword kw">else</span>
+342:               <span class="ruby-ivar">@cache</span>[<span class="ruby-identifier">:instance_methods</span>]
+343:             <span class="ruby-keyword kw">end</span>
+344:     <span class="ruby-identifier">cache</span>[<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">||=</span> []
+345:     <span class="ruby-identifier">cache</span>[<span class="ruby-identifier">full_name</span>] <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">method</span>.<span class="ruby-identifier">name</span>
+346: 
+347:     <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@dry_run</span>
+348: 
+349:     <span class="ruby-identifier">marshal</span> = <span class="ruby-constant">Marshal</span>.<span class="ruby-identifier">dump</span> <span class="ruby-identifier">method</span>
+350: 
+351:     <span class="ruby-identifier">open</span> <span class="ruby-identifier">method_file</span>(<span class="ruby-identifier">full_name</span>, <span class="ruby-identifier">method</span>.<span class="ruby-identifier">full_name</span>), <span class="ruby-value str">'wb'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+352:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">write</span> <span class="ruby-identifier">marshal</span>
+353:     <span class="ruby-keyword kw">end</span>
+354:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

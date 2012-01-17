@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>FFI::StructGenerator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            FFI::StructGenerator 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/ffi/tools/struct_generator_rb.html">lib/ffi/tools/struct_generator.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Generates an <a href="../FFI.html">FFI</a> <a href="Struct.html">Struct</a>
+layout.
+</p>
+<p>
+Given the @@@ portion in:
+</p>
+<pre>
+  module Zlib::ZStream &lt; FFI::Struct
+    @@@
+    name &quot;struct z_stream_s&quot;
+    include &quot;zlib.h&quot;
+
+    field :next_in,   :pointer
+    field :avail_in,  :uint
+    field :total_in,  :ulong
+
+    # ...
+    @@@
+  end
+</pre>
+<p>
+<a href="StructGenerator.html">StructGenerator</a> will create the layout:
+</p>
+<pre>
+  layout :next_in, :pointer, 0,
+         :avail_in, :uint, 4,
+         :total_in, :ulong, 8,
+         # ...
+</pre>
+<p>
+<a href="StructGenerator.html">StructGenerator</a> does its best to pad the
+layout it produces to preserve line numbers. Place the struct definition as
+close to the top of the file for best results.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000134">calculate</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000138">dump_config</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000136">field</a>,</li>
+                
+                <li><a href="#M000137">found?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000139">generate_layout</a>,</li>
+                
+                <li><a href="#M000140">get_field</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000141">include</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000142">name</a>,</li>
+                
+                <li><a href="#M000131">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000133">options</a>,</li>
+                
+                <li><a href="#M000132">options=</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="StructGenerator/Field.html">FFI::StructGenerator::Field</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>size</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>fields</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000131">
+                    
+                    <a name="M000131"></a><b>new</b>(name, options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000131_source')" id="l_M000131_source">show</a>
+                        
+                    </p>
+                    <div id="M000131_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 39</span>
+39:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">options</span> = {})
+40:       <span class="ruby-ivar">@name</span> = <span class="ruby-identifier">name</span>
+41:       <span class="ruby-ivar">@struct_name</span> = <span class="ruby-keyword kw">nil</span>
+42:       <span class="ruby-ivar">@includes</span> = []
+43:       <span class="ruby-ivar">@fields</span> = []
+44:       <span class="ruby-ivar">@found</span> = <span class="ruby-keyword kw">false</span>
+45:       <span class="ruby-ivar">@size</span> = <span class="ruby-keyword kw">nil</span>
+46: 
+47:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span> <span class="ruby-keyword kw">then</span>
+48:         <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">self</span>
+49:         <span class="ruby-identifier">calculate</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>)
+50:       <span class="ruby-keyword kw">end</span>
+51:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000133">
+                    
+                    <a name="M000133"></a><b>options</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000133_source')" id="l_M000133_source">show</a>
+                        
+                    </p>
+                    <div id="M000133_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 55</span>
+55:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">options</span>
+56:       <span class="ruby-ivar">@options</span>
+57:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000132">
+                    
+                    <a name="M000132"></a><b>options=</b>(options)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000132_source')" id="l_M000132_source">show</a>
+                        
+                    </p>
+                    <div id="M000132_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 52</span>
+52:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">options=</span>(<span class="ruby-identifier">options</span>)
+53:       <span class="ruby-ivar">@options</span> = <span class="ruby-identifier">options</span>
+54:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000134">
+                    
+                    <a name="M000134"></a><b>calculate</b>(options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000134_source')" id="l_M000134_source">show</a>
+                        
+                    </p>
+                    <div id="M000134_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 58</span>
+ 58:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">calculate</span>(<span class="ruby-identifier">options</span> = {})
+ 59:       <span class="ruby-identifier">binary</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">tmpdir</span>, <span class="ruby-node">&quot;rb_struct_gen_bin_#{Process.pid}&quot;</span>
+ 60: 
+ 61:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;struct name not set&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@struct_name</span>.<span class="ruby-identifier">nil?</span>
+ 62: 
+ 63:       <span class="ruby-constant">Tempfile</span>.<span class="ruby-identifier">open</span>(<span class="ruby-node">&quot;#{@name}.struct_generator&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+ 64:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;#include &lt;stdio.h&gt;&quot;</span>
+ 65: 
+ 66:         <span class="ruby-ivar">@includes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">inc</span><span class="ruby-operator">|</span>
+ 67:           <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;#include &lt;#{inc}&gt;&quot;</span>
+ 68:         <span class="ruby-keyword kw">end</span>
+ 69: 
+ 70:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;#include &lt;stddef.h&gt;\n\n&quot;</span>
+ 71:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;int main(int argc, char **argv)\n{&quot;</span>
+ 72:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;  #{@struct_name} s;&quot;</span>
+ 73:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">%[  printf(&quot;sizeof(#{@struct_name}) %u\\n&quot;, (unsigned int) sizeof(#{@struct_name}));]</span>
+ 74: 
+ 75:         <span class="ruby-ivar">@fields</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">field</span><span class="ruby-operator">|</span>
+ 76:           <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;printf(\&quot;\#{field.name} %u %u\\\\n\&quot;, (unsigned int) offsetof(\#{@struct_name}, \#{field.name}),\n(unsigned int) sizeof(s.\#{field.name}));\n&quot;</span>
+ 77:         <span class="ruby-keyword kw">end</span>
+ 78: 
+ 79:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;\n  return 0;\n}&quot;</span>
+ 80:         <span class="ruby-identifier">f</span>.<span class="ruby-identifier">flush</span>
+ 81: 
+ 82:         <span class="ruby-identifier">output</span> = <span class="ruby-node">`gcc #{options[:cppflags]} #{options[:cflags]} -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall -Werror #{f.path} -o #{binary} 2&gt;&amp;1`</span>
+ 83: 
+ 84:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">$?</span>.<span class="ruby-identifier">success?</span> <span class="ruby-keyword kw">then</span>
+ 85:           <span class="ruby-ivar">@found</span> = <span class="ruby-keyword kw">false</span>
+ 86:           <span class="ruby-identifier">output</span> = <span class="ruby-identifier">output</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">l</span><span class="ruby-operator">|</span> <span class="ruby-node">&quot;\t#{l}&quot;</span> }.<span class="ruby-identifier">join</span> <span class="ruby-value str">&quot;\n&quot;</span>
+ 87:           <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;Compilation error generating struct #{@name} (#{@struct_name}):\n#{output}&quot;</span>
+ 88:         <span class="ruby-keyword kw">end</span>
+ 89:       <span class="ruby-keyword kw">end</span>
+ 90:       
+ 91:       <span class="ruby-identifier">output</span> = <span class="ruby-node">`#{binary}`</span>.<span class="ruby-identifier">split</span> <span class="ruby-value str">&quot;\n&quot;</span>
+ 92:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">unlink</span>(<span class="ruby-identifier">binary</span> <span class="ruby-operator">+</span> (<span class="ruby-constant">FFI</span><span class="ruby-operator">::</span><span class="ruby-constant">Platform</span>.<span class="ruby-identifier">windows?</span> <span class="ruby-value">? </span><span class="ruby-value str">&quot;.exe&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;&quot;</span>))
+ 93:       <span class="ruby-identifier">sizeof</span> = <span class="ruby-identifier">output</span>.<span class="ruby-identifier">shift</span>
+ 94:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@size</span>
+ 95:         <span class="ruby-identifier">m</span> = <span class="ruby-regexp re">/\s*sizeof\([^)]+\) (\d+)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">sizeof</span>
+ 96:         <span class="ruby-ivar">@size</span> = <span class="ruby-identifier">m</span>[<span class="ruby-value">1</span>]
+ 97:       <span class="ruby-keyword kw">end</span>
+ 98: 
+ 99:       <span class="ruby-identifier">line_no</span> = <span class="ruby-value">0</span>
+100:       <span class="ruby-identifier">output</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+101:         <span class="ruby-identifier">md</span> = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/.+ (\d+) (\d+)/</span>)
+102:         <span class="ruby-ivar">@fields</span>[<span class="ruby-identifier">line_no</span>].<span class="ruby-identifier">offset</span> = <span class="ruby-identifier">md</span>[<span class="ruby-value">1</span>].<span class="ruby-identifier">to_i</span>
+103:         <span class="ruby-ivar">@fields</span>[<span class="ruby-identifier">line_no</span>].<span class="ruby-identifier">size</span>   = <span class="ruby-identifier">md</span>[<span class="ruby-value">2</span>].<span class="ruby-identifier">to_i</span>
+104: 
+105:         <span class="ruby-identifier">line_no</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+106:       <span class="ruby-keyword kw">end</span>
+107: 
+108:       <span class="ruby-ivar">@found</span> = <span class="ruby-keyword kw">true</span>
+109:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000138">
+                    
+                    <a name="M000138"></a><b>dump_config</b>(io)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000138_source')" id="l_M000138_source">show</a>
+                        
+                    </p>
+                    <div id="M000138_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 125</span>
+125:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dump_config</span>(<span class="ruby-identifier">io</span>)
+126:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;rbx.platform.#{@name}.sizeof = #{@size}&quot;</span>
+127: 
+128:       <span class="ruby-ivar">@fields</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">field</span><span class="ruby-operator">|</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">field</span>.<span class="ruby-identifier">to_config</span>(<span class="ruby-ivar">@name</span>) }
+129:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000136">
+                    
+                    <a name="M000136"></a><b>field</b>(name, type=nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000136_source')" id="l_M000136_source">show</a>
+                        
+                    </p>
+                    <div id="M000136_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 115</span>
+115:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">field</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">type</span>=<span class="ruby-keyword kw">nil</span>)
+116:       <span class="ruby-identifier">field</span> = <span class="ruby-constant">Field</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">type</span>)
+117:       <span class="ruby-ivar">@fields</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">field</span>
+118:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">field</span>
+119:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000137">
+                    
+                    <a name="M000137"></a><b>found?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000137_source')" id="l_M000137_source">show</a>
+                        
+                    </p>
+                    <div id="M000137_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 121</span>
+121:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">found?</span>
+122:       <span class="ruby-ivar">@found</span>
+123:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000139">
+                    
+                    <a name="M000139"></a><b>generate_layout</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000139_source')" id="l_M000139_source">show</a>
+                        
+                    </p>
+                    <div id="M000139_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 131</span>
+131:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">generate_layout</span>
+132:       <span class="ruby-identifier">buf</span> = <span class="ruby-value str">&quot;&quot;</span>
+133: 
+134:       <span class="ruby-ivar">@fields</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">field</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+135:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">buf</span>.<span class="ruby-identifier">empty?</span>
+136:           <span class="ruby-identifier">buf</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;layout :#{field.name}, :#{field.type}, #{field.offset}&quot;</span>
+137:         <span class="ruby-keyword kw">else</span>
+138:           <span class="ruby-identifier">buf</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;       :#{field.name}, :#{field.type}, #{field.offset}&quot;</span>
+139:         <span class="ruby-keyword kw">end</span>
+140: 
+141:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">i</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@fields</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>
+142:           <span class="ruby-identifier">buf</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;,\n&quot;</span>
+143:         <span class="ruby-keyword kw">end</span>
+144:       <span class="ruby-keyword kw">end</span>
+145: 
+146:       <span class="ruby-identifier">buf</span>
+147:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000140">
+                    
+                    <a name="M000140"></a><b>get_field</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000140_source')" id="l_M000140_source">show</a>
+                        
+                    </p>
+                    <div id="M000140_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 149</span>
+149:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_field</span>(<span class="ruby-identifier">name</span>)
+150:       <span class="ruby-ivar">@fields</span>.<span class="ruby-identifier">find</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span> <span class="ruby-identifier">name</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">f</span>.<span class="ruby-identifier">name</span> }
+151:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000141">
+                    
+                    <a name="M000141"></a><b>include</b>(i)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000141_source')" id="l_M000141_source">show</a>
+                        
+                    </p>
+                    <div id="M000141_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 153</span>
+153:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include</span>(<span class="ruby-identifier">i</span>)
+154:       <span class="ruby-ivar">@includes</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">i</span>
+155:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000142">
+                    
+                    <a name="M000142"></a><b>name</b>(n)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000142_source')" id="l_M000142_source">show</a>
+                        
+                    </p>
+                    <div id="M000142_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/struct_generator.rb, line 157</span>
+157:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">name</span>(<span class="ruby-identifier">n</span>)
+158:       <span class="ruby-ivar">@struct_name</span> = <span class="ruby-identifier">n</span>
+159:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

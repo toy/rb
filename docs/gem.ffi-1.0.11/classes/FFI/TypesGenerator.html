@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>FFI::TypesGenerator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            FFI::TypesGenerator 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/ffi/tools/types_generator_rb.html">lib/ffi/tools/types_generator.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000135">generate</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">TYPE_MAP</td>
+            <td>=</td>
+            <td class="attr-value">{                &quot;char&quot; =&gt; :char,         &quot;signed char&quot; =&gt; :char,       &quot;__signed char&quot; =&gt; :char,       &quot;unsigned char&quot; =&gt; :uchar,                 &quot;short&quot;     =&gt; :short,         &quot;signed short&quot;     =&gt; :short,         &quot;signed short int&quot; =&gt; :short,       &quot;unsigned short&quot;     =&gt; :ushort,       &quot;unsigned short int&quot; =&gt; :ushort,                 &quot;int&quot; =&gt; :int,         &quot;signed int&quot; =&gt; :int,       &quot;unsigned int&quot; =&gt; :uint,                 &quot;long&quot; =&gt; :long,                &quot;long int&quot; =&gt; :long,         &quot;signed long&quot; =&gt; :long,         &quot;signed long int&quot; =&gt; :long,       &quot;unsigned long&quot; =&gt; :ulong,       &quot;unsigned long int&quot; =&gt; :ulong,       &quot;long unsigned int&quot; =&gt; :ulong,                 &quot;long long&quot;     =&gt; :long_long,                &quot;long long int&quot; =&gt; :long_long,         &quot;signed long long&quot;     =&gt; :long_long,         &quot;signed long long int&quot; =&gt; :long_long,       &quot;unsigned long long&quot;     =&gt; :ulong_long,       &quot;unsigned long long int&quot; =&gt; :ulong_long,        &quot;char *&quot; =&gt; :string,       &quot;void *&quot; =&gt; :pointer,     }</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Maps different C types to the C type representations we use
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000135">
+                    
+                    <a name="M000135"></a><b>generate</b>(options = {})
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000135_source')" id="l_M000135_source">show</a>
+                        
+                    </p>
+                    <div id="M000135_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/ffi/tools/types_generator.rb, line 44</span>
+ 44:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-identifier">options</span> = {})
+ 45:       <span class="ruby-identifier">typedefs</span> = <span class="ruby-keyword kw">nil</span>
+ 46:       <span class="ruby-constant">Tempfile</span>.<span class="ruby-identifier">open</span> <span class="ruby-value str">'ffi_types_generator'</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+ 47:         <span class="ruby-identifier">io</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;#include &lt;sys/types.h&gt;\n#include &lt;sys/socket.h&gt;\n#include &lt;sys/resource.h&gt;\n&quot;</span>
+ 48: 
+ 49:         <span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+ 50:         <span class="ruby-identifier">typedefs</span> = <span class="ruby-node">`gcc -E -x c #{options[:cppflags]} -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c #{io.path}`</span>
+ 51:       <span class="ruby-keyword kw">end</span>
+ 52:       
+ 53:       <span class="ruby-identifier">code</span> = <span class="ruby-value str">&quot;&quot;</span>
+ 54: 
+ 55:       <span class="ruby-identifier">typedefs</span>.<span class="ruby-identifier">each_line</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span><span class="ruby-operator">|</span>
+ 56:         <span class="ruby-comment cmt"># We only care about single line typedef</span>
+ 57:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/typedef/</span>
+ 58:         <span class="ruby-comment cmt"># Ignore unions or structs</span>
+ 59:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/union|struct/</span>
+ 60:         
+ 61:         <span class="ruby-comment cmt"># strip off the starting typedef and ending ;</span>
+ 62:         <span class="ruby-identifier">type</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/^(.*typedef\s*)/</span>, <span class="ruby-value str">&quot;&quot;</span>)
+ 63:         <span class="ruby-identifier">type</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\s*;\s*$/</span>, <span class="ruby-value str">&quot;&quot;</span>)
+ 64:     
+ 65:         <span class="ruby-identifier">parts</span> = <span class="ruby-identifier">type</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\s+/</span>)
+ 66:         <span class="ruby-identifier">def_type</span>   = <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot; &quot;</span>)
+ 67: 
+ 68:         <span class="ruby-comment cmt"># GCC does mapping with __attribute__ stuf, also see</span>
+ 69:         <span class="ruby-comment cmt"># http://hal.cs.berkeley.edu/cil/cil016.html section 16.2.7.  Problem</span>
+ 70:         <span class="ruby-comment cmt"># with this is that the __attribute__ stuff can either occur before or</span>
+ 71:         <span class="ruby-comment cmt"># after the new type that is defined...</span>
+ 72:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/__attribute__/</span>
+ 73:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">last</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/__QI__|__HI__|__SI__|__DI__|__word__/</span>
+ 74: 
+ 75:             <span class="ruby-comment cmt"># In this case, the new type is BEFORE __attribute__ we need to</span>
+ 76:             <span class="ruby-comment cmt"># find the final_type as the type before the part that starts with</span>
+ 77:             <span class="ruby-comment cmt"># __attribute__</span>
+ 78:             <span class="ruby-identifier">final_type</span> = <span class="ruby-value str">&quot;&quot;</span>
+ 79:             <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span>
+ 80:               <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/__attribute__/</span>
+ 81:               <span class="ruby-identifier">final_type</span> = <span class="ruby-identifier">p</span>
+ 82:             <span class="ruby-keyword kw">end</span>
+ 83:           <span class="ruby-keyword kw">else</span>
+ 84:             <span class="ruby-identifier">final_type</span> = <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">pop</span>
+ 85:           <span class="ruby-keyword kw">end</span>
+ 86:           
+ 87:           <span class="ruby-identifier">def_type</span> = <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span>
+ 88:                      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/__QI__/</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">&quot;char&quot;</span>
+ 89:                      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/__HI__/</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">&quot;short&quot;</span>
+ 90:                      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/__SI__/</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">&quot;int&quot;</span>
+ 91:                      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/__DI__/</span>   <span class="ruby-keyword kw">then</span> <span class="ruby-value str">&quot;long long&quot;</span>
+ 92:                      <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/__word__/</span> <span class="ruby-keyword kw">then</span> <span class="ruby-value str">&quot;long&quot;</span>
+ 93:                      <span class="ruby-keyword kw">else</span>                 <span class="ruby-value str">&quot;int&quot;</span>
+ 94:                      <span class="ruby-keyword kw">end</span>
+ 95: 
+ 96:           <span class="ruby-identifier">def_type</span> = <span class="ruby-node">&quot;unsigned #{def_type}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/unsigned/</span>
+ 97:         <span class="ruby-keyword kw">else</span>
+ 98:           <span class="ruby-identifier">final_type</span> = <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">pop</span>
+ 99:           <span class="ruby-identifier">def_type</span>   = <span class="ruby-identifier">parts</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot; &quot;</span>)
+100:         <span class="ruby-keyword kw">end</span>
+101:         
+102:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> = <span class="ruby-constant">TYPE_MAP</span>[<span class="ruby-identifier">def_type</span>]
+103:           <span class="ruby-identifier">code</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;rbx.platform.typedef.#{final_type} = #{type}\n&quot;</span>
+104:           <span class="ruby-constant">TYPE_MAP</span>[<span class="ruby-identifier">final_type</span>] = <span class="ruby-constant">TYPE_MAP</span>[<span class="ruby-identifier">def_type</span>]
+105:         <span class="ruby-keyword kw">else</span>
+106:           <span class="ruby-comment cmt"># Fallback to an ordinary pointer if we don't know the type</span>
+107:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">def_type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\*/</span>
+108:             <span class="ruby-identifier">code</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;rbx.platform.typedef.#{final_type} = pointer\n&quot;</span>
+109:             <span class="ruby-constant">TYPE_MAP</span>[<span class="ruby-identifier">final_type</span>] = <span class="ruby-identifier">:pointer</span>
+110:           <span class="ruby-keyword kw">end</span>
+111:         <span class="ruby-keyword kw">end</span>
+112:       <span class="ruby-keyword kw">end</span>
+113: 
+114:       <span class="ruby-identifier">code</span>
+115:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

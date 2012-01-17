@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Cache</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Cache 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/memcache_util_rb.html">lib/memcache_util.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A utility wrapper around the <a href="MemCache.html">MemCache</a> client to
+simplify cache access. All methods silently ignore <a
+href="MemCache.html">MemCache</a> errors.
+</p>
+<p>
+This API is deprecated, please use the Rails.cache API or your own wrapper
+API around <a href="MemCache.html">MemCache</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000018">add</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000019">delete</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000016">get</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000015">logger</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000017">put</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000020">reset</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>add</b>(key, value, expiry = 0)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets <tt>value</tt> in the cache at <tt>key</tt>, with an optional
+<tt>expiry</tt> time in seconds. If <tt>key</tt> already exists in cache,
+returns nil.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 69</span>
+69:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span> = <span class="ruby-value">0</span>)
+70:     <span class="ruby-identifier">start_time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+71:     <span class="ruby-identifier">response</span> = <span class="ruby-constant">CACHE</span>.<span class="ruby-identifier">add</span> <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span>
+72:     <span class="ruby-identifier">elapsed</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>
+73:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">'MemCache Add (%0.6f)  %s'</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">elapsed</span>, <span class="ruby-identifier">key</span>])
+74:     (<span class="ruby-identifier">response</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;STORED\r\n&quot;</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">value</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+75:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">MemCache</span><span class="ruby-operator">::</span><span class="ruby-constant">MemCacheError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+76:     <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;MemCache Error: #{err.message}&quot;</span>
+77:     <span class="ruby-keyword kw">nil</span>
+78:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000019">
+                    
+                    <a name="M000019"></a><b>delete</b>(key, delay = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Deletes <tt>key</tt> from the cache in <tt>delay</tt> seconds.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000019_source')" id="l_M000019_source">show</a>
+                        
+                    </p>
+                    <div id="M000019_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 83</span>
+83:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">delay</span> = <span class="ruby-keyword kw">nil</span>)
+84:     <span class="ruby-identifier">start_time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+85:     <span class="ruby-constant">CACHE</span>.<span class="ruby-identifier">delete</span> <span class="ruby-identifier">key</span>, <span class="ruby-identifier">delay</span>
+86:     <span class="ruby-identifier">elapsed</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>
+87:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">'MemCache Delete (%0.6f)  %s'</span> <span class="ruby-operator">%</span>
+88:                                     [<span class="ruby-identifier">elapsed</span>, <span class="ruby-identifier">key</span>])
+89:     <span class="ruby-keyword kw">nil</span>
+90:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">MemCache</span><span class="ruby-operator">::</span><span class="ruby-constant">MemCacheError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+91:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;MemCache Error: #{err.message}&quot;</span>
+92:     <span class="ruby-keyword kw">nil</span>
+93:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000016">
+                    
+                    <a name="M000016"></a><b>get</b>(key, expiry = 0)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the object at <tt>key</tt> from the cache if successful, or nil if
+either the object is not in the cache or if there was an error attermpting
+to access the cache.
+</p>
+<p>
+If there is a cache miss and a block is given the result of the block will
+be stored in the cache with optional <tt>expiry</tt>, using the
+<tt>add</tt> method rather than <tt>set</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000016_source')" id="l_M000016_source">show</a>
+                        
+                    </p>
+                    <div id="M000016_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 31</span>
+31:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">expiry</span> = <span class="ruby-value">0</span>)
+32:     <span class="ruby-identifier">start_time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+33:     <span class="ruby-identifier">value</span> = <span class="ruby-constant">CACHE</span>.<span class="ruby-identifier">get</span> <span class="ruby-identifier">key</span>
+34:     <span class="ruby-identifier">elapsed</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>
+35:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">'MemCache Get (%0.6f)  %s'</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">elapsed</span>, <span class="ruby-identifier">key</span>])
+36:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">value</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">block_given?</span> <span class="ruby-keyword kw">then</span>
+37:       <span class="ruby-identifier">value</span> = <span class="ruby-keyword kw">yield</span>
+38:       <span class="ruby-identifier">add</span> <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span>
+39:     <span class="ruby-keyword kw">end</span>
+40:     <span class="ruby-identifier">value</span>
+41:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">MemCache</span><span class="ruby-operator">::</span><span class="ruby-constant">MemCacheError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+42:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;MemCache Error: #{err.message}&quot;</span>
+43:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span> <span class="ruby-keyword kw">then</span>
+44:       <span class="ruby-identifier">value</span> = <span class="ruby-keyword kw">yield</span>
+45:       <span class="ruby-identifier">put</span> <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span>
+46:     <span class="ruby-keyword kw">end</span>
+47:     <span class="ruby-identifier">value</span>
+48:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000015">
+                    
+                    <a name="M000015"></a><b>logger</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to return a logger object that does not rely on ActiveRecord for
+logging.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000015_source')" id="l_M000015_source">show</a>
+                        
+                    </p>
+                    <div id="M000015_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 13</span>
+13:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">logger</span>
+14:     <span class="ruby-ivar">@logger</span> <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">defined?</span> <span class="ruby-constant">Rails</span>.<span class="ruby-identifier">logger</span> <span class="ruby-comment cmt"># Rails 2.1 +</span>
+15:       <span class="ruby-constant">Rails</span>.<span class="ruby-identifier">logger</span>
+16:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-keyword kw">defined?</span> <span class="ruby-constant">RAILS_DEFAULT_LOGGER</span> <span class="ruby-comment cmt"># Rails 1.2.2 +</span>
+17:       <span class="ruby-constant">RAILS_DEFAULT_LOGGER</span>
+18:     <span class="ruby-keyword kw">else</span>
+19:       <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>.<span class="ruby-identifier">logger</span> <span class="ruby-comment cmt"># ... very old Rails.</span>
+20:     <span class="ruby-keyword kw">end</span>
+21:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000017">
+                    
+                    <a name="M000017"></a><b>put</b>(key, value, expiry = 0)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets <tt>value</tt> in the cache at <tt>key</tt>, with an optional
+<tt>expiry</tt> time in seconds.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000017_source')" id="l_M000017_source">show</a>
+                        
+                    </p>
+                    <div id="M000017_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 54</span>
+54:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">put</span>(<span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span> = <span class="ruby-value">0</span>)
+55:     <span class="ruby-identifier">start_time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+56:     <span class="ruby-constant">CACHE</span>.<span class="ruby-identifier">set</span> <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>, <span class="ruby-identifier">expiry</span>
+57:     <span class="ruby-identifier">elapsed</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>
+58:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">'MemCache Set (%0.6f)  %s'</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">elapsed</span>, <span class="ruby-identifier">key</span>])
+59:     <span class="ruby-identifier">value</span>
+60:   <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">MemCache</span><span class="ruby-operator">::</span><span class="ruby-constant">MemCacheError</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">err</span>
+61:     <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>.<span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;MemCache Error: #{err.message}&quot;</span>
+62:     <span class="ruby-keyword kw">nil</span>
+63:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000020">
+                    
+                    <a name="M000020"></a><b>reset</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Resets all connections to <a href="MemCache.html">MemCache</a> servers.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000020_source')" id="l_M000020_source">show</a>
+                        
+                    </p>
+                    <div id="M000020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/memcache_util.rb, line 98</span>
+ 98:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">reset</span>
+ 99:     <span class="ruby-constant">CACHE</span>.<span class="ruby-identifier">reset</span>
+100:     <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">'MemCache Connections Reset'</span>
+101:     <span class="ruby-keyword kw">nil</span>
+102:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

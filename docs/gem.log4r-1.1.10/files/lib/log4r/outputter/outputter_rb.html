@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>outputter.rb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            outputter.rb
+        </h1>
+        <ul class="files">
+            <li>lib/log4r/outputter/outputter.rb</li>
+            <li>Last modified: Tue Jan 03 02:28:03 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>Outputters</h1>
+<p>
+An Outputter is a logging destination with a particular way to format data.
+It has a level threshold and a flexible level mask.
+</p>
+<p>
+Outputters must have names.
+</p>
+<h2>Level Threshold</h2>
+<p>
+Outputters have their own level thresholds that default to <tt>root</tt>
+level. They will not write any log events with a rank less than their
+threshold.
+</p>
+<h2>Level Mask</h2>
+<p>
+Alternatively, an Outputter can be told to log specific levels only:
+</p>
+<pre>
+  o = StdoutOutputter.new 'console'
+  o.only_at DEBUG, FATAL         # only DEBUG and FATAL get written
+</pre>
+<h2>Outputter Repository</h2>
+<p>
+When outputters are created, they store themselves in an Outputter
+repository similar to the Logger repository.
+</p>
+<pre>
+  StdoutOutputter.new 'console'   =&gt; Create 'console' outputter
+  Outputter['console']            =&gt; Get it back from the stash.
+</pre>
+<h2>Formatter</h2>
+<p>
+An outputter has a format defined by its Formatter. If no Formatter is
+specified, DefaultFormatter will be used.
+</p>
+<h2>Outputter is Abstract</h2>
+<p>
+The basic Outputter class is both abstract and a null object.
+</p>
+<h2>Interesting Outputters</h2>
+<ul>
+<li>log4r/outputter/syslogoutputter.rb - Logs to syslog
+
+</li>
+<li>log4r/outputter/emailoutputter.rb - Email logs
+
+</li>
+<li>log4r/logserver.rb - For remote logging
+
+</li>
+</ul>
+<h2>Subclasses</h2>
+<ul>
+<li><a href="../../../../classes/Log4r/IOOutputter.html">Log4r::IOOutputter</a>
+- for any IO object
+
+</li>
+<li><a
+href="../../../../classes/Log4r/StdoutOutputter.html">Log4r::StdoutOutputter</a>
+- $stdout
+
+</li>
+<li><a
+href="../../../../classes/Log4r/StderrOutputter.html">Log4r::StderrOutputter</a>
+- $stderr
+
+</li>
+<li><a
+href="../../../../classes/Log4r/FileOutputter.html">Log4r::FileOutputter</a>
+- log to a file
+
+</li>
+<li><a
+href="../../../../classes/Log4r/RollingFileOutputter.html">Log4r::RollingFileOutputter</a>
+- log to a file and split it as it grows
+
+</li>
+<li><a
+href="../../../../classes/Log4r/SyslogOutputter.html">Log4r::SyslogOutputter</a>
+- logs to syslog
+
+</li>
+<li><a
+href="../../../../classes/Log4r/EmailOutputter.html">Log4r::EmailOutputter</a>
+- email logs
+
+</li>
+<li><a
+href="../../../../classes/Log4r/RemoteOutputter.html">Log4r::RemoteOutputter</a>
+- for remote logging
+
+</li>
+</ul>
+<h2>Default Outputters</h2>
+<p>
+Two outputters named &#8216;stdout&#8217; and &#8216;stderr&#8217; are
+created automatically at the root level. They are nice shortcuts.
+</p>
+<pre>
+  Outputter['stdout'] =&gt; 'stdout'
+  Outputter['stderr'] =&gt; 'stderr'
+  Outputter.stdout    =&gt; 'stdout'
+  Outputter.stderr    =&gt; 'stderr'
+</pre>
+<h2>Configuring</h2>
+<p>
+Outputters must have names and receive hash arguments. The parameter name
+for the hash args can be either a symbol or a string. All defined
+outputters accept <tt>:level</tt> and <tt>:formatter</tt> arguments. For
+arguments specific to a convenience Outputter, please look at the class
+description.
+</p>
+<p>
+The level threshold, the levels to log at (only_at) and formatter can be
+changed dynamically using the <tt>=</tt> methods.
+</p>
+<p>
+As a collective example of all this, here are various ways to set up an
+IOOutputter:
+</p>
+<pre>
+  IOOutputter.new ExoticIO.new 'exotic', 'level' =&gt; WARN,
+                  :formatter =&gt; MyFormatter.new
+  # an equivalent way:
+  o = IOOutputter.new ExoticIO.new 'exotic'
+  o.level = WARN
+  o.formatter = MyFormatter         # we can specify just the class
+  o.only_at = THIS, THAT
+</pre>
+<h2>XML Configuration</h2>
+<p>
+Specify outputters as children of <tt>&lt;log4r_config&gt;</tt>:
+</p>
+<pre>
+  &lt;log4r_config&gt;
+    &lt;outputter name=&quot;myout&quot; type=&quot;Log4r::StdoutOutputter&quot;&gt;
+      &lt;only_at&gt;DEBUG, INFO&lt;/only_at&gt;
+    &lt;/outputter&gt;
+    &lt;outputter name=&quot;file&quot; level=&quot;WARN&quot;&gt;
+      &lt;type&gt;FileOutputter&lt;/type&gt;
+      &lt;filename&gt;#{logpath}/file.log&lt;/filename&gt;
+      &lt;trunc&gt;false&lt;/trunc&gt;
+    &lt;/outputter&gt;
+    ...
+</pre>
+<p>
+As explained in log4r/configurator.rb, the hash arguments you would
+normally pass to <tt>new</tt> are specified as <em>XML parameters</em>. It
+is given an IO object to write to, a Formatter to call, and, optionally,
+levels to write at.
+</p>
+<p>
+Outputters invoke print then flush on the wrapped IO object. If the IO
+chokes, the Outputter will close the IO and set its level to <tt>OFF</tt>.
+</p>
+<h2>Other Info</h2>
+<table>
+<tr><td valign="top">Version:</td><td>$Id$
+
+</td></tr>
+<tr><td valign="top">Author:</td><td>Leon Torres <leon@ugcs.caltech.edu>
+
+</td></tr>
+</table>
+
+    </div>
+    
+
+    
+    <div class="sectiontitle">Required Files</div>
+    <ul>
+        
+        <li>thread</li>
+        
+        <li>log4r/outputter/outputterfactory</li>
+        
+        <li>log4r/formatter/formatter</li>
+        
+        <li>log4r/staticlogger</li>
+        
+        <li>monitor</li>
+        
+    </ul>
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="../../../../classes/Log4r.html">Log4r</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

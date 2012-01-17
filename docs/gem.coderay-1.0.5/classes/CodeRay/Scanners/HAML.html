@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>CodeRay::Scanners::HAML</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            CodeRay::Scanners::HAML 
+            
+                <span class="parent">&lt; 
+                    
+                    Scanner
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/coderay/scanners/haml_rb.html">lib/coderay/scanners/haml.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000185">scan_tokens</a>,</li>
+                
+                <li><a href="#M000184">setup</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">KINDS_NOT_LOC</td>
+            <td>=</td>
+            <td class="attr-value">HTML::KINDS_NOT_LOC</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000185">
+                    
+                    <a name="M000185"></a><b>scan_tokens</b>(encoder, options)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000185_source')" id="l_M000185_source">show</a>
+                        
+                    </p>
+                    <div id="M000185_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/coderay/scanners/haml.rb, line 24</span>
+ 24:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scan_tokens</span> <span class="ruby-identifier">encoder</span>, <span class="ruby-identifier">options</span>
+ 25:       
+ 26:       <span class="ruby-identifier">match</span> = <span class="ruby-keyword kw">nil</span>
+ 27:       <span class="ruby-identifier">code</span> = <span class="ruby-value str">''</span>
+ 28:       
+ 29:       <span class="ruby-keyword kw">until</span> <span class="ruby-identifier">eos?</span>
+ 30:         
+ 31:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">bol?</span>
+ 32:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/!!!.*/</span>)
+ 33:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:doctype</span>
+ 34:             <span class="ruby-keyword kw">next</span>
+ 35:           <span class="ruby-keyword kw">end</span>
+ 36:           
+ 37:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(?&gt;( *)(\/(?!\[if)|-\#|:javascript|:ruby|:\w+) *)(?=\n)/</span>)
+ 38:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:comment</span>
+ 39:             
+ 40:             <span class="ruby-identifier">code</span> = <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>]
+ 41:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-node">/(?:\n+#{self[1]} .*)+/</span>)
+ 42:               <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">code</span>
+ 43:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'/'</span>, <span class="ruby-value str">'-#'</span>
+ 44:                 <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:comment</span>
+ 45:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">':javascript'</span>
+ 46:                 <span class="ruby-comment cmt"># TODO: recognize #{...} snippets inside JavaScript</span>
+ 47:                 <span class="ruby-ivar">@java_script_scanner</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">CodeRay</span>.<span class="ruby-identifier">scanner</span> <span class="ruby-identifier">:java_script</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@tokens</span>, <span class="ruby-identifier">:keep_tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>
+ 48:                 <span class="ruby-ivar">@java_script_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+ 49:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">':ruby'</span>
+ 50:                 <span class="ruby-ivar">@ruby_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+ 51:               <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/:\w+/</span>
+ 52:                 <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:comment</span>
+ 53:               <span class="ruby-keyword kw">else</span>
+ 54:                 <span class="ruby-identifier">raise</span> <span class="ruby-value str">'else-case reached: %p'</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">code</span>]
+ 55:               <span class="ruby-keyword kw">end</span>
+ 56:             <span class="ruby-keyword kw">end</span>
+ 57:           <span class="ruby-keyword kw">end</span>
+ 58:           
+ 59:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/ +/</span>)
+ 60:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:space</span>
+ 61:           <span class="ruby-keyword kw">end</span>
+ 62:           
+ 63:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/\/.*/</span>)
+ 64:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:comment</span>
+ 65:             <span class="ruby-keyword kw">next</span>
+ 66:           <span class="ruby-keyword kw">end</span>
+ 67:           
+ 68:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/\\/</span>)
+ 69:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:plain</span>
+ 70:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/.+/</span>)
+ 71:               <span class="ruby-ivar">@html_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+ 72:             <span class="ruby-keyword kw">end</span>
+ 73:             <span class="ruby-keyword kw">next</span>
+ 74:           <span class="ruby-keyword kw">end</span>
+ 75:           
+ 76:           <span class="ruby-identifier">tag</span> = <span class="ruby-keyword kw">false</span>
+ 77:           
+ 78:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/%[\w:]+\/?/</span>)
+ 79:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tag</span>
+ 80:             <span class="ruby-comment cmt"># if match = scan(/( +)(.+)/)</span>
+ 81:             <span class="ruby-comment cmt">#   encoder.text_token self[1], :space</span>
+ 82:             <span class="ruby-comment cmt">#   @embedded_ruby_scanner.tokenize self[2], :tokens =&gt; encoder</span>
+ 83:             <span class="ruby-comment cmt"># end</span>
+ 84:             <span class="ruby-identifier">tag</span> = <span class="ruby-keyword kw">true</span>
+ 85:           <span class="ruby-keyword kw">end</span>
+ 86:           
+ 87:           <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/([.#])[-\w]*\w/</span>)
+ 88:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">==</span> <span class="ruby-value str">'#'</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">:constant</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">:class</span>
+ 89:             <span class="ruby-identifier">tag</span> = <span class="ruby-keyword kw">true</span>
+ 90:           <span class="ruby-keyword kw">end</span>
+ 91:           
+ 92:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tag</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(\()([^)]+)?(\))?/</span>)
+ 93:             <span class="ruby-comment cmt"># TODO: recognize title=@title, class=&quot;widget_#{@widget.number}&quot;</span>
+ 94:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">:plain</span>
+ 95:             <span class="ruby-ivar">@html_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>], <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>, <span class="ruby-identifier">:state</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:attribute</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>]
+ 96:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">3</span>], <span class="ruby-identifier">:plain</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">3</span>]
+ 97:           <span class="ruby-keyword kw">end</span>
+ 98:           
+ 99:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tag</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/\{/</span>)
+100:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:plain</span>
+101:             
+102:             <span class="ruby-identifier">code</span> = <span class="ruby-value str">''</span>
+103:             <span class="ruby-identifier">level</span> = <span class="ruby-value">1</span>
+104:             <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+105:               <span class="ruby-identifier">code</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/([^\{\},\n]|, *\n?)*/</span>)
+106:               <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">getch</span>
+107:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'{'</span>
+108:                 <span class="ruby-identifier">level</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+109:                 <span class="ruby-identifier">code</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">match</span>
+110:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'}'</span>
+111:                 <span class="ruby-identifier">level</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+112:                 <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">level</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span>
+113:                   <span class="ruby-identifier">code</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">match</span>
+114:                 <span class="ruby-keyword kw">else</span>
+115:                   <span class="ruby-keyword kw">break</span>
+116:                 <span class="ruby-keyword kw">end</span>
+117:               <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;\n&quot;</span>, <span class="ruby-value str">&quot;,&quot;</span>, <span class="ruby-keyword kw">nil</span>
+118:                 <span class="ruby-keyword kw">break</span>
+119:               <span class="ruby-keyword kw">end</span>
+120:             <span class="ruby-keyword kw">end</span>
+121:             <span class="ruby-ivar">@ruby_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-identifier">code</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">code</span>.<span class="ruby-identifier">empty?</span>
+122:             
+123:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:plain</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+124:           <span class="ruby-keyword kw">end</span>
+125:           
+126:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tag</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(\[)([^\]\n]+)?(\])?/</span>)
+127:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">:plain</span>
+128:             <span class="ruby-ivar">@ruby_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>], <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>]
+129:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">3</span>], <span class="ruby-identifier">:plain</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">3</span>]
+130:           <span class="ruby-keyword kw">end</span>
+131:           
+132:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tag</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/\//</span>)
+133:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tag</span>
+134:           <span class="ruby-keyword kw">end</span>
+135:           
+136:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/(&gt;?&lt;?[-=]|[&amp;!]=|(&amp; |!)|~)( *)([^,\n\|]+(?:(, *|\|(?=.|\n.*\|$))\n?[^,\n\|]*)*)?/</span>)
+137:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">+</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">3</span>], <span class="ruby-identifier">:plain</span>
+138:             <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">4</span>]
+139:               <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>]
+140:                 <span class="ruby-ivar">@embedded_ruby_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">4</span>], <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+141:               <span class="ruby-keyword kw">else</span>
+142:                 <span class="ruby-ivar">@ruby_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">4</span>], <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+143:               <span class="ruby-keyword kw">end</span>
+144:             <span class="ruby-keyword kw">end</span>
+145:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/((?:&lt;|&gt;&lt;?)(?![!?\/\w]))?(.+)?/</span>)
+146:             <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">:plain</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">1</span>]
+147:             <span class="ruby-comment cmt"># TODO: recognize #{...} snippets</span>
+148:             <span class="ruby-ivar">@html_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>], <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>[<span class="ruby-value">2</span>]
+149:           <span class="ruby-keyword kw">end</span>
+150:           
+151:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/.+/</span>)
+152:           <span class="ruby-ivar">@html_scanner</span>.<span class="ruby-identifier">tokenize</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">encoder</span>
+153:           
+154:         <span class="ruby-keyword kw">end</span>
+155:         
+156:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span> = <span class="ruby-identifier">scan</span>(<span class="ruby-regexp re">/\n/</span>)
+157:           <span class="ruby-identifier">encoder</span>.<span class="ruby-identifier">text_token</span> <span class="ruby-identifier">match</span>, <span class="ruby-identifier">:space</span>
+158:         <span class="ruby-keyword kw">end</span>
+159:       <span class="ruby-keyword kw">end</span>
+160:       
+161:       <span class="ruby-identifier">encoder</span>
+162:       
+163:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000184">
+                    
+                    <a name="M000184"></a><b>setup</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000184_source')" id="l_M000184_source">show</a>
+                        
+                    </p>
+                    <div id="M000184_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/coderay/scanners/haml.rb, line 17</span>
+17:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">setup</span>
+18:       <span class="ruby-keyword kw">super</span>
+19:       <span class="ruby-ivar">@ruby_scanner</span>          = <span class="ruby-constant">CodeRay</span>.<span class="ruby-identifier">scanner</span> <span class="ruby-identifier">:ruby</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@tokens</span>, <span class="ruby-identifier">:keep_tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>
+20:       <span class="ruby-ivar">@embedded_ruby_scanner</span> = <span class="ruby-constant">CodeRay</span>.<span class="ruby-identifier">scanner</span> <span class="ruby-identifier">:ruby</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@tokens</span>, <span class="ruby-identifier">:keep_tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>, <span class="ruby-identifier">:state</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@ruby_scanner</span>.<span class="ruby-identifier">interpreted_string_state</span>
+21:       <span class="ruby-ivar">@html_scanner</span>          = <span class="ruby-constant">CodeRay</span>.<span class="ruby-identifier">scanner</span> <span class="ruby-identifier">:html</span>, <span class="ruby-identifier">:tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@tokens</span>, <span class="ruby-identifier">:keep_tokens</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>
+22:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

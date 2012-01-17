@@ -1,0 +1,767 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RSpec::Core::FilterManager</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RSpec::Core::FilterManager 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/rspec/core/filter_manager_rb.html">lib/rspec/core/filter_manager.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Manages the filtering of examples and groups by matching tags declared on
+the command line or options files, or filters declared via `<a
+href="../../RSpec.html#M000489">RSpec.configure</a>`, with hash key/values
+submitted within example group and/or example declarations. For example,
+given this declaration:
+</p>
+<pre>
+    describe Thing, :awesome =&gt; true do
+      it &quot;does something&quot; do
+        # ...
+      end
+    end
+</pre>
+<p>
+That group (or any other with `:awesome => true`) would be filtered in with
+any of the following commands:
+</p>
+<pre>
+    rspec --tag awesome:true
+    rspec --tag awesome
+    rspec -t awesome:true
+    rspec -t awesome
+</pre>
+<p>
+Prefixing the tag names with `~` negates the tags, thus excluding this
+group with any of:
+</p>
+<pre>
+    rspec --tag ~awesome:true
+    rspec --tag ~awesome
+    rspec -t ~awesome:true
+    rspec -t ~awesome
+</pre>
+<p>
+## Options files and command line overrides
+</p>
+<p>
+Tag declarations can be stored in `.rspec`, `~/.rspec`, or a custom options
+file. This is useful for storing defaults. For example, let&#8217;s say
+you&#8217;ve got some slow specs that you want to suppress most of the
+time. You can tag them like this:
+</p>
+<pre>
+    describe Something, :slow =&gt; true do
+</pre>
+<p>
+And then store this in `.rspec`:
+</p>
+<pre>
+    --tag ~slow:true
+</pre>
+<p>
+Now when you run `rspec`, that group will be excluded.
+</p>
+<p>
+## Overriding
+</p>
+<p>
+Of course, you probably want to run them sometimes, so you can override
+this tag on the command line like this:
+</p>
+<pre>
+    rspec --tag slow:true
+</pre>
+<p>
+## <a href="../../RSpec.html#M000489">RSpec.configure</a>
+</p>
+<p>
+You can also store default tags with `<a
+href="../../RSpec.html#M000489">RSpec.configure</a>`. We use `tag` on the
+command line (and in options files like `.rspec`), but for historical
+reasons we use the term `filter` in `<a
+href="../../RSpec.html#M000489">RSpec.configure</a>:
+</p>
+<pre>
+    RSpec.configure do |c|
+      c.filter_run_including :foo =&gt; :bar
+      c.filter_run_excluding :foo =&gt; :bar
+    end
+</pre>
+<p>
+These declarations can also be overridden from the command line.
+</p>
+<p>
+@see <a href="../../RSpec.html#M000489">RSpec.configure</a> @see <a
+href="Configuration.html#M000076">Configuration#filter_run_including</a>
+@see <a
+href="Configuration.html#M000084">Configuration#filter_run_excluding</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000204">add_location</a>,</li>
+                
+                <li><a href="#M000240">already_set_standalone_filter?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000212">empty?</a>,</li>
+                
+                <li><a href="#M000218">exclude</a>,</li>
+                
+                <li><a href="#M000219">exclude!</a>,</li>
+                
+                <li><a href="#M000222">exclude?</a>,</li>
+                
+                <li><a href="#M000220">exclude_with_low_priority</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000223">include</a>,</li>
+                
+                <li><a href="#M000224">include!</a>,</li>
+                
+                <li><a href="#M000229">include?</a>,</li>
+                
+                <li><a href="#M000225">include_with_low_priority</a>,</li>
+                
+                <li><a href="#M000241">is_standalone_filter?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000231">merge</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000203">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000213">prune</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000235">replace</a>,</li>
+                
+                <li><a href="#M000236">reverse_merge</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000230">unless_standalone</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="FilterManager/BackwardCompatibility.html">RSpec::Core::FilterManager::BackwardCompatibility</a></li>
+        
+        <li><span class="type">MODULE</span> <a href="FilterManager/Describable.html">RSpec::Core::FilterManager::Describable</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_EXCLUSIONS</td>
+            <td>=</td>
+            <td class="attr-value">{         :if     =&gt; lambda { |value, metadata| metadata.has_key?(:if) &amp;&amp; !value },         :unless =&gt; lambda { |value| value }</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">STANDALONE_FILTERS</td>
+            <td>=</td>
+            <td class="attr-value">[:locations, :line_numbers, :full_description]</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>exclusions</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>inclusions</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000203">
+                    
+                    <a name="M000203"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000203_source')" id="l_M000203_source">show</a>
+                        
+                    </p>
+                    <div id="M000203_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 117</span>
+117:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+118:         <span class="ruby-ivar">@exclusions</span> = <span class="ruby-constant">DEFAULT_EXCLUSIONS</span>.<span class="ruby-identifier">dup</span>.<span class="ruby-identifier">extend</span>(<span class="ruby-constant">Describable</span>)
+119:         <span class="ruby-ivar">@inclusions</span> = {}.<span class="ruby-identifier">extend</span>(<span class="ruby-constant">Describable</span>)
+120:         <span class="ruby-identifier">extend</span>(<span class="ruby-constant">BackwardCompatibility</span>)
+121:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000204">
+                    
+                    <a name="M000204"></a><b>add_location</b>(file_path, line_numbers)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000204_source')" id="l_M000204_source">show</a>
+                        
+                    </p>
+                    <div id="M000204_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 123</span>
+123:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_location</span>(<span class="ruby-identifier">file_path</span>, <span class="ruby-identifier">line_numbers</span>)
+124:         <span class="ruby-comment cmt"># locations is a hash of expanded paths to arrays of line</span>
+125:         <span class="ruby-comment cmt"># numbers to match against. e.g.</span>
+126:         <span class="ruby-comment cmt">#   { &quot;path/to/file.rb&quot; =&gt; [37, 42] }</span>
+127:         <span class="ruby-identifier">locations</span> = <span class="ruby-ivar">@inclusions</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:locations</span>) <span class="ruby-operator">||</span> <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">h</span>,<span class="ruby-identifier">k</span><span class="ruby-operator">|</span> <span class="ruby-identifier">h</span>[<span class="ruby-identifier">k</span>] = []}
+128:         <span class="ruby-identifier">locations</span>[<span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">file_path</span>)].<span class="ruby-identifier">push</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">line_numbers</span>)
+129:         <span class="ruby-ivar">@inclusions</span>.<span class="ruby-identifier">replace</span>(<span class="ruby-identifier">:locations</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">locations</span>)
+130:         <span class="ruby-ivar">@exclusions</span>.<span class="ruby-identifier">clear</span>
+131:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000212">
+                    
+                    <a name="M000212"></a><b>empty?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000212_source')" id="l_M000212_source">show</a>
+                        
+                    </p>
+                    <div id="M000212_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 133</span>
+133:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">empty?</span>
+134:         <span class="ruby-identifier">inclusions</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">exclusions</span>.<span class="ruby-identifier">empty_without_conditional_filters?</span>
+135:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000218">
+                    
+                    <a name="M000218"></a><b>exclude</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000218_source')" id="l_M000218_source">show</a>
+                        
+                    </p>
+                    <div id="M000218_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 141</span>
+141:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exclude</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+142:         <span class="ruby-identifier">merge</span>(<span class="ruby-ivar">@exclusions</span>, <span class="ruby-ivar">@inclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+143:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000219">
+                    
+                    <a name="M000219"></a><b>exclude!</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000219_source')" id="l_M000219_source">show</a>
+                        
+                    </p>
+                    <div id="M000219_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 145</span>
+145:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exclude!</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+146:         <span class="ruby-identifier">replace</span>(<span class="ruby-ivar">@exclusions</span>, <span class="ruby-ivar">@inclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+147:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000222">
+                    
+                    <a name="M000222"></a><b>exclude?</b>(example)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000222_source')" id="l_M000222_source">show</a>
+                        
+                    </p>
+                    <div id="M000222_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 153</span>
+153:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exclude?</span>(<span class="ruby-identifier">example</span>)
+154:         <span class="ruby-ivar">@exclusions</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">false</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">example</span>.<span class="ruby-identifier">any_apply?</span>(<span class="ruby-ivar">@exclusions</span>)
+155:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000220">
+                    
+                    <a name="M000220"></a><b>exclude_with_low_priority</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000220_source')" id="l_M000220_source">show</a>
+                        
+                    </p>
+                    <div id="M000220_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 149</span>
+149:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">exclude_with_low_priority</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+150:         <span class="ruby-identifier">reverse_merge</span>(<span class="ruby-ivar">@exclusions</span>, <span class="ruby-ivar">@inclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+151:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000223">
+                    
+                    <a name="M000223"></a><b>include</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000223_source')" id="l_M000223_source">show</a>
+                        
+                    </p>
+                    <div id="M000223_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 157</span>
+157:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+158:         <span class="ruby-identifier">unless_standalone</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) { <span class="ruby-identifier">merge</span>(<span class="ruby-ivar">@inclusions</span>, <span class="ruby-ivar">@exclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) }
+159:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000224">
+                    
+                    <a name="M000224"></a><b>include!</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000224_source')" id="l_M000224_source">show</a>
+                        
+                    </p>
+                    <div id="M000224_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 161</span>
+161:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include!</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+162:         <span class="ruby-identifier">unless_standalone</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) { <span class="ruby-identifier">replace</span>(<span class="ruby-ivar">@inclusions</span>, <span class="ruby-ivar">@exclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) }
+163:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000229">
+                    
+                    <a name="M000229"></a><b>include?</b>(example)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000229_source')" id="l_M000229_source">show</a>
+                        
+                    </p>
+                    <div id="M000229_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 169</span>
+169:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include?</span>(<span class="ruby-identifier">example</span>)
+170:         <span class="ruby-ivar">@inclusions</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">true</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">example</span>.<span class="ruby-identifier">any_apply?</span>(<span class="ruby-ivar">@inclusions</span>)
+171:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000225">
+                    
+                    <a name="M000225"></a><b>include_with_low_priority</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000225_source')" id="l_M000225_source">show</a>
+                        
+                    </p>
+                    <div id="M000225_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 165</span>
+165:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">include_with_low_priority</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+166:         <span class="ruby-identifier">unless_standalone</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) { <span class="ruby-identifier">reverse_merge</span>(<span class="ruby-ivar">@inclusions</span>, <span class="ruby-ivar">@exclusions</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) }
+167:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000213">
+                    
+                    <a name="M000213"></a><b>prune</b>(examples)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000213_source')" id="l_M000213_source">show</a>
+                        
+                    </p>
+                    <div id="M000213_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 137</span>
+137:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">prune</span>(<span class="ruby-identifier">examples</span>)
+138:         <span class="ruby-identifier">examples</span>.<span class="ruby-identifier">select</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span> <span class="ruby-operator">!</span><span class="ruby-identifier">exclude?</span>(<span class="ruby-identifier">e</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">include?</span>(<span class="ruby-identifier">e</span>)}
+139:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000240">
+                    
+                    <a name="M000240"></a><b>already_set_standalone_filter?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000240_source')" id="l_M000240_source">show</a>
+                        
+                    </p>
+                    <div id="M000240_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 194</span>
+194:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">already_set_standalone_filter?</span>
+195:         <span class="ruby-identifier">is_standalone_filter?</span>(<span class="ruby-identifier">inclusions</span>)
+196:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000241">
+                    
+                    <a name="M000241"></a><b>is_standalone_filter?</b>(filter)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000241_source')" id="l_M000241_source">show</a>
+                        
+                    </p>
+                    <div id="M000241_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 198</span>
+198:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">is_standalone_filter?</span>(<span class="ruby-identifier">filter</span>)
+199:         <span class="ruby-constant">STANDALONE_FILTERS</span>.<span class="ruby-identifier">any?</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">key</span><span class="ruby-operator">|</span> <span class="ruby-identifier">filter</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">key</span>)}
+200:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000231">
+                    
+                    <a name="M000231"></a><b>merge</b>(orig, opposite, *updates)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000231_source')" id="l_M000231_source">show</a>
+                        
+                    </p>
+                    <div id="M000231_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 179</span>
+179:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">merge</span>(<span class="ruby-identifier">orig</span>, <span class="ruby-identifier">opposite</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">updates</span>)
+180:         <span class="ruby-identifier">orig</span>.<span class="ruby-identifier">merge!</span>(<span class="ruby-identifier">updates</span>.<span class="ruby-identifier">last</span>).<span class="ruby-identifier">each_key</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span> <span class="ruby-identifier">opposite</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">k</span>)}
+181:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000235">
+                    
+                    <a name="M000235"></a><b>replace</b>(orig, opposite, *updates)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000235_source')" id="l_M000235_source">show</a>
+                        
+                    </p>
+                    <div id="M000235_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 183</span>
+183:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">replace</span>(<span class="ruby-identifier">orig</span>, <span class="ruby-identifier">opposite</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">updates</span>)
+184:         <span class="ruby-identifier">updates</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">each_key</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span> <span class="ruby-identifier">opposite</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">k</span>)}
+185:         <span class="ruby-identifier">orig</span>.<span class="ruby-identifier">replace</span>(<span class="ruby-identifier">updates</span>.<span class="ruby-identifier">last</span>)
+186:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000236">
+                    
+                    <a name="M000236"></a><b>reverse_merge</b>(orig, opposite, *updates)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000236_source')" id="l_M000236_source">show</a>
+                        
+                    </p>
+                    <div id="M000236_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 188</span>
+188:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reverse_merge</span>(<span class="ruby-identifier">orig</span>, <span class="ruby-identifier">opposite</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">updates</span>)
+189:         <span class="ruby-identifier">updated</span> = <span class="ruby-identifier">updates</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">orig</span>)
+190:         <span class="ruby-identifier">opposite</span>.<span class="ruby-identifier">each_pair</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">updated</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">k</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">updated</span>[<span class="ruby-identifier">k</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">v</span>}
+191:         <span class="ruby-identifier">orig</span>.<span class="ruby-identifier">replace</span>(<span class="ruby-identifier">updated</span>)
+192:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000230">
+                    
+                    <a name="M000230"></a><b>unless_standalone</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000230_source')" id="l_M000230_source">show</a>
+                        
+                    </p>
+                    <div id="M000230_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rspec/core/filter_manager.rb, line 175</span>
+175:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unless_standalone</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+176:         <span class="ruby-identifier">is_standalone_filter?</span>(<span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>) <span class="ruby-operator">?</span> <span class="ruby-ivar">@inclusions</span>.<span class="ruby-identifier">replace</span>(<span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>) <span class="ruby-operator">:</span> <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">already_set_standalone_filter?</span>
+177:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

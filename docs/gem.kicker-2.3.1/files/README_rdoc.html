@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Fri Dec 23 22:16:55 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>Kicker</h1>
+<p>
+A lean, agnostic, flexible file-change watcher, using OS X FSEvents.
+</p>
+<p>
+<a
+href="https://github.com/alloy/kicker/raw/master/html/images/kikker.jpg">github.com/alloy/kicker/raw/master/html/images/kikker.jpg</a>
+</p>
+<p>
+Meet king kikker, kicking stuff in your computers is his dream come true!
+</p>
+<p>
+<em>Drawing by Manfred Stienstra. The character is purely fictional, so if
+you feel offended; live with it.</em>
+</p>
+<h2>Installation</h2>
+<pre>
+  $ gem install kicker -s http://gemcutter.org
+</pre>
+<h2>The short version</h2>
+<pre>
+  Usage: ./bin/kicker [options] [paths to watch]
+
+    Available recipes: active_record, ignore, jstest, rails, ruby.
+
+      -s, --silent                     Keep output to a minimum.
+          --[no-]growl                 Whether or not to use Growl. Default is to use growl.
+          --growl-command [COMMAND]    The command to execute when the Growl succeeded message is clicked.
+      -l, --latency [FLOAT]            The time to collect file change events before acting on them. Defaults to 1 second.
+      -r, --recipe [NAME]              A named recipe to load.
+      -e, --execute [COMMAND]          The command to execute.
+      -b, --ruby [PATH]                Use an alternate Ruby binary for spawned test runners. (Default is `ruby')
+</pre>
+<h2>The long version</h2>
+<h3>Execute a shell command</h3>
+<p>
+Show all files, whenever a change occurs in the current work directory:
+</p>
+<pre>
+  $ kicker -e &quot;ls -l&quot; .
+</pre>
+<p>
+Show all files, whenever a change occurs to a specific file:
+</p>
+<pre>
+  $ kicker -e &quot;ls -l&quot; foo.txt
+</pre>
+<p>
+Or use it as a ghetto-autotest, running tests whenever files change:
+</p>
+<pre>
+  $ kicker -e &quot;ruby test/test_case.rb&quot; test/test_case.rb lib/file.rb
+</pre>
+<p>
+Et cetera.
+</p>
+<h3>Using recipes</h3>
+<p>
+A recipe is a predefined handler. You can use as many as you like, by
+specifying them with the <tt>--recipe</tt> (<tt>-r</tt>) option.
+</p>
+<p>
+For instance, when in the root of a typical <a
+href="../classes/Ruby.html">Ruby</a> on <a
+href="../classes/Rails.html">Rails</a> application, using the
+<tt>rails</tt> recipe will map models, concerns, controllers, helpers, and
+views to their respective test files. These will then all be ran with <a
+href="../classes/Ruby.html">Ruby</a>.
+</p>
+<p>
+A few recipes come shipped with Kicker:
+</p>
+<ul>
+<li>Typical <a href="../classes/Ruby.html">Ruby</a> library.
+
+</li>
+<li><a href="../classes/Ruby.html">Ruby</a> on <a
+href="../classes/Rails.html">Rails</a>, as aforementioned.
+
+</li>
+<li>JavaScript tests, to run it needs <a
+href="http://github.com/Fingertips/Headless-squirrel">HeadlessSquirrel</a>.
+
+</li>
+<li><a href="../classes/Ignore.html">Ignore</a>, ignores logs, tmp, and svn and
+git files.
+
+</li>
+</ul>
+<p>
+Add your own shared recipes to <tt>~/.kick</tt>.
+</p>
+<h3>Project specific handlers</h3>
+<p>
+Most of the time, you’ll want to create handlers specific to the project
+at hand. This can be done by adding your handlers to a <tt>.kick</tt> file
+and running Kicker from the directory containing it.
+</p>
+<p>
+This file is reloaded once saved. No need to stop Kicker.
+</p>
+<h2>Writing handlers</h2>
+<p>
+Whenever file-change events occur, Kicker will go through a chain of
+handlers until that the files list is empty, or the end of the chain is
+reached.
+</p>
+<p>
+Handlers are objects that respond to <tt>call</tt>. These are typically
+Proc objects. (If you know Rack, you’re familiar with this concept.)
+Every handler gets passed a list of changed files and can decide whether or
+not to act on them. Normally when handling a file, you should remove it
+from the files list, unless you want to let the file fall through to
+another handler. In the same way, one can add files to handler to the files
+list.
+</p>
+<h4>Time for a simple example</h4>
+<pre>
+  process do |files|
+    execute(&quot;rake docs:generate &amp;&amp; open -a Safari html/index.html&quot;) if files.delete(&quot;README.rdoc&quot;)
+  end
+</pre>
+<p>
+A handler is defined by passing a block to <tt>process</tt>. Which is one
+of three possible callback chains to add your handlers to, the others
+being: <tt>pre_process</tt> and <tt>post_process</tt>. See <a
+href="../classes/Kernel.html">Kernel</a> for more info.
+</p>
+<p>
+Then <tt><a href="README_rdoc.html">README.rdoc</a></tt> is deleted from
+the files array. If it did exist in the array and was deleted, a shell
+command is executed which runs a rake task to generate rdoc and open the
+docs with Safari.
+</p>
+<h4>Something more elaborate.</h4>
+<p>
+Consider a <a href="../classes/Rails.html">Rails</a> application with a
+mailer. Since the naming convention of mailer views tend to be fairly
+application specific, a specific handler has to be added:
+</p>
+<pre>
+  process do |files|
+    test_files = files.take_and_map do |file|
+      if path =~ %r{^app/views/mailer/\w+\.erb$}
+        'test/unit/mailer_test.rb'
+
+      # elsif ... handle more app specific stuff
+      end
+    end
+
+    Ruby.run_tests test_files
+  end
+</pre>
+<p>
+The files list is iterated over with the Array#take_and_map method, which
+both removes and maps the results. This is an easy way to do a common thing
+in recipes. See <a
+href="../classes/Kicker/ArrayExt.html">Kicker::ArrayExt</a> for details.
+</p>
+<p>
+The handler then checks if the file is a mailer view and if so runs the
+mailers test case. <a
+href="../classes/Ruby.html#M000049">Ruby.run_tests</a> runs them with
+something like the following command:
+</p>
+<pre>
+  execute &quot;ruby -r #{test_files.join(' -r ')} -e ''&quot; unless test_files.empty?
+</pre>
+<p>
+See <a href="../classes/Kernel.html">Kernel</a> for more info on the
+utility methods.
+</p>
+<p>
+To load recipes from your <tt>~/.kick</tt> file:
+</p>
+<pre>
+  recipe :ignore
+  ignore(/^data\//)
+</pre>
+<p>
+That’s basically it, just remember that the order of specifying handlers
+<em>can</em> be important in your decision on where to specify handlers.
+</p>
+<h2>Contributors</h2>
+<ul>
+<li>Manfred Stienstra (@manfred)
+
+</li>
+<li>Cristi Balan (@evilchelu)
+
+</li>
+<li>Damir Zekic (@sidonath)
+
+</li>
+<li>Adam Keys (@therealadam)
+
+</li>
+</ul>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

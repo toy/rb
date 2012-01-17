@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Thu Oct 27 22:34:00 +0200 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="../classes/Ya2YAML.html">Ya2YAML</a> - An UTF8 safe YAML dumper</h1>
+<p>
+Project Contact: Akira FUNAI <<a
+href="mailto:funai.akira@gmail.com">funai.akira@gmail.com</a>>
+</p>
+<p>
+<a href="../classes/Ya2YAML.html">Ya2YAML</a> is &#8220;yet another
+to_yaml&#8220;. It emits YAML document with complete UTF8 support
+(string/binary detection, &#8220;u&#8220; escape sequences and Unicode
+specific line breaks). I hope someone might find it useful until
+Syck/RbYAML come out with UTF8/16 support.
+</p>
+<h2>Usage</h2>
+<p>
+<b>code</b>:
+</p>
+<pre>
+  # encoding: UTF-8
+  $KCODE = 'UTF8' unless RUBY_VERSION &gt;= '1.9'
+  require 'ya2yaml'
+
+  obj = [
+    &quot;abc\nxyz\n&quot;,
+    &quot;日本語\n文字列\n&quot;,
+    &quot;\xfd\xfe\xff&quot;,
+  ]
+  puts obj.ya2yaml(:syck_compatible =&gt; true)
+</pre>
+<p>
+<b>output</b>:
+</p>
+<pre>
+  ---
+  - |
+      abc
+      xyz
+  - |
+      日本語
+      文字列
+  - !binary |
+      /f7/
+</pre>
+<h2>Method and Objects</h2>
+<p>
+When you require &#8216;ya2yaml&#8217;, public method &#8216;<a
+href="../classes/Object.html#M000015">Object#ya2yaml</a>&#8217; is defined.
+Currently these Objects are supported.
+</p>
+<p>
+as YAML generic types:
+</p>
+<pre>
+  - Array
+  - Hash
+  - NilClass
+  - String
+  - TrueClass
+  - FalseClass
+  - Fixnum
+  - Bignum
+  - Float
+  - Date
+  - Time
+</pre>
+<p>
+as Ruby specific types:
+</p>
+<pre>
+  - Symbol
+  - Range
+  - Regexp
+  - Struct
+  - everything else as a generic Object (serializes instance variables)
+</pre>
+<p>
+A String which contains any non-UTF8 character will be regarded as
+&#8220;binary&#8221; and encoded in BASE64.
+</p>
+<h2>Options</h2>
+<pre>
+  # set them individually
+  obj.ya2yaml(
+    :indent_size          =&gt; 4,
+    :hash_order           =&gt; ['name','age','address'],
+    :minimum_block_length =&gt; 16,
+    :printable_with_syck  =&gt; true,
+    :escape_b_specific    =&gt; true,
+    :escape_as_utf8       =&gt; true
+  )
+
+  # or simply set this for a safe roundtrip with Syck.
+  obj.ya2yaml(:syck_compatible =&gt; true)
+</pre>
+<p>
+*<b>CAUTION</b>* Some of these options are to avoid compatibility issue
+with Syck. When you set these options to false, the emitted YAML document
+might not be loadable with YAML.load() although the syntax is valid.
+</p>
+<ul>
+<li>:indent_size
+
+<ul>
+<li>default: 2
+
+</li>
+<li>Number of indentation spaces for a level.
+
+</li>
+</ul>
+</li>
+<li>:hash_order
+
+<ul>
+<li>default: nil
+
+</li>
+<li>Array of hash keys indicating sort order (this option only works on a
+top-level hash).
+
+</li>
+</ul>
+</li>
+<li>:minimum_block_length
+
+<ul>
+<li>default: 0
+
+</li>
+<li>Minimum length of a string emitted in block scalar style. If a string is
+shorter than this value, it will be emitted in one line.
+
+</li>
+</ul>
+</li>
+<li>:printable_with_syck
+
+<ul>
+<li>default: false
+
+</li>
+<li>When set to true, <a href="../classes/Ya2YAML.html">Ya2YAML</a> will regard
+some kind of strings (which cause Syck roundtrip failures) as
+&#8220;non-printable&#8221; and double-quote them.
+
+</li>
+</ul>
+</li>
+<li>:escape_b_specific
+
+<ul>
+<li>default: false
+
+</li>
+<li>When set to true, <a href="../classes/Ya2YAML.html">Ya2YAML</a> will regard
+Unicode specific line breaks (LS and PS) as &#8220;non-printable&#8221; and
+escape them.
+
+</li>
+</ul>
+</li>
+<li>:escape_as_utf8
+
+<ul>
+<li>default: false
+
+</li>
+<li>When set to true, <a href="../classes/Ya2YAML.html">Ya2YAML</a> uses
+Ruby-like escape sequences in UTF8 code instead of &#8220;uXXXX&#8221;
+style in UCS code. It also suppresses use of &#8220;L&#8220; and
+&#8220;P&#8220; (escape sequences for LS and PS).
+
+</li>
+</ul>
+</li>
+<li>:syck_compatible
+
+<ul>
+<li>default: false
+
+</li>
+<li>When set to true, These options are set to true at once. You have to set
+this to false when you set them individually.
+
+<ul>
+<li>:printable_with_syck
+
+</li>
+<li>:escape_b_specific
+
+</li>
+<li>:escape_as_utf8
+
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2>More information</h2>
+<p>
+Visit <a
+href="http://rubyforge.org/projects/ya2yaml">rubyforge.org/projects/ya2yaml</a>
+</p>
+<h2>License</h2>
+<p>
+<a href="../classes/Ya2YAML.html">Ya2YAML</a> is distributed with a MIT
+license, which can be found in the file <a href="LICENSE.html">LICENSE</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

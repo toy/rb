@@ -1,0 +1,1852 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SFTP::Operations::Upload</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::SFTP::Operations::Upload 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/net/sftp/operations/upload_rb.html">lib/net/sftp/operations/upload.rb</a></li>
+            
+            <li><a href="../../../../files/lib/net/sftp/operations/upload_rb.html">lib/net/sftp/operations/upload.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+A general purpose uploader module for <a
+href="../../SFTP.html">Net::SFTP</a>. It can upload IO objects, files, and
+even entire directory trees via <a href="../../SFTP.html">SFTP</a>, and
+provides a flexible progress reporting mechanism.
+</p>
+<p>
+To upload a single file to the remote server, simply specify both the local
+and remote paths:
+</p>
+<pre>
+  uploader = sftp.upload(&quot;/path/to/local.txt&quot;, &quot;/path/to/remote.txt&quot;)
+</pre>
+<p>
+By default, this operates asynchronously, so if you want to block until the
+upload finishes, you can use the &#8216;bang&#8217; variant:
+</p>
+<pre>
+  sftp.upload!(&quot;/path/to/local.txt&quot;, &quot;/path/to/remote.txt&quot;)
+</pre>
+<p>
+Or, if you have multiple uploads that you want to run in parallel, you can
+employ the <a href="Upload.html#M000050">wait</a> method of the returned
+object:
+</p>
+<pre>
+  uploads = %w(file1 file2 file3).map { |f| sftp.upload(f, &quot;remote/#{f}&quot;) }
+  uploads.each { |u| u.wait }
+</pre>
+<p>
+To upload an entire directory tree, recursively, simply pass the directory
+path as the first parameter:
+</p>
+<pre>
+  sftp.upload!(&quot;/path/to/directory&quot;, &quot;/path/to/remote&quot;)
+</pre>
+<p>
+This will upload &#8220;/path/to/directory&#8220;, it&#8217;s contents,
+it&#8217;s subdirectories, and their contents, recursively, to
+&#8220;/path/to/remote&#8220; on the remote server.
+</p>
+<p>
+If you want to send data to a file on the remote server, but the data is in
+memory, you can pass an IO object and upload it&#8217;s contents:
+</p>
+<pre>
+  require 'stringio'
+  io = StringIO.new(data)
+  sftp.upload!(io, &quot;/path/to/remote&quot;)
+</pre>
+<p>
+The following options are supported:
+</p>
+<ul>
+<li><tt>:progress</tt> - either a block or an object to act as a progress
+callback. See the discussion of &#8220;progress monitoring&#8221; below.
+
+</li>
+<li><tt>:requests</tt> - the number of pending <a
+href="../../SFTP.html">SFTP</a> requests to allow at any given time. When
+uploading an entire directory tree recursively, this will default to 16,
+otherwise it will default to 2. Setting this higher might improve
+throughput. Reducing it will reduce throughput.
+
+</li>
+<li><tt>:read_size</tt> - the maximum number of bytes to read at a time from
+the source. Increasing this value might improve throughput. It defaults to
+32,000 bytes.
+
+</li>
+<li><tt>:name</tt> - the filename to report to the progress monitor when an IO
+object is given as <tt>local</tt>. This defaults to &#8220;<memory>&#8221;.
+
+</li>
+</ul>
+<h2>Progress Monitoring</h2>
+<p>
+Sometimes it is desirable to track the progress of an upload. There are two
+ways to do this: either using a callback block, or a special custom object.
+</p>
+<p>
+Using a block it&#8217;s pretty straightforward:
+</p>
+<pre>
+  sftp.upload!(&quot;local&quot;, &quot;remote&quot;) do |event, uploader, *args|
+    case event
+    when :open then
+      # args[0] : file metadata
+      puts &quot;starting upload: #{args[0].local} -&gt; #{args[0].remote} (#{args[0].size} bytes}&quot;
+    when :put then
+      # args[0] : file metadata
+      # args[1] : byte offset in remote file
+      # args[2] : data being written (as string)
+      puts &quot;writing #{args[2].length} bytes to #{args[0].remote} starting at #{args[1]}&quot;
+    when :close then
+      # args[0] : file metadata
+      puts &quot;finished with #{args[0].remote}&quot;
+    when :mkdir then
+      # args[0] : remote path name
+      puts &quot;creating directory #{args[0]}&quot;
+    when :finish then
+      puts &quot;all done!&quot;
+  end
+</pre>
+<p>
+However, for more complex implementations (e.g., GUI interfaces and such) a
+block can become cumbersome. In those cases, you can create custom handler
+objects that respond to certain methods, and then pass your handler to the
+uploader:
+</p>
+<pre>
+  class CustomHandler
+    def on_open(uploader, file)
+      puts &quot;starting upload: #{file.local} -&gt; #{file.remote} (#{file.size} bytes)&quot;
+    end
+
+    def on_put(uploader, file, offset, data)
+      puts &quot;writing #{data.length} bytes to #{file.remote} starting at #{offset}&quot;
+    end
+
+    def on_close(uploader, file)
+      puts &quot;finished with #{file.remote}&quot;
+    end
+
+    def on_mkdir(uploader, path)
+      puts &quot;creating directory #{path}&quot;
+    end
+
+    def on_finish(uploader)
+      puts &quot;all done!&quot;
+    end
+  end
+
+  sftp.upload!(&quot;local&quot;, &quot;remote&quot;, :progress =&gt; CustomHandler.new)
+</pre>
+<p>
+If you omit any of those methods, the progress updates for those missing
+events will be ignored. You can create a catchall method named
+&#8220;call&#8221; for those, instead.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000051">[]</a>,</li>
+                
+                <li><a href="#M000280">[]</a>,</li>
+                
+                <li><a href="#M000281">[]=</a>,</li>
+                
+                <li><a href="#M000052">[]=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000278">abort!</a>,</li>
+                
+                <li><a href="#M000048">abort!</a>,</li>
+                
+                <li><a href="#M000277">active?</a>,</li>
+                
+                <li><a href="#M000047">active?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000300">entries_for</a>,</li>
+                
+                <li><a href="#M000075">entries_for</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000295">on_close</a>,</li>
+                
+                <li><a href="#M000069">on_close</a>,</li>
+                
+                <li><a href="#M000064">on_mkdir</a>,</li>
+                
+                <li><a href="#M000289">on_mkdir</a>,</li>
+                
+                <li><a href="#M000065">on_open</a>,</li>
+                
+                <li><a href="#M000291">on_open</a>,</li>
+                
+                <li><a href="#M000067">on_write</a>,</li>
+                
+                <li><a href="#M000294">on_write</a>,</li>
+                
+                <li><a href="#M000060">open_file</a>,</li>
+                
+                <li><a href="#M000286">open_file</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000055">process_next_entry</a>,</li>
+                
+                <li><a href="#M000283">process_next_entry</a>,</li>
+                
+                <li><a href="#M000054">progress</a>,</li>
+                
+                <li><a href="#M000282">progress</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000046">recursive?</a>,</li>
+                
+                <li><a href="#M000276">recursive?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000301">update_progress</a>,</li>
+                
+                <li><a href="#M000076">update_progress</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000050">wait</a>,</li>
+                
+                <li><a href="#M000279">wait</a>,</li>
+                
+                <li><a href="#M000070">write_next_chunk</a>,</li>
+                
+                <li><a href="#M000296">write_next_chunk</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>Net::SSH::Loggable</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Net::SSH::Loggable</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">LiveFile</td>
+            <td>=</td>
+            <td class="attr-value">Struct.new(:local, :remote, :io, :size, :handle)</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+A simple struct for recording metadata about the file currently being
+uploaded.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_READ_SIZE</td>
+            <td>=</td>
+            <td class="attr-value">32_000</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The default # of bytes to read from disk at a time.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SINGLE_FILE_READERS</td>
+            <td>=</td>
+            <td class="attr-value">2</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The number of readers to use when uploading a single file.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">RECURSIVE_READERS</td>
+            <td>=</td>
+            <td class="attr-value">16</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The number of readers to use when uploading a directory.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">LiveFile</td>
+            <td>=</td>
+            <td class="attr-value">Struct.new(:local, :remote, :io, :size, :handle)</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+A simple struct for recording metadata about the file currently being
+uploaded.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DEFAULT_READ_SIZE</td>
+            <td>=</td>
+            <td class="attr-value">32_000</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The default # of bytes to read from disk at a time.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SINGLE_FILE_READERS</td>
+            <td>=</td>
+            <td class="attr-value">2</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The number of readers to use when uploading a single file.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">RECURSIVE_READERS</td>
+            <td>=</td>
+            <td class="attr-value">16</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The number of readers to use when uploading a directory.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>local</td>
+            <td class='attr-desc'><p>
+The source of the upload (on the local server)
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>remote</td>
+            <td class='attr-desc'><p>
+The destination of the upload (on the remote server)
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>options</td>
+            <td class='attr-desc'><p>
+The hash of options that were given when the object was instantiated
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>sftp</td>
+            <td class='attr-desc'><p>
+The <a href="../../SFTP.html">SFTP</a> session object used by this upload
+instance
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>properties</td>
+            <td class='attr-desc'><p>
+The properties hash for this object
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>local</td>
+            <td class='attr-desc'><p>
+The source of the upload (on the local server)
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>remote</td>
+            <td class='attr-desc'><p>
+The destination of the upload (on the remote server)
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>options</td>
+            <td class='attr-desc'><p>
+The hash of options that were given when the object was instantiated
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>sftp</td>
+            <td class='attr-desc'><p>
+The <a href="../../SFTP.html">SFTP</a> session object used by this upload
+instance
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>properties</td>
+            <td class='attr-desc'><p>
+The properties hash for this object
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000051">
+                    
+                    <a name="M000051"></a><b>[]</b>(name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the property with the given name. This allows <a
+href="Upload.html">Upload</a> instances to store their own state when used
+as part of a state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000051_source')" id="l_M000051_source">show</a>
+                        
+                    </p>
+                    <div id="M000051_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 201</span>
+201:     <span class="ruby-keyword kw">def</span> <span class="ruby-operator">[]</span>(<span class="ruby-identifier">name</span>)
+202:       <span class="ruby-ivar">@properties</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>]
+203:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000280">
+                    
+                    <a name="M000280"></a><b>[]</b>(name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the property with the given name. This allows <a
+href="Upload.html">Upload</a> instances to store their own state when used
+as part of a state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000280_source')" id="l_M000280_source">show</a>
+                        
+                    </p>
+                    <div id="M000280_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 201</span>
+201:     <span class="ruby-keyword kw">def</span> <span class="ruby-operator">[]</span>(<span class="ruby-identifier">name</span>)
+202:       <span class="ruby-ivar">@properties</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>]
+203:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000281">
+                    
+                    <a name="M000281"></a><b>[]=</b>(name, value)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the given property to the given name. This allows <a
+href="Upload.html">Upload</a> instances to store their own state when used
+as part of a state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000281_source')" id="l_M000281_source">show</a>
+                        
+                    </p>
+                    <div id="M000281_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 207</span>
+207:     <span class="ruby-keyword kw">def</span> <span class="ruby-operator">[]=</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">value</span>)
+208:       <span class="ruby-ivar">@properties</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>] = <span class="ruby-identifier">value</span>
+209:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000052">
+                    
+                    <a name="M000052"></a><b>[]=</b>(name, value)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the given property to the given name. This allows <a
+href="Upload.html">Upload</a> instances to store their own state when used
+as part of a state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000052_source')" id="l_M000052_source">show</a>
+                        
+                    </p>
+                    <div id="M000052_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 207</span>
+207:     <span class="ruby-keyword kw">def</span> <span class="ruby-operator">[]=</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">value</span>)
+208:       <span class="ruby-ivar">@properties</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>] = <span class="ruby-identifier">value</span>
+209:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000278">
+                    
+                    <a name="M000278"></a><b>abort!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Forces the transfer to stop.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000278_source')" id="l_M000278_source">show</a>
+                        
+                    </p>
+                    <div id="M000278_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 187</span>
+187:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">abort!</span>
+188:       <span class="ruby-ivar">@active</span> = <span class="ruby-value">0</span>
+189:       <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">clear</span>
+190:       <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">clear</span>
+191:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000048">
+                    
+                    <a name="M000048"></a><b>abort!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Forces the transfer to stop.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000048_source')" id="l_M000048_source">show</a>
+                        
+                    </p>
+                    <div id="M000048_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 187</span>
+187:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">abort!</span>
+188:       <span class="ruby-ivar">@active</span> = <span class="ruby-value">0</span>
+189:       <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">clear</span>
+190:       <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">clear</span>
+191:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000277">
+                    
+                    <a name="M000277"></a><b>active?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if the uploader is currently running. When this is false, the
+uploader has finished processing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000277_source')" id="l_M000277_source">show</a>
+                        
+                    </p>
+                    <div id="M000277_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 182</span>
+182:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">active?</span>
+183:       <span class="ruby-ivar">@active</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">any?</span>
+184:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000047">
+                    
+                    <a name="M000047"></a><b>active?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if the uploader is currently running. When this is false, the
+uploader has finished processing.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000047_source')" id="l_M000047_source">show</a>
+                        
+                    </p>
+                    <div id="M000047_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 182</span>
+182:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">active?</span>
+183:       <span class="ruby-ivar">@active</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">any?</span>
+184:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000046">
+                    
+                    <a name="M000046"></a><b>recursive?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if a directory tree is being uploaded, and false if only a
+single file is being uploaded.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000046_source')" id="l_M000046_source">show</a>
+                        
+                    </p>
+                    <div id="M000046_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 176</span>
+176:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">recursive?</span>
+177:       <span class="ruby-ivar">@recursive</span>
+178:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000276">
+                    
+                    <a name="M000276"></a><b>recursive?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if a directory tree is being uploaded, and false if only a
+single file is being uploaded.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000276_source')" id="l_M000276_source">show</a>
+                        
+                    </p>
+                    <div id="M000276_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 176</span>
+176:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">recursive?</span>
+177:       <span class="ruby-ivar">@recursive</span>
+178:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000050">
+                    
+                    <a name="M000050"></a><b>wait</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Blocks until the upload has completed.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000050_source')" id="l_M000050_source">show</a>
+                        
+                    </p>
+                    <div id="M000050_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 194</span>
+194:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">wait</span>
+195:       <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">loop</span> { <span class="ruby-identifier">active?</span> }
+196:       <span class="ruby-keyword kw">self</span>
+197:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000279">
+                    
+                    <a name="M000279"></a><b>wait</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Blocks until the upload has completed.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000279_source')" id="l_M000279_source">show</a>
+                        
+                    </p>
+                    <div id="M000279_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 194</span>
+194:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">wait</span>
+195:       <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">loop</span> { <span class="ruby-identifier">active?</span> }
+196:       <span class="ruby-keyword kw">self</span>
+197:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000300">
+                    
+                    <a name="M000300"></a><b>entries_for</b>(local)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns all directory entries for the given path, removing the
+&#8217;.&#8217; and &#8217;..&#8217; relative paths.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000300_source')" id="l_M000300_source">show</a>
+                        
+                    </p>
+                    <div id="M000300_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 371</span>
+371:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">entries_for</span>(<span class="ruby-identifier">local</span>)
+372:         <span class="ruby-operator">::</span><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">entries</span>(<span class="ruby-identifier">local</span>).<span class="ruby-identifier">reject</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-node">%w(. ..)</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">v</span>) }
+373:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000075">
+                    
+                    <a name="M000075"></a><b>entries_for</b>(local)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns all directory entries for the given path, removing the
+&#8217;.&#8217; and &#8217;..&#8217; relative paths.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000075_source')" id="l_M000075_source">show</a>
+                        
+                    </p>
+                    <div id="M000075_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 371</span>
+371:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">entries_for</span>(<span class="ruby-identifier">local</span>)
+372:         <span class="ruby-operator">::</span><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">entries</span>(<span class="ruby-identifier">local</span>).<span class="ruby-identifier">reject</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-node">%w(. ..)</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">v</span>) }
+373:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000295">
+                    
+                    <a name="M000295"></a><b>on_close</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>close</tt> request finishes. Raises a <a
+href="../StatusException.html">StatusException</a> if the close failed,
+otherwise it calls <a href="Upload.html#M000055">process_next_entry</a> to
+continue the state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000295_source')" id="l_M000295_source">show</a>
+                        
+                    </p>
+                    <div id="M000295_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 338</span>
+338:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_close</span>(<span class="ruby-identifier">response</span>)
+339:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+340:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+341:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;close #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+342:         <span class="ruby-identifier">process_next_entry</span>
+343:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000069">
+                    
+                    <a name="M000069"></a><b>on_close</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>close</tt> request finishes. Raises a <a
+href="../StatusException.html">StatusException</a> if the close failed,
+otherwise it calls <a href="Upload.html#M000055">process_next_entry</a> to
+continue the state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000069_source')" id="l_M000069_source">show</a>
+                        
+                    </p>
+                    <div id="M000069_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 338</span>
+338:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_close</span>(<span class="ruby-identifier">response</span>)
+339:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+340:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+341:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;close #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+342:         <span class="ruby-identifier">process_next_entry</span>
+343:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000064">
+                    
+                    <a name="M000064"></a><b>on_mkdir</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>mkdir</tt> request finishes, successfully or otherwise.
+If the request failed, this will raise a <a
+href="../StatusException.html">StatusException</a>, otherwise it will call
+<a href="Upload.html#M000055">process_next_entry</a> to continue the state
+machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000064_source')" id="l_M000064_source">show</a>
+                        
+                    </p>
+                    <div id="M000064_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 299</span>
+299:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_mkdir</span>(<span class="ruby-identifier">response</span>)
+300:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+301:         <span class="ruby-identifier">dir</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:dir</span>]
+302:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;mkdir #{dir}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+303: 
+304:         <span class="ruby-identifier">process_next_entry</span>
+305:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000289">
+                    
+                    <a name="M000289"></a><b>on_mkdir</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>mkdir</tt> request finishes, successfully or otherwise.
+If the request failed, this will raise a <a
+href="../StatusException.html">StatusException</a>, otherwise it will call
+<a href="Upload.html#M000055">process_next_entry</a> to continue the state
+machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000289_source')" id="l_M000289_source">show</a>
+                        
+                    </p>
+                    <div id="M000289_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 299</span>
+299:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_mkdir</span>(<span class="ruby-identifier">response</span>)
+300:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+301:         <span class="ruby-identifier">dir</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:dir</span>]
+302:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;mkdir #{dir}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+303: 
+304:         <span class="ruby-identifier">process_next_entry</span>
+305:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000065">
+                    
+                    <a name="M000065"></a><b>on_open</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when an <tt>open</tt> request finishes. Raises <a
+href="../StatusException.html">StatusException</a> if the open failed,
+otherwise it calls <a href="Upload.html#M000070">write_next_chunk</a> to
+begin sending data to the remote server.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000065_source')" id="l_M000065_source">show</a>
+                        
+                    </p>
+                    <div id="M000065_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 310</span>
+310:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_open</span>(<span class="ruby-identifier">response</span>)
+311:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+312:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+313:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;open #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+314: 
+315:         <span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span> = <span class="ruby-identifier">response</span>[<span class="ruby-identifier">:handle</span>]
+316: 
+317:         <span class="ruby-ivar">@uploads</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">file</span>
+318:         <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+319: 
+320:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">recursive?</span>
+321:           (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:requests</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">SINGLE_FILE_READERS</span>).<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">times</span> { <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>) }
+322:         <span class="ruby-keyword kw">end</span>
+323:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000291">
+                    
+                    <a name="M000291"></a><b>on_open</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when an <tt>open</tt> request finishes. Raises <a
+href="../StatusException.html">StatusException</a> if the open failed,
+otherwise it calls <a href="Upload.html#M000070">write_next_chunk</a> to
+begin sending data to the remote server.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000291_source')" id="l_M000291_source">show</a>
+                        
+                    </p>
+                    <div id="M000291_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 310</span>
+310:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_open</span>(<span class="ruby-identifier">response</span>)
+311:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+312:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+313:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;open #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+314: 
+315:         <span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span> = <span class="ruby-identifier">response</span>[<span class="ruby-identifier">:handle</span>]
+316: 
+317:         <span class="ruby-ivar">@uploads</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">file</span>
+318:         <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+319: 
+320:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">recursive?</span>
+321:           (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:requests</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">SINGLE_FILE_READERS</span>).<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">times</span> { <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>) }
+322:         <span class="ruby-keyword kw">end</span>
+323:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000067">
+                    
+                    <a name="M000067"></a><b>on_write</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>write</tt> request finishes. Raises <a
+href="../StatusException.html">StatusException</a> if the write failed,
+otherwise it calls <a href="Upload.html#M000070">write_next_chunk</a> to
+continue the write.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000067_source')" id="l_M000067_source">show</a>
+                        
+                    </p>
+                    <div id="M000067_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 328</span>
+328:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_write</span>(<span class="ruby-identifier">response</span>)
+329:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+330:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+331:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;write #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+332:         <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+333:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000294">
+                    
+                    <a name="M000294"></a><b>on_write</b>(response)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Called when a <tt>write</tt> request finishes. Raises <a
+href="../StatusException.html">StatusException</a> if the write failed,
+otherwise it calls <a href="Upload.html#M000070">write_next_chunk</a> to
+continue the write.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000294_source')" id="l_M000294_source">show</a>
+                        
+                    </p>
+                    <div id="M000294_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 328</span>
+328:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">on_write</span>(<span class="ruby-identifier">response</span>)
+329:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+330:         <span class="ruby-identifier">file</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>]
+331:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">StatusException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>, <span class="ruby-node">&quot;write #{file.remote}&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">ok?</span>
+332:         <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+333:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000060">
+                    
+                    <a name="M000060"></a><b>open_file</b>(local, remote)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Prepares to send <tt>local</tt> to <tt>remote</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000060_source')" id="l_M000060_source">show</a>
+                        
+                    </p>
+                    <div id="M000060_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 272</span>
+272:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open_file</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>)
+273:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+274: 
+275:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">local</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:read</span>)
+276:           <span class="ruby-identifier">file</span> = <span class="ruby-identifier">local</span>
+277:           <span class="ruby-identifier">name</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:name</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&lt;memory&gt;&quot;</span>
+278:         <span class="ruby-keyword kw">else</span>
+279:           <span class="ruby-identifier">file</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">local</span>, <span class="ruby-value str">&quot;rb&quot;</span>)
+280:           <span class="ruby-identifier">name</span> = <span class="ruby-identifier">local</span>
+281:         <span class="ruby-keyword kw">end</span>
+282: 
+283:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:stat</span>)
+284:           <span class="ruby-identifier">size</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">stat</span>.<span class="ruby-identifier">size</span>
+285:         <span class="ruby-keyword kw">else</span>
+286:           <span class="ruby-identifier">size</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">size</span>
+287:         <span class="ruby-keyword kw">end</span>
+288: 
+289:         <span class="ruby-identifier">metafile</span> = <span class="ruby-constant">LiveFile</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">file</span>, <span class="ruby-identifier">size</span>)
+290:         <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:open</span>, <span class="ruby-identifier">metafile</span>)
+291: 
+292:         <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-value str">&quot;w&quot;</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_open</span>))
+293:         <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">metafile</span>
+294:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000286">
+                    
+                    <a name="M000286"></a><b>open_file</b>(local, remote)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Prepares to send <tt>local</tt> to <tt>remote</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000286_source')" id="l_M000286_source">show</a>
+                        
+                    </p>
+                    <div id="M000286_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 272</span>
+272:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open_file</span>(<span class="ruby-identifier">local</span>, <span class="ruby-identifier">remote</span>)
+273:         <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+274: 
+275:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">local</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:read</span>)
+276:           <span class="ruby-identifier">file</span> = <span class="ruby-identifier">local</span>
+277:           <span class="ruby-identifier">name</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:name</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&lt;memory&gt;&quot;</span>
+278:         <span class="ruby-keyword kw">else</span>
+279:           <span class="ruby-identifier">file</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">local</span>, <span class="ruby-value str">&quot;rb&quot;</span>)
+280:           <span class="ruby-identifier">name</span> = <span class="ruby-identifier">local</span>
+281:         <span class="ruby-keyword kw">end</span>
+282: 
+283:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:stat</span>)
+284:           <span class="ruby-identifier">size</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">stat</span>.<span class="ruby-identifier">size</span>
+285:         <span class="ruby-keyword kw">else</span>
+286:           <span class="ruby-identifier">size</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">size</span>
+287:         <span class="ruby-keyword kw">end</span>
+288: 
+289:         <span class="ruby-identifier">metafile</span> = <span class="ruby-constant">LiveFile</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">remote</span>, <span class="ruby-identifier">file</span>, <span class="ruby-identifier">size</span>)
+290:         <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:open</span>, <span class="ruby-identifier">metafile</span>)
+291: 
+292:         <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">remote</span>, <span class="ruby-value str">&quot;w&quot;</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_open</span>))
+293:         <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">metafile</span>
+294:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000055">
+                    
+                    <a name="M000055"></a><b>process_next_entry</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Examines the stack and determines what action to take. This is the starting
+point of the state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000055_source')" id="l_M000055_source">show</a>
+                        
+                    </p>
+                    <div id="M000055_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 235</span>
+235:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">process_next_entry</span>
+236:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">empty?</span>
+237:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">any?</span>
+238:             <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">first</span>)
+239:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-operator">!</span><span class="ruby-identifier">active?</span>
+240:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:finish</span>)
+241:           <span class="ruby-keyword kw">end</span>
+242:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
+243:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">empty?</span>
+244:           <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">pop</span>
+245:           <span class="ruby-ivar">@local_cwd</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-ivar">@local_cwd</span>)
+246:           <span class="ruby-ivar">@remote_cwd</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-ivar">@remote_cwd</span>)
+247:           <span class="ruby-identifier">process_next_entry</span>
+248:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">recursive?</span>
+249:           <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">shift</span>
+250:           <span class="ruby-identifier">lpath</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-ivar">@local_cwd</span>, <span class="ruby-identifier">entry</span>)
+251:           <span class="ruby-identifier">rpath</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-ivar">@remote_cwd</span>, <span class="ruby-identifier">entry</span>)
+252: 
+253:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span>(<span class="ruby-identifier">lpath</span>)
+254:             <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">entries_for</span>(<span class="ruby-identifier">lpath</span>))
+255:             <span class="ruby-ivar">@local_cwd</span> = <span class="ruby-identifier">lpath</span>
+256:             <span class="ruby-ivar">@remote_cwd</span> = <span class="ruby-identifier">rpath</span>
+257: 
+258:             <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+259:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:mkdir</span>, <span class="ruby-identifier">rpath</span>)
+260:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">rpath</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_mkdir</span>))
+261:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:dir</span>] = <span class="ruby-identifier">rpath</span>
+262:           <span class="ruby-keyword kw">else</span>
+263:             <span class="ruby-identifier">open_file</span>(<span class="ruby-identifier">lpath</span>, <span class="ruby-identifier">rpath</span>)
+264:           <span class="ruby-keyword kw">end</span>
+265:         <span class="ruby-keyword kw">else</span>
+266:           <span class="ruby-identifier">open_file</span>(<span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">pop</span>.<span class="ruby-identifier">first</span>, <span class="ruby-identifier">remote</span>)
+267:         <span class="ruby-keyword kw">end</span>
+268:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+269:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000283">
+                    
+                    <a name="M000283"></a><b>process_next_entry</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Examines the stack and determines what action to take. This is the starting
+point of the state machine.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000283_source')" id="l_M000283_source">show</a>
+                        
+                    </p>
+                    <div id="M000283_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 235</span>
+235:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">process_next_entry</span>
+236:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">empty?</span>
+237:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">any?</span>
+238:             <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">first</span>)
+239:           <span class="ruby-keyword kw">elsif</span> <span class="ruby-operator">!</span><span class="ruby-identifier">active?</span>
+240:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:finish</span>)
+241:           <span class="ruby-keyword kw">end</span>
+242:           <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
+243:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">empty?</span>
+244:           <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">pop</span>
+245:           <span class="ruby-ivar">@local_cwd</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-ivar">@local_cwd</span>)
+246:           <span class="ruby-ivar">@remote_cwd</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">dirname</span>(<span class="ruby-ivar">@remote_cwd</span>)
+247:           <span class="ruby-identifier">process_next_entry</span>
+248:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">recursive?</span>
+249:           <span class="ruby-identifier">entry</span> = <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">shift</span>
+250:           <span class="ruby-identifier">lpath</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-ivar">@local_cwd</span>, <span class="ruby-identifier">entry</span>)
+251:           <span class="ruby-identifier">rpath</span> = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-ivar">@remote_cwd</span>, <span class="ruby-identifier">entry</span>)
+252: 
+253:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span>(<span class="ruby-identifier">lpath</span>)
+254:             <span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">entries_for</span>(<span class="ruby-identifier">lpath</span>))
+255:             <span class="ruby-ivar">@local_cwd</span> = <span class="ruby-identifier">lpath</span>
+256:             <span class="ruby-ivar">@remote_cwd</span> = <span class="ruby-identifier">rpath</span>
+257: 
+258:             <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+259:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:mkdir</span>, <span class="ruby-identifier">rpath</span>)
+260:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">rpath</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_mkdir</span>))
+261:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:dir</span>] = <span class="ruby-identifier">rpath</span>
+262:           <span class="ruby-keyword kw">else</span>
+263:             <span class="ruby-identifier">open_file</span>(<span class="ruby-identifier">lpath</span>, <span class="ruby-identifier">rpath</span>)
+264:           <span class="ruby-keyword kw">end</span>
+265:         <span class="ruby-keyword kw">else</span>
+266:           <span class="ruby-identifier">open_file</span>(<span class="ruby-ivar">@stack</span>.<span class="ruby-identifier">pop</span>.<span class="ruby-identifier">first</span>, <span class="ruby-identifier">remote</span>)
+267:         <span class="ruby-keyword kw">end</span>
+268:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span>
+269:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000054">
+                    
+                    <a name="M000054"></a><b>progress</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The progress handler for this instance. Possibly nil.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000054_source')" id="l_M000054_source">show</a>
+                        
+                    </p>
+                    <div id="M000054_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 218</span>
+218:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">progress</span>; <span class="ruby-ivar">@progress</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000282">
+                    
+                    <a name="M000282"></a><b>progress</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The progress handler for this instance. Possibly nil.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000282_source')" id="l_M000282_source">show</a>
+                        
+                    </p>
+                    <div id="M000282_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 218</span>
+218:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">progress</span>; <span class="ruby-ivar">@progress</span>; <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000301">
+                    
+                    <a name="M000301"></a><b>update_progress</b>(event, *args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to notify the progress monitor (if one was given) about progress
+made for the given event.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000301_source')" id="l_M000301_source">show</a>
+                        
+                    </p>
+                    <div id="M000301_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 377</span>
+377:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">event</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+378:         <span class="ruby-identifier">on</span> = <span class="ruby-node">&quot;on_#{event}&quot;</span>
+379:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">on</span>)
+380:           <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">on</span>, <span class="ruby-keyword kw">self</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+381:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+382:           <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">event</span>, <span class="ruby-keyword kw">self</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+383:         <span class="ruby-keyword kw">end</span>
+384:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000076">
+                    
+                    <a name="M000076"></a><b>update_progress</b>(event, *args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to notify the progress monitor (if one was given) about progress
+made for the given event.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000076_source')" id="l_M000076_source">show</a>
+                        
+                    </p>
+                    <div id="M000076_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 377</span>
+377:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">event</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+378:         <span class="ruby-identifier">on</span> = <span class="ruby-node">&quot;on_#{event}&quot;</span>
+379:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">on</span>)
+380:           <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">on</span>, <span class="ruby-keyword kw">self</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+381:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+382:           <span class="ruby-identifier">progress</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">event</span>, <span class="ruby-keyword kw">self</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+383:         <span class="ruby-keyword kw">end</span>
+384:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000070">
+                    
+                    <a name="M000070"></a><b>write_next_chunk</b>(file)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to send the next chunk from the given file (where <tt>file</tt> is
+a <a href="Upload.html#LiveFile">LiveFile</a> instance).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000070_source')" id="l_M000070_source">show</a>
+                        
+                    </p>
+                    <div id="M000070_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 347</span>
+347:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+348:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">nil?</span>
+349:           <span class="ruby-identifier">process_next_entry</span>
+350:         <span class="ruby-keyword kw">else</span>
+351:           <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+352:           <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">pos</span>
+353:           <span class="ruby-identifier">data</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:read_size</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_READ_SIZE</span>)
+354:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">nil?</span>
+355:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:close</span>, <span class="ruby-identifier">file</span>)
+356:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">close</span>(<span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_close</span>))
+357:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">file</span>
+358:             <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+359:             <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span> = <span class="ruby-keyword kw">nil</span>
+360:             <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">file</span>)
+361:           <span class="ruby-keyword kw">else</span>
+362:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:put</span>, <span class="ruby-identifier">file</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">data</span>)
+363:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">data</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_write</span>))
+364:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">file</span>
+365:           <span class="ruby-keyword kw">end</span>
+366:         <span class="ruby-keyword kw">end</span>
+367:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000296">
+                    
+                    <a name="M000296"></a><b>write_next_chunk</b>(file)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to send the next chunk from the given file (where <tt>file</tt> is
+a <a href="Upload.html#LiveFile">LiveFile</a> instance).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000296_source')" id="l_M000296_source">show</a>
+                        
+                    </p>
+                    <div id="M000296_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/sftp/operations/upload.rb, line 347</span>
+347:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">write_next_chunk</span>(<span class="ruby-identifier">file</span>)
+348:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">nil?</span>
+349:           <span class="ruby-identifier">process_next_entry</span>
+350:         <span class="ruby-keyword kw">else</span>
+351:           <span class="ruby-ivar">@active</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+352:           <span class="ruby-identifier">offset</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">pos</span>
+353:           <span class="ruby-identifier">data</span> = <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:read_size</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DEFAULT_READ_SIZE</span>)
+354:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">nil?</span>
+355:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:close</span>, <span class="ruby-identifier">file</span>)
+356:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">close</span>(<span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_close</span>))
+357:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">file</span>
+358:             <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+359:             <span class="ruby-identifier">file</span>.<span class="ruby-identifier">io</span> = <span class="ruby-keyword kw">nil</span>
+360:             <span class="ruby-ivar">@uploads</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">file</span>)
+361:           <span class="ruby-keyword kw">else</span>
+362:             <span class="ruby-identifier">update_progress</span>(<span class="ruby-identifier">:put</span>, <span class="ruby-identifier">file</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">data</span>)
+363:             <span class="ruby-identifier">request</span> = <span class="ruby-identifier">sftp</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">file</span>.<span class="ruby-identifier">handle</span>, <span class="ruby-identifier">offset</span>, <span class="ruby-identifier">data</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">method</span>(<span class="ruby-identifier">:on_write</span>))
+364:             <span class="ruby-identifier">request</span>[<span class="ruby-identifier">:file</span>] = <span class="ruby-identifier">file</span>
+365:           <span class="ruby-keyword kw">end</span>
+366:         <span class="ruby-keyword kw">end</span>
+367:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

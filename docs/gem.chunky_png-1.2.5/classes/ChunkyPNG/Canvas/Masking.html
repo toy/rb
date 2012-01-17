@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ChunkyPNG::Canvas::Masking</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ChunkyPNG::Canvas::Masking 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/chunky_png/canvas/masking_rb.html">lib/chunky_png/canvas/masking.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+The <a href="Masking.html">ChunkyPNG::Canvas::Masking</a> module defines
+methods to perform masking and theming operations on a {ChunkyPNG::Canvas}.
+The module is included into the <a href="../Canvas.html">Canvas</a> class
+so all these methods are available on every canvas.
+</p>
+<p>
+@see <a href="../Canvas.html">ChunkyPNG::Canvas</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000013">change_mask_color!</a>,</li>
+                
+                <li><a href="#M000011">change_theme_color!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000012">extract_mask</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000013">
+                    
+                    <a name="M000013"></a><b>change_mask_color!</b>(new_color)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Changes the color of a mask image.
+</p>
+<p>
+This method works on a canvas extracted out of another image using the {<a
+href="Masking.html#M000012">extract_mask</a>} method. It can then be
+applied on the extracted base image. See {<a
+href="Masking.html#M000011">change_theme_color!</a>} to perform these
+operations in one go.
+</p>
+<p>
+@param [Integer] new_color The color to replace the original mask color
+with. @raise [ChunkyPNG::ExpectationFailed] when this canvas is not a mask
+image, i.e. its palette
+</p>
+<pre>
+   has more than once color, disregarding transparency.
+</pre>
+<p>
+@see <a href="Masking.html#M000011">change_theme_color!</a> @see <a
+href="Masking.html#M000012">extract_mask</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000013_source')" id="l_M000013_source">show</a>
+                        
+                    </p>
+                    <div id="M000013_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/chunky_png/canvas/masking.rb, line 84</span>
+84:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">change_mask_color!</span>(<span class="ruby-identifier">new_color</span>)
+85:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">ExpectationFailed</span>, <span class="ruby-value str">&quot;This is not a mask image!&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">palette</span>.<span class="ruby-identifier">opaque_palette</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">!=</span> <span class="ruby-value">1</span>
+86:         <span class="ruby-identifier">pixels</span>.<span class="ruby-identifier">map!</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">pixel</span><span class="ruby-operator">|</span> (<span class="ruby-identifier">new_color</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffff00</span>) <span class="ruby-operator">|</span> <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">Color</span>.<span class="ruby-identifier">a</span>(<span class="ruby-identifier">pixel</span>) }
+87:         <span class="ruby-keyword kw">self</span>
+88:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>change_theme_color!</b>(old_theme_color, new_theme_color, bg_color = ChunkyPNG::Color::WHITE, tolerance = 5)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new image, based on the current image but with a new theme color.
+</p>
+<p>
+This method will replace one color in an image with another image. This is
+done by first extracting the pixels with a color close to the original
+theme color as a mask image, changing the color of this mask image and then
+apply it on the original image.
+</p>
+<p>
+Mask extraction works best when the theme colored pixels are clearly
+distinguishable from a background color (preferably white). You can set a
+tolerance level to influence the extraction process.
+</p>
+<p>
+@param [Integer] old_theme_color The original theme color in this image.
+@param [Integer] new_theme_color The color to replace the old theme color
+with. @param [Integer] bg_color The background color on which the theme
+colored pixels are placed. @param [Integer] tolerance The tolerance level
+to use when extracting the mask image. Five is
+</p>
+<pre>
+   the default; increase this if the masked image does not extract all the required pixels,
+   decrease it if too many pixels get extracted.
+</pre>
+<p>
+@return [ChunkyPNG::Canvas] Returns itself, but with the theme colored
+pixels changed. @see <a href="Masking.html#M000011">change_theme_color!</a>
+@see <a href="Masking.html#M000013">change_mask_color!</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/chunky_png/canvas/masking.rb, line 30</span>
+30:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">change_theme_color!</span>(<span class="ruby-identifier">old_theme_color</span>, <span class="ruby-identifier">new_theme_color</span>, <span class="ruby-identifier">bg_color</span> = <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">Color</span><span class="ruby-operator">::</span><span class="ruby-constant">WHITE</span>, <span class="ruby-identifier">tolerance</span> = <span class="ruby-value">5</span>)
+31:         <span class="ruby-identifier">base</span>, <span class="ruby-identifier">mask</span> = <span class="ruby-identifier">extract_mask</span>(<span class="ruby-identifier">old_theme_color</span>, <span class="ruby-identifier">bg_color</span>, <span class="ruby-identifier">tolerance</span>)
+32:         <span class="ruby-identifier">mask</span>.<span class="ruby-identifier">change_mask_color!</span>(<span class="ruby-identifier">new_theme_color</span>)
+33:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">replace!</span>(<span class="ruby-identifier">base</span>.<span class="ruby-identifier">compose!</span>(<span class="ruby-identifier">mask</span>))
+34:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>extract_mask</b>(mask_color, bg_color = ChunkyPNG::Color::WHITE, tolerance = 5)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a base image and a mask image from an original image that has a
+particular theme color. This can be used to easily change a theme color in
+an image.
+</p>
+<p>
+It will extract all the pixels that look like the theme color (with a
+tolerance level) and put these in a mask image. All the other pixels will
+be stored in a base image. Both images will be of the exact same size as
+the original image. The original image will be left untouched.
+</p>
+<p>
+The color of the mask image can be changed with {<a
+href="Masking.html#M000013">change_mask_color!</a>}. This new mask image
+can then be composed upon the base image to create an image with a new
+theme color. A call to {<a
+href="Masking.html#M000011">change_theme_color!</a>} will perform this in
+one go.
+</p>
+<p>
+@param [Integer] mask_color The current theme color. @param [Integer]
+bg_color The background color on which the theme colored pixels are
+applied. @param [Integer] tolerance The tolerance level to use when
+extracting the mask image. Five is
+</p>
+<pre>
+   the default; increase this if the masked image does not extract all the required pixels,
+   decrease it if too many pixels get extracted.
+</pre>
+<p>
+@return [Array<<a href="../Canvas.html">ChunkyPNG::Canvas</a>,
+ChunkyPNG::Canvas>] An array with the base canvas and the mask
+</p>
+<pre>
+   canvas as elements.
+</pre>
+<p>
+@see <a href="Masking.html#M000011">change_theme_color!</a> @see <a
+href="Masking.html#M000013">change_mask_color!</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/chunky_png/canvas/masking.rb, line 56</span>
+56:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">extract_mask</span>(<span class="ruby-identifier">mask_color</span>, <span class="ruby-identifier">bg_color</span> = <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">Color</span><span class="ruby-operator">::</span><span class="ruby-constant">WHITE</span>, <span class="ruby-identifier">tolerance</span> = <span class="ruby-value">5</span>)
+57:         <span class="ruby-identifier">base_pixels</span> = []
+58:         <span class="ruby-identifier">mask_pixels</span> = []
+59: 
+60:         <span class="ruby-identifier">pixels</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">pixel</span><span class="ruby-operator">|</span>
+61:           <span class="ruby-keyword kw">if</span> <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">Color</span>.<span class="ruby-identifier">alpha_decomposable?</span>(<span class="ruby-identifier">pixel</span>, <span class="ruby-identifier">mask_color</span>, <span class="ruby-identifier">bg_color</span>, <span class="ruby-identifier">tolerance</span>)
+62:             <span class="ruby-identifier">mask_pixels</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">ChunkyPNG</span><span class="ruby-operator">::</span><span class="ruby-constant">Color</span>.<span class="ruby-identifier">decompose_color</span>(<span class="ruby-identifier">pixel</span>, <span class="ruby-identifier">mask_color</span>, <span class="ruby-identifier">bg_color</span>, <span class="ruby-identifier">tolerance</span>)
+63:             <span class="ruby-identifier">base_pixels</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">bg_color</span>
+64:           <span class="ruby-keyword kw">else</span>
+65:             <span class="ruby-identifier">mask_pixels</span> <span class="ruby-operator">&lt;&lt;</span> (<span class="ruby-identifier">mask_color</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0xffffff00</span>)
+66:             <span class="ruby-identifier">base_pixels</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">pixel</span>
+67:           <span class="ruby-keyword kw">end</span>
+68:         <span class="ruby-keyword kw">end</span>
+69:         
+70:         [ <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">width</span>, <span class="ruby-identifier">height</span>, <span class="ruby-identifier">base_pixels</span>), <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">width</span>, <span class="ruby-identifier">height</span>, <span class="ruby-identifier">mask_pixels</span>) ]
+71:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

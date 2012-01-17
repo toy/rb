@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SSH::Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Net::SSH::Test 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/net/ssh/test/channel_rb.html">lib/net/ssh/test/channel.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/extensions_rb.html">lib/net/ssh/test/extensions.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/kex_rb.html">lib/net/ssh/test/kex.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/local_packet_rb.html">lib/net/ssh/test/local_packet.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/packet_rb.html">lib/net/ssh/test/packet.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/remote_packet_rb.html">lib/net/ssh/test/remote_packet.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/script_rb.html">lib/net/ssh/test/script.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test/socket_rb.html">lib/net/ssh/test/socket.rb</a></li>
+            
+            <li><a href="../../../files/lib/net/ssh/test_rb.html">lib/net/ssh/test.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+This module may be used in unit tests, for when you want to test that your
+<a href="../SSH.html">SSH</a> state machines are really doing what you
+expect they are doing. You will typically include this module in your unit
+test class, and then build a &#8220;story&#8221; of expected sends and
+receives:
+</p>
+<pre>
+  require 'test/unit'
+  require 'net/ssh/test'
+
+  class MyTest &lt; Test::Unit::TestCase
+    include Net::SSH::Test
+
+    def test_exec_via_channel_works
+      story do |session|
+        channel = session.opens_channel
+        channel.sends_exec &quot;ls&quot;
+        channel.gets_data &quot;result of ls&quot;
+        channel.gets_close
+        channel.sends_close
+      end
+
+      assert_scripted do
+        result = nil
+
+        connection.open_channel do |ch|
+          ch.exec(&quot;ls&quot;) do |success|
+            ch.on_data { |c, data| result = data }
+            ch.on_close { |c| c.close }
+          end
+        end
+
+        connection.loop
+        assert_equal &quot;result of ls&quot;, result
+      end
+    end
+  end
+</pre>
+<p>
+See <a href="Test/Channel.html">Net::SSH::Test::Channel</a> and <a
+href="Test/Script.html">Net::SSH::Test::Script</a> for more options.
+</p>
+<p>
+Note that the <a href="Test.html">Net::SSH::Test</a> system is rather
+finicky yet, and can be kind of frustrating to get working. Any suggestions
+for improvement will be welcome!
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000305">assert_scripted</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000303">connection</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000302">socket</a>,</li>
+                
+                <li><a href="#M000301">story</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000304">transport</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Test/Extensions.html">Net::SSH::Test::Extensions</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/Channel.html">Net::SSH::Test::Channel</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/Kex.html">Net::SSH::Test::Kex</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/LocalPacket.html">Net::SSH::Test::LocalPacket</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/Packet.html">Net::SSH::Test::Packet</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/RemotePacket.html">Net::SSH::Test::RemotePacket</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/Script.html">Net::SSH::Test::Script</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Test/Socket.html">Net::SSH::Test::Socket</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000305">
+                    
+                    <a name="M000305"></a><b>assert_scripted</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+First asserts that a story has been described (see <a
+href="Test.html#M000301">story</a>). Then yields, and then asserts that all
+items described in the script have been processed. Typically, this is
+called immediately after a story has been built, and the <a
+href="../SSH.html">SSH</a> commands being tested are then executed within
+the block passed to this assertion.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000305_source')" id="l_M000305_source">show</a>
+                        
+                    </p>
+                    <div id="M000305_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/test.rb, line 82</span>
+82:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">assert_scripted</span>
+83:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;there is no script to be processed&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">socket</span>.<span class="ruby-identifier">script</span>.<span class="ruby-identifier">events</span>.<span class="ruby-identifier">empty?</span>
+84:       <span class="ruby-keyword kw">yield</span>
+85:       <span class="ruby-identifier">assert</span> <span class="ruby-identifier">socket</span>.<span class="ruby-identifier">script</span>.<span class="ruby-identifier">events</span>.<span class="ruby-identifier">empty?</span>, <span class="ruby-node">&quot;there should not be any remaining scripted events, but there are still #{socket.script.events.length} pending&quot;</span>
+86:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000303">
+                    
+                    <a name="M000303"></a><b>connection</b>(options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the connection session (<a
+href="Connection/Session.html">Net::SSH::Connection::Session</a>) for use
+in these tests. It is a fully functional <a href="../SSH.html">SSH</a>
+session, operating over a mock socket (<a
+href="Test.html#M000302">socket</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000303_source')" id="l_M000303_source">show</a>
+                        
+                    </p>
+                    <div id="M000303_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/test.rb, line 66</span>
+66:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">connection</span>(<span class="ruby-identifier">options</span>={})
+67:       <span class="ruby-ivar">@connection</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Connection</span><span class="ruby-operator">::</span><span class="ruby-constant">Session</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">transport</span>(<span class="ruby-identifier">options</span>), <span class="ruby-identifier">options</span>)
+68:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000302">
+                    
+                    <a name="M000302"></a><b>socket</b>(options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the test socket instance to use for these tests (see <a
+href="Test/Socket.html">Net::SSH::Test::Socket</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000302_source')" id="l_M000302_source">show</a>
+                        
+                    </p>
+                    <div id="M000302_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/test.rb, line 59</span>
+59:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">socket</span>(<span class="ruby-identifier">options</span>={})
+60:       <span class="ruby-ivar">@socket</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Test</span><span class="ruby-operator">::</span><span class="ruby-constant">Socket</span>.<span class="ruby-identifier">new</span>
+61:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000301">
+                    
+                    <a name="M000301"></a><b>story</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If a block is given, yields the script for the test socket (<a
+href="Test.html#M000302">socket</a>). Otherwise, simply returns the
+socket&#8217;s script. See <a
+href="Test/Script.html">Net::SSH::Test::Script</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000301_source')" id="l_M000301_source">show</a>
+                        
+                    </p>
+                    <div id="M000301_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/test.rb, line 52</span>
+52:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">story</span>
+53:       <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">socket</span>.<span class="ruby-identifier">script</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+54:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">socket</span>.<span class="ruby-identifier">script</span>
+55:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000304">
+                    
+                    <a name="M000304"></a><b>transport</b>(options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the transport session (<a
+href="Transport/Session.html">Net::SSH::Transport::Session</a>) for use in
+these tests. It is a fully functional <a href="../SSH.html">SSH</a>
+transport session, operating over a mock socket (<a
+href="Test.html#M000302">socket</a>).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000304_source')" id="l_M000304_source">show</a>
+                        
+                    </p>
+                    <div id="M000304_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/test.rb, line 73</span>
+73:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">transport</span>(<span class="ruby-identifier">options</span>={})
+74:       <span class="ruby-ivar">@transport</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Transport</span><span class="ruby-operator">::</span><span class="ruby-constant">Session</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:host</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;localhost&quot;</span>, <span class="ruby-identifier">options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:kex</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;test&quot;</span>, <span class="ruby-identifier">:host_key</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;ssh-rsa&quot;</span>, <span class="ruby-identifier">:paranoid</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>, <span class="ruby-identifier">:proxy</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">socket</span>(<span class="ruby-identifier">options</span>)))
+75:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

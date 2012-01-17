@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::SSH::Verifiers::Lenient</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::SSH::Verifiers::Lenient 
+            
+                <span class="parent">&lt; 
+                    
+                    Strict
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/net/ssh/verifiers/lenient_rb.html">lib/net/ssh/verifiers/lenient.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Basically the same as the <a href="Strict.html">Strict</a> verifier, but
+does not try to actually verify a connection if the server is the localhost
+and the port is a nonstandard port number. Those two conditions will
+typically mean the connection is being tunnelled through a forwarded port,
+so the known-hosts file will not be helpful (in general).
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000424">tunnelled?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000423">verify</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000423">
+                    
+                    <a name="M000423"></a><b>verify</b>(arguments)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Tries to determine if the connection is being tunnelled, and if so, returns
+true. Otherwise, performs the standard strict verification.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000423_source')" id="l_M000423_source">show</a>
+                        
+                    </p>
+                    <div id="M000423_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/verifiers/lenient.rb, line 13</span>
+13:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">verify</span>(<span class="ruby-identifier">arguments</span>)
+14:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tunnelled?</span>(<span class="ruby-identifier">arguments</span>)
+15:       <span class="ruby-keyword kw">super</span>
+16:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000424">
+                    
+                    <a name="M000424"></a><b>tunnelled?</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A connection is potentially being tunnelled if the port is not 22, and the
+ip refers to the localhost.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000424_source')" id="l_M000424_source">show</a>
+                        
+                    </p>
+                    <div id="M000424_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/net/ssh/verifiers/lenient.rb, line 22</span>
+22:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tunnelled?</span>(<span class="ruby-identifier">args</span>)
+23:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:session</span>].<span class="ruby-identifier">port</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Transport</span><span class="ruby-operator">::</span><span class="ruby-constant">Session</span><span class="ruby-operator">::</span><span class="ruby-constant">DEFAULT_PORT</span>
+24:         
+25:         <span class="ruby-identifier">ip</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:session</span>].<span class="ruby-identifier">peer</span>[<span class="ruby-identifier">:ip</span>]
+26:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">ip</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;127.0.0.1&quot;</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">ip</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;::1&quot;</span>
+27:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

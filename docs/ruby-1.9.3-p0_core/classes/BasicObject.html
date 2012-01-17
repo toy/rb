@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>BasicObject</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            BasicObject 
+            
+                <span class="parent">&lt; 
+                    
+                    Qnil
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/class_c.html">class.c</a></li>
+            
+            <li><a href="../files/object_c.html">object.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="BasicObject.html">BasicObject</a> is the parent class of all
+classes in Ruby. It&#8217;s an explicit blank class.
+</p>
+<p>
+<a href="BasicObject.html">BasicObject</a> can be used for creating object
+hierarchies independent of Ruby&#8217;s object hierarchy, proxy objects
+like the <a href="Delegator.html">Delegator</a> class, or other uses where
+namespace pollution from Ruby&#8217;s methods and classes must be avoided.
+</p>
+<p>
+To avoid polluting <a href="BasicObject.html">BasicObject</a> for other
+users an appropriately named subclass of <a
+href="BasicObject.html">BasicObject</a> should be created instead of
+directly modifying BasicObject:
+</p>
+<pre>
+  class MyObjectSystem &lt; BasicObject
+  end
+</pre>
+<p>
+<a href="BasicObject.html">BasicObject</a> does not include Kernel (for
+methods like <tt>puts</tt>) and <a href="BasicObject.html">BasicObject</a>
+is outside of the namespace of the standard library so common classes will
+not be found without a using a full class path.
+</p>
+<p>
+A variety of strategies can be used to provide useful portions of the
+standard library to subclasses of <a
+href="BasicObject.html">BasicObject</a>. A subclass could <tt>include
+Kernel</tt> to obtain <tt>puts</tt>, <tt>exit</tt>, etc. A custom
+Kernel-like module could be created and included or delegation can be used
+via method_missing:
+</p>
+<pre>
+  class MyObjectSystem &lt; BasicObject
+    DELEGATE = [:puts, :p]
+
+    def method_missing(name, *args, &amp;block)
+      super unless DELEGATE.include? name
+      ::Kernel.send(name, *args, &amp;block)
+    end
+
+    def respond_to_missing?(name, include_private = false)
+      DELGATE.include?(name) or super
+    end
+  end
+</pre>
+<p>
+Access to classes and modules from the Ruby standard library can be
+obtained in a <a href="BasicObject.html">BasicObject</a> subclass by
+referencing the desired constant from the root like <tt>::File</tt> or
+<tt>::Enumerator</tt>. Like method_missing, const_missing can be used to
+delegate constant lookup to <tt>Object</tt>:
+</p>
+<pre>
+  class MyObjectSystem &lt; BasicObject
+    def self.const_missing(name)
+      ::Object.const_get(name)
+    end
+  end
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000906">!</a>,</li>
+                
+                <li><a href="#M000907">!=</a>,</li>
+                
+                <li><a href="#M000904">==</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000905">equal?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000903">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000908">singleton_method_added</a>,</li>
+                
+                <li><a href="#M000909">singleton_method_removed</a>,</li>
+                
+                <li><a href="#M000910">singleton_method_undefined</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000903">
+                    
+                    <a name="M000903"></a><b>new</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Not documented
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000903_source')" id="l_M000903_source">show</a>
+                        
+                    </p>
+                    <div id="M000903_source" class="dyn-source">
+                        <pre>static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000906">
+                    
+                    <a name="M000906"></a><b>!obj    &rarr; true or false
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Boolean negate.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000906_source')" id="l_M000906_source">show</a>
+                        
+                    </p>
+                    <div id="M000906_source" class="dyn-source">
+                        <pre>VALUE
+rb_obj_not(VALUE obj)
+{
+    return RTEST(obj) ? Qfalse : Qtrue;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000907">
+                    
+                    <a name="M000907"></a><b>obj != other        &rarr; true or false
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if two objects are not-equal, otherwise false.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000907_source')" id="l_M000907_source">show</a>
+                        
+                    </p>
+                    <div id="M000907_source" class="dyn-source">
+                        <pre>VALUE
+rb_obj_not_equal(VALUE obj1, VALUE obj2)
+{
+    VALUE result = rb_funcall(obj1, id_eq, 1, obj2);
+    return RTEST(result) ? Qfalse : Qtrue;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000904">
+                    
+                    <a name="M000904"></a><b>obj == other        &rarr; true or false
+obj.equal?(other)   &rarr; true or false
+obj.eql?(other)     &rarr; true or false
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Equality&#8212;At the <tt>Object</tt> level, <tt>==</tt> returns
+<tt>true</tt> only if <em>obj</em> and <em>other</em> are the same object.
+Typically, this method is overridden in descendant classes to provide
+class-specific meaning.
+</p>
+<p>
+Unlike <tt>==</tt>, the <tt>equal?</tt> method should never be overridden
+by subclasses: it is used to determine object identity (that is,
+<tt>a.equal?(b)</tt> iff <tt>a</tt> is the same object as <tt>b</tt>).
+</p>
+<p>
+The <tt>eql?</tt> method returns <tt>true</tt> if <em>obj</em> and
+<em>anObject</em> have the same value. Used by <tt>Hash</tt> to test
+members for equality. For objects of class <tt>Object</tt>, <tt>eql?</tt>
+is synonymous with <tt>==</tt>. Subclasses normally continue this
+tradition, but there are exceptions. <tt>Numeric</tt> types, for example,
+perform type conversion across <tt>==</tt>, but not across <tt>eql?</tt>,
+so:
+</p>
+<pre>
+   1 == 1.0     #=&gt; true
+   1.eql? 1.0   #=&gt; false
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000904_source')" id="l_M000904_source">show</a>
+                        
+                    </p>
+                    <div id="M000904_source" class="dyn-source">
+                        <pre>VALUE
+rb_obj_equal(VALUE obj1, VALUE obj2)
+{
+    if (obj1 == obj2) return Qtrue;
+    return Qfalse;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000905">
+                    
+                    <a name="M000905"></a><b>obj == other        &rarr; true or false
+obj.equal?(other)   &rarr; true or false
+obj.eql?(other)     &rarr; true or false
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Equality&#8212;At the <tt>Object</tt> level, <tt>==</tt> returns
+<tt>true</tt> only if <em>obj</em> and <em>other</em> are the same object.
+Typically, this method is overridden in descendant classes to provide
+class-specific meaning.
+</p>
+<p>
+Unlike <tt>==</tt>, the <tt>equal?</tt> method should never be overridden
+by subclasses: it is used to determine object identity (that is,
+<tt>a.equal?(b)</tt> iff <tt>a</tt> is the same object as <tt>b</tt>).
+</p>
+<p>
+The <tt>eql?</tt> method returns <tt>true</tt> if <em>obj</em> and
+<em>anObject</em> have the same value. Used by <tt>Hash</tt> to test
+members for equality. For objects of class <tt>Object</tt>, <tt>eql?</tt>
+is synonymous with <tt>==</tt>. Subclasses normally continue this
+tradition, but there are exceptions. <tt>Numeric</tt> types, for example,
+perform type conversion across <tt>==</tt>, but not across <tt>eql?</tt>,
+so:
+</p>
+<pre>
+   1 == 1.0     #=&gt; true
+   1.eql? 1.0   #=&gt; false
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000905_source')" id="l_M000905_source">show</a>
+                        
+                    </p>
+                    <div id="M000905_source" class="dyn-source">
+                        <pre>VALUE
+rb_obj_equal(VALUE obj1, VALUE obj2)
+{
+    if (obj1 == obj2) return Qtrue;
+    return Qfalse;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000908">
+                    
+                    <a name="M000908"></a><b>singleton_method_added(symbol)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Invoked as a callback whenever a singleton method is added to the receiver.
+</p>
+<pre>
+   module Chatty
+     def Chatty.singleton_method_added(id)
+       puts &quot;Adding #{id.id2name}&quot;
+     end
+     def self.one()     end
+     def two()          end
+     def Chatty.three() end
+   end
+</pre>
+<p>
+<em>produces:</em>
+</p>
+<pre>
+   Adding singleton_method_added
+   Adding one
+   Adding three
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000908_source')" id="l_M000908_source">show</a>
+                        
+                    </p>
+                    <div id="M000908_source" class="dyn-source">
+                        <pre>static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000909">
+                    
+                    <a name="M000909"></a><b>singleton_method_removed(symbol)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Invoked as a callback whenever a singleton method is removed from the
+receiver.
+</p>
+<pre>
+   module Chatty
+     def Chatty.singleton_method_removed(id)
+       puts &quot;Removing #{id.id2name}&quot;
+     end
+     def self.one()     end
+     def two()          end
+     def Chatty.three() end
+     class &lt;&lt; self
+       remove_method :three
+       remove_method :one
+     end
+   end
+</pre>
+<p>
+<em>produces:</em>
+</p>
+<pre>
+   Removing three
+   Removing one
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000909_source')" id="l_M000909_source">show</a>
+                        
+                    </p>
+                    <div id="M000909_source" class="dyn-source">
+                        <pre>static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000910">
+                    
+                    <a name="M000910"></a><b>singleton_method_undefined(symbol)
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Invoked as a callback whenever a singleton method is undefined in the
+receiver.
+</p>
+<pre>
+   module Chatty
+     def Chatty.singleton_method_undefined(id)
+       puts &quot;Undefining #{id.id2name}&quot;
+     end
+     def Chatty.one()   end
+     class &lt;&lt; self
+        undef_method(:one)
+     end
+   end
+</pre>
+<p>
+<em>produces:</em>
+</p>
+<pre>
+   Undefining one
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000910_source')" id="l_M000910_source">show</a>
+                        
+                    </p>
+                    <div id="M000910_source" class="dyn-source">
+                        <pre>static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

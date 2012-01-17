@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Continuation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Continuation 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/standard/facets/continuation_rb.html">lib/standard/facets/continuation.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000739">create</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000739">
+                    
+                    <a name="M000739"></a><b>create</b>(*args, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <h1><a href="Continuation.html">Continuation</a> Extension</h1>
+<p>
+Creates a continuation in a way that is easier to use than callcc. On the
+initial call this will return the created <a
+href="Continuation.html">Continuation</a> and the arguments you gave to <a
+href="Continuation.html#M000739">Continuation.create</a> in an <a
+href="Array.html">Array</a>. If you then issue .call() on the <a
+href="Continuation.html">Continuation</a> execution will jump back to the
+point of time where you initially invoked <a
+href="Continuation.html#M000739">Continuation.create</a>, but this time it
+will return the <a href="Continuation.html">Continuation</a> and the
+arguments you supplied in an <a href="Array.html">Array</a>.
+</p>
+<p>
+You can supply a block instead of default arguments which will cause that
+block to be executed once and its result to be returned along side the
+created <a href="Continuation.html">Continuation</a>, but this form is
+confusing and does only rarely make sense.
+</p>
+<pre>
+  # Count from 0 to 10
+  cc, counter = Continuation.create(0)
+  counter   #~&gt; 0..10
+  cc.call(counter + 1) if counter &lt; 10
+
+  # Implement something similar to Array#inject using Continuations.
+  # For simplicity's sake, this is not fully compatible with the real
+  # inject. Make sure that you understand Array#inject before you try
+  # to understand this.
+  class ::Array
+    def cc_inject(value = nil)
+      copy = self.clone
+      cc, result, item = Continuation.create(value, nil)
+      next_item = copy.shift
+      if result and item
+        # Aggregate the result using the block.
+        cc.call(yield(result, item), next_item)
+      elsif next_item
+        # item not yet set and Array is not empty:
+        # This means we did not get a value and thus need to use the
+        # first item from the Array before we can start using the
+        # block to aggregate the result.
+        cc.call(next_item, result)
+      end
+
+      return result
+   end
+ end
+ [1,2,3,4,5].cc_inject { |acc, n| acc + n } # =&gt; 15
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000739_source')" id="l_M000739_source">show</a>
+                        
+                    </p>
+                    <div id="M000739_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/standard/facets/continuation.rb, line 48</span>
+48:   <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Continuation</span>.<span class="ruby-identifier">create</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+49:     <span class="ruby-identifier">args</span> = [<span class="ruby-identifier">args</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">Array</span> <span class="ruby-comment cmt"># 1.6.8 compatibility</span>
+50:     <span class="ruby-identifier">cc</span> = <span class="ruby-keyword kw">nil</span>; <span class="ruby-identifier">result</span> = <span class="ruby-identifier">callcc</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span> <span class="ruby-identifier">cc</span> = <span class="ruby-identifier">c</span>; <span class="ruby-identifier">block</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">cc</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">empty?</span>}
+51:     <span class="ruby-identifier">result</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">args</span>
+52:     <span class="ruby-keyword kw">return</span> <span class="ruby-operator">*</span>[<span class="ruby-identifier">cc</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">result</span>]
+53:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

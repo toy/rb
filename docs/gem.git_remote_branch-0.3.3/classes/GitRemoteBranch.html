@@ -1,0 +1,749 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>GitRemoteBranch</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            GitRemoteBranch 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/constants_rb.html">lib/constants.rb</a></li>
+            
+            <li><a href="../files/lib/git_remote_branch_rb.html">lib/git_remote_branch.rb</a></li>
+            
+            <li><a href="../files/lib/param_reader_rb.html">lib/param_reader.rb</a></li>
+            
+            <li><a href="../files/lib/state_rb.html">lib/state.rb</a></li>
+            
+            <li><a href="../files/lib/version_rb.html">lib/version.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000011">execute_action</a>,</li>
+                
+                <li><a href="#M000013">execute_cmds</a>,</li>
+                
+                <li><a href="#M000012">explain_action</a>,</li>
+                
+                <li><a href="#M000003">explain_mode!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000008">get_action</a>,</li>
+                
+                <li><a href="#M000009">get_branch</a>,</li>
+                
+                <li><a href="#M000015">get_current_branch</a>,</li>
+                
+                <li><a href="#M000010">get_origin</a>,</li>
+                
+                <li><a href="#M000004">get_reverse_map</a>,</li>
+                
+                <li><a href="#M000006">get_usage</a>,</li>
+                
+                <li><a href="#M000005">get_welcome</a>,</li>
+                
+                <li><a href="#M000017">git_found?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000018">local_branch_information</a>,</li>
+                
+                <li><a href="#M000016">local_branches</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000014">puts_cmd</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000002">read_params</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000007">silent!</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>::CaptureFu</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="GitRemoteBranch/VERSION.html">GitRemoteBranch::VERSION</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="GitRemoteBranch/InvalidBranchError.html">GitRemoteBranch::InvalidBranchError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="GitRemoteBranch/NotOnGitRepositoryError.html">GitRemoteBranch::NotOnGitRepositoryError</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">GIT</td>
+            <td>=</td>
+            <td class="attr-value">(ENV['GRB_GIT'] || 'git')</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">LOCAL_BRANCH_LISTING_COMMAND</td>
+            <td>=</td>
+            <td class="attr-value">&quot;#{GIT} branch -l&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">HELP_PARAMS</td>
+            <td>=</td>
+            <td class="attr-value">{:action =&gt; :help}</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">COMMANDS</td>
+            <td>=</td>
+            <td class="attr-value">{     :create     =&gt; {       :description =&gt; 'create a new remote branch and track it locally',       :aliases  =&gt; %w{create new},       :commands =&gt; [         '&quot;#{GIT} push #{origin} #{current_branch}:refs/heads/#{branch_name}&quot;',         '&quot;#{GIT} fetch #{origin}&quot;',         '&quot;#{GIT} branch --track #{branch_name} #{origin}/#{branch_name}&quot;',         '&quot;#{GIT} checkout #{branch_name}&quot;'       ]     },      :publish     =&gt; {       :description =&gt; 'publish an existing local branch',       :aliases  =&gt; %w{publish remotize share},       :commands =&gt; [         '&quot;#{GIT} push #{origin} #{branch_name}:refs/heads/#{branch_name}&quot;',         '&quot;#{GIT} fetch #{origin}&quot;',         '&quot;#{GIT} branch --set-upstream #{branch_name} #{origin}/#{branch_name}&quot;',         '&quot;#{GIT} checkout #{branch_name}&quot;'       ]     },      :rename     =&gt; {       :description =&gt; 'rename a remote branch and its local tracking branch',       :aliases  =&gt; %w{rename rn mv move},       :commands =&gt; [         '&quot;#{GIT} push #{origin} #{current_branch}:refs/heads/#{branch_name}&quot;',         '&quot;#{GIT} fetch #{origin}&quot;',         '&quot;#{GIT} branch --track #{branch_name} #{origin}/#{branch_name}&quot;',         '&quot;#{GIT} checkout #{branch_name}&quot;',         '&quot;#{GIT} push #{origin} :refs/heads/#{current_branch}&quot;',         '&quot;#{GIT} branch -d #{current_branch}&quot;',       ]     },      :delete     =&gt; {       :description =&gt; 'delete a local and a remote branch',       :aliases  =&gt; %w{delete destroy kill remove rm},       :commands =&gt; [         '&quot;#{GIT} push #{origin} :refs/heads/#{branch_name}&quot;',         '&quot;#{GIT} checkout master&quot; if current_branch == branch_name',         '&quot;#{GIT} branch -d #{branch_name}&quot;'       ]     },      :track      =&gt; {       :description =&gt; 'track an existing remote branch',       :aliases  =&gt; %w{track follow grab fetch},       :commands =&gt; [         '&quot;#{GIT} fetch #{origin}&quot;',         '&quot;#{GIT} branch --set-upstream #{branch_name} #{origin}/#{branch_name}&quot;'       ]     }   } unless defined?(COMMANDS)</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ALIAS_REVERSE_MAP</td>
+            <td>=</td>
+            <td class="attr-value">get_reverse_map(COMMANDS) unless defined?(ALIAS_REVERSE_MAP)</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">NAME</td>
+            <td>=</td>
+            <td class="attr-value">'git_remote_branch'</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">COMPLETE_NAME</td>
+            <td>=</td>
+            <td class="attr-value">&quot;#{NAME} #{VERSION::STRING}&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">COMMAND_NAME</td>
+            <td>=</td>
+            <td class="attr-value">'grb'</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SHORT_NAME</td>
+            <td>=</td>
+            <td class="attr-value">COMMAND_NAME</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>execute_action</b>(action, branch_name, origin, current_branch)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 122</span>
+122:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute_action</span>(<span class="ruby-identifier">action</span>, <span class="ruby-identifier">branch_name</span>, <span class="ruby-identifier">origin</span>, <span class="ruby-identifier">current_branch</span>)
+123:     <span class="ruby-identifier">cmds</span> = <span class="ruby-constant">COMMANDS</span>[<span class="ruby-identifier">action</span>][<span class="ruby-identifier">:commands</span>].<span class="ruby-identifier">map</span>{ <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span> <span class="ruby-identifier">eval</span>(<span class="ruby-identifier">c</span>) }.<span class="ruby-identifier">compact</span>
+124:     <span class="ruby-identifier">execute_cmds</span>(<span class="ruby-identifier">cmds</span>)
+125:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000013">
+                    
+                    <a name="M000013"></a><b>execute_cmds</b>(*cmds)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000013_source')" id="l_M000013_source">show</a>
+                        
+                    </p>
+                    <div id="M000013_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 135</span>
+135:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute_cmds</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">cmds</span>)
+136:     <span class="ruby-identifier">silencer</span> = <span class="ruby-identifier">$WHISPER</span> <span class="ruby-operator">?</span> <span class="ruby-value str">' 2&gt;&amp;1'</span> <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>
+137:     <span class="ruby-identifier">cmds</span>.<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span>
+138:       <span class="ruby-identifier">puts_cmd</span> <span class="ruby-identifier">c</span>
+139:       <span class="ruby-node">`#{c}#{silencer}`</span>
+140:       <span class="ruby-identifier">whisper</span> <span class="ruby-value str">''</span>
+141:     <span class="ruby-keyword kw">end</span>
+142:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>explain_action</b>(action, branch_name, origin, current_branch)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 127</span>
+127:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">explain_action</span>(<span class="ruby-identifier">action</span>, <span class="ruby-identifier">branch_name</span>, <span class="ruby-identifier">origin</span>, <span class="ruby-identifier">current_branch</span>)
+128:     <span class="ruby-identifier">cmds</span> = <span class="ruby-constant">COMMANDS</span>[<span class="ruby-identifier">action</span>][<span class="ruby-identifier">:commands</span>].<span class="ruby-identifier">map</span>{ <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span> <span class="ruby-identifier">eval</span>(<span class="ruby-identifier">c</span>) }.<span class="ruby-identifier">compact</span>
+129: 
+130:     <span class="ruby-identifier">whisper</span> <span class="ruby-node">&quot;List of operations to do to #{COMMANDS[action][:description]}:&quot;</span>, <span class="ruby-value str">''</span>
+131:     <span class="ruby-identifier">puts_cmd</span> <span class="ruby-identifier">cmds</span>
+132:     <span class="ruby-identifier">whisper</span> <span class="ruby-value str">''</span>
+133:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000003">
+                    
+                    <a name="M000003"></a><b>explain_mode!</b>(argv)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000003_source')" id="l_M000003_source">show</a>
+                        
+                    </p>
+                    <div id="M000003_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 39</span>
+39:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">explain_mode!</span>(<span class="ruby-identifier">argv</span>)
+40:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">argv</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">downcase</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'explain'</span>
+41:       <span class="ruby-identifier">argv</span>.<span class="ruby-identifier">shift</span>
+42:       <span class="ruby-keyword kw">true</span>
+43:     <span class="ruby-keyword kw">else</span>
+44:       <span class="ruby-keyword kw">false</span>
+45:     <span class="ruby-keyword kw">end</span>
+46:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000008">
+                    
+                    <a name="M000008"></a><b>get_action</b>(action)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
+                        
+                    </p>
+                    <div id="M000008_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 52</span>
+52:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_action</span>(<span class="ruby-identifier">action</span>)
+53:     <span class="ruby-constant">ALIAS_REVERSE_MAP</span>[<span class="ruby-identifier">action</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">downcase</span>]
+54:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000009">
+                    
+                    <a name="M000009"></a><b>get_branch</b>(branch)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000009_source')" id="l_M000009_source">show</a>
+                        
+                    </p>
+                    <div id="M000009_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 56</span>
+56:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_branch</span>(<span class="ruby-identifier">branch</span>)
+57:     <span class="ruby-identifier">branch</span>
+58:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000015">
+                    
+                    <a name="M000015"></a><b>get_current_branch</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000015_source')" id="l_M000015_source">show</a>
+                        
+                    </p>
+                    <div id="M000015_source" class="dyn-source">
+                        <pre>   <span class="ruby-comment cmt"># File lib/state.rb, line 5</span>
+5:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_current_branch</span>
+6:       <span class="ruby-identifier">local_branch_information</span>[<span class="ruby-value">0</span>]
+7:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>get_origin</b>(origin)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 60</span>
+60:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_origin</span>(<span class="ruby-identifier">origin</span>)
+61:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">origin</span> <span class="ruby-operator">||</span> <span class="ruby-value str">'origin'</span>
+62:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000006">
+                    
+                    <a name="M000006"></a><b>get_usage</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
+                        
+                    </p>
+                    <div id="M000006_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 97</span>
+97:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_usage</span>
+98:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;Usage:\n\n\#{[:create, :publish, :rename, :delete, :track].map{|action|\n\&quot;  grb \#{action} branch_name [origin_server]\&quot;\n} * \&quot;\\n\&quot;\n}\n\nNotes:\n- If origin_server is not specified, the name 'origin' is assumed (git's default)\n- The rename functionality renames the current branch\n\nThe explain meta-command: you can also prepend any command with the keyword 'explain'. Instead of executing the command, git_remote_branch will simply output the list of commands you need to run to accomplish that goal.\nExample:\ngrb explain create\ngrb explain create my_branch github\n\nAll commands also have aliases:\n\#{ COMMANDS.keys.map{|k| k.to_s}.sort.map {|cmd|\n\&quot;\#{cmd}: \#{COMMANDS[cmd.to_sym][:aliases].join(', ')}\&quot; }.join(\&quot;\\n  \&quot;) }\n&quot;</span>
+99:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b>get_welcome</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 93</span>
+93:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_welcome</span>
+94:     <span class="ruby-node">&quot;git_remote_branch version #{VERSION::STRING}\n\n&quot;</span>
+95:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000017">
+                    
+                    <a name="M000017"></a><b>git_found?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000017_source')" id="l_M000017_source">show</a>
+                        
+                    </p>
+                    <div id="M000017_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/state.rb, line 13</span>
+13:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">git_found?</span>
+14:       <span class="ruby-identifier">ret</span>, <span class="ruby-identifier">msg</span> = <span class="ruby-identifier">capture_process_output</span> <span class="ruby-node">&quot;#{GIT} --version&quot;</span>
+15:       <span class="ruby-identifier">user_version</span> = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">chomp</span>.<span class="ruby-identifier">split</span>[<span class="ruby-value">2</span>]
+16:       <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;Some grb commands will not work with git version &lt; 1.7 (you have #{user_version})&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">user_version</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value str">'1.7'</span>
+17:       <span class="ruby-identifier">ret</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+18:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000016">
+                    
+                    <a name="M000016"></a><b>local_branches</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000016_source')" id="l_M000016_source">show</a>
+                        
+                    </p>
+                    <div id="M000016_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/state.rb, line 9</span>
+ 9:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">local_branches</span>
+10:       <span class="ruby-identifier">local_branch_information</span>[<span class="ruby-value">1</span>]
+11:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000014">
+                    
+                    <a name="M000014"></a><b>puts_cmd</b>(*cmds)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000014_source')" id="l_M000014_source">show</a>
+                        
+                    </p>
+                    <div id="M000014_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 144</span>
+144:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">puts_cmd</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">cmds</span>)
+145:     <span class="ruby-identifier">cmds</span>.<span class="ruby-identifier">flatten</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span>
+146:       <span class="ruby-identifier">whisper</span> <span class="ruby-node">&quot;#{c}&quot;</span>.<span class="ruby-identifier">foreground</span>(<span class="ruby-identifier">:red</span>)
+147:     <span class="ruby-keyword kw">end</span>
+148:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000002">
+                    
+                    <a name="M000002"></a><b>read_params</b>(argv)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000002_source')" id="l_M000002_source">show</a>
+                        
+                    </p>
+                    <div id="M000002_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 7</span>
+ 7:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_params</span>(<span class="ruby-identifier">argv</span>)
+ 8:     <span class="ruby-comment cmt">#TODO Some validation on the params</span>
+ 9: 
+10:     <span class="ruby-identifier">p</span>={}
+11:     <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:silent</span>]  = <span class="ruby-identifier">silent!</span>(<span class="ruby-identifier">argv</span>)
+12:     <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:explain</span>] = <span class="ruby-identifier">explain_mode!</span>(<span class="ruby-identifier">argv</span>)
+13: 
+14:     <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:action</span>]  = <span class="ruby-identifier">get_action</span>(<span class="ruby-identifier">argv</span>[<span class="ruby-value">0</span>]) <span class="ruby-keyword kw">or</span> <span class="ruby-keyword kw">return</span> <span class="ruby-constant">HELP_PARAMS</span>
+15: 
+16:     <span class="ruby-keyword kw">return</span> <span class="ruby-constant">HELP_PARAMS</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:action</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">:help</span>
+17: 
+18:     <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:branch</span>]  = <span class="ruby-identifier">get_branch</span>(<span class="ruby-identifier">argv</span>[<span class="ruby-value">1</span>])
+19:     <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:origin</span>]  = <span class="ruby-identifier">get_origin</span>(<span class="ruby-identifier">argv</span>[<span class="ruby-value">2</span>])
+20: 
+21:     <span class="ruby-comment cmt"># If in explain mode, the user doesn't have to specify a branch or be on in</span>
+22:     <span class="ruby-comment cmt"># actual repo to get the explanation.</span>
+23:     <span class="ruby-comment cmt"># Of course if he is, the explanation will be made better by using contextual info.</span>
+24:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:explain</span>]
+25:       <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:branch</span>] <span class="ruby-operator">||=</span> <span class="ruby-node">&quot;branch_to_#{p[:action]}&quot;</span>
+26:       <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:current_branch</span>] = <span class="ruby-keyword kw">begin</span>
+27:         <span class="ruby-identifier">get_current_branch</span>
+28:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NotOnGitRepositoryError</span>, <span class="ruby-constant">InvalidBranchError</span>
+29:         <span class="ruby-value str">'current_branch'</span>
+30:       <span class="ruby-keyword kw">end</span>
+31: 
+32:     <span class="ruby-keyword kw">else</span>
+33:       <span class="ruby-keyword kw">return</span> <span class="ruby-constant">HELP_PARAMS</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:branch</span>]
+34:       <span class="ruby-identifier">p</span>[<span class="ruby-identifier">:current_branch</span>] = <span class="ruby-identifier">get_current_branch</span>
+35:     <span class="ruby-keyword kw">end</span>
+36:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">p</span>
+37:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000007">
+                    
+                    <a name="M000007"></a><b>silent!</b>(argv)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
+                        
+                    </p>
+                    <div id="M000007_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/param_reader.rb, line 48</span>
+48:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">silent!</span>(<span class="ruby-identifier">argv</span>)
+49:     <span class="ruby-operator">!</span><span class="ruby-operator">!</span><span class="ruby-identifier">argv</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-value str">'--silent'</span>)
+50:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>local_branch_information</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns an array of 2 elements: [current_branch, [all local branches]]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/state.rb, line 22</span>
+22:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">local_branch_information</span>
+23:       <span class="ruby-comment cmt">#This is sensitive to checkouts of branches specified with wrong case</span>
+24: 
+25:       <span class="ruby-identifier">listing</span> = <span class="ruby-identifier">capture_process_output</span>(<span class="ruby-node">&quot;#{LOCAL_BRANCH_LISTING_COMMAND}&quot;</span>)[<span class="ruby-value">1</span>]
+26: 
+27:       <span class="ruby-identifier">raise</span>(<span class="ruby-constant">NotOnGitRepositoryError</span>, <span class="ruby-identifier">listing</span>.<span class="ruby-identifier">chomp</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">listing</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/Not a git repository/i</span>
+28:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">listing</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\(no branch\)/</span>
+29:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">InvalidBranchError</span>, [<span class="ruby-value str">&quot;Couldn't identify the current local branch. The branch listing was:&quot;</span>,
+30:           <span class="ruby-constant">LOCAL_BRANCH_LISTING_COMMAND</span>.<span class="ruby-identifier">foreground</span>(<span class="ruby-identifier">:red</span>), 
+31:           <span class="ruby-identifier">listing</span>].<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+32:       <span class="ruby-keyword kw">end</span>
+33: 
+34:       <span class="ruby-identifier">current_branch</span> = <span class="ruby-keyword kw">nil</span>
+35:       <span class="ruby-identifier">branches</span> = <span class="ruby-identifier">listing</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span> 
+36:         <span class="ruby-identifier">current</span>        = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">include?</span> <span class="ruby-value str">'*'</span>
+37:         <span class="ruby-identifier">clean_line</span>     = <span class="ruby-identifier">line</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-value str">'*'</span>,<span class="ruby-value str">''</span>).<span class="ruby-identifier">strip</span>
+38:         <span class="ruby-identifier">current_branch</span> = <span class="ruby-identifier">clean_line</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">current</span>
+39:         <span class="ruby-identifier">clean_line</span>
+40:       <span class="ruby-keyword kw">end</span>
+41: 
+42:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">current_branch</span>, <span class="ruby-identifier">branches</span>
+43:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000004">
+                    
+                    <a name="M000004"></a><b>get_reverse_map</b>(commands)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000004_source')" id="l_M000004_source">show</a>
+                        
+                    </p>
+                    <div id="M000004_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/git_remote_branch.rb, line 78</span>
+78:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">get_reverse_map</span>(<span class="ruby-identifier">commands</span>)
+79:     <span class="ruby-identifier">h</span>={}
+80:     <span class="ruby-identifier">commands</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">cmd</span>, <span class="ruby-identifier">params</span><span class="ruby-operator">|</span>
+81:       <span class="ruby-identifier">params</span>[<span class="ruby-identifier">:aliases</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">alias_</span><span class="ruby-operator">|</span>
+82:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">h</span>[<span class="ruby-identifier">alias_</span>]
+83:           <span class="ruby-identifier">h</span>[<span class="ruby-identifier">alias_</span>] = <span class="ruby-identifier">cmd</span>
+84:         <span class="ruby-keyword kw">else</span>
+85:           <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;Duplicate aliases: #{alias_.inspect} already defined for command #{h[alias_].inspect}&quot;</span>
+86:         <span class="ruby-keyword kw">end</span>
+87:       <span class="ruby-keyword kw">end</span>
+88:     <span class="ruby-keyword kw">end</span>
+89:     <span class="ruby-identifier">h</span>
+90:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

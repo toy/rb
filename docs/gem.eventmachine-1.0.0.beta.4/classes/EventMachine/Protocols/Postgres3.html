@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::Protocols::Postgres3</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::Protocols::Postgres3 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Connection.html">EventMachine::Connection</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/em/protocols/postgres3_rb.html">lib/em/protocols/postgres3.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+PROVISIONAL IMPLEMENTATION of an evented Postgres client. This implements
+version 3 of the Postgres wire protocol, which will work with any Postgres
+version from roughly 7.4 onward.
+</p>
+<p>
+Objective: we want to access Postgres databases without requiring threads.
+Until now this has been a problem because the Postgres client
+implementations have all made use of blocking I/O calls, which is
+incompatible with a thread-free evented model.
+</p>
+<p>
+But rather than re-implement the Postgres Wire3 protocol, we&#8217;re
+taking advantage of the existing postgres-pr library, which was originally
+written by Michael Neumann but (at this writing) appears to be no longer
+maintained. Still, it&#8217;s in basically a production-ready state, and
+the wire protocol isn&#8217;t that complicated anyway.
+</p>
+<p>
+We&#8217;re tucking in a bunch of require statements that may not be
+present in garden-variety EM installations. Until we find a good way to
+only require these if a program requires postgres, this file will need to
+be required explicitly.
+</p>
+<p>
+We need to monkeypatch <a href="../../StringIO.html">StringIO</a> because
+it lacks the readbytes method needed by postgres-pr. The <a
+href="../../StringIO.html">StringIO</a> monkeypatch is lifted from the
+standard library readbytes.rb, which adds method readbytes directly to
+class <a href="../../IO.html">IO</a>. But <a
+href="../../StringIO.html">StringIO</a> is not a subclass of <a
+href="../../IO.html">IO</a>. It is modified to raise an IOError instead of
+TruncatedDataException since the exception is unused.
+</p>
+<p>
+We cloned the handling of postgres messages from
+lib/postgres-pr/connection.rb in the postgres-pr library, and modified it
+for event-handling.
+</p>
+<p>
+TODO: The password handling in <a
+href="Postgres3.html#M000206">dispatch_conn_message</a> is totally
+incomplete.
+</p>
+<p>
+We return Deferrables from the user-level operations surfaced by this
+interface. Experimentally, we&#8217;re using the pattern of always
+returning a boolean value as the first argument of a deferrable callback to
+indicate success or failure. This is instead of the traditional pattern of
+calling <a href="../Deferrable.html#M000067">Deferrable#succeed</a> or
+fail, and requiring the user to define both a callback and an errback
+function.
+</p>
+<h3>Usage</h3>
+<pre>
+ EM.run {
+   db = EM.connect_unix_domain( &quot;/tmp/.s.PGSQL.5432&quot;, EM::P::Postgres3 )
+   db.connect( dbname, username, psw ).callback do |status|
+     if status
+       db.query( &quot;select * from some_table&quot; ).callback do |status, result, errors|
+         if status
+           result.rows.each do |row|
+             p row
+           end
+         end
+       end
+     end
+   end
+ }
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000202">connect</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000206">dispatch_conn_message</a>,</li>
+                
+                <li><a href="#M000210">dispatch_query_message</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000201">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>Q</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000203">query</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000204">receive_data</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000205">unbind</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>PostgresPR</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000201">
+                    
+                    <a name="M000201"></a><b>new</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000201_source')" id="l_M000201_source">show</a>
+                        
+                    </p>
+                    <div id="M000201_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 109</span>
+109:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+110:         <span class="ruby-ivar">@data</span> = <span class="ruby-value str">&quot;&quot;</span>
+111:         <span class="ruby-ivar">@params</span> = {}
+112:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000202">
+                    
+                    <a name="M000202"></a><b>connect</b>(db, user, psw=nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000202_source')" id="l_M000202_source">show</a>
+                        
+                    </p>
+                    <div id="M000202_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 114</span>
+114:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">connect</span> <span class="ruby-identifier">db</span>, <span class="ruby-identifier">user</span>, <span class="ruby-identifier">psw</span>=<span class="ruby-keyword kw">nil</span>
+115:         <span class="ruby-identifier">d</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">DefaultDeferrable</span>.<span class="ruby-identifier">new</span>
+116:         <span class="ruby-identifier">d</span>.<span class="ruby-identifier">timeout</span> <span class="ruby-value">15</span>
+117: 
+118:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@pending_query</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@pending_conn</span>
+119:           <span class="ruby-identifier">d</span>.<span class="ruby-identifier">succeed</span> <span class="ruby-keyword kw">false</span>, <span class="ruby-value str">&quot;Operation already in progress&quot;</span>
+120:         <span class="ruby-keyword kw">else</span>
+121:           <span class="ruby-ivar">@pending_conn</span> = <span class="ruby-identifier">d</span>
+122:           <span class="ruby-identifier">prms</span> = {<span class="ruby-value str">&quot;user&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">user</span>, <span class="ruby-value str">&quot;database&quot;</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">db</span>}
+123:           <span class="ruby-ivar">@user</span> = <span class="ruby-identifier">user</span>
+124:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">psw</span>
+125:             <span class="ruby-ivar">@password</span> = <span class="ruby-identifier">psw</span>
+126:             <span class="ruby-comment cmt">#prms[&quot;password&quot;] = psw</span>
+127:           <span class="ruby-keyword kw">end</span>
+128:           <span class="ruby-identifier">send_data</span> <span class="ruby-constant">PostgresPR</span><span class="ruby-operator">::</span><span class="ruby-constant">StartupMessage</span>.<span class="ruby-identifier">new</span>( <span class="ruby-value">3</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value">16</span>, <span class="ruby-identifier">prms</span> ).<span class="ruby-identifier">dump</span>
+129:         <span class="ruby-keyword kw">end</span>
+130: 
+131:         <span class="ruby-identifier">d</span>
+132:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000206">
+                    
+                    <a name="M000206"></a><b>dispatch_conn_message</b>(msg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Cloned and modified from the postgres-pr.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000206_source')" id="l_M000206_source">show</a>
+                        
+                    </p>
+                    <div id="M000206_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 179</span>
+179:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dispatch_conn_message</span> <span class="ruby-identifier">msg</span>
+180:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">msg</span>
+181:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AuthentificationClearTextPassword</span>
+182:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;no password specified&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@password</span>.<span class="ruby-identifier">nil?</span>
+183:           <span class="ruby-identifier">send_data</span> <span class="ruby-constant">PasswordMessage</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@password</span>).<span class="ruby-identifier">dump</span>
+184: 
+185:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AuthentificationCryptPassword</span>
+186:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;no password specified&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@password</span>.<span class="ruby-identifier">nil?</span>
+187:           <span class="ruby-identifier">send_data</span> <span class="ruby-constant">PasswordMessage</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@password</span>.<span class="ruby-identifier">crypt</span>(<span class="ruby-identifier">msg</span>.<span class="ruby-identifier">salt</span>)).<span class="ruby-identifier">dump</span>
+188: 
+189:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AuthentificationMD5Password</span>
+190:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;no password specified&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@password</span>.<span class="ruby-identifier">nil?</span>
+191:           <span class="ruby-identifier">require</span> <span class="ruby-value str">'digest/md5'</span>
+192: 
+193:           <span class="ruby-identifier">m</span> = <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">hexdigest</span>(<span class="ruby-ivar">@password</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@user</span>)
+194:           <span class="ruby-identifier">m</span> = <span class="ruby-constant">Digest</span><span class="ruby-operator">::</span><span class="ruby-constant">MD5</span>.<span class="ruby-identifier">hexdigest</span>(<span class="ruby-identifier">m</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">salt</span>)
+195:           <span class="ruby-identifier">m</span> = <span class="ruby-value str">'md5'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">m</span>
+196:           <span class="ruby-identifier">send_data</span> <span class="ruby-constant">PasswordMessage</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">m</span>).<span class="ruby-identifier">dump</span>
+197: 
+198:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AuthentificationKerberosV4</span>, <span class="ruby-constant">AuthentificationKerberosV5</span>, <span class="ruby-constant">AuthentificationSCMCredential</span>
+199:           <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;unsupported authentification&quot;</span>
+200: 
+201:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AuthentificationOk</span>
+202:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ErrorResponse</span>
+203:           <span class="ruby-identifier">raise</span> <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">field_values</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\t&quot;</span>)
+204:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">NoticeResponse</span>
+205:           <span class="ruby-ivar">@notice_processor</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">msg</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@notice_processor</span>
+206:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ParameterStatus</span>
+207:           <span class="ruby-ivar">@params</span>[<span class="ruby-identifier">msg</span>.<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">value</span>
+208:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">BackendKeyData</span>
+209:           <span class="ruby-comment cmt"># TODO</span>
+210:           <span class="ruby-comment cmt">#p msg</span>
+211:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ReadyForQuery</span>
+212:           <span class="ruby-comment cmt"># TODO: use transaction status</span>
+213:           <span class="ruby-identifier">pc</span>,<span class="ruby-ivar">@pending_conn</span> = <span class="ruby-ivar">@pending_conn</span>,<span class="ruby-keyword kw">nil</span>
+214:           <span class="ruby-identifier">pc</span>.<span class="ruby-identifier">succeed</span> <span class="ruby-keyword kw">true</span>
+215:         <span class="ruby-keyword kw">else</span>
+216:           <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;unhandled message type&quot;</span>
+217:         <span class="ruby-keyword kw">end</span>
+218:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000210">
+                    
+                    <a name="M000210"></a><b>dispatch_query_message</b>(msg)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Cloned and modified from the postgres-pr.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000210_source')" id="l_M000210_source">show</a>
+                        
+                    </p>
+                    <div id="M000210_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 221</span>
+221:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dispatch_query_message</span> <span class="ruby-identifier">msg</span>
+222:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">msg</span>
+223:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">DataRow</span>
+224:           <span class="ruby-ivar">@r</span>.<span class="ruby-identifier">rows</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">columns</span>
+225:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">CommandComplete</span>
+226:           <span class="ruby-ivar">@r</span>.<span class="ruby-identifier">cmd_tag</span> = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">cmd_tag</span>
+227:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ReadyForQuery</span>
+228:           <span class="ruby-identifier">pq</span>,<span class="ruby-ivar">@pending_query</span> = <span class="ruby-ivar">@pending_query</span>,<span class="ruby-keyword kw">nil</span>
+229:           <span class="ruby-identifier">pq</span>.<span class="ruby-identifier">succeed</span> <span class="ruby-keyword kw">true</span>, <span class="ruby-ivar">@r</span>, <span class="ruby-ivar">@e</span>
+230:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">RowDescription</span>
+231:           <span class="ruby-ivar">@r</span>.<span class="ruby-identifier">fields</span> = <span class="ruby-identifier">msg</span>.<span class="ruby-identifier">fields</span>
+232:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">CopyInResponse</span>
+233:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">CopyOutResponse</span>
+234:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">EmptyQueryResponse</span>
+235:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ErrorResponse</span>
+236:           <span class="ruby-comment cmt"># TODO</span>
+237:           <span class="ruby-ivar">@e</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">msg</span>
+238:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">NoticeResponse</span>
+239:           <span class="ruby-ivar">@notice_processor</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">msg</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@notice_processor</span>
+240:         <span class="ruby-keyword kw">else</span>
+241:           <span class="ruby-comment cmt"># TODO</span>
+242:         <span class="ruby-keyword kw">end</span>
+243:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000203">
+                    
+                    <a name="M000203"></a><b>query</b>(sql)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000203_source')" id="l_M000203_source">show</a>
+                        
+                    </p>
+                    <div id="M000203_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 134</span>
+134:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">query</span> <span class="ruby-identifier">sql</span>
+135:         <span class="ruby-identifier">d</span> = <span class="ruby-constant">EM</span><span class="ruby-operator">::</span><span class="ruby-constant">DefaultDeferrable</span>.<span class="ruby-identifier">new</span>
+136:         <span class="ruby-identifier">d</span>.<span class="ruby-identifier">timeout</span> <span class="ruby-value">15</span>
+137: 
+138:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@pending_query</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@pending_conn</span>
+139:           <span class="ruby-identifier">d</span>.<span class="ruby-identifier">succeed</span> <span class="ruby-keyword kw">false</span>, <span class="ruby-value str">&quot;Operation already in progress&quot;</span>
+140:         <span class="ruby-keyword kw">else</span>
+141:           <span class="ruby-ivar">@r</span> = <span class="ruby-constant">PostgresPR</span><span class="ruby-operator">::</span><span class="ruby-constant">Connection</span><span class="ruby-operator">::</span><span class="ruby-constant">Result</span>.<span class="ruby-identifier">new</span>
+142:           <span class="ruby-ivar">@e</span> = []
+143:           <span class="ruby-ivar">@pending_query</span> = <span class="ruby-identifier">d</span>
+144:           <span class="ruby-identifier">send_data</span> <span class="ruby-constant">PostgresPR</span><span class="ruby-operator">::</span><span class="ruby-constant">Query</span>.<span class="ruby-identifier">dump</span>(<span class="ruby-identifier">sql</span>)
+145:         <span class="ruby-keyword kw">end</span>
+146: 
+147:         <span class="ruby-identifier">d</span>
+148:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000204">
+                    
+                    <a name="M000204"></a><b>receive_data</b>(data)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000204_source')" id="l_M000204_source">show</a>
+                        
+                    </p>
+                    <div id="M000204_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 151</span>
+151:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">receive_data</span> <span class="ruby-identifier">data</span>
+152:         <span class="ruby-ivar">@data</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">data</span>
+153:         <span class="ruby-keyword kw">while</span> <span class="ruby-ivar">@data</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">5</span>
+154:           <span class="ruby-identifier">pktlen</span> = <span class="ruby-ivar">@data</span>[<span class="ruby-value">1</span><span class="ruby-operator">...</span><span class="ruby-value">5</span>].<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">&quot;N&quot;</span>).<span class="ruby-identifier">first</span>
+155:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@data</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> (<span class="ruby-value">1</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">pktlen</span>)
+156:             <span class="ruby-identifier">pkt</span> = <span class="ruby-ivar">@data</span>.<span class="ruby-identifier">slice!</span>(<span class="ruby-value">0</span><span class="ruby-operator">...</span>(<span class="ruby-value">1</span><span class="ruby-operator">+</span><span class="ruby-identifier">pktlen</span>))
+157:             <span class="ruby-identifier">m</span> = <span class="ruby-constant">StringIO</span>.<span class="ruby-identifier">open</span>( <span class="ruby-identifier">pkt</span>, <span class="ruby-value str">&quot;r&quot;</span> ) {<span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span> <span class="ruby-constant">PostgresPR</span><span class="ruby-operator">::</span><span class="ruby-constant">Message</span>.<span class="ruby-identifier">read</span>( <span class="ruby-identifier">io</span> ) }
+158:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@pending_conn</span>
+159:               <span class="ruby-identifier">dispatch_conn_message</span> <span class="ruby-identifier">m</span>
+160:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@pending_query</span>
+161:               <span class="ruby-identifier">dispatch_query_message</span> <span class="ruby-identifier">m</span>
+162:             <span class="ruby-keyword kw">else</span>
+163:               <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;Unexpected message from database&quot;</span>
+164:             <span class="ruby-keyword kw">end</span>
+165:           <span class="ruby-keyword kw">else</span>
+166:             <span class="ruby-keyword kw">break</span> <span class="ruby-comment cmt"># very important, break out of the while</span>
+167:           <span class="ruby-keyword kw">end</span>
+168:         <span class="ruby-keyword kw">end</span>
+169:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000205">
+                    
+                    <a name="M000205"></a><b>unbind</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000205_source')" id="l_M000205_source">show</a>
+                        
+                    </p>
+                    <div id="M000205_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/protocols/postgres3.rb, line 172</span>
+172:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unbind</span>
+173:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">o</span> = (<span class="ruby-ivar">@pending_query</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@pending_conn</span>)
+174:           <span class="ruby-identifier">o</span>.<span class="ruby-identifier">succeed</span> <span class="ruby-keyword kw">false</span>, <span class="ruby-value str">&quot;lost connection&quot;</span>
+175:         <span class="ruby-keyword kw">end</span>
+176:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

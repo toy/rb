@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RSpec::Core::Let::ExampleGroupMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            RSpec::Core::Let::ExampleGroupMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/rspec/core/let_rb.html">lib/rspec/core/let.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000331">let</a>,</li>
+                
+                <li><a href="#M000337">let!</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000331">
+                    
+                    <a name="M000331"></a><b>let</b>(name, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Generates a method whose return value is memoized after the first call.
+</p>
+<p>
+@example
+</p>
+<pre>
+  describe Thing do
+    let(:thing) { Thing.new }
+
+    it &quot;does something&quot; do
+      # first invocation, executes block, memoizes and returns result
+      thing.do_something
+
+      # second invocation, returns the memoized value
+      thing.should be_something
+    end
+  end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000331_source')" id="l_M000331_source">show</a>
+                        
+                    </p>
+                    <div id="M000331_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rspec/core/let.rb, line 22</span>
+22:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">let</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+23:           <span class="ruby-identifier">define_method</span>(<span class="ruby-identifier">name</span>) <span class="ruby-keyword kw">do</span>
+24:             <span class="ruby-identifier">__memoized</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-identifier">name</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span> <span class="ruby-identifier">__memoized</span>[<span class="ruby-identifier">k</span>] = <span class="ruby-identifier">instance_eval</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>) }
+25:           <span class="ruby-keyword kw">end</span>
+26:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000337">
+                    
+                    <a name="M000337"></a><b>let!</b>(name, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Just like <tt>let()</tt>, except the block is invoked by an implicit
+<tt>before</tt> hook. This serves a dual purpose of setting up state and
+providing a memoized reference to that state.
+</p>
+<p>
+@example
+</p>
+<pre>
+  class Thing
+    def self.count
+      @count ||= 0
+    end
+
+    def self.count=(val)
+      @count += val
+    end
+
+    def self.reset_count
+      @count = 0
+    end
+
+    def initialize
+      self.class.count += 1
+    end
+  end
+
+  describe Thing do
+    after(:each) { Thing.reset_count }
+
+    context &quot;using let&quot; do
+      let(:thing) { Thing.new }
+
+      it &quot;is not invoked implicitly&quot; do
+        Thing.count.should eq(0)
+      end
+
+      it &quot;can be invoked explicitly&quot; do
+        thing
+        Thing.count.should eq(1)
+      end
+    end
+
+    context &quot;using let!&quot; do
+      let!(:thing) { Thing.new }
+
+      it &quot;is invoked implicitly&quot; do
+        Thing.count.should eq(1)
+      end
+
+      it &quot;returns memoized version on first invocation&quot; do
+        thing
+        Thing.count.should eq(1)
+      end
+    end
+  end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000337_source')" id="l_M000337_source">show</a>
+                        
+                    </p>
+                    <div id="M000337_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rspec/core/let.rb, line 82</span>
+82:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">let!</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+83:           <span class="ruby-identifier">let</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+84:           <span class="ruby-identifier">before</span> { <span class="ruby-identifier">__send__</span>(<span class="ruby-identifier">name</span>) }
+85:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

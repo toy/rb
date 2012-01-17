@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>RubyLex::BufferedReader</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            RubyLex::BufferedReader 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rdoc/parsers/parse_rb_rb.html">lib/rdoc/parsers/parse_rb.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Read an input stream character by character. We allow for unlimited
+ungetting of characters just read.
+</p>
+<p>
+We simplify the implementation greatly by reading the entire input into a
+buffer initially, and then simply traversing it using pointers.
+</p>
+<p>
+We also have to allow for the <em>here document diversion</em>. This little
+gem comes about when the lexer encounters a here document. At this point we
+effectively need to split the input stream into two parts: one to read the
+body of the here document, the other to read the rest of the input line
+where the here document was initially encountered. For example, we might
+have
+</p>
+<pre>
+  do_something(&lt;&lt;-A, &lt;&lt;-B)
+    stuff
+    for
+  A
+    stuff
+    for
+  B
+</pre>
+<p>
+When the lexer encounters the <<A, it reads until the end of the line, and
+keeps it around for later. It then reads the body of the here document.
+Once complete, it needs to read the rest of the original line, but then
+skip the here document body.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003855">column</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003862">divert_read_from</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003859">get_read</a>,</li>
+                
+                <li><a href="#M003856">getc</a>,</li>
+                
+                <li><a href="#M003857">getc_already_read</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003854">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003860">peek</a>,</li>
+                
+                <li><a href="#M003861">peek_equal</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M003858">ungetc</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>line_num</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003855">
+                    
+                    <a name="M003855"></a><b>column</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003855_source')" id="l_M003855_source">show</a>
+                        
+                    </p>
+                    <div id="M003855_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 367</span>
+367:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">column</span>
+368:       <span class="ruby-ivar">@offset</span> <span class="ruby-operator">-</span> <span class="ruby-ivar">@last_newline</span>
+369:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003862">
+                    
+                    <a name="M003862"></a><b>divert_read_from</b>(reserve)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003862_source')" id="l_M003862_source">show</a>
+                        
+                    </p>
+                    <div id="M003862_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 421</span>
+421:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">divert_read_from</span>(<span class="ruby-identifier">reserve</span>)
+422:       <span class="ruby-ivar">@content</span>[<span class="ruby-ivar">@offset</span>, <span class="ruby-value">0</span>] = <span class="ruby-identifier">reserve</span>
+423:       <span class="ruby-ivar">@size</span>      = <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">size</span>
+424:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003859">
+                    
+                    <a name="M003859"></a><b>get_read</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003859_source')" id="l_M003859_source">show</a>
+                        
+                    </p>
+                    <div id="M003859_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 402</span>
+402:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_read</span>
+403:       <span class="ruby-identifier">res</span> = <span class="ruby-ivar">@content</span>[<span class="ruby-ivar">@read_back_offset</span><span class="ruby-operator">...</span><span class="ruby-ivar">@offset</span>]
+404:       <span class="ruby-ivar">@read_back_offset</span> = <span class="ruby-ivar">@offset</span>
+405:       <span class="ruby-identifier">res</span>
+406:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003856">
+                    
+                    <a name="M003856"></a><b>getc</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003856_source')" id="l_M003856_source">show</a>
+                        
+                    </p>
+                    <div id="M003856_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 371</span>
+371:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">getc</span>
+372:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@offset</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-ivar">@size</span>
+373:       <span class="ruby-identifier">ch</span> = <span class="ruby-ivar">@content</span>[<span class="ruby-ivar">@offset</span>, <span class="ruby-value">1</span>]
+374:       
+375:       <span class="ruby-ivar">@offset</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+376:       <span class="ruby-ivar">@hwm</span> = <span class="ruby-ivar">@offset</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@hwm</span> <span class="ruby-operator">&lt;</span> <span class="ruby-ivar">@offset</span>
+377:       
+378:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@newline_pending</span>
+379:         <span class="ruby-ivar">@line_num</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+380:         <span class="ruby-ivar">@last_newline</span> = <span class="ruby-ivar">@offset</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>
+381:         <span class="ruby-ivar">@newline_pending</span> = <span class="ruby-keyword kw">false</span>
+382:       <span class="ruby-keyword kw">end</span>
+383:       
+384:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ch</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;\n&quot;</span>
+385:         <span class="ruby-ivar">@newline_pending</span> = <span class="ruby-keyword kw">true</span>
+386:       <span class="ruby-keyword kw">end</span>
+387:       <span class="ruby-identifier">ch</span>
+388:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003857">
+                    
+                    <a name="M003857"></a><b>getc_already_read</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003857_source')" id="l_M003857_source">show</a>
+                        
+                    </p>
+                    <div id="M003857_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 390</span>
+390:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">getc_already_read</span>
+391:       <span class="ruby-identifier">getc</span>
+392:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003860">
+                    
+                    <a name="M003860"></a><b>peek</b>(at)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003860_source')" id="l_M003860_source">show</a>
+                        
+                    </p>
+                    <div id="M003860_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 408</span>
+408:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">peek</span>(<span class="ruby-identifier">at</span>)
+409:       <span class="ruby-identifier">pos</span> = <span class="ruby-ivar">@offset</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">at</span>
+410:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pos</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-ivar">@size</span>
+411:         <span class="ruby-keyword kw">nil</span>
+412:       <span class="ruby-keyword kw">else</span>
+413:         <span class="ruby-ivar">@content</span>[<span class="ruby-identifier">pos</span>, <span class="ruby-value">1</span>]
+414:       <span class="ruby-keyword kw">end</span>
+415:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003861">
+                    
+                    <a name="M003861"></a><b>peek_equal</b>(str)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003861_source')" id="l_M003861_source">show</a>
+                        
+                    </p>
+                    <div id="M003861_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 417</span>
+417:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">peek_equal</span>(<span class="ruby-identifier">str</span>)
+418:       <span class="ruby-ivar">@content</span>[<span class="ruby-ivar">@offset</span>, <span class="ruby-identifier">str</span>.<span class="ruby-identifier">length</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">str</span>
+419:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M003858">
+                    
+                    <a name="M003858"></a><b>ungetc</b>(ch)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003858_source')" id="l_M003858_source">show</a>
+                        
+                    </p>
+                    <div id="M003858_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 394</span>
+394:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ungetc</span>(<span class="ruby-identifier">ch</span>)
+395:       <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;unget past beginning of file&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@offset</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-value">0</span>
+396:       <span class="ruby-ivar">@offset</span> <span class="ruby-operator">-=</span> <span class="ruby-value">1</span>
+397:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@content</span>[<span class="ruby-ivar">@offset</span>] <span class="ruby-operator">==</span> <span class="ruby-value">?\n</span>
+398:         <span class="ruby-ivar">@newline_pending</span> = <span class="ruby-keyword kw">false</span>
+399:       <span class="ruby-keyword kw">end</span>
+400:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M003854">
+                    
+                    <a name="M003854"></a><b>new</b>(content)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M003854_source')" id="l_M003854_source">show</a>
+                        
+                    </p>
+                    <div id="M003854_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rdoc/parsers/parse_rb.rb, line 348</span>
+348:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">content</span>)
+349:       <span class="ruby-keyword kw">if</span> <span class="ruby-regexp re">/\t/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">content</span>
+350:         <span class="ruby-identifier">tab_width</span> = <span class="ruby-constant">Options</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">tab_width</span>
+351:         <span class="ruby-identifier">content</span> = <span class="ruby-identifier">content</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/\n/</span>).<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+352:           <span class="ruby-value">1</span> <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">line</span>.<span class="ruby-identifier">gsub!</span>(<span class="ruby-regexp re">/\t+/</span>) { <span class="ruby-value str">' '</span> <span class="ruby-operator">*</span> (<span class="ruby-identifier">tab_width</span><span class="ruby-operator">*</span><span class="ruby-identifier">$&amp;</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">$`</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">tab_width</span>)}  <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">$~</span> <span class="ruby-comment cmt">#`</span>
+353:           <span class="ruby-identifier">line</span>
+354:         <span class="ruby-keyword kw">end</span> .<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+355:       <span class="ruby-keyword kw">end</span>
+356:       <span class="ruby-ivar">@content</span>   = <span class="ruby-identifier">content</span>
+357:       <span class="ruby-ivar">@content</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;\n&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@content</span>[<span class="ruby-value">-1</span>,<span class="ruby-value">1</span>] <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;\n&quot;</span>
+358:       <span class="ruby-ivar">@size</span>      = <span class="ruby-ivar">@content</span>.<span class="ruby-identifier">size</span>
+359:       <span class="ruby-ivar">@offset</span>    = <span class="ruby-value">0</span>
+360:       <span class="ruby-ivar">@hwm</span>       = <span class="ruby-value">0</span>
+361:       <span class="ruby-ivar">@line_num</span>  = <span class="ruby-value">1</span>
+362:       <span class="ruby-ivar">@read_back_offset</span> = <span class="ruby-value">0</span>
+363:       <span class="ruby-ivar">@last_newline</span> = <span class="ruby-value">0</span>
+364:       <span class="ruby-ivar">@newline_pending</span> = <span class="ruby-keyword kw">false</span>
+365:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

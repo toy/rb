@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Gem::Deprecate</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Gem::Deprecate 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/rubygems/deprecate_rb.html">lib/rubygems/deprecate.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M006717">deprecate</a>,</li>
+                
+                <li><a href="#M006717">deprecate</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M006716">skip_during</a>,</li>
+                
+                <li><a href="#M006716">skip_during</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M006717">
+                    
+                    <a name="M006717"></a><b>deprecate</b>(name, repl, year, month)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Simple deprecation method that deprecates <tt>name</tt> by wrapping it up
+in a dummy method. It warns on each call to the dummy method telling the
+user of <tt>repl</tt> (unless <tt>repl</tt> is :none) and the year/month
+that it is planned to go away.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M006717_source')" id="l_M006717_source">show</a>
+                        
+                    </p>
+                    <div id="M006717_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rubygems/deprecate.rb, line 50</span>
+50:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">deprecate</span> <span class="ruby-identifier">name</span>, <span class="ruby-identifier">repl</span>, <span class="ruby-identifier">year</span>, <span class="ruby-identifier">month</span>
+51:       <span class="ruby-identifier">class_eval</span> {
+52:         <span class="ruby-identifier">old</span> = <span class="ruby-node">&quot;_deprecated_#{name}&quot;</span>
+53:         <span class="ruby-identifier">alias_method</span> <span class="ruby-identifier">old</span>, <span class="ruby-identifier">name</span>
+54:         <span class="ruby-identifier">define_method</span> <span class="ruby-identifier">name</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span><span class="ruby-operator">|</span> <span class="ruby-comment cmt"># TODO: really works on 1.8.7?</span>
+55:           <span class="ruby-identifier">klass</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">kind_of?</span> <span class="ruby-constant">Module</span>
+56:           <span class="ruby-identifier">target</span> = <span class="ruby-identifier">klass</span> <span class="ruby-value">? </span><span class="ruby-node">&quot;#{self}.&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{self.class}#&quot;</span>
+57:           <span class="ruby-identifier">msg</span> = [ <span class="ruby-node">&quot;NOTE: #{target}#{name} is deprecated&quot;</span>,
+58:             <span class="ruby-identifier">repl</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:none</span> <span class="ruby-operator">?</span> <span class="ruby-value str">&quot; with no replacement&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;, use #{repl}&quot;</span>,
+59:             <span class="ruby-value str">&quot;. It will be removed on or after %4d-%02d-01.&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">year</span>, <span class="ruby-identifier">month</span>],
+60:             <span class="ruby-node">&quot;\n#{target}#{name} called from #{Gem.location_of_caller.join(&quot;:&quot;)}&quot;</span>,
+61:           ]
+62:           <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;#{msg.join}.&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>
+63:           <span class="ruby-identifier">send</span> <span class="ruby-identifier">old</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>
+64:         <span class="ruby-keyword kw">end</span>
+65:       }
+66:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M006716">
+                    
+                    <a name="M006716"></a><b>skip_during</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Temporarily turn off warnings. Intended for tests only.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M006716_source')" id="l_M006716_source">show</a>
+                        
+                    </p>
+                    <div id="M006716_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rubygems/deprecate.rb, line 37</span>
+37:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">skip_during</span>
+38:       <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>, <span class="ruby-identifier">original</span> = <span class="ruby-keyword kw">true</span>, <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>
+39:       <span class="ruby-keyword kw">yield</span>
+40:     <span class="ruby-keyword kw">ensure</span>
+41:       <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span> = <span class="ruby-identifier">original</span>
+42:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M006717">
+                    
+                    <a name="M006717"></a><b>deprecate</b>(name, repl, year, month)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Simple deprecation method that deprecates <tt>name</tt> by wrapping it up
+in a dummy method. It warns on each call to the dummy method telling the
+user of <tt>repl</tt> (unless <tt>repl</tt> is :none) and the year/month
+that it is planned to go away.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M006717_source')" id="l_M006717_source">show</a>
+                        
+                    </p>
+                    <div id="M006717_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rubygems/deprecate.rb, line 50</span>
+50:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">deprecate</span> <span class="ruby-identifier">name</span>, <span class="ruby-identifier">repl</span>, <span class="ruby-identifier">year</span>, <span class="ruby-identifier">month</span>
+51:       <span class="ruby-identifier">class_eval</span> {
+52:         <span class="ruby-identifier">old</span> = <span class="ruby-node">&quot;_deprecated_#{name}&quot;</span>
+53:         <span class="ruby-identifier">alias_method</span> <span class="ruby-identifier">old</span>, <span class="ruby-identifier">name</span>
+54:         <span class="ruby-identifier">define_method</span> <span class="ruby-identifier">name</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span><span class="ruby-operator">|</span> <span class="ruby-comment cmt"># TODO: really works on 1.8.7?</span>
+55:           <span class="ruby-identifier">klass</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">kind_of?</span> <span class="ruby-constant">Module</span>
+56:           <span class="ruby-identifier">target</span> = <span class="ruby-identifier">klass</span> <span class="ruby-value">? </span><span class="ruby-node">&quot;#{self}.&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{self.class}#&quot;</span>
+57:           <span class="ruby-identifier">msg</span> = [ <span class="ruby-node">&quot;NOTE: #{target}#{name} is deprecated&quot;</span>,
+58:             <span class="ruby-identifier">repl</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:none</span> <span class="ruby-operator">?</span> <span class="ruby-value str">&quot; with no replacement&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;, use #{repl}&quot;</span>,
+59:             <span class="ruby-value str">&quot;. It will be removed on or after %4d-%02d-01.&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">year</span>, <span class="ruby-identifier">month</span>],
+60:             <span class="ruby-node">&quot;\n#{target}#{name} called from #{Gem.location_of_caller.join(&quot;:&quot;)}&quot;</span>,
+61:           ]
+62:           <span class="ruby-identifier">warn</span> <span class="ruby-node">&quot;#{msg.join}.&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>
+63:           <span class="ruby-identifier">send</span> <span class="ruby-identifier">old</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>
+64:         <span class="ruby-keyword kw">end</span>
+65:       }
+66:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M006716">
+                    
+                    <a name="M006716"></a><b>skip_during</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Temporarily turn off warnings. Intended for tests only.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M006716_source')" id="l_M006716_source">show</a>
+                        
+                    </p>
+                    <div id="M006716_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rubygems/deprecate.rb, line 37</span>
+37:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">skip_during</span>
+38:       <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>, <span class="ruby-identifier">original</span> = <span class="ruby-keyword kw">true</span>, <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span>
+39:       <span class="ruby-keyword kw">yield</span>
+40:     <span class="ruby-keyword kw">ensure</span>
+41:       <span class="ruby-constant">Gem</span><span class="ruby-operator">::</span><span class="ruby-constant">Deprecate</span>.<span class="ruby-identifier">skip</span> = <span class="ruby-identifier">original</span>
+42:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Diff::LCS::ContextDiffCallbacks</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Diff::LCS::ContextDiffCallbacks 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="DiffCallbacks.html">Diff::LCS::DiffCallbacks</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/diff/lcs/callbacks_rb.html">lib/diff/lcs/callbacks.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+This will produce a compound array of contextual diff change objects. Each
+element in the diffs array is a &#8220;hunk&#8221; array, where each
+element in each &#8220;hunk&#8221; array is a single change. Each change is
+a <a href="ContextChange.html">Diff::LCS::ContextChange</a> that contains
+both the old index and new index values for the change. The
+&#8220;hunk&#8221; provides the full context for the changes. Both old and
+new objects will be presented for changed objects. <tt>nil</tt> will be
+substituted for a discarded object.
+</p>
+<pre>
+    seq1 = %w(a b c e h j l m n p)
+    seq2 = %w(b c d e f j k l m r s t)
+
+    diffs = Diff::LCS.diff(seq1, seq2, Diff::LCS::ContextDiffCallbacks)
+      # This example shows a simplified array format.
+      # [ [ [ '-', [  0, 'a' ], [  0, nil ] ] ],   # 1
+      #   [ [ '+', [  3, nil ], [  2, 'd' ] ] ],   # 2
+      #   [ [ '-', [  4, 'h' ], [  4, nil ] ],     # 3
+      #     [ '+', [  5, nil ], [  4, 'f' ] ] ],
+      #   [ [ '+', [  6, nil ], [  6, 'k' ] ] ],   # 4
+      #   [ [ '-', [  8, 'n' ], [  9, nil ] ],     # 5
+      #     [ '+', [  9, nil ], [  9, 'r' ] ],
+      #     [ '-', [  9, 'p' ], [ 10, nil ] ],
+      #     [ '+', [ 10, nil ], [ 10, 's' ] ],
+      #     [ '+', [ 10, nil ], [ 11, 't' ] ] ] ]
+</pre>
+<p>
+The five hunks shown are comprised of individual changes; if there is a
+related set of changes, they are still shown individually.
+</p>
+<p>
+This callback can also be used with <a
+href="../LCS.html#M000062">Diff::LCS#sdiff</a>, which will produce results
+like:
+</p>
+<pre>
+    diffs = Diff::LCS.sdiff(seq1, seq2, Diff::LCS::ContextCallbacks)
+      # This example shows a simplified array format.
+      # [ [ [ &quot;-&quot;, [  0, &quot;a&quot; ], [  0, nil ] ] ],  # 1
+      #   [ [ &quot;+&quot;, [  3, nil ], [  2, &quot;d&quot; ] ] ],  # 2
+      #   [ [ &quot;!&quot;, [  4, &quot;h&quot; ], [  4, &quot;f&quot; ] ] ],  # 3
+      #   [ [ &quot;+&quot;, [  6, nil ], [  6, &quot;k&quot; ] ] ],  # 4
+      #   [ [ &quot;!&quot;, [  8, &quot;n&quot; ], [  9, &quot;r&quot; ] ],    # 5
+      #     [ &quot;!&quot;, [  9, &quot;p&quot; ], [ 10, &quot;s&quot; ] ],
+      #     [ &quot;+&quot;, [ 10, nil ], [ 11, &quot;t&quot; ] ] ] ]
+</pre>
+<p>
+The five hunks are still present, but are significantly shorter in total
+presentation, because changed items are shown as changes (&#8220;!&#8221;)
+instead of potentially &#8220;mismatched&#8221; pairs of additions and
+deletions.
+</p>
+<p>
+The result of this operation is similar to that of <a
+href="SDiffCallbacks.html">Diff::LCS::SDiffCallbacks</a>. They may be
+compared as:
+</p>
+<pre>
+    s = Diff::LCS.sdiff(seq1, seq2).reject { |e| e.action == &quot;=&quot; }
+    c = Diff::LCS.sdiff(seq1, seq2, Diff::LCS::ContextDiffCallbacks).flatten
+
+    s == c # -&gt; true
+</pre>
+<h3>Use</h3>
+<p>
+This callback object must be initialised and can be used by the <a
+href="../LCS.html#M000061">Diff::LCS#diff</a> or <a
+href="../LCS.html#M000062">Diff::LCS#sdiff</a> methods.
+</p>
+<pre>
+    cbo = Diff::LCS::ContextDiffCallbacks.new
+    Diff::LCS.LCS(seq1, seq2, cbo)
+    cbo.finish
+</pre>
+<p>
+Note that the call to finish is absolutely necessary, or the last set of
+changes will not be visible. Alternatively, can be used as:
+</p>
+<pre>
+    cbo = Diff::LCS::ContextDiffCallbacks.new { |tcbo| Diff::LCS.LCS(seq1, seq2, tcbo) }
+</pre>
+<p>
+The necessary finish call will be made.
+</p>
+<h3>Simplified <a href="../../Array.html">Array</a> Format</h3>
+<p>
+The simplified array format used in the example above can be obtained with:
+</p>
+<pre>
+    require 'pp'
+    pp diffs.map { |e| e.map { |f| f.to_a } }
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000022">change</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000017">discard_a</a>,</li>
+                
+                <li><a href="#M000018">discard_b</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000022">
+                    
+                    <a name="M000022"></a><b>change</b>(event)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000022_source')" id="l_M000022_source">show</a>
+                        
+                    </p>
+                    <div id="M000022_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/diff/lcs/callbacks.rb, line 231</span>
+231:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">change</span>(<span class="ruby-identifier">event</span>)
+232:     <span class="ruby-ivar">@hunk</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">Diff</span><span class="ruby-operator">::</span><span class="ruby-constant">LCS</span><span class="ruby-operator">::</span><span class="ruby-constant">ContextChange</span>.<span class="ruby-identifier">simplify</span>(<span class="ruby-identifier">event</span>)
+233:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000017">
+                    
+                    <a name="M000017"></a><b>discard_a</b>(event)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000017_source')" id="l_M000017_source">show</a>
+                        
+                    </p>
+                    <div id="M000017_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/diff/lcs/callbacks.rb, line 223</span>
+223:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discard_a</span>(<span class="ruby-identifier">event</span>)
+224:     <span class="ruby-ivar">@hunk</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">Diff</span><span class="ruby-operator">::</span><span class="ruby-constant">LCS</span><span class="ruby-operator">::</span><span class="ruby-constant">ContextChange</span>.<span class="ruby-identifier">simplify</span>(<span class="ruby-identifier">event</span>)
+225:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>discard_b</b>(event)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/diff/lcs/callbacks.rb, line 227</span>
+227:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">discard_b</span>(<span class="ruby-identifier">event</span>)
+228:     <span class="ruby-ivar">@hunk</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-constant">Diff</span><span class="ruby-operator">::</span><span class="ruby-constant">LCS</span><span class="ruby-operator">::</span><span class="ruby-constant">ContextChange</span>.<span class="ruby-identifier">simplify</span>(<span class="ruby-identifier">event</span>)
+229:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

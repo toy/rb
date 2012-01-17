@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Thu Dec 01 02:49:45 +0100 2011</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# YAJL C Bindings for Ruby
+</p>
+<p>
+This gem is a C binding to the excellent YAJL <a
+href="../classes/JSON.html">JSON</a> parsing and generation library.
+</p>
+<p>
+You can read more info at the project&#8217;s website <a
+href="http://lloyd.github.com/yajl">lloyd.github.com/yajl</a> or check out
+its code at <a
+href="http://github.com/lloyd/yajl.">github.com/lloyd/yajl.</a>
+</p>
+<p>
+## Features
+</p>
+<ul>
+<li><a href="../classes/JSON.html">JSON</a> parsing and encoding directly to
+and from an IO stream (file, socket, etc) or String. Compressed stream
+parsing and encoding supported for Bzip2, Gzip and Deflate.
+
+</li>
+<li>Parse and encode <b>multiple</b> <a href="../classes/JSON.html">JSON</a>
+objects to and from streams or strings continuously.
+
+</li>
+<li><a href="../classes/JSON.html">JSON</a> gem compatibility API - allows
+yajl-ruby to be used as a drop-in replacement for the <a
+href="../classes/JSON.html">JSON</a> gem
+
+</li>
+<li>Basic HTTP client (only GET requests supported for now) which parses <a
+href="../classes/JSON.html">JSON</a> directly off the response body *as
+it&#8217;s being received*
+
+</li>
+<li>~3.5x faster than <a href="../classes/JSON.html#M000012">JSON.generate</a>
+
+</li>
+<li>~1.9x faster than <a href="../classes/JSON.html#M000022">JSON.parse</a>
+
+</li>
+<li>~4.5x faster than YAML.load
+
+</li>
+<li>~377.5x faster than YAML.dump
+
+</li>
+<li>~1.5x faster than Marshal.load
+
+</li>
+<li>~2x faster than Marshal.dump
+
+</li>
+</ul>
+<p>
+## How to install
+</p>
+<p>
+Go ahead and install it as usual:
+</p>
+<p>
+``` gem install yajl-ruby ```
+</p>
+<p>
+## Example of use
+</p>
+<p>
+NOTE: I&#8217;m building up a collection of small examples in the examples
+(<a
+href="http://github.com/brianmario/yajl-ruby/tree/master/examples">github.com/brianmario/yajl-ruby/tree/master/examples</a>)
+folder.
+</p>
+<p>
+First, you&#8217;re probably gonna want to require it:
+</p>
+<p>
+``` ruby require &#8216;yajl&#8217; ```
+</p>
+<p>
+### Parsing
+</p>
+<p>
+Then maybe parse some <a href="../classes/JSON.html">JSON</a> from:
+</p>
+<p>
+a File IO
+</p>
+<p>
+``` ruby json = File.new(&#8216;test.json&#8217;, &#8216;r&#8217;) parser =
+Yajl::Parser.new hash = parser.parse(json) ```
+</p>
+<p>
+or maybe a StringIO
+</p>
+<p>
+``` ruby json = StringIO.new(&#8220;&#8230;some <a
+href="../classes/JSON.html">JSON</a>&#8230;&#8221;) parser =
+Yajl::Parser.new hash = parser.parse(json) ```
+</p>
+<p>
+or maybe STDIN
+</p>
+<p>
+``` cat someJsonFile.json | ruby -ryajl -e &#8220;puts <a
+href="../classes/Yajl/Parser.html#M000032">Yajl::Parser.parse(STDIN)</a>.inspect&#8221;
+```
+</p>
+<p>
+Or lets say you didn&#8217;t have access to the IO object that contained <a
+href="../classes/JSON.html">JSON</a> data, but instead only had access to
+chunks of it at a time. No problem!
+</p>
+<p>
+(Assume we&#8217;re in an EventMachine::Connection instance)
+</p>
+<p>
+``` ruby def post_init
+</p>
+<pre>
+   @parser = Yajl::Parser.new(:symbolize_keys =&gt; true)
+</pre>
+<p>
+end
+</p>
+<p>
+def object_parsed(obj)
+</p>
+<pre>
+   puts &quot;Sometimes one pays most for the things one gets for nothing. - Albert Einstein&quot;
+   puts obj.inspect
+ end
+</pre>
+<p>
+def connection_completed
+</p>
+<pre>
+  # once a full JSON object has been parsed from the stream
+  # object_parsed will be called, and passed the constructed object
+  @parser.on_parse_complete = method(:object_parsed)
+</pre>
+<p>
+end
+</p>
+<p>
+def receive_data(data)
+</p>
+<pre>
+  # continue passing chunks
+  @parser &lt;&lt; data
+</pre>
+<p>
+end ```
+</p>
+<p>
+Or if you don&#8217;t need to stream it, it&#8217;ll just return the built
+object from the parse when it&#8217;s done. NOTE: if there are going to be
+multiple <a href="../classes/JSON.html">JSON</a> strings in the input, you
+<b>must</b> specify a block or callback as this is how yajl-ruby will hand
+you (the caller) each object as it&#8217;s parsed off the input.
+</p>
+<p>
+``` ruby obj = <a
+href="../classes/Yajl/Parser.html#M000032">Yajl::Parser.parse(str_or_io)</a>
+```
+</p>
+<p>
+Or how about a <a href="../classes/JSON.html">JSON</a> API HTTP request?
+This actually makes a request using a raw TCPSocket, then parses the <a
+href="../classes/JSON.html">JSON</a> body right off the socket. While
+it&#8217;s being received over the wire!
+</p>
+<p>
+``` ruby require &#8216;uri&#8217; require &#8216;yajl/http_stream&#8216;
+</p>
+<p>
+url = URI.parse(&#8220;<a
+href="http://search.twitter.com/search.json?q=engineyard">search.twitter.com/search.json?q=engineyard</a>&#8220;)
+results = <a
+href="../classes/Yajl/HttpStream.html#M000015">Yajl::HttpStream.get(url)</a>
+```
+</p>
+<p>
+Or do the same request, with Gzip and Deflate output compression support
+(also supports Bzip2, if loaded): (this does the same raw socket Request,
+but transparently parses the compressed response body)
+</p>
+<p>
+``` ruby require &#8216;uri&#8217; require &#8216;yajl/gzip&#8217; require
+&#8216;yajl/deflate&#8217; require &#8216;yajl/http_stream&#8216;
+</p>
+<p>
+url = URI.parse(&#8220;<a
+href="http://search.twitter.com/search.json?q=engineyard">search.twitter.com/search.json?q=engineyard</a>&#8220;)
+results = <a
+href="../classes/Yajl/HttpStream.html#M000015">Yajl::HttpStream.get(url)</a>
+```
+</p>
+<p>
+Since yajl-ruby parses <a href="../classes/JSON.html">JSON</a> as a stream,
+supporting API&#8217;s like Twitter&#8217;s Streaming API are a
+piece-of-cake. You can simply supply a block to `<a
+href="../classes/Yajl/HttpStream.html#M000015">Yajl::HttpStream.get</a>`,
+which is used as the callback for when a <a
+href="../classes/JSON.html">JSON</a> object has been unserialized off the
+stream. For the case of this Twitter Streaming API call, the callback gets
+fired a few times a second (depending on your connection speed). The code
+below is all that&#8217;s needed to make the request and stream
+unserialized Ruby hashes off the response, continuously. You&#8217;ll note
+that I&#8217;ve enabled the :symbolize_keys parser option as well. Doing so
+is much more efficient for parsing <a href="../classes/JSON.html">JSON</a>
+streams with lots of repetitive keys - for things like result sets or
+multiple API requests - than the same parse with string keys. This is
+because Ruby will reuse (and never GC) its symbol table. Be that as it may,
+if you want to parse <a href="../classes/JSON.html">JSON</a> strings with
+random key names it&#8217;s much better to leave string keys enabled (the
+default), so they can get GC&#8217;d later.
+</p>
+<p>
+``` ruby require &#8216;uri&#8217; require &#8216;yajl/http_stream&#8216;
+</p>
+<p>
+uri = URI.parse(&#8220;<a
+href="http://#{username}:#{password}@stream.twitter.com/spritzer.json">#{username}:#{password}@stream.twitter.com/spritzer.json</a>&#8220;)
+<a
+href="../classes/Yajl/HttpStream.html#M000015">Yajl::HttpStream.get</a>(uri,
+:symbolize_keys => true) do |hash|
+</p>
+<pre>
+  puts hash.inspect
+</pre>
+<p>
+end ```
+</p>
+<p>
+Or how about parsing directly from a compressed file?
+</p>
+<p>
+``` ruby require &#8216;yajl/bzip2&#8216;
+</p>
+<p>
+file = File.new(&#8216;some.json.bz2&#8217;, &#8216;r&#8217;) result = <a
+href="../classes/Yajl/Bzip2/StreamReader.html#M000001">Yajl::Bzip2::StreamReader.parse(file)</a>
+```
+</p>
+<p>
+### Encoding
+</p>
+<p>
+Since yajl-ruby does everything using streams, you simply need to pass the
+object to encode, and the IO to write the stream to (this happens in
+chunks).
+</p>
+<p>
+This allows you to encode <a href="../classes/JSON.html">JSON</a> as a
+stream, writing directly to a socket
+</p>
+<p>
+``` ruby socket = TCPSocket.new(&#8216;192.168.1.101&#8217;, 9000) hash =
+{:foo => 12425125, :bar => &#8220;some string&#8221;, &#8230; } encoder =
+Yajl::Encoder.new <a
+href="../classes/Yajl/Encoder.html#M000033">Yajl::Encoder.encode</a>(hash,
+socket) ```
+</p>
+<p>
+Or what if you wanted to compress the stream over the wire?
+</p>
+<p>
+``` ruby require &#8216;yajl/gzip&#8217; socket =
+TCPSocket.new(&#8216;192.168.1.101&#8217;, 9000) hash = {:foo => 12425125,
+:bar => &#8220;some string&#8221;, &#8230; } <a
+href="../classes/Yajl/Gzip/StreamWriter.html#M000010">Yajl::Gzip::StreamWriter.encode</a>(hash,
+socket) ```
+</p>
+<p>
+Or what about encoding multiple objects to <a
+href="../classes/JSON.html">JSON</a> over the same stream? This example
+will encode and send 50 <a href="../classes/JSON.html">JSON</a> objects
+over the same stream, continuously.
+</p>
+<p>
+``` ruby socket = TCPSocket.new(&#8216;192.168.1.101&#8217;, 9000) encoder
+= Yajl::Encoder.new 50.times do
+</p>
+<pre>
+  hash = {:current_time =&gt; Time.now.to_f, :foo =&gt; 12425125}
+  encoder.encode(hash, socket)
+</pre>
+<p>
+end ```
+</p>
+<p>
+Using `EventMachine` and you want to encode and send in chunks? (Assume
+we&#8217;re in an `EventMachine::Connection` instance)
+</p>
+<p>
+``` ruby def post_init
+</p>
+<pre>
+   # Passing a :terminator character will let us determine when the encoder
+   # is done encoding the current object
+   @encoder = Yajl::Encoder.new
+   motd_contents = File.read(&quot;/path/to/motd.txt&quot;)
+   status = File.read(&quot;/path/to/huge/status_file.txt&quot;)
+   @motd = {:motd =&gt; motd_contents, :system_status =&gt; status}
+</pre>
+<p>
+end
+</p>
+<p>
+def connection_completed
+</p>
+<pre>
+  # The encoder will do its best to hand you data in chunks that
+  # are around 8kb (but you may see some that are larger)
+  #
+  # It should be noted that you could have also assigned the _on_progress_ callback
+  # much like you can assign the _on_parse_complete_ callback with the parser class.
+  # Passing a block (like below) essentially tells the encoder to use that block
+  # as the callback normally assigned to _on_progress_.
+  #
+  # Send our MOTD and status
+  @encoder.encode(@motd) do |chunk|
+    if chunk.nil? # got our terminator, encoding is done
+      close_connection_after_writing
+    else
+      send_data(chunk)
+    end
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+But to make things simple, you might just want to let yajl-ruby do all the
+hard work for you and just hand back a string when it&#8217;s finished. In
+that case, just don&#8217;t provide and IO or block (or assign the
+on_progress callback).
+</p>
+<p>
+``` ruby str = <a
+href="../classes/Yajl/Encoder.html#M000033">Yajl::Encoder.encode(obj)</a>
+```
+</p>
+<p>
+You can also use `Yajl::Bzip2::StreamWriter` and
+`Yajl::Deflate::StreamWriter`. So you can pick whichever fits your
+CPU/bandwidth sweet-spot.
+</p>
+<p>
+### HTML Safety
+</p>
+<p>
+If you plan on embedding the output from the encoder in the DOM,
+you&#8217;ll want to make sure you use the html_safe option on the encoder.
+This will escape all &#8217;/&#8217; characters to ensure no closing tags
+can be injected, preventing XSS.
+</p>
+<p>
+Meaning the following should be perfectly safe:
+</p>
+<p>
+``` html <script type=&#8220;text/javascript&#8220;>
+</p>
+<pre>
+  var escaped_str = &lt;%= Yajl::Encoder.encode(&quot;&lt;/script&gt;&lt;script&gt;alert('hi!');&lt;/script&gt;&quot;, :html_safe =&gt; true) %&gt;;
+</pre>
+<p>
+</script> ```
+</p>
+<p>
+## <a href="../classes/JSON.html">JSON</a> gem Compatibility API
+</p>
+<p>
+The <a href="../classes/JSON.html">JSON</a> gem compatibility API
+isn&#8217;t enabled by default. You have to explicitly require it like so:
+</p>
+<p>
+``` ruby require &#8216;yajl/json_gem&#8217; ```
+</p>
+<p>
+That&#8217;s right, you can just replace `&#8220;require
+&#8216;json&#8217;&#8221;` with the line above and you&#8217;re done!
+</p>
+<p>
+This will require yajl-ruby itself, as well as enable its <a
+href="../classes/JSON.html">JSON</a> gem compatibility API.
+</p>
+<p>
+This includes the following API:
+</p>
+<p>
+<a href="../classes/JSON.html#M000022">JSON.parse</a>, <a
+href="../classes/JSON.html#M000012">JSON.generate</a>, <a
+href="../classes/JSON.html#M000013">JSON.pretty_generate</a>, <a
+href="../classes/JSON.html#M000026">JSON.load</a>, <a
+href="../classes/JSON.html#M000016">JSON.dump</a> and all of the to_json
+instance method overrides for Ruby&#8217;s primitive objects
+</p>
+<p>
+Once the compatibility API is enabled, your existing or new project should
+work as if the <a href="../classes/JSON.html">JSON</a> gem itself were
+being used. Only you&#8217;ll be using <a
+href="../classes/Yajl.html">Yajl</a> ;)
+</p>
+<p>
+There are a lot more possibilities that I&#8217;d love to see other
+gems/plugins for someday.
+</p>
+<p>
+Some ideas:
+</p>
+<ul>
+<li>parsing logs in <a href="../classes/JSON.html">JSON</a> format
+
+</li>
+<li>a Rails plugin - DONE! (<a
+href="http://github.com/technoweenie/yajl-rails">github.com/technoweenie/yajl-rails</a>)
+
+</li>
+<li>official support in Rails 3 - DONE (<a
+href="http://github.com/rails/rails/commit/a96bf4ab5e73fccdafb78b99e8a122cc2172b505">github.com/rails/rails/commit/a96bf4ab5e73fccdafb78b99e8a122cc2172b505</a>)
+
+</li>
+</ul>
+<pre>
+ * and is the default (if installed) - http://github.com/rails/rails/commit/63bb955a99eb46e257655c93dd64e86ebbf05651
+</pre>
+<ul>
+<li>Rack middleware (ideally the <a href="../classes/JSON.html">JSON</a> body
+could be handed to the parser while it&#8217;s still being received, this
+is apparently possible with Unicorn)
+
+</li>
+<li><a href="../classes/JSON.html">JSON</a> API clients (<a
+href="http://github.com/brianmario/freckle-api">github.com/brianmario/freckle-api</a>)
+
+</li>
+</ul>
+<p>
+## Benchmarks
+</p>
+<p>
+After I finished implementation - this library performs close to the same
+as the current <a href="../classes/JSON.html#M000022">JSON.parse</a> (C
+gem) does on small/medium files.
+</p>
+<p>
+But on larger files, and higher amounts of iteration, this library was
+around 2x faster than <a
+href="../classes/JSON.html#M000022">JSON.parse</a>.
+</p>
+<p>
+The main benefit of this library is in its memory usage. Since it&#8217;s
+able to parse the stream in chunks, its memory requirements are very, very
+low.
+</p>
+<p>
+Here&#8217;s what parsing a 2.43MB <a href="../classes/JSON.html">JSON</a>
+file off the filesystem 20 times looks like:
+</p>
+<p>
+### Memory Usage
+</p>
+<p>
+#### Average
+</p>
+<ul>
+<li><a href="../classes/Yajl/Parser.html#M000032">Yajl::Parser#parse</a>: 32MB
+
+</li>
+<li><a href="../classes/JSON.html#M000022">JSON.parse</a>: 54MB
+
+</li>
+<li>ActiveSupport::JSON.decode: 63MB
+
+</li>
+</ul>
+<p>
+#### Peak
+</p>
+<ul>
+<li><a href="../classes/Yajl/Parser.html#M000032">Yajl::Parser#parse</a>: 32MB
+
+</li>
+<li><a href="../classes/JSON.html#M000022">JSON.parse</a>: 57MB
+
+</li>
+<li>ActiveSupport::JSON.decode: 67MB
+
+</li>
+</ul>
+<p>
+### Parse Time
+</p>
+<ul>
+<li><a href="../classes/Yajl/Parser.html#M000032">Yajl::Parser#parse</a>: 4.54s
+
+</li>
+<li><a href="../classes/JSON.html#M000022">JSON.parse</a>: 5.47s
+
+</li>
+<li>ActiveSupport::JSON.decode: 64.42s
+
+</li>
+</ul>
+<p>
+### Encode Time
+</p>
+<ul>
+<li><a href="../classes/Yajl/Encoder.html#M000033">Yajl::Encoder#encode</a>:
+3.59s
+
+</li>
+<li>JSON#to_json: 6.2s
+
+</li>
+<li>ActiveSupport::JSON.encode: 45.58s
+
+</li>
+</ul>
+<p>
+### Compared to YAML
+</p>
+<p>
+NOTE: I converted the 2.4MB <a href="../classes/JSON.html">JSON</a> file to
+YAML for this test.
+</p>
+<p>
+#### Parse Time (from their respective formats)
+</p>
+<ul>
+<li><a href="../classes/Yajl/Parser.html#M000032">Yajl::Parser#parse</a>: 4.33s
+
+</li>
+<li><a href="../classes/JSON.html#M000022">JSON.parse</a>: 5.37s
+
+</li>
+<li>YAML.load: 19.47s
+
+</li>
+</ul>
+<p>
+#### Encode Time (to their respective formats)
+</p>
+<ul>
+<li><a href="../classes/Yajl/Encoder.html#M000033">Yajl::Encoder#encode</a>:
+3.47s
+
+</li>
+<li>JSON#to_json: 6.6s
+
+</li>
+<li>YAML.dump(obj, io): 1309.93s
+
+</li>
+</ul>
+<p>
+### Compared to Marshal.load/Marshal.dump
+</p>
+<p>
+NOTE: I converted the 2.4MB <a href="../classes/JSON.html">JSON</a> file to
+a Hash and a dump file from Marshal.dump for this test.
+</p>
+<p>
+#### Parse Time (from their respective formats)
+</p>
+<ul>
+<li><a href="../classes/Yajl/Parser.html#M000032">Yajl::Parser#parse</a>: 4.54s
+
+</li>
+<li><a href="../classes/JSON.html#M000022">JSON.parse</a>: 7.40s
+
+</li>
+<li>Marshal.load: 7s
+
+</li>
+</ul>
+<p>
+#### Encode Time (to their respective formats)
+</p>
+<ul>
+<li><a href="../classes/Yajl/Encoder.html#M000033">Yajl::Encoder#encode</a>:
+2.39s
+
+</li>
+<li>JSON#to_json: 8.37s
+
+</li>
+<li>Marshal.dump: 4.66s
+
+</li>
+</ul>
+<p>
+## Third Party Sources Bundled
+</p>
+<p>
+This project includes code from the BSD licensed yajl project, copyright
+2007-2009 Lloyd Hilaiel
+</p>
+<p>
+## Special Thanks &amp; Contributors
+</p>
+<p>
+For those of you using yajl-ruby out in the wild, please hit me up on
+Twitter (brianmario) or send me a message here on the Githubs describing
+the site and how you&#8217;re using it. I&#8217;d love to get a list going!
+</p>
+<p>
+I&#8217;ve had a lot of inspiration, and a lot of help. Thanks to everyone
+who&#8217;s been a part of this and those to come!
+</p>
+<ul>
+<li>Lloyd Hilaiel - <a href="http://github.com/lloyd">github.com/lloyd</a> -
+for writing <a href="../classes/Yajl.html">Yajl</a>!!
+
+</li>
+<li>Josh Ferguson - <a
+href="http://github.com/besquared">github.com/besquared</a> - for
+peer-pressuring me into getting back into C; it worked ;) Also tons of
+support over IM
+
+</li>
+<li>Jonathan Novak - <a href="http://github.com/cypriss">github.com/cypriss</a>
+- pointer-hacking help
+
+</li>
+<li>Tom Smith - <a href="http://github.com/rtomsmith">github.com/rtomsmith</a>
+- pointer-hacking help
+
+</li>
+<li>Rick Olson - <a
+href="http://github.com/technoweenie">github.com/technoweenie</a> - for
+making an ActiveSupport patch with support for this library and teasing me
+that it might go into Rails 3. You sure lit a fire under my ass and I got a
+ton of work done because of it! :)
+
+</li>
+<li>The entire Github Crew - <a href="http://github.com/">github.com/</a> - my
+inspiration, time spent writing this, finding <a
+href="../classes/Yajl.html">Yajl</a>, So many-MANY other things
+wouldn&#8217;t have been possible without this awesome service. I owe you
+guys some whiskey at Kilowatt.
+
+</li>
+<li>Ben Burkert - <a
+href="http://github.com/benburkert">github.com/benburkert</a>
+
+</li>
+<li>Aman Gupta - <a href="http://github.com/tmm1">github.com/tmm1</a> - tons of
+suggestions and inspiration for the most recent features, and hopefully
+more to come ;)
+
+</li>
+<li>Filipe Giusti
+
+</li>
+<li>Jonathan George
+
+</li>
+<li>Luke Redpath
+
+</li>
+<li>Neil Berkman
+
+</li>
+<li>Pavel Valodzka
+
+</li>
+<li>Rob Sharp
+
+</li>
+</ul>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

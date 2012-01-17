@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>FFI::Function</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            FFI::Function 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Pointer.html">FFI::Pointer</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/ext/ffi_c/ffi_c.html">ext/ffi_c/ffi.c</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000158">attach</a>,</li>
+                
+                <li><a href="#M000160">autorelease=</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000157">call</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000159">free</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000156">initialize_copy</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000155">new</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000155">
+                    
+                    <a name="M000155"></a><b>new</b>(...)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+@param [<a href="Type.html">Type</a>, Symbol] return_type return type for
+the function @param [Array<<a href="Type.html">Type</a>, Symbol>]
+param_types array of parameters types @param [Hash] options see
+{FFI::FunctionType} for available options @return [self] A new <a
+href="Function.html">Function</a> instance.
+</p>
+<p>
+Define a function from a Proc or a block.
+</p>
+<p>
+@overload initialize(return_type, param_types, options = {}) { |i| &#8230;
+}
+</p>
+<pre>
+ @yieldparam i parameters for the function
+</pre>
+<p>
+@overload initialize(return_type, param_types, proc, options = {})
+</p>
+<pre>
+ @param [Proc] proc
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000155_source')" id="l_M000155_source">show</a>
+                        
+                    </p>
+                    <div id="M000155_source" class="dyn-source">
+                        <pre>static VALUE
+function_initialize(int argc, VALUE* argv, VALUE self)
+{
+    
+    VALUE rbReturnType = Qnil, rbParamTypes = Qnil, rbProc = Qnil, rbOptions = Qnil;
+    VALUE rbFunctionInfo = Qnil;
+    VALUE infoArgv[3];
+    int nargs;
+
+    nargs = rb_scan_args(argc, argv, &quot;22&quot;, &amp;rbReturnType, &amp;rbParamTypes, &amp;rbProc, &amp;rbOptions);
+
+    //
+    // Callback with block,
+    // e.g. Function.new(:int, [ :int ]) { |i| blah }
+    // or   Function.new(:int, [ :int ], { :convention =&gt; :stdcall }) { |i| blah }
+    //
+    if (rb_block_given_p()) {
+        if (nargs &gt; 3) {
+            rb_raise(rb_eArgError, &quot;cannot create function with both proc/address and block&quot;);
+        }
+        rbOptions = rbProc;
+        rbProc = rb_block_proc();
+    } else {
+        // Callback with proc, or Function with address
+        // e.g. Function.new(:int, [ :int ], Proc.new { |i| })
+        //      Function.new(:int, [ :int ], Proc.new { |i| }, { :convention =&gt; :stdcall })
+        //      Function.new(:int, [ :int ], addr)
+        //      Function.new(:int, [ :int ], addr, { :convention =&gt; :stdcall })
+    }
+    
+    infoArgv[0] = rbReturnType;
+    infoArgv[1] = rbParamTypes;
+    infoArgv[2] = rbOptions;
+    rbFunctionInfo = rb_class_new_instance(rbOptions != Qnil ? 3 : 2, infoArgv, rbffi_FunctionTypeClass);
+
+    function_init(self, rbFunctionInfo, rbProc);
+    
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000158">
+                    
+                    <a name="M000158"></a><b>attach</b>(p1, p2)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+call-seq: attach(m, name) @param [Module] m @param [String] name @return
+[self] Attach a <a href="Function.html">Function</a> to the Module
+<tt>m</tt> as <tt>name</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000158_source')" id="l_M000158_source">show</a>
+                        
+                    </p>
+                    <div id="M000158_source" class="dyn-source">
+                        <pre>static VALUE
+function_attach(VALUE self, VALUE module, VALUE name)
+{
+    Function* fn;
+    char var[1024];
+
+    Data_Get_Struct(self, Function, fn);
+
+    if (fn-&gt;info-&gt;parameterCount == -1) {
+        rb_raise(rb_eRuntimeError, &quot;cannot attach variadic functions&quot;);
+        return Qnil;
+    }
+
+    if (!rb_obj_is_kind_of(module, rb_cModule)) {
+        rb_raise(rb_eRuntimeError, &quot;trying to attach function to non-module&quot;);
+        return Qnil;
+    }
+
+    if (fn-&gt;methodHandle == NULL) {
+        fn-&gt;methodHandle = rbffi_MethodHandle_Alloc(fn-&gt;info, fn-&gt;base.memory.address);
+    }
+
+    //
+    // Stash the Function in a module variable so it does not get garbage collected
+    //
+    snprintf(var, sizeof(var), &quot;@@%s&quot;, StringValueCStr(name));
+    rb_cv_set(module, var, self);
+
+    rb_define_singleton_method(module, StringValueCStr(name),
+            rbffi_MethodHandle_CodeAddress(fn-&gt;methodHandle), -1);
+
+    
+    rb_define_method(module, StringValueCStr(name),
+            rbffi_MethodHandle_CodeAddress(fn-&gt;methodHandle), -1);
+
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000160">
+                    
+                    <a name="M000160"></a><b>autorelease=</b>(p1)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+call-seq: autorelease = autorelease @param [Boolean] autorelease @return
+[self] Set <tt>autorelease</tt> attribute (See {Pointer}).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000160_source')" id="l_M000160_source">show</a>
+                        
+                    </p>
+                    <div id="M000160_source" class="dyn-source">
+                        <pre>static VALUE
+function_set_autorelease(VALUE self, VALUE autorelease)
+{
+    Function* fn;
+
+    Data_Get_Struct(self, Function, fn);
+
+    fn-&gt;autorelease = RTEST(autorelease);
+
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000157">
+                    
+                    <a name="M000157"></a><b>call</b>(...)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+call-seq: call(*args) @param [Array] args function arguments @return
+[FFI::Type] Call the function
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000157_source')" id="l_M000157_source">show</a>
+                        
+                    </p>
+                    <div id="M000157_source" class="dyn-source">
+                        <pre>static VALUE
+function_call(int argc, VALUE* argv, VALUE self)
+{
+    Function* fn;
+
+    Data_Get_Struct(self, Function, fn);
+
+    return (*fn-&gt;info-&gt;invoke)(argc, argv, fn-&gt;base.memory.address, fn-&gt;info);
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000159">
+                    
+                    <a name="M000159"></a><b>free</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+call-seq: free @return [self] Free memory allocated by <a
+href="Function.html">Function</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000159_source')" id="l_M000159_source">show</a>
+                        
+                    </p>
+                    <div id="M000159_source" class="dyn-source">
+                        <pre>static VALUE
+function_release(VALUE self)
+{
+    Function* fn;
+
+    Data_Get_Struct(self, Function, fn);
+
+    if (fn-&gt;closure == NULL) {
+        rb_raise(rb_eRuntimeError, &quot;cannot free function which was not allocated&quot;);
+    }
+    
+    rbffi_Closure_Free(fn-&gt;closure);
+    fn-&gt;closure = NULL;
+    
+    return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000156">
+                    
+                    <a name="M000156"></a><b>initialize_copy</b>(p1)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+call-seq: <a href="Function.html#M000156">initialize_copy</a>(other)
+@return [nil] DO NOT CALL THIS METHOD
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000156_source')" id="l_M000156_source">show</a>
+                        
+                    </p>
+                    <div id="M000156_source" class="dyn-source">
+                        <pre>static VALUE
+function_initialize_copy(VALUE self, VALUE other)
+{
+    rb_raise(rb_eRuntimeError, &quot;cannot duplicate function instances&quot;);
+    return Qnil;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

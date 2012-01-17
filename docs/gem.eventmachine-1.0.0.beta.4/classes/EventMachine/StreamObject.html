@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>EventMachine::StreamObject</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            EventMachine::StreamObject 
+            
+                <span class="parent">&lt; 
+                    
+                    Selectable
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/em/pure_ruby_rb.html">lib/em/pure_ruby.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+@private
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000387">eventable_read</a>,</li>
+                
+                <li><a href="#M000388">eventable_write</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000392">get_outbound_data_size</a>,</li>
+                
+                <li><a href="#M000391">get_peername</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000393">heartbeat</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000383">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000390">schedule_close</a>,</li>
+                
+                <li><a href="#M000385">select_for_reading?</a>,</li>
+                
+                <li><a href="#M000386">select_for_writing?</a>,</li>
+                
+                <li><a href="#M000389">send_data</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000383">
+                    
+                    <a name="M000383"></a><b>new</b>(io)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000383_source')" id="l_M000383_source">show</a>
+                        
+                    </p>
+                    <div id="M000383_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 504</span>
+504:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span> <span class="ruby-identifier">io</span>
+505:       <span class="ruby-keyword kw">super</span> <span class="ruby-identifier">io</span>
+506:       <span class="ruby-ivar">@outbound_q</span> = []
+507:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000387">
+                    
+                    <a name="M000387"></a><b>eventable_read</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Proper nonblocking I/O was added to Ruby 1.8.4 in May 2006. If we have it,
+then we can read multiple times safely to improve performance. The
+last-activity clock ASSUMES that we only come here when we have selected
+readable. TODO, coalesce multiple reads into a single event. TODO, do the
+function check somewhere else and cache it.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000387_source')" id="l_M000387_source">show</a>
+                        
+                    </p>
+                    <div id="M000387_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 538</span>
+538:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eventable_read</span>
+539:       <span class="ruby-ivar">@last_activity</span> = <span class="ruby-constant">Reactor</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">current_loop_time</span>
+540:       <span class="ruby-keyword kw">begin</span>
+541:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:read_nonblock</span>)
+542:           <span class="ruby-value">10</span>.<span class="ruby-identifier">times</span> {
+543:             <span class="ruby-identifier">data</span> = <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read_nonblock</span>(<span class="ruby-value">4096</span>)
+544:             <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">event_callback</span> <span class="ruby-identifier">uuid</span>, <span class="ruby-constant">ConnectionData</span>, <span class="ruby-identifier">data</span>
+545:           }
+546:         <span class="ruby-keyword kw">else</span>
+547:           <span class="ruby-identifier">data</span> = <span class="ruby-identifier">io</span>.<span class="ruby-identifier">sysread</span>(<span class="ruby-value">4096</span>)
+548:           <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">event_callback</span> <span class="ruby-identifier">uuid</span>, <span class="ruby-constant">ConnectionData</span>, <span class="ruby-identifier">data</span>
+549:         <span class="ruby-keyword kw">end</span>
+550:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EAGAIN</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EWOULDBLOCK</span>
+551:         <span class="ruby-comment cmt"># no-op</span>
+552:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNRESET</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNREFUSED</span>, <span class="ruby-constant">EOFError</span>
+553:         <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span>
+554:         <span class="ruby-constant">EventMachine</span><span class="ruby-operator">::</span><span class="ruby-identifier">event_callback</span> <span class="ruby-identifier">uuid</span>, <span class="ruby-constant">ConnectionUnbound</span>, <span class="ruby-keyword kw">nil</span>
+555:       <span class="ruby-keyword kw">end</span>
+556: 
+557:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000388">
+                    
+                    <a name="M000388"></a><b>eventable_write</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Provisional implementation. Will be re-implemented in subclasses. TODO:
+Complete this implementation. As it stands, this only writes a single
+packet per cycle. Highly inefficient, but required unless we&#8217;re
+running on a Ruby with proper nonblocking I/O (Ruby 1.8.4 built from
+sources from May 25, 2006 or newer). We need to improve the loop so it
+writes multiple times, however not more than a certain number of bytes per
+cycle, otherwise one busy connection could hog output buffers and slow down
+other connections. Also we should coalesce small writes. URGENT TODO:
+Coalesce small writes. They are a performance killer. The last-activity
+recorder ASSUMES we&#8217;ll only come here if we&#8217;ve selected
+writable.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000388_source')" id="l_M000388_source">show</a>
+                        
+                    </p>
+                    <div id="M000388_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 571</span>
+571:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">eventable_write</span>
+572:       <span class="ruby-comment cmt"># coalesce the outbound array here, perhaps</span>
+573:       <span class="ruby-ivar">@last_activity</span> = <span class="ruby-constant">Reactor</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">current_loop_time</span>
+574:       <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">data</span> = <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">shift</span> <span class="ruby-keyword kw">do</span>
+575:         <span class="ruby-keyword kw">begin</span>
+576:           <span class="ruby-identifier">data</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">to_s</span>
+577:           <span class="ruby-identifier">w</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:write_nonblock</span>)
+578:                 <span class="ruby-identifier">io</span>.<span class="ruby-identifier">write_nonblock</span> <span class="ruby-identifier">data</span>
+579:               <span class="ruby-keyword kw">else</span>
+580:                 <span class="ruby-identifier">io</span>.<span class="ruby-identifier">syswrite</span> <span class="ruby-identifier">data</span>
+581:               <span class="ruby-keyword kw">end</span>
+582: 
+583:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">w</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span>
+584:             <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-identifier">data</span>[<span class="ruby-identifier">w</span><span class="ruby-operator">..</span><span class="ruby-value">-1</span>]
+585:             <span class="ruby-keyword kw">break</span>
+586:           <span class="ruby-keyword kw">end</span>
+587:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EAGAIN</span>
+588:           <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">unshift</span> <span class="ruby-identifier">data</span>
+589:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">EOFError</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNRESET</span>, <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNREFUSED</span>
+590:           <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span>
+591:           <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">clear</span>
+592:         <span class="ruby-keyword kw">end</span>
+593:       <span class="ruby-keyword kw">end</span>
+594: 
+595:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000392">
+                    
+                    <a name="M000392"></a><b>get_outbound_data_size</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="StreamObject.html#M000392">get_outbound_data_size</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000392_source')" id="l_M000392_source">show</a>
+                        
+                    </p>
+                    <div id="M000392_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 624</span>
+624:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_outbound_data_size</span>
+625:       <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">inject</span>(<span class="ruby-value">0</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">memo</span>,<span class="ruby-identifier">obj</span><span class="ruby-operator">|</span> <span class="ruby-identifier">memo</span> <span class="ruby-operator">+=</span> (<span class="ruby-identifier">obj</span> <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&quot;</span>).<span class="ruby-identifier">length</span>}
+626:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000391">
+                    
+                    <a name="M000391"></a><b>get_peername</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="StreamObject.html#M000391">get_peername</a> This is defined in the
+normal way on connected stream objects. Return an object that is suitable
+for passing to Socket#unpack_sockaddr_in or variants. We could also use a
+convenience method that did the unpacking automatically.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000391_source')" id="l_M000391_source">show</a>
+                        
+                    </p>
+                    <div id="M000391_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 619</span>
+619:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_peername</span>
+620:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">getpeername</span>
+621:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000393">
+                    
+                    <a name="M000393"></a><b>heartbeat</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000393_source')" id="l_M000393_source">show</a>
+                        
+                    </p>
+                    <div id="M000393_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 628</span>
+628:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">heartbeat</span>
+629:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@inactivity_timeout</span> <span class="ruby-keyword kw">and</span> <span class="ruby-ivar">@inactivity_timeout</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">0</span> <span class="ruby-keyword kw">and</span> (<span class="ruby-ivar">@last_activity</span> <span class="ruby-operator">+</span> <span class="ruby-ivar">@inactivity_timeout</span>) <span class="ruby-operator">&lt;</span> <span class="ruby-constant">Reactor</span>.<span class="ruby-identifier">instance</span>.<span class="ruby-identifier">current_loop_time</span>
+630:         <span class="ruby-identifier">schedule_close</span> <span class="ruby-keyword kw">true</span>
+631:       <span class="ruby-keyword kw">end</span>
+632:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000390">
+                    
+                    <a name="M000390"></a><b>schedule_close</b>(after_writing)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="StreamObject.html#M000390">schedule_close</a> The application
+wants to close the connection.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000390_source')" id="l_M000390_source">show</a>
+                        
+                    </p>
+                    <div id="M000390_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 607</span>
+607:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">schedule_close</span> <span class="ruby-identifier">after_writing</span>
+608:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">after_writing</span>
+609:         <span class="ruby-ivar">@close_requested</span> = <span class="ruby-keyword kw">true</span>
+610:       <span class="ruby-keyword kw">else</span>
+611:         <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span>
+612:       <span class="ruby-keyword kw">end</span>
+613:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000385">
+                    
+                    <a name="M000385"></a><b>select_for_reading?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If we have to close, or a close-after-writing has been requested, then
+don&#8217;t read any more data.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000385_source')" id="l_M000385_source">show</a>
+                        
+                    </p>
+                    <div id="M000385_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 511</span>
+511:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">select_for_reading?</span>
+512:       <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">unless</span> (<span class="ruby-ivar">@close_scheduled</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@close_requested</span>)
+513:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000386">
+                    
+                    <a name="M000386"></a><b>select_for_writing?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If we have to close, don&#8217;t select for writing. Otherwise, see if the
+protocol is ready to close. If not, see if he has data to send. If a
+close-after-writing has been requested and the outbound queue is empty,
+convert the status to close_scheduled.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000386_source')" id="l_M000386_source">show</a>
+                        
+                    </p>
+                    <div id="M000386_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 520</span>
+520:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">select_for_writing?</span>
+521:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@close_scheduled</span>
+522:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@outbound_q</span>.<span class="ruby-identifier">empty?</span>
+523:           <span class="ruby-ivar">@close_scheduled</span> = <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@close_requested</span>
+524:           <span class="ruby-keyword kw">false</span>
+525:         <span class="ruby-keyword kw">else</span>
+526:           <span class="ruby-keyword kw">true</span>
+527:         <span class="ruby-keyword kw">end</span>
+528:       <span class="ruby-keyword kw">end</span>
+529:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000389">
+                    
+                    <a name="M000389"></a><b>send_data</b>(data)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="StreamObject.html#M000389">send_data</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000389_source')" id="l_M000389_source">show</a>
+                        
+                    </p>
+                    <div id="M000389_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/em/pure_ruby.rb, line 598</span>
+598:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">send_data</span> <span class="ruby-identifier">data</span>
+599:       <span class="ruby-comment cmt"># TODO, coalesce here perhaps by being smarter about appending to @outbound_q.last?</span>
+600:       <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@close_scheduled</span> <span class="ruby-keyword kw">or</span> <span class="ruby-ivar">@close_requested</span> <span class="ruby-keyword kw">or</span> <span class="ruby-operator">!</span><span class="ruby-identifier">data</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-value">0</span>
+601:         <span class="ruby-ivar">@outbound_q</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">to_s</span>
+602:       <span class="ruby-keyword kw">end</span>
+603:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    
