@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Object</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Object 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/faraday_rb.html">lib/faraday.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+not pulling in active-support JUST for this method.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000151">build_nested_query</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000155">deep_merge</a>,</li>
+                
+                <li><a href="#M000154">deep_merge!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000152">escape</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000153">normalize_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000156">sort_query_params</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000140">tap</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000151">
+                    
+                    <a name="M000151"></a><b>build_nested_query</b>(value, prefix = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Override Rack&#8217;s version since it doesn&#8217;t handle non-String
+values
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000151_source')" id="l_M000151_source">show</a>
+                        
+                    </p>
+                    <div id="M000151_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 109</span>
+109:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">build_nested_query</span>(<span class="ruby-identifier">value</span>, <span class="ruby-identifier">prefix</span> = <span class="ruby-keyword kw">nil</span>)
+110:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">value</span>
+111:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Array</span>
+112:         <span class="ruby-identifier">value</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">build_nested_query</span>(<span class="ruby-identifier">v</span>, <span class="ruby-node">&quot;#{prefix}%5B%5D&quot;</span>) }.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;&amp;&quot;</span>)
+113:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Hash</span>
+114:         <span class="ruby-identifier">value</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">k</span>, <span class="ruby-identifier">v</span><span class="ruby-operator">|</span>
+115:           <span class="ruby-identifier">build_nested_query</span>(<span class="ruby-identifier">v</span>, <span class="ruby-identifier">prefix</span> <span class="ruby-value">? </span><span class="ruby-node">&quot;#{prefix}%5B#{escape(k)}%5D&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">escape</span>(<span class="ruby-identifier">k</span>))
+116:         }.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;&amp;&quot;</span>)
+117:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">NilClass</span>
+118:         <span class="ruby-identifier">prefix</span>
+119:       <span class="ruby-keyword kw">else</span>
+120:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;value must be a Hash&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">prefix</span>.<span class="ruby-identifier">nil?</span>
+121:         <span class="ruby-node">&quot;#{prefix}=#{escape(value)}&quot;</span>
+122:       <span class="ruby-keyword kw">end</span>
+123:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000155">
+                    
+                    <a name="M000155"></a><b>deep_merge</b>(source, hash)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Recursive hash merge
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000155_source')" id="l_M000155_source">show</a>
+                        
+                    </p>
+                    <div id="M000155_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 154</span>
+154:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">deep_merge</span>(<span class="ruby-identifier">source</span>, <span class="ruby-identifier">hash</span>)
+155:       <span class="ruby-identifier">deep_merge!</span>(<span class="ruby-identifier">source</span>.<span class="ruby-identifier">dup</span>, <span class="ruby-identifier">hash</span>)
+156:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000154">
+                    
+                    <a name="M000154"></a><b>deep_merge!</b>(target, hash)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Recursive hash update
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000154_source')" id="l_M000154_source">show</a>
+                        
+                    </p>
+                    <div id="M000154_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 142</span>
+142:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">deep_merge!</span>(<span class="ruby-identifier">target</span>, <span class="ruby-identifier">hash</span>)
+143:       <span class="ruby-identifier">hash</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+144:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Hash</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">value</span> <span class="ruby-keyword kw">and</span> <span class="ruby-constant">Hash</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">target</span>[<span class="ruby-identifier">key</span>]
+145:           <span class="ruby-identifier">target</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">deep_merge</span>(<span class="ruby-identifier">target</span>[<span class="ruby-identifier">key</span>], <span class="ruby-identifier">value</span>)
+146:         <span class="ruby-keyword kw">else</span>
+147:           <span class="ruby-identifier">target</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+148:         <span class="ruby-keyword kw">end</span>
+149:       <span class="ruby-keyword kw">end</span>
+150:       <span class="ruby-identifier">target</span>
+151:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000152">
+                    
+                    <a name="M000152"></a><b>escape</b>(s)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Be sure to URI escape &#8217;+&#8217; symbols to %2B. Otherwise, they get
+interpreted as spaces.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000152_source')" id="l_M000152_source">show</a>
+                        
+                    </p>
+                    <div id="M000152_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 127</span>
+127:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">escape</span>(<span class="ruby-identifier">s</span>)
+128:       <span class="ruby-identifier">s</span> = <span class="ruby-identifier">s</span>.<span class="ruby-identifier">to_s</span>
+129:       <span class="ruby-identifier">s</span> = <span class="ruby-identifier">s</span>.<span class="ruby-identifier">dup</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-value str">'binary'</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">respond_to?</span> <span class="ruby-identifier">:force_encoding</span>
+130:       <span class="ruby-identifier">s</span>.<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/([^a-zA-Z0-9_.-]+)/n</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">match</span><span class="ruby-operator">|</span>
+131:         <span class="ruby-value str">'%'</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">match</span>.<span class="ruby-identifier">unpack</span>(<span class="ruby-value str">'H2'</span><span class="ruby-operator">*</span><span class="ruby-identifier">bytesize</span>(<span class="ruby-identifier">match</span>)).<span class="ruby-identifier">join</span>(<span class="ruby-value str">'%'</span>).<span class="ruby-identifier">tap</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span> <span class="ruby-identifier">c</span>.<span class="ruby-identifier">upcase!</span> }
+132:       <span class="ruby-keyword kw">end</span>
+133:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000153">
+                    
+                    <a name="M000153"></a><b>normalize_path</b>(url)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Receives a URL and returns just the path with the query string sorted.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000153_source')" id="l_M000153_source">show</a>
+                        
+                    </p>
+                    <div id="M000153_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 136</span>
+136:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">normalize_path</span>(<span class="ruby-identifier">url</span>)
+137:       (<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">&quot;&quot;</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;/&quot;</span>) <span class="ruby-operator">+</span>
+138:       (<span class="ruby-identifier">url</span>.<span class="ruby-identifier">query</span> <span class="ruby-value">? </span><span class="ruby-node">&quot;?#{sort_query_params(url.query)}&quot;</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;&quot;</span>)
+139:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000156">
+                    
+                    <a name="M000156"></a><b>sort_query_params</b>(query)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000156_source')" id="l_M000156_source">show</a>
+                        
+                    </p>
+                    <div id="M000156_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/faraday/utils.rb, line 160</span>
+160:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sort_query_params</span>(<span class="ruby-identifier">query</span>)
+161:       <span class="ruby-identifier">query</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'&amp;'</span>).<span class="ruby-identifier">sort</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'&amp;'</span>)
+162:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000140">
+                    
+                    <a name="M000140"></a><b>tap</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Yields <tt>x</tt> to the block, and then returns <tt>x</tt>. The primary
+purpose of this method is to &#8220;tap into&#8221; a method chain, in
+order to perform operations on intermediate results within the chain.
+</p>
+<pre>
+  (1..10).tap { |x| puts &quot;original: #{x.inspect}&quot; }.to_a.
+    tap    { |x| puts &quot;array: #{x.inspect}&quot; }.
+    select { |x| x%2 == 0 }.
+    tap    { |x| puts &quot;evens: #{x.inspect}&quot; }.
+    map    { |x| x*x }.
+    tap    { |x| puts &quot;squares: #{x.inspect}&quot; }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000140_source')" id="l_M000140_source">show</a>
+                        
+                    </p>
+                    <div id="M000140_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/faraday.rb, line 84</span>
+84:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">tap</span>
+85:     <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">self</span>
+86:     <span class="ruby-keyword kw">self</span>
+87:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

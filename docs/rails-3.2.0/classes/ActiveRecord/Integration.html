@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::Integration</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ActiveRecord::Integration 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/integration_rb.html">activerecord-3.2.0/lib/active_record/integration.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001415">cache_key</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001414">to_param</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001415">
+                    
+                    <a name="M001415"></a><b>cache_key</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a cache key that can be used to identify this record.
+</p>
+<h4>Examples</h4>
+<pre>
+  Product.new.cache_key     # =&gt; &quot;products/new&quot;
+  Product.find(5).cache_key # =&gt; &quot;products/5&quot; (updated_at not available)
+  Person.find(5).cache_key  # =&gt; &quot;people/5-20071224150000&quot; (updated_at available)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001415_source')" id="l_M001415_source">show</a>
+                        
+                    </p>
+                    <div id="M001415_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/integration.rb, line 37</span>
+37:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">cache_key</span>
+38:       <span class="ruby-keyword kw">case</span>
+39:       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">new_record?</span>
+40:         <span class="ruby-node">&quot;#{self.class.model_name.cache_key}/new&quot;</span>
+41:       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">timestamp</span> = <span class="ruby-keyword kw">self</span>[<span class="ruby-identifier">:updated_at</span>]
+42:         <span class="ruby-identifier">timestamp</span> = <span class="ruby-identifier">timestamp</span>.<span class="ruby-identifier">utc</span>.<span class="ruby-identifier">to_s</span>(<span class="ruby-identifier">:number</span>)
+43:         <span class="ruby-node">&quot;#{self.class.model_name.cache_key}/#{id}-#{timestamp}&quot;</span>
+44:       <span class="ruby-keyword kw">else</span>
+45:         <span class="ruby-node">&quot;#{self.class.model_name.cache_key}/#{id}&quot;</span>
+46:       <span class="ruby-keyword kw">end</span>
+47:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001414">
+                    
+                    <a name="M001414"></a><b>to_param</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a <a href="../String.html">String</a>, which Action Pack uses for
+constructing an URL to this object. The default implementation returns this
+record&#8217;s id as a <a href="../String.html">String</a>, or nil if this
+record&#8217;s unsaved.
+</p>
+<p>
+For example, suppose that you have a User model, and that you have a
+<tt>resources :users</tt> route. Normally, <tt>user_path</tt> will
+construct a path with the user object&#8217;s &#8216;id&#8217; in it:
+</p>
+<pre>
+  user = User.find_by_name('Phusion')
+  user_path(user)  # =&gt; &quot;/users/1&quot;
+</pre>
+<p>
+You can override <tt><a href="Integration.html#M001414">to_param</a></tt>
+in your model to make <tt>user_path</tt> construct a path using the
+user&#8217;s name instead of the user&#8217;s id:
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    def to_param  # overridden
+      name
+    end
+  end
+
+  user = User.find_by_name('Phusion')
+  user_path(user)  # =&gt; &quot;/users/Phusion&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001414_source')" id="l_M001414_source">show</a>
+                        
+                    </p>
+                    <div id="M001414_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/integration.rb, line 25</span>
+25:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_param</span>
+26:       <span class="ruby-comment cmt"># We can't use alias_method here, because method 'id' optimizes itself on the fly.</span>
+27:       <span class="ruby-identifier">id</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">id</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-comment cmt"># Be sure to stringify the id for routes</span>
+28:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

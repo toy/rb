@@ -1,0 +1,1775 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::Base</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ActiveRecord::Base 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/base_rb.html">activerecord-3.2.0/lib/active_record/base.rb</a></li>
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/connection_adapters/mysql2_adapter_rb.html">activerecord-3.2.0/lib/active_record/connection_adapters/mysql2_adapter.rb</a></li>
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/connection_adapters/mysql_adapter_rb.html">activerecord-3.2.0/lib/active_record/connection_adapters/mysql_adapter.rb</a></li>
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/connection_adapters/postgresql_adapter_rb.html">activerecord-3.2.0/lib/active_record/connection_adapters/postgresql_adapter.rb</a></li>
+            
+            <li><a href="../../files/activerecord-3_2_0/lib/active_record/connection_adapters/sqlite3_adapter_rb.html">activerecord-3.2.0/lib/active_record/connection_adapters/sqlite3_adapter.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1>Active Record</h1>
+<p>
+Active Record objects don&#8217;t specify their attributes directly, but
+rather infer them from the table definition with which they&#8217;re
+linked. Adding, removing, and changing attributes and their type is done
+directly in the database. Any change is instantly reflected in the Active
+Record objects. The mapping that binds a given Active Record class to a
+certain database table will happen automatically in most common cases, but
+can be overwritten for the uncommon ones.
+</p>
+<p>
+See the mapping rules in table_name and the full example in <a
+href="../../files/activerecord/README_rdoc.html">files/activerecord/README_rdoc.html</a>
+for more insight.
+</p>
+<h2>Creation</h2>
+<p>
+Active Records accept constructor parameters either in a hash or as a
+block. The hash method is especially useful when you&#8217;re receiving the
+data from somewhere else, like an HTTP request. It works like this:
+</p>
+<pre>
+  user = User.new(:name =&gt; &quot;David&quot;, :occupation =&gt; &quot;Code Artist&quot;)
+  user.name # =&gt; &quot;David&quot;
+</pre>
+<p>
+You can also use block initialization:
+</p>
+<pre>
+  user = User.new do |u|
+    u.name = &quot;David&quot;
+    u.occupation = &quot;Code Artist&quot;
+  end
+</pre>
+<p>
+And of course you can just create a bare object and specify the attributes
+after the fact:
+</p>
+<pre>
+  user = User.new
+  user.name = &quot;David&quot;
+  user.occupation = &quot;Code Artist&quot;
+</pre>
+<h2>Conditions</h2>
+<p>
+Conditions can either be specified as a string, array, or hash representing
+the WHERE-part of an SQL statement. The array form is to be used when the
+condition input is tainted and requires sanitization. The string form can
+be used for statements that don&#8217;t involve tainted data. The hash form
+works much like the array form, except only equality and range is possible.
+Examples:
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    def self.authenticate_unsafely(user_name, password)
+      where(&quot;user_name = '#{user_name}' AND password = '#{password}'&quot;).first
+    end
+
+    def self.authenticate_safely(user_name, password)
+      where(&quot;user_name = ? AND password = ?&quot;, user_name, password).first
+    end
+
+    def self.authenticate_safely_simply(user_name, password)
+      where(:user_name =&gt; user_name, :password =&gt; password).first
+    end
+  end
+</pre>
+<p>
+The <tt>authenticate_unsafely</tt> method inserts the parameters directly
+into the query and is thus susceptible to SQL-injection attacks if the
+<tt>user_name</tt> and <tt>password</tt> parameters come directly from an
+HTTP request. The <tt>authenticate_safely</tt> and
+<tt>authenticate_safely_simply</tt> both will sanitize the
+<tt>user_name</tt> and <tt>password</tt> before inserting them in the
+query, which will ensure that an attacker can&#8217;t escape the query and
+fake the login (or worse).
+</p>
+<p>
+When using multiple parameters in the conditions, it can easily become hard
+to read exactly what the fourth or fifth question mark is supposed to
+represent. In those cases, you can resort to named bind variables instead.
+That&#8217;s done by replacing the question marks with symbols and
+supplying a hash with values for the matching symbol keys:
+</p>
+<pre>
+  Company.where(
+    &quot;id = :id AND name = :name AND division = :division AND created_at &gt; :accounting_date&quot;,
+    { :id =&gt; 3, :name =&gt; &quot;37signals&quot;, :division =&gt; &quot;First&quot;, :accounting_date =&gt; '2005-01-01' }
+  ).first
+</pre>
+<p>
+Similarly, a simple hash without a statement will generate conditions based
+on equality with the SQL AND operator. For instance:
+</p>
+<pre>
+  Student.where(:first_name =&gt; &quot;Harvey&quot;, :status =&gt; 1)
+  Student.where(params[:student])
+</pre>
+<p>
+A range may be used in the hash to use the SQL BETWEEN operator:
+</p>
+<pre>
+  Student.where(:grade =&gt; 9..12)
+</pre>
+<p>
+An array may be used in the hash to use the SQL IN operator:
+</p>
+<pre>
+  Student.where(:grade =&gt; [9,11,12])
+</pre>
+<p>
+When joining tables, nested hashes or keys written in the form
+&#8216;table_name.column_name&#8217; can be used to qualify the table name
+of a particular condition. For instance:
+</p>
+<pre>
+  Student.joins(:schools).where(:schools =&gt; { :category =&gt; 'public' })
+  Student.joins(:schools).where('schools.category' =&gt; 'public' )
+</pre>
+<h2>Overwriting default accessors</h2>
+<p>
+All column values are automatically available through basic accessors on
+the Active Record object, but sometimes you want to specialize this
+behavior. This can be done by overwriting the default accessors (using the
+same name as the attribute) and calling <tt>read_attribute(attr_name)</tt>
+and <tt>write_attribute(attr_name, value)</tt> to actually change things.
+</p>
+<pre>
+  class Song &lt; ActiveRecord::Base
+    # Uses an integer of seconds to hold the length of the song
+
+    def length=(minutes)
+      write_attribute(:length, minutes.to_i * 60)
+    end
+
+    def length
+      read_attribute(:length) / 60
+    end
+  end
+</pre>
+<p>
+You can alternatively use <tt>self[:attribute]=(value)</tt> and
+<tt>self[:attribute]</tt> instead of <tt>write_attribute(:attribute,
+value)</tt> and <tt>read_attribute(:attribute)</tt>.
+</p>
+<h2>Attribute query methods</h2>
+<p>
+In addition to the basic accessors, query methods are also automatically
+available on the Active Record object. Query methods allow you to test
+whether an attribute value is present.
+</p>
+<p>
+For example, an Active Record User with the <tt>name</tt> attribute has a
+<tt>name?</tt> method that you can call to determine whether the user has a
+name:
+</p>
+<pre>
+  user = User.new(:name =&gt; &quot;David&quot;)
+  user.name? # =&gt; true
+
+  anonymous = User.new(:name =&gt; &quot;&quot;)
+  anonymous.name? # =&gt; false
+</pre>
+<h2>Accessing attributes before they have been typecasted</h2>
+<p>
+Sometimes you want to be able to read the raw attribute data without having
+the column-determined typecast run its course first. That can be done by
+using the <tt>&lt;attribute&gt;_before_type_cast</tt> accessors that all
+attributes have. For example, if your Account model has a <tt>balance</tt>
+attribute, you can call <tt>account.balance_before_type_cast</tt> or
+<tt>account.id_before_type_cast</tt>.
+</p>
+<p>
+This is especially useful in validation situations where the user might
+supply a string for an integer field and you want to display the original
+string back in an error message. Accessing the attribute normally would
+typecast the string to 0, which isn&#8217;t what you want.
+</p>
+<h2>Dynamic attribute-based finders</h2>
+<p>
+Dynamic attribute-based finders are a cleaner way of getting (and/or
+creating) objects by simple queries without turning to SQL. They work by
+appending the name of an attribute to <tt>find_by_</tt>,
+<tt>find_last_by_</tt>, or <tt>find_all_by_</tt> and thus produces finders
+like <tt>Person.find_by_user_name</tt>,
+<tt>Person.find_all_by_last_name</tt>, and
+<tt>Payment.find_by_transaction_id</tt>. Instead of writing
+<tt>Person.where(:user_name =&gt; user_name).first</tt>, you just do
+<tt>Person.find_by_user_name(user_name)</tt>. And instead of writing
+<tt>Person.where(:last_name =&gt; last_name).all</tt>, you just do
+<tt>Person.find_all_by_last_name(last_name)</tt>.
+</p>
+<p>
+It&#8217;s possible to add an exclamation point (!) on the end of the
+dynamic finders to get them to raise an
+<tt>ActiveRecord::RecordNotFound</tt> error if they do not return any
+records, like <tt>Person.find_by_last_name!</tt>.
+</p>
+<p>
+It&#8217;s also possible to use multiple attributes in the same find by
+separating them with &#8220;<em>and</em>&#8220;.
+</p>
+<pre>
+ Person.where(:user_name =&gt; user_name, :password =&gt; password).first
+ Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
+</pre>
+<p>
+It&#8217;s even possible to call these dynamic finder methods on relations
+and named scopes.
+</p>
+<pre>
+  Payment.order(&quot;created_on&quot;).find_all_by_amount(50)
+  Payment.pending.find_last_by_amount(100)
+</pre>
+<p>
+The same dynamic finder style can be used to create the object if it
+doesn&#8217;t already exist. This dynamic finder is called with
+<tt>find_or_create_by_</tt> and will return the object if it already exists
+and otherwise creates it, then returns it. Protected attributes won&#8217;t
+be set unless they are given in a block.
+</p>
+<pre>
+  # No 'Summer' tag exists
+  Tag.find_or_create_by_name(&quot;Summer&quot;) # equal to Tag.create(:name =&gt; &quot;Summer&quot;)
+
+  # Now the 'Summer' tag does exist
+  Tag.find_or_create_by_name(&quot;Summer&quot;) # equal to Tag.find_by_name(&quot;Summer&quot;)
+
+  # Now 'Bob' exist and is an 'admin'
+  User.find_or_create_by_name('Bob', :age =&gt; 40) { |u| u.admin = true }
+</pre>
+<p>
+Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new
+record without saving it first. Protected attributes won&#8217;t be set
+unless they are given in a block.
+</p>
+<pre>
+  # No 'Winter' tag exists
+  winter = Tag.find_or_initialize_by_name(&quot;Winter&quot;)
+  winter.persisted? # false
+</pre>
+<p>
+To find by a subset of the attributes to be used for instantiating a new
+object, pass a hash instead of a list of parameters.
+</p>
+<pre>
+  Tag.find_or_create_by_name(:name =&gt; &quot;rails&quot;, :creator =&gt; current_user)
+</pre>
+<p>
+That will either find an existing tag named &#8220;rails&#8221;, or create
+a new one while setting the user that created it.
+</p>
+<p>
+Just like <tt>find_by_*</tt>, you can also use <tt>scoped_by_*</tt> to
+retrieve data. The good thing about using this feature is that the very
+first time result is returned using <tt>method_missing</tt> technique but
+after that the method is declared on the class. Henceforth
+<tt>method_missing</tt> will not be hit.
+</p>
+<pre>
+ User.scoped_by_user_name('David')
+</pre>
+<h2>Saving arrays, hashes, and other non-mappable objects in text columns</h2>
+<p>
+Active Record can serialize any object in text columns using YAML. To do
+so, you must specify this with a call to the class method
+<tt>serialize</tt>. This makes it possible to store arrays, hashes, and
+other non-mappable objects without doing any additional work.
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    serialize :preferences
+  end
+
+  user = User.create(:preferences =&gt; { &quot;background&quot; =&gt; &quot;black&quot;, &quot;display&quot; =&gt; large })
+  User.find(user.id).preferences # =&gt; { &quot;background&quot; =&gt; &quot;black&quot;, &quot;display&quot; =&gt; large }
+</pre>
+<p>
+You can also specify a class option as the second parameter that&#8217;ll
+raise an exception if a serialized object is retrieved as a descendant of a
+class not in the hierarchy.
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    serialize :preferences, Hash
+  end
+
+  user = User.create(:preferences =&gt; %w( one two three ))
+  User.find(user.id).preferences    # raises SerializationTypeMismatch
+</pre>
+<p>
+When you specify a class option, the default value for that attribute will
+be a new instance of that class.
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    serialize :preferences, OpenStruct
+  end
+
+  user = User.new
+  user.preferences.theme_color = &quot;red&quot;
+</pre>
+<h2>Single table inheritance</h2>
+<p>
+Active Record allows inheritance by storing the name of the class in a
+column that by default is named &#8220;type&#8221; (can be changed by
+overwriting <tt>Base.inheritance_column</tt>). This means that an
+inheritance looking like this:
+</p>
+<pre>
+  class Company &lt; ActiveRecord::Base; end
+  class Firm &lt; Company; end
+  class Client &lt; Company; end
+  class PriorityClient &lt; Client; end
+</pre>
+<p>
+When you do <tt>Firm.create(:name =&gt; &quot;37signals&quot;)</tt>, this
+record will be saved in the companies table with type = &#8220;Firm&#8221;.
+You can then fetch this row again using <tt>Company.where(:name =&gt;
+'37signals').first</tt> and it will return a Firm object.
+</p>
+<p>
+If you don&#8217;t have a type column defined in your table, single-table
+inheritance won&#8217;t be triggered. In that case, it&#8217;ll work just
+like normal subclasses with no special magic for differentiating between
+them or reloading the right type with find.
+</p>
+<p>
+Note, all the attributes for all the cases are kept in the same table. Read
+more: <a
+href="http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html">www.martinfowler.com/eaaCatalog/singleTableInheritance.html</a>
+</p>
+<h2>Connection to multiple databases in different models</h2>
+<p>
+Connections are usually created through
+ActiveRecord::Base.establish_connection and retrieved by
+ActiveRecord::Base.connection. All classes inheriting from <a
+href="Base.html">ActiveRecord::Base</a> will use this connection. But you
+can also set a class-specific connection. For example, if Course is an <a
+href="Base.html">ActiveRecord::Base</a>, but resides in a different
+database, you can just say <tt>Course.establish_connection</tt> and Course
+and all of its subclasses will use this connection instead.
+</p>
+<p>
+This feature is implemented by keeping a connection pool in <a
+href="Base.html">ActiveRecord::Base</a> that is a <a
+href="../Hash.html">Hash</a> indexed by the class. If a connection is
+requested, the retrieve_connection method will go up the class-hierarchy
+until a connection is found in the connection pool.
+</p>
+<h2>Exceptions</h2>
+<ul>
+<li><a href="ActiveRecordError.html">ActiveRecordError</a> - Generic error
+class and superclass of all other errors raised by Active Record.
+
+</li>
+<li><a href="AdapterNotSpecified.html">AdapterNotSpecified</a> - The
+configuration hash used in <tt>establish_connection</tt> didn&#8217;t
+include an <tt>:adapter</tt> key.
+
+</li>
+<li><a href="AdapterNotFound.html">AdapterNotFound</a> - The <tt>:adapter</tt>
+key used in <tt>establish_connection</tt> specified a non-existent adapter
+(or a bad spelling of an existing one).
+
+</li>
+<li><a href="AssociationTypeMismatch.html">AssociationTypeMismatch</a> - The
+object assigned to the association wasn&#8217;t of the type specified in
+the association definition.
+
+</li>
+<li><a href="SerializationTypeMismatch.html">SerializationTypeMismatch</a> -
+The serialized object wasn&#8217;t of the class specified as the second
+parameter.
+
+</li>
+<li>ConnectionNotEstablished+ - No connection has been established. Use
+<tt>establish_connection</tt> before querying.
+
+</li>
+<li><a href="RecordNotFound.html">RecordNotFound</a> - No record responded to
+the <tt>find</tt> method. Either the row with the given ID doesn&#8217;t
+exist or the row didn&#8217;t meet the additional restrictions. Some
+<tt>find</tt> calls do not raise this exception to signal nothing was
+found, please check its documentation for further details.
+
+</li>
+<li><a href="StatementInvalid.html">StatementInvalid</a> - The database server
+rejected the SQL statement. The precise error is added in the message.
+
+</li>
+<li><a
+href="MultiparameterAssignmentErrors.html">MultiparameterAssignmentErrors</a>
+- Collection of errors that occurred during a mass assignment using the
+<tt>attributes=</tt> method. The <tt>errors</tt> property of this exception
+contains an array of <a
+href="AttributeAssignmentError.html">AttributeAssignmentError</a> objects
+that should be inspected to determine which attributes triggered the
+errors.
+
+</li>
+<li><a href="AttributeAssignmentError.html">AttributeAssignmentError</a> - An
+error occurred while doing a mass assignment through the
+<tt>attributes=</tt> method. You can inspect the <tt>attribute</tt>
+property of the exception object to determine which attribute triggered the
+error.
+
+</li>
+</ul>
+<p>
+<b>Note</b>: The attributes listed are class-level attributes (accessible
+from both the class and instance level). So it&#8217;s possible to assign a
+logger to the class through <tt>Base.logger=</tt> which will then be used
+by all instances in the current object space.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>#</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001019"><=></a>,</li>
+                
+                <li><a href="#M001014">==</a>,</li>
+                
+                <li><a href="#M001000">===</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001002">arel_engine</a>,</li>
+                
+                <li><a href="#M001001">arel_table</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000993">configurations</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000994">default_timezone</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001013">encode_with</a>,</li>
+                
+                <li><a href="#M001015">eql?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001017">freeze</a>,</li>
+                
+                <li><a href="#M001018">frozen?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000998">generated_feature_methods</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001016">hash</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001005">init_with</a>,</li>
+                
+                <li><a href="#M001010">initialize_dup</a>,</li>
+                
+                <li><a href="#M000999">inspect</a>,</li>
+                
+                <li><a href="#M001022">inspect</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000992">logger</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001038">mysql2_connection</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001004">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001021">readonly!</a>,</li>
+                
+                <li><a href="#M001020">readonly?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000995">schema_format</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000996">timestamped_migrations</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="../ActiveResource/CustomMethods.html">ActiveResource::CustomMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveResource/CustomMethods.html">ActiveResource::CustomMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveResource/CustomMethods.html">ActiveResource::CustomMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Locking::Optimistic</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Locking::Pessimistic</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveModel/Validations/ClassMethods.html">ActiveModel::Validations::ClassMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveModel/Validations/ClassMethods.html">ActiveModel::Validations::ClassMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveResource/CustomMethods.html">ActiveResource::CustomMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveResource/CustomMethods.html">ActiveResource::CustomMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="../ActiveModel/Validations/ClassMethods.html">ActiveModel::Validations::ClassMethods</a>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <a href="Reflection.html">ActiveRecord::Reflection</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001000">
+                    
+                    <a name="M001000"></a><b>===</b>(object)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Overwrite the default class equality method to provide support for
+association proxies.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001000_source')" id="l_M001000_source">show</a>
+                        
+                    </p>
+                    <div id="M001000_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 422</span>
+422:       <span class="ruby-keyword kw">def</span> <span class="ruby-operator">===</span>(<span class="ruby-identifier">object</span>)
+423:         <span class="ruby-identifier">object</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-keyword kw">self</span>)
+424:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001002">
+                    
+                    <a name="M001002"></a><b>arel_engine</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001002_source')" id="l_M001002_source">show</a>
+                        
+                    </p>
+                    <div id="M001002_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 430</span>
+430:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">arel_engine</span>
+431:         <span class="ruby-ivar">@arel_engine</span> <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">begin</span>
+432:           <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span> <span class="ruby-operator">==</span> <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>
+433:             <span class="ruby-constant">ActiveRecord</span><span class="ruby-operator">::</span><span class="ruby-constant">Base</span>
+434:           <span class="ruby-keyword kw">else</span>
+435:             <span class="ruby-identifier">connection_handler</span>.<span class="ruby-identifier">connection_pools</span>[<span class="ruby-identifier">name</span>] <span class="ruby-operator">?</span> <span class="ruby-keyword kw">self</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">superclass</span>.<span class="ruby-identifier">arel_engine</span>
+436:           <span class="ruby-keyword kw">end</span>
+437:         <span class="ruby-keyword kw">end</span>
+438:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001001">
+                    
+                    <a name="M001001"></a><b>arel_table</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001001_source')" id="l_M001001_source">show</a>
+                        
+                    </p>
+                    <div id="M001001_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 426</span>
+426:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">arel_table</span>
+427:         <span class="ruby-ivar">@arel_table</span> <span class="ruby-operator">||=</span> <span class="ruby-constant">Arel</span><span class="ruby-operator">::</span><span class="ruby-constant">Table</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">table_name</span>, <span class="ruby-identifier">arel_engine</span>)
+428:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000993">
+                    
+                    <a name="M000993"></a><b>configurations</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Contains the database configuration - as is typically stored in
+config/database.yml - as a <a href="../Hash.html">Hash</a>.
+</p>
+<p>
+For example, the following database.yml...
+</p>
+<pre>
+  development:
+    adapter: sqlite3
+    database: db/development.sqlite3
+
+  production:
+    adapter: sqlite3
+    database: db/production.sqlite3
+</pre>
+<p>
+&#8230;would result in <a
+href="Base.html#M000993">ActiveRecord::Base.configurations</a> to look like
+this:
+</p>
+<pre>
+  {
+     'development' =&gt; {
+        'adapter'  =&gt; 'sqlite3',
+        'database' =&gt; 'db/development.sqlite3'
+     },
+     'production' =&gt; {
+        'adapter'  =&gt; 'sqlite3',
+        'database' =&gt; 'db/production.sqlite3'
+     }
+  }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000993_source')" id="l_M000993_source">show</a>
+                        
+                    </p>
+                    <div id="M000993_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 364</span>
+364:     <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:configurations</span>, <span class="ruby-identifier">:instance_writer</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000994">
+                    
+                    <a name="M000994"></a><b>default_timezone</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Determines whether to use Time.local (using :local) or Time.utc (using
+:utc) when pulling dates and times from the database. This is set to :local
+by default.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000994_source')" id="l_M000994_source">show</a>
+                        
+                    </p>
+                    <div id="M000994_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 371</span>
+371:     <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:default_timezone</span>, <span class="ruby-identifier">:instance_writer</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000998">
+                    
+                    <a name="M000998"></a><b>generated_feature_methods</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000998_source')" id="l_M000998_source">show</a>
+                        
+                    </p>
+                    <div id="M000998_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 399</span>
+399:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">generated_feature_methods</span>
+400:         <span class="ruby-ivar">@generated_feature_methods</span> <span class="ruby-operator">||=</span> <span class="ruby-keyword kw">begin</span>
+401:           <span class="ruby-identifier">mod</span> = <span class="ruby-identifier">const_set</span>(<span class="ruby-identifier">:GeneratedFeatureMethods</span>, <span class="ruby-constant">Module</span>.<span class="ruby-identifier">new</span>)
+402:           <span class="ruby-identifier">include</span> <span class="ruby-identifier">mod</span>
+403:           <span class="ruby-identifier">mod</span>
+404:         <span class="ruby-keyword kw">end</span>
+405:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000999">
+                    
+                    <a name="M000999"></a><b>inspect</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a string like &#8216;Post(id:integer, title:string,
+body:text)&#8217;
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000999_source')" id="l_M000999_source">show</a>
+                        
+                    </p>
+                    <div id="M000999_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 408</span>
+408:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">inspect</span>
+409:         <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Base</span>
+410:           <span class="ruby-keyword kw">super</span>
+411:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">abstract_class?</span>
+412:           <span class="ruby-node">&quot;#{super}(abstract)&quot;</span>
+413:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">table_exists?</span>
+414:           <span class="ruby-identifier">attr_list</span> = <span class="ruby-identifier">columns</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">c</span><span class="ruby-operator">|</span> <span class="ruby-node">&quot;#{c.name}: #{c.type}&quot;</span> } <span class="ruby-operator">*</span> <span class="ruby-value str">', '</span>
+415:           <span class="ruby-node">&quot;#{super}(#{attr_list})&quot;</span>
+416:         <span class="ruby-keyword kw">else</span>
+417:           <span class="ruby-node">&quot;#{super}(Table doesn't exist)&quot;</span>
+418:         <span class="ruby-keyword kw">end</span>
+419:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000992">
+                    
+                    <a name="M000992"></a><b>logger</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts a logger conforming to the interface of Log4r or the default Ruby
+1.8+ Logger class, which is then passed on to any new database connections
+made and which can be retrieved on both a class and instance level by
+calling <tt>logger</tt>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000992_source')" id="l_M000992_source">show</a>
+                        
+                    </p>
+                    <div id="M000992_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 335</span>
+335:     <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:logger</span>, <span class="ruby-identifier">:instance_writer</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001038">
+                    
+                    <a name="M001038"></a><b>mysql2_connection</b>(config)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Establishes a connection to the database that&#8217;s used by all Active
+Record objects.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001038_source')" id="l_M001038_source">show</a>
+                        
+                    </p>
+                    <div id="M001038_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/connection_adapters/mysql2_adapter.rb, line 9</span>
+ 9:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">mysql2_connection</span>(<span class="ruby-identifier">config</span>)
+10:       <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:username</span>] = <span class="ruby-value str">'root'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:username</span>].<span class="ruby-identifier">nil?</span>
+11: 
+12:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Mysql2</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">const_defined?</span> <span class="ruby-identifier">:FOUND_ROWS</span>
+13:         <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:flags</span>] = <span class="ruby-constant">Mysql2</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span><span class="ruby-operator">::</span><span class="ruby-constant">FOUND_ROWS</span>
+14:       <span class="ruby-keyword kw">end</span>
+15: 
+16:       <span class="ruby-identifier">client</span> = <span class="ruby-constant">Mysql2</span><span class="ruby-operator">::</span><span class="ruby-constant">Client</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">config</span>.<span class="ruby-identifier">symbolize_keys</span>)
+17:       <span class="ruby-identifier">options</span> = [<span class="ruby-identifier">config</span>[<span class="ruby-identifier">:host</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:username</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:password</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:database</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:port</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:socket</span>], <span class="ruby-value">0</span>]
+18:       <span class="ruby-constant">ConnectionAdapters</span><span class="ruby-operator">::</span><span class="ruby-constant">Mysql2Adapter</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">client</span>, <span class="ruby-identifier">logger</span>, <span class="ruby-identifier">options</span>, <span class="ruby-identifier">config</span>)
+19:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001004">
+                    
+                    <a name="M001004"></a><b>new</b>(attributes = nil, options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+New objects can be instantiated as either empty (pass no construction
+parameter) or pre-set with attributes but not yet saved (pass a hash with
+key names matching the associated table column names). In both instances,
+valid attribute keys are determined by the column names of the associated
+table &#8212; hence you can&#8217;t have attributes that aren&#8217;t part
+of the table columns.
+</p>
+<p>
+<tt>initialize</tt> respects mass-assignment security and accepts either
+<tt>:as</tt> or <tt>:without_protection</tt> options in the
+<tt>options</tt> parameter.
+</p>
+<h4>Examples</h4>
+<pre>
+  # Instantiates a single new object
+  User.new(:first_name =&gt; 'Jamie')
+
+  # Instantiates a single new object using the :admin mass-assignment security role
+  User.new({ :first_name =&gt; 'Jamie', :is_admin =&gt; true }, :as =&gt; :admin)
+
+  # Instantiates a single new object bypassing mass-assignment security
+  User.new({ :first_name =&gt; 'Jamie', :is_admin =&gt; true }, :without_protection =&gt; true)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001004_source')" id="l_M001004_source">show</a>
+                        
+                    </p>
+                    <div id="M001004_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 471</span>
+471:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">attributes</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span> = {})
+472:         <span class="ruby-ivar">@attributes</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">initialize_attributes</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">column_defaults</span>.<span class="ruby-identifier">dup</span>)
+473:         <span class="ruby-ivar">@association_cache</span> = {}
+474:         <span class="ruby-ivar">@aggregation_cache</span> = {}
+475:         <span class="ruby-ivar">@attributes_cache</span> = {}
+476:         <span class="ruby-ivar">@new_record</span> = <span class="ruby-keyword kw">true</span>
+477:         <span class="ruby-ivar">@readonly</span> = <span class="ruby-keyword kw">false</span>
+478:         <span class="ruby-ivar">@destroyed</span> = <span class="ruby-keyword kw">false</span>
+479:         <span class="ruby-ivar">@marked_for_destruction</span> = <span class="ruby-keyword kw">false</span>
+480:         <span class="ruby-ivar">@previously_changed</span> = {}
+481:         <span class="ruby-ivar">@changed_attributes</span> = {}
+482:         <span class="ruby-ivar">@relation</span> = <span class="ruby-keyword kw">nil</span>
+483: 
+484:         <span class="ruby-identifier">ensure_proper_type</span>
+485: 
+486:         <span class="ruby-identifier">populate_with_current_scope_attributes</span>
+487: 
+488:         <span class="ruby-identifier">assign_attributes</span>(<span class="ruby-identifier">attributes</span>, <span class="ruby-identifier">options</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">attributes</span>
+489: 
+490:         <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">self</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+491:         <span class="ruby-identifier">run_callbacks</span> <span class="ruby-identifier">:initialize</span>
+492:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000995">
+                    
+                    <a name="M000995"></a><b>schema_format</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Specifies the format to use when dumping the database schema with
+Rails&#8217; Rakefile. If :sql, the schema is dumped as (potentially
+database- specific) SQL statements. If :ruby, the schema is dumped as an <a
+href="Schema.html">ActiveRecord::Schema</a> file which can be loaded into
+any database that supports migrations. Use :ruby if you want to have
+different database adapters for, e.g., your development and test
+environments.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000995_source')" id="l_M000995_source">show</a>
+                        
+                    </p>
+                    <div id="M000995_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 382</span>
+382:     <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:schema_format</span> , <span class="ruby-identifier">:instance_writer</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000996">
+                    
+                    <a name="M000996"></a><b>timestamped_migrations</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Specify whether or not to use timestamps for migration versions
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000996_source')" id="l_M000996_source">show</a>
+                        
+                    </p>
+                    <div id="M000996_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 388</span>
+388:     <span class="ruby-identifier">cattr_accessor</span> <span class="ruby-identifier">:timestamped_migrations</span> , <span class="ruby-identifier">:instance_writer</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001019">
+                    
+                    <a name="M001019"></a><b>&lt;=&gt;</b>(other_object)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Allows sort on objects
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001019_source')" id="l_M001019_source">show</a>
+                        
+                    </p>
+                    <div id="M001019_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 607</span>
+607:       <span class="ruby-keyword kw">def</span> <span class="ruby-operator">&lt;=&gt;</span>(<span class="ruby-identifier">other_object</span>)
+608:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">other_object</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>)
+609:           <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">to_key</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">other_object</span>.<span class="ruby-identifier">to_key</span>
+610:         <span class="ruby-keyword kw">else</span>
+611:           <span class="ruby-keyword kw">nil</span>
+612:         <span class="ruby-keyword kw">end</span>
+613:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001014">
+                    
+                    <a name="M001014"></a><b>==</b>(comparison_object)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns true if <tt>comparison_object</tt> is the same exact object, or
+<tt>comparison_object</tt> is of the same type and <tt>self</tt> has an ID
+and it is equal to <tt>comparison_object.id</tt>.
+</p>
+<p>
+Note that new records are different from any other record by definition,
+unless the other record is the receiver itself. Besides, if you fetch
+existing records with <tt>select</tt> and leave the ID out, you&#8217;re on
+your own, this predicate will return false.
+</p>
+<p>
+Note also that destroying a record preserves its ID in the model instance,
+so deleted models are still comparable.
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="Base.html#M001015">eql?</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001014_source')" id="l_M001014_source">show</a>
+                        
+                    </p>
+                    <div id="M001014_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 582</span>
+582:       <span class="ruby-keyword kw">def</span> <span class="ruby-operator">==</span>(<span class="ruby-identifier">comparison_object</span>)
+583:         <span class="ruby-keyword kw">super</span> <span class="ruby-operator">||</span>
+584:           <span class="ruby-identifier">comparison_object</span>.<span class="ruby-identifier">instance_of?</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>) <span class="ruby-operator">&amp;&amp;</span>
+585:           <span class="ruby-identifier">id</span>.<span class="ruby-identifier">present?</span> <span class="ruby-operator">&amp;&amp;</span>
+586:           <span class="ruby-identifier">comparison_object</span>.<span class="ruby-identifier">id</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">id</span>
+587:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001013">
+                    
+                    <a name="M001013"></a><b>encode_with</b>(coder)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Populate <tt>coder</tt> with attributes about this record that should be
+serialized. The structure of <tt>coder</tt> defined in this method is
+guaranteed to match the structure of <tt>coder</tt> passed to the <tt><a
+href="Base.html#M001005">init_with</a></tt> method.
+</p>
+<p>
+Example:
+</p>
+<pre>
+  class Post &lt; ActiveRecord::Base
+  end
+  coder = {}
+  Post.new.encode_with(coder)
+  coder # =&gt; { 'id' =&gt; nil, ... }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001013_source')" id="l_M001013_source">show</a>
+                        
+                    </p>
+                    <div id="M001013_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 569</span>
+569:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">encode_with</span>(<span class="ruby-identifier">coder</span>)
+570:         <span class="ruby-identifier">coder</span>[<span class="ruby-value str">'attributes'</span>] = <span class="ruby-identifier">attributes</span>
+571:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001015">
+                    
+                    <a name="M001015"></a><b>eql?</b>(comparison_object)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for #==
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001017">
+                    
+                    <a name="M001017"></a><b>freeze</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Freeze the attributes hash such that associations are still accessible,
+even on destroyed records.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001017_source')" id="l_M001017_source">show</a>
+                        
+                    </p>
+                    <div id="M001017_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 597</span>
+597:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">freeze</span>
+598:         <span class="ruby-ivar">@attributes</span>.<span class="ruby-identifier">freeze</span>; <span class="ruby-keyword kw">self</span>
+599:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001018">
+                    
+                    <a name="M001018"></a><b>frozen?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> if the attributes hash has been frozen.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001018_source')" id="l_M001018_source">show</a>
+                        
+                    </p>
+                    <div id="M001018_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 602</span>
+602:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">frozen?</span>
+603:         <span class="ruby-ivar">@attributes</span>.<span class="ruby-identifier">frozen?</span>
+604:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001016">
+                    
+                    <a name="M001016"></a><b>hash</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Delegates to id in order to allow two records of the same type and id to
+work with something like:
+</p>
+<pre>
+  [ Person.find(1), Person.find(2), Person.find(3) ] &amp; [ Person.find(1), Person.find(4) ] # =&gt; [ Person.find(1) ]
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001016_source')" id="l_M001016_source">show</a>
+                        
+                    </p>
+                    <div id="M001016_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 592</span>
+592:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">hash</span>
+593:         <span class="ruby-identifier">id</span>.<span class="ruby-identifier">hash</span>
+594:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001005">
+                    
+                    <a name="M001005"></a><b>init_with</b>(coder)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Initialize an empty model object from <tt>coder</tt>. <tt>coder</tt> must
+contain the attributes necessary for initializing an empty model object.
+For example:
+</p>
+<pre>
+  class Post &lt; ActiveRecord::Base
+  end
+
+  post = Post.allocate
+  post.init_with('attributes' =&gt; { 'title' =&gt; 'hello world' })
+  post.title # =&gt; 'hello world'
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001005_source')" id="l_M001005_source">show</a>
+                        
+                    </p>
+                    <div id="M001005_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 504</span>
+504:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">init_with</span>(<span class="ruby-identifier">coder</span>)
+505:         <span class="ruby-ivar">@attributes</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">initialize_attributes</span>(<span class="ruby-identifier">coder</span>[<span class="ruby-value str">'attributes'</span>])
+506:         <span class="ruby-ivar">@relation</span> = <span class="ruby-keyword kw">nil</span>
+507: 
+508:         <span class="ruby-ivar">@attributes_cache</span>, <span class="ruby-ivar">@previously_changed</span>, <span class="ruby-ivar">@changed_attributes</span> = {}, {}, {}
+509:         <span class="ruby-ivar">@association_cache</span> = {}
+510:         <span class="ruby-ivar">@aggregation_cache</span> = {}
+511:         <span class="ruby-ivar">@readonly</span> = <span class="ruby-ivar">@destroyed</span> = <span class="ruby-ivar">@marked_for_destruction</span> = <span class="ruby-keyword kw">false</span>
+512:         <span class="ruby-ivar">@new_record</span> = <span class="ruby-keyword kw">false</span>
+513:         <span class="ruby-identifier">run_callbacks</span> <span class="ruby-identifier">:find</span>
+514:         <span class="ruby-identifier">run_callbacks</span> <span class="ruby-identifier">:initialize</span>
+515: 
+516:         <span class="ruby-keyword kw">self</span>
+517:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001010">
+                    
+                    <a name="M001010"></a><b>initialize_dup</b>(other)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Duped objects have no id assigned and are treated as new records. Note that
+this is a &#8220;shallow&#8221; copy as it copies the object&#8217;s
+attributes only, not its associations. The extent of a &#8220;deep&#8221;
+copy is application specific and is therefore left to the application to
+implement according to its need. The dup method does not preserve the
+timestamps (created|updated)_(at|on).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001010_source')" id="l_M001010_source">show</a>
+                        
+                    </p>
+                    <div id="M001010_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 525</span>
+525:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize_dup</span>(<span class="ruby-identifier">other</span>)
+526:         <span class="ruby-identifier">cloned_attributes</span> = <span class="ruby-identifier">other</span>.<span class="ruby-identifier">clone_attributes</span>(<span class="ruby-identifier">:read_attribute_before_type_cast</span>)
+527:         <span class="ruby-identifier">cloned_attributes</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">primary_key</span>)
+528: 
+529:         <span class="ruby-ivar">@attributes</span> = <span class="ruby-identifier">cloned_attributes</span>
+530: 
+531:         <span class="ruby-identifier">_run_after_initialize_callbacks</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:_run_after_initialize_callbacks</span>)
+532: 
+533:         <span class="ruby-ivar">@changed_attributes</span> = {}
+534:         <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">column_defaults</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span>, <span class="ruby-identifier">orig_value</span><span class="ruby-operator">|</span>
+535:           <span class="ruby-ivar">@changed_attributes</span>[<span class="ruby-identifier">attr</span>] = <span class="ruby-identifier">orig_value</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">field_changed?</span>(<span class="ruby-identifier">attr</span>, <span class="ruby-identifier">orig_value</span>, <span class="ruby-ivar">@attributes</span>[<span class="ruby-identifier">attr</span>])
+536:         <span class="ruby-keyword kw">end</span>
+537: 
+538:         <span class="ruby-ivar">@aggregation_cache</span> = {}
+539:         <span class="ruby-ivar">@association_cache</span> = {}
+540:         <span class="ruby-ivar">@attributes_cache</span> = {}
+541:         <span class="ruby-ivar">@new_record</span>  = <span class="ruby-keyword kw">true</span>
+542: 
+543:         <span class="ruby-identifier">ensure_proper_type</span>
+544:         <span class="ruby-identifier">populate_with_current_scope_attributes</span>
+545:         <span class="ruby-keyword kw">super</span>
+546:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001022">
+                    
+                    <a name="M001022"></a><b>inspect</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the contents of the record as a nicely formatted string.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001022_source')" id="l_M001022_source">show</a>
+                        
+                    </p>
+                    <div id="M001022_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 627</span>
+627:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">inspect</span>
+628:         <span class="ruby-identifier">inspection</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@attributes</span>
+629:                        <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">column_names</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">name</span><span class="ruby-operator">|</span>
+630:                          <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">has_attribute?</span>(<span class="ruby-identifier">name</span>)
+631:                            <span class="ruby-node">&quot;#{name}: #{attribute_for_inspect(name)}&quot;</span>
+632:                          <span class="ruby-keyword kw">end</span>
+633:                        }.<span class="ruby-identifier">compact</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;, &quot;</span>)
+634:                      <span class="ruby-keyword kw">else</span>
+635:                        <span class="ruby-value str">&quot;not initialized&quot;</span>
+636:                      <span class="ruby-keyword kw">end</span>
+637:         <span class="ruby-node">&quot;#&lt;#{self.class} #{inspection}&gt;&quot;</span>
+638:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001021">
+                    
+                    <a name="M001021"></a><b>readonly!</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Marks this record as read only.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001021_source')" id="l_M001021_source">show</a>
+                        
+                    </p>
+                    <div id="M001021_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 622</span>
+622:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">readonly!</span>
+623:         <span class="ruby-ivar">@readonly</span> = <span class="ruby-keyword kw">true</span>
+624:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001020">
+                    
+                    <a name="M001020"></a><b>readonly?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> if the record is read only. Records loaded through
+joins with piggy-back attributes will be marked as read only since they
+cannot be saved.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001020_source')" id="l_M001020_source">show</a>
+                        
+                    </p>
+                    <div id="M001020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/base.rb, line 617</span>
+617:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">readonly?</span>
+618:         <span class="ruby-ivar">@readonly</span>
+619:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

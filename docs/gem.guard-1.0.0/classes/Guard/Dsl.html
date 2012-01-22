@@ -1,0 +1,1225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Guard::Dsl</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Guard::Dsl 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/guard/dsl_rb.html">lib/guard/dsl.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+The DSL class provides the methods that are used in each `Guardfile` to
+describe the behaviour of <a href="Guard.html">Guard</a>.
+</p>
+<p>
+The main keywords of the DSL are `guard` and `watch`. These are necessary
+to define the used Guards and the file changes they are watching.
+</p>
+<p>
+You can optionally group the Guards with the `group` keyword and ignore
+certain paths with the `<a href="Dsl.html#M000033">ignore_paths</a>`
+keyword.
+</p>
+<p>
+You can set your preferred system notification library with `notification`
+and pass some optional configuration options for the library. If you
+don&#8217;t configure a library, <a href="Guard.html">Guard</a> will
+automatically pick one with default options (if you don&#8217;t want
+notifications, specify `:off` as library). @see <a
+href="Notifier.html">::Guard::Notifier</a> for more information about the
+supported libraries.
+</p>
+<p>
+A more advanced DSL use is the `callback` keyword that allows you to
+execute arbitrary code before or after any of the `start`, `stop`,
+`reload`, `run_all` and `run_on_change` Guards&#8217; method. You can even
+insert more hooks inside these methods. Please [checkout the Wiki page](<a
+href="https://github.com/guard/guard/wiki/Hooks-and-callbacks">github.com/guard/guard/wiki/Hooks-and-callbacks</a>)
+for more details.
+</p>
+<p>
+The DSL will also evaluate normal Ruby code.
+</p>
+<p>
+There are two possible locations for the `Guardfile`:
+</p>
+<ul>
+<li>The `Guardfile` in the current directory where <a
+href="Guard.html">Guard</a> has been started
+
+</li>
+<li>The `.Guardfile` in your home directory.
+
+</li>
+</ul>
+<p>
+In addition, if a user configuration `.guard.rb` in your home directory is
+found, it will be appended to the current project `Guardfile`.
+</p>
+<p>
+@example A sample of a complex Guardfile
+</p>
+<pre>
+  notification :growl
+
+  group 'frontend' do
+    guard 'passenger', :ping =&gt; true do
+      watch('config/application.rb')
+      watch('config/environment.rb')
+      watch(%r{^config/environments/.+\.rb})
+      watch(%r{^config/initializers/.+\.rb})
+    end
+
+    guard 'livereload', :apply_js_live =&gt; false do
+      watch(%r{^app/.+\.(erb|haml)})
+      watch(%r{^app/helpers/.+\.rb})
+      watch(%r{^public/javascripts/.+\.js})
+      watch(%r{^public/stylesheets/.+\.css})
+      watch(%r{^public/.+\.html})
+      watch(%r{^config/locales/.+\.yml})
+    end
+  end
+
+  group 'backend' do
+    # Reload the bundle when the Gemfile is modified
+    guard 'bundler' do
+      watch('Gemfile')
+    end
+
+    # for big project you can fine tune the &quot;timeout&quot; before Spork's launch is considered failed
+    guard 'spork', :wait =&gt; 40 do
+      watch('Gemfile')
+      watch('config/application.rb')
+      watch('config/environment.rb')
+      watch(%r{^config/environments/.+\.rb})
+      watch(%r{^config/initializers/.+\.rb})
+      watch('spec/spec_helper.rb')
+    end
+
+    # use RSpec 2, from the system's gem and with some direct RSpec CLI options
+    guard 'rspec', :version =&gt; 2, :cli =&gt; &quot;--color --drb -f doc&quot;, :bundler =&gt; false do
+      watch('spec/spec_helper.rb')                                  { &quot;spec&quot; }
+      watch('app/controllers/application_controller.rb')            { &quot;spec/controllers&quot; }
+      watch('config/routes.rb')                                     { &quot;spec/routing&quot; }
+      watch(%r{^spec/support/(controllers|acceptance)_helpers\.rb}) { |m| &quot;spec/#{m[1]}&quot; }
+      watch(%r{^spec/.+_spec\.rb})
+
+      watch(%r{^app/controllers/(.+)_(controller)\.rb}) { |m| [&quot;spec/routing/#{m[1]}_routing_spec.rb&quot;, &quot;spec/#{m[2]}s/#{m[1]}_#{m[2]}_spec.rb&quot;, &quot;spec/acceptance/#{m[1]}_spec.rb&quot;] }
+
+      watch(%r{^app/(.+)\.rb}) { |m| &quot;spec/#{m[1]}_spec.rb&quot; }
+      watch(%r{^lib/(.+)\.rb}) { |m| &quot;spec/lib/#{m[1]}_spec.rb&quot; }
+    end
+  end
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000032">callback</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000006">evaluate_guardfile</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000014">fetch_guardfile_contents</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000029">group</a>,</li>
+                
+                <li><a href="#M000030">guard</a>,</li>
+                
+                <li><a href="#M000017">guardfile_contents</a>,</li>
+                
+                <li><a href="#M000021">guardfile_contents_usable?</a>,</li>
+                
+                <li><a href="#M000018">guardfile_contents_with_user_config</a>,</li>
+                
+                <li><a href="#M000022">guardfile_default_path</a>,</li>
+                
+                <li><a href="#M000011">guardfile_include?</a>,</li>
+                
+                <li><a href="#M000020">guardfile_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000024">home_guardfile_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>I</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000033">ignore_paths</a>,</li>
+                
+                <li><a href="#M000010">instance_eval_guardfile</a>,</li>
+                
+                <li><a href="#M000027">interactor</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000023">local_guardfile_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000026">notification</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000012">read_guardfile</a>,</li>
+                
+                <li><a href="#M000008">reevaluate_guardfile</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000025">user_config_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>W</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000031">watch</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000032">
+                    
+                    <a name="M000032"></a><b>callback</b>(*args, &amp;listener)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Define a callback to execute arbitrary code before or after any of the
+`start`, `stop`, `reload`, `run_all` and `run_on_change` guards&#8217;
+method.
+</p>
+<p>
+@param [Array] args the callback arguments @yield a block with listeners
+</p>
+<p>
+@see <a href="Hook.html">Guard::Hook</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000032_source')" id="l_M000032_source">show</a>
+                        
+                    </p>
+                    <div id="M000032_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 401</span>
+401:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">callback</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">listener</span>)
+402:       <span class="ruby-identifier">listener</span>, <span class="ruby-identifier">events</span> = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">args</span> <span class="ruby-operator">:</span> [<span class="ruby-identifier">listener</span>, <span class="ruby-identifier">args</span>[<span class="ruby-value">0</span>]]
+403:       <span class="ruby-ivar">@callbacks</span> <span class="ruby-operator">&lt;&lt;</span> { <span class="ruby-identifier">:events</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">events</span>, <span class="ruby-identifier">:listener</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">listener</span> }
+404:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000029">
+                    
+                    <a name="M000029"></a><b>group</b>(name, options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Declares a group of guards to be run with `guard start &#8212;group
+group_name`.
+</p>
+<p>
+@example Declare two groups of Guards
+</p>
+<pre>
+  group 'backend' do
+    guard 'spork'
+    guard 'rspec'
+  end
+
+  group 'frontend' do
+    guard 'passenger'
+    guard 'livereload'
+  end
+</pre>
+<p>
+@param [Symbol, String] name the group&#8217;s name called from the <a
+href="CLI.html">CLI</a> @param [Hash] options the options accepted by the
+group @yield a block where you can declare several guards
+</p>
+<p>
+@see Guard.add_group @see <a href="Dsl.html#M000030">Dsl#guard</a> @see <a
+href="DslDescriber.html">Guard::DslDescriber</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000029_source')" id="l_M000029_source">show</a>
+                        
+                    </p>
+                    <div id="M000029_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 325</span>
+325:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">group</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">options</span> = {})
+326:       <span class="ruby-ivar">@groups</span> = <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:group</span>] <span class="ruby-operator">||</span> []
+327:       <span class="ruby-identifier">name</span>    = <span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>
+328: 
+329:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-ivar">@groups</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-operator">||</span> <span class="ruby-ivar">@groups</span>.<span class="ruby-identifier">map</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">:to_sym</span>).<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">name</span>))
+330:         <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">add_group</span>(<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">downcase</span>, <span class="ruby-identifier">options</span>)
+331:         <span class="ruby-ivar">@current_group</span> = <span class="ruby-identifier">name</span>
+332: 
+333:         <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+334: 
+335:         <span class="ruby-ivar">@current_group</span> = <span class="ruby-keyword kw">nil</span>
+336:       <span class="ruby-keyword kw">end</span>
+337:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000030">
+                    
+                    <a name="M000030"></a><b>guard</b>(name, options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Declare a guard to be used when running `guard start`.
+</p>
+<p>
+The name parameter is usually the name of the gem without the
+&#8216;guard-&#8217; prefix.
+</p>
+<p>
+The available options are different for each <a href="Guard.html">Guard</a>
+implementation.
+</p>
+<p>
+@example Declare a <a href="Guard.html">Guard</a>
+</p>
+<pre>
+  guard 'rspec' do
+  end
+</pre>
+<p>
+@param [String] name the <a href="Guard.html">Guard</a> name @param [Hash]
+options the options accepted by the <a href="Guard.html">Guard</a> @yield a
+block where you can declare several watch patterns and actions
+</p>
+<p>
+@see Guard.add_guard @see <a href="Dsl.html#M000029">Dsl#group</a> @see <a
+href="Dsl.html#M000031">Dsl#watch</a> @see <a
+href="DslDescriber.html">Guard::DslDescriber</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000030_source')" id="l_M000030_source">show</a>
+                        
+                    </p>
+                    <div id="M000030_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 360</span>
+360:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guard</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">options</span> = {})
+361:       <span class="ruby-ivar">@watchers</span>  = []
+362:       <span class="ruby-ivar">@callbacks</span> = []
+363:       <span class="ruby-ivar">@current_group</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">:default</span>
+364: 
+365:       <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+366: 
+367:       <span class="ruby-identifier">options</span>.<span class="ruby-identifier">update</span>(<span class="ruby-identifier">:group</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@current_group</span>)
+368:       <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">add_guard</span>(<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">downcase</span>, <span class="ruby-ivar">@watchers</span>, <span class="ruby-ivar">@callbacks</span>, <span class="ruby-identifier">options</span>)
+369:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000033">
+                    
+                    <a name="M000033"></a><b>ignore_paths</b>(*paths)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Ignore certain paths globally.
+</p>
+<p>
+@example Ignore some paths
+</p>
+<pre>
+  ignore_paths &quot;.git&quot;, &quot;.svn&quot;
+</pre>
+<p>
+@param [Array] paths the list of paths to ignore
+</p>
+<p>
+@see <a href="Listener.html">Guard::Listener</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000033_source')" id="l_M000033_source">show</a>
+                        
+                    </p>
+                    <div id="M000033_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 415</span>
+415:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ignore_paths</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">paths</span>)
+416:       <span class="ruby-constant">UI</span>.<span class="ruby-identifier">info</span> <span class="ruby-node">&quot;Ignoring paths: #{ paths.join(', ') }&quot;</span>
+417:       <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">listener</span>.<span class="ruby-identifier">ignore_paths</span>.<span class="ruby-identifier">push</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">paths</span>)
+418:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000027">
+                    
+                    <a name="M000027"></a><b>interactor</b>(interactor)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sets the interactor to use.
+</p>
+<p>
+@example Use the readline interactor
+</p>
+<pre>
+  interactor :readline
+</pre>
+<p>
+@example Use the gets interactor
+</p>
+<pre>
+  interactor :gets
+</pre>
+<p>
+@example Turn off interactions
+</p>
+<pre>
+  interactor :off
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000027_source')" id="l_M000027_source">show</a>
+                        
+                    </p>
+                    <div id="M000027_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 299</span>
+299:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">interactor</span>(<span class="ruby-identifier">interactor</span>)
+300:       <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span><span class="ruby-operator">::</span><span class="ruby-constant">Interactor</span>.<span class="ruby-identifier">interactor</span> = <span class="ruby-identifier">interactor</span>.<span class="ruby-identifier">to_sym</span>
+301:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000026">
+                    
+                    <a name="M000026"></a><b>notification</b>(notifier, options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Set notification options for the system notifications. You can set multiple
+notification, which allows you to show local system notifications and
+remote notifications with separate libraries. You can also pass `:off` as
+library to turn off notifications.
+</p>
+<p>
+@example Define multiple notifications
+</p>
+<pre>
+  notification :growl_notify
+  notification :ruby_gntp, :host =&gt; '192.168.1.5'
+</pre>
+<p>
+@see <a href="Notifier.html">Guard::Notifier</a> for available notifier and
+its options.
+</p>
+<p>
+@param [Symbol, String] notifier the name of the notifier to use @param
+[Hash] options the notification library options
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000026_source')" id="l_M000026_source">show</a>
+                        
+                    </p>
+                    <div id="M000026_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 284</span>
+284:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">notification</span>(<span class="ruby-identifier">notifier</span>, <span class="ruby-identifier">options</span> = {})
+285:       <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span><span class="ruby-operator">::</span><span class="ruby-constant">Notifier</span>.<span class="ruby-identifier">add_notification</span>(<span class="ruby-identifier">notifier</span>.<span class="ruby-identifier">to_sym</span>, <span class="ruby-identifier">options</span>, <span class="ruby-keyword kw">false</span>)
+286:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000031">
+                    
+                    <a name="M000031"></a><b>watch</b>(pattern, &amp;action)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Define a pattern to be watched in order to run actions on file
+modification.
+</p>
+<p>
+@example Declare watchers for a <a href="Guard.html">Guard</a>
+</p>
+<pre>
+  guard 'rspec' do
+    watch('spec/spec_helper.rb')
+    watch(%r{^.+_spec.rb})
+    watch(%r{^app/controllers/(.+).rb}) { |m| 'spec/acceptance/#{m[1]}s_spec.rb' }
+  end
+</pre>
+<p>
+@param [String, Regexp] pattern the pattern to be watched by the guard
+@yield a block to be run when the pattern is matched @yieldparam
+[MatchData] m matches of the pattern @yieldreturn a directory, a filename,
+an array of directories / filenames, or nothing (can be an arbitrary
+command)
+</p>
+<p>
+@see <a href="Watcher.html">Guard::Watcher</a> @see <a
+href="Dsl.html#M000030">Dsl#guard</a>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000031_source')" id="l_M000031_source">show</a>
+                        
+                    </p>
+                    <div id="M000031_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 389</span>
+389:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">watch</span>(<span class="ruby-identifier">pattern</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">action</span>)
+390:       <span class="ruby-ivar">@watchers</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span><span class="ruby-operator">::</span><span class="ruby-constant">Watcher</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">pattern</span>, <span class="ruby-identifier">action</span>)
+391:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000006">
+                    
+                    <a name="M000006"></a><b>evaluate_guardfile</b>(options = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Evaluate the DSL methods in the `Guardfile`.
+</p>
+<p>
+@option options [Array<Symbol,String>] groups the groups to evaluate
+@option options [String] guardfile the path to a valid Guardfile @option
+options [String] <a href="Dsl.html#M000017">guardfile_contents</a> a string
+representing the content of a valid Guardfile @raise [ArgumentError] when
+options are not a Hash
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
+                        
+                    </p>
+                    <div id="M000006_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 96</span>
+ 96:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">evaluate_guardfile</span>(<span class="ruby-identifier">options</span> = {})
+ 97:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'No option hash passed to evaluate_guardfile!'</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>)
+ 98: 
+ 99:         <span class="ruby-ivar">@@options</span> = <span class="ruby-identifier">options</span>.<span class="ruby-identifier">dup</span>
+100: 
+101:         <span class="ruby-identifier">fetch_guardfile_contents</span>
+102:         <span class="ruby-identifier">instance_eval_guardfile</span>(<span class="ruby-identifier">guardfile_contents_with_user_config</span>)
+103:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000014">
+                    
+                    <a name="M000014"></a><b>fetch_guardfile_contents</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the content to evaluate and stores it into the options as `:<a
+href="Dsl.html#M000017">guardfile_contents</a>`.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000014_source')" id="l_M000014_source">show</a>
+                        
+                    </p>
+                    <div id="M000014_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 164</span>
+164:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">fetch_guardfile_contents</span>
+165:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_contents</span>]
+166:           <span class="ruby-constant">UI</span>.<span class="ruby-identifier">info</span> <span class="ruby-value str">'Using inline Guardfile.'</span>
+167:           <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_path</span>] = <span class="ruby-value str">'Inline Guardfile'</span>
+168: 
+169:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile</span>]
+170:           <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile</span>])
+171:             <span class="ruby-identifier">read_guardfile</span>(<span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile</span>])
+172:             <span class="ruby-constant">UI</span>.<span class="ruby-identifier">info</span> <span class="ruby-node">&quot;Using Guardfile at #{ @@options[:guardfile] }.&quot;</span>
+173:           <span class="ruby-keyword kw">else</span>
+174:             <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span> <span class="ruby-node">&quot;No Guardfile exists at #{ @@options[:guardfile] }.&quot;</span>
+175:             <span class="ruby-identifier">exit</span> <span class="ruby-value">1</span>
+176:           <span class="ruby-keyword kw">end</span>
+177: 
+178:         <span class="ruby-keyword kw">else</span>
+179:           <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">guardfile_default_path</span>)
+180:             <span class="ruby-identifier">read_guardfile</span>(<span class="ruby-identifier">guardfile_default_path</span>)
+181:           <span class="ruby-keyword kw">else</span>
+182:             <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span> <span class="ruby-value str">'No Guardfile found, please create one with `guard init`.'</span>
+183:             <span class="ruby-identifier">exit</span> <span class="ruby-value">1</span>
+184:           <span class="ruby-keyword kw">end</span>
+185:         <span class="ruby-keyword kw">end</span>
+186: 
+187:         <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">guardfile_contents_usable?</span>
+188:           <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span> <span class="ruby-node">&quot;The command file(#{ @@options[:guardfile] }) seems to be empty.&quot;</span>
+189:           <span class="ruby-identifier">exit</span> <span class="ruby-value">1</span>
+190:         <span class="ruby-keyword kw">end</span>
+191:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000017">
+                    
+                    <a name="M000017"></a><b>guardfile_contents</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the content of the `Guardfile`.
+</p>
+<p>
+@return [String] the Guardfile content
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000017_source')" id="l_M000017_source">show</a>
+                        
+                    </p>
+                    <div id="M000017_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 197</span>
+197:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_contents</span>
+198:         <span class="ruby-ivar">@@options</span> <span class="ruby-operator">?</span> <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_contents</span>] <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>
+199:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000021">
+                    
+                    <a name="M000021"></a><b>guardfile_contents_usable?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Tests if the current `Guardfile` content is usable.
+</p>
+<p>
+@return [Boolean] if the Guardfile is usable
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000021_source')" id="l_M000021_source">show</a>
+                        
+                    </p>
+                    <div id="M000021_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 225</span>
+225:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_contents_usable?</span>
+226:         <span class="ruby-identifier">guardfile_contents</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">guardfile_contents</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value str">'guard :a'</span>.<span class="ruby-identifier">size</span> <span class="ruby-comment cmt"># Smallest Guard definition</span>
+227:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000018">
+                    
+                    <a name="M000018"></a><b>guardfile_contents_with_user_config</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the content of the `Guardfile` and the global user configuration file.
+</p>
+<p>
+@see <a href="Dsl.html#M000025">user_config_path</a>
+</p>
+<p>
+@return [String] the Guardfile content
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000018_source')" id="l_M000018_source">show</a>
+                        
+                    </p>
+                    <div id="M000018_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 208</span>
+208:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_contents_with_user_config</span>
+209:         <span class="ruby-identifier">config</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">user_config_path</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">user_config_path</span>)
+210:         [<span class="ruby-identifier">guardfile_contents</span>, <span class="ruby-identifier">config</span>].<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+211:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000022">
+                    
+                    <a name="M000022"></a><b>guardfile_default_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Gets the default path of the `Guardfile`. This returns the `Guardfile` from
+the current directory when existing, or the global `.Guardfile` at the home
+directory.
+</p>
+<p>
+@return [String] the path to the Guardfile
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000022_source')" id="l_M000022_source">show</a>
+                        
+                    </p>
+                    <div id="M000022_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 235</span>
+235:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_default_path</span>
+236:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">local_guardfile_path</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">local_guardfile_path</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">home_guardfile_path</span>
+237:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>guardfile_include?</b>(guard_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Test if the current `Guardfile` contains a specific <a
+href="Guard.html">Guard</a>.
+</p>
+<p>
+@param [String] guard_name the name of the <a href="Guard.html">Guard</a>
+@return [Boolean] whether the <a href="Guard.html">Guard</a> has been
+declared
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 145</span>
+145:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_include?</span>(<span class="ruby-identifier">guard_name</span>)
+146:         <span class="ruby-identifier">guardfile_contents</span>.<span class="ruby-identifier">match</span>(<span class="ruby-node">/^guard\s*\(?\s*['&quot;:]#{ guard_name }['&quot;]?/</span>)
+147:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000020">
+                    
+                    <a name="M000020"></a><b>guardfile_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the file path to the project `Guardfile`.
+</p>
+<p>
+@return [String] the path to the Guardfile
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000020_source')" id="l_M000020_source">show</a>
+                        
+                    </p>
+                    <div id="M000020_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 217</span>
+217:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">guardfile_path</span>
+218:         <span class="ruby-ivar">@@options</span> <span class="ruby-operator">?</span> <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_path</span>] <span class="ruby-operator">:</span> <span class="ruby-value str">''</span>
+219:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>instance_eval_guardfile</b>(contents)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Evaluate the content of the `Guardfile`.
+</p>
+<p>
+@param [String] contents the content to evaluate.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 133</span>
+133:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">instance_eval_guardfile</span>(<span class="ruby-identifier">contents</span>)
+134:         <span class="ruby-identifier">new</span>.<span class="ruby-identifier">instance_eval</span>(<span class="ruby-identifier">contents</span>, <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_path</span>], <span class="ruby-value">1</span>)
+135:       <span class="ruby-keyword kw">rescue</span>
+136:         <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span> <span class="ruby-node">&quot;Invalid Guardfile, original error is:\n#{ $! }&quot;</span>
+137:         <span class="ruby-identifier">exit</span> <span class="ruby-value">1</span>
+138:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>read_guardfile</b>(guardfile_path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Read the current `Guardfile` content.
+</p>
+<p>
+@param [String] <a href="Dsl.html#M000020">guardfile_path</a> the path to
+the Guardfile
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 153</span>
+153:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_guardfile</span>(<span class="ruby-identifier">guardfile_path</span>)
+154:         <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_path</span>]     = <span class="ruby-identifier">guardfile_path</span>
+155:         <span class="ruby-ivar">@@options</span>[<span class="ruby-identifier">:guardfile_contents</span>] = <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">guardfile_path</span>)
+156:       <span class="ruby-keyword kw">rescue</span>
+157:         <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span>(<span class="ruby-node">&quot;Error reading file #{ guardfile_path }&quot;</span>)
+158:         <span class="ruby-identifier">exit</span> <span class="ruby-value">1</span>
+159:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000008">
+                    
+                    <a name="M000008"></a><b>reevaluate_guardfile</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Re-evaluate the `Guardfile` to update the current <a
+href="Guard.html">Guard</a> configuration.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
+                        
+                    </p>
+                    <div id="M000008_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 107</span>
+107:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">reevaluate_guardfile</span>
+108:         <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">run</span> <span class="ruby-keyword kw">do</span>
+109:           <span class="ruby-comment cmt"># Stop each old guards</span>
+110:           <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">run_on_guards</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">guard</span><span class="ruby-operator">|</span>
+111:             <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">run_supervised_task</span>(<span class="ruby-identifier">guard</span>, <span class="ruby-identifier">:stop</span>)
+112:           <span class="ruby-keyword kw">end</span>
+113:           <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">guards</span>.<span class="ruby-identifier">clear</span>
+114:           <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">reset_groups</span>
+115:           <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span><span class="ruby-operator">::</span><span class="ruby-constant">Notifier</span>.<span class="ruby-identifier">clear_notifications</span>
+116:           <span class="ruby-ivar">@@options</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">:guardfile_contents</span>)
+117:           <span class="ruby-constant">Dsl</span>.<span class="ruby-identifier">evaluate_guardfile</span>(<span class="ruby-ivar">@@options</span>)
+118:           <span class="ruby-constant">UI</span>.<span class="ruby-identifier">error</span> <span class="ruby-value str">'No guards found in Guardfile, please add at least one.'</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">guards</span>.<span class="ruby-identifier">empty?</span>
+119:           <span class="ruby-identifier">msg</span> = <span class="ruby-value str">'Guardfile has been re-evaluated.'</span>
+120:           <span class="ruby-constant">UI</span>.<span class="ruby-identifier">info</span>(<span class="ruby-identifier">msg</span>)
+121:           <span class="ruby-constant">Notifier</span>.<span class="ruby-identifier">notify</span>(<span class="ruby-identifier">msg</span>)
+122:           <span class="ruby-comment cmt"># Start each new guards</span>
+123:           <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">run_on_guards</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">guard</span><span class="ruby-operator">|</span>
+124:             <span class="ruby-operator">::</span><span class="ruby-constant">Guard</span>.<span class="ruby-identifier">run_supervised_task</span>(<span class="ruby-identifier">guard</span>, <span class="ruby-identifier">:start</span>)
+125:           <span class="ruby-keyword kw">end</span>
+126:         <span class="ruby-keyword kw">end</span>
+127:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000024">
+                    
+                    <a name="M000024"></a><b>home_guardfile_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The path to the `.Guardfile` that is located at the users home directory.
+</p>
+<p>
+@return [String] the path to ~/.Guardfile
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000024_source')" id="l_M000024_source">show</a>
+                        
+                    </p>
+                    <div id="M000024_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 255</span>
+255:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">home_guardfile_path</span>
+256:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'~'</span>, <span class="ruby-value str">'.Guardfile'</span>))
+257:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000023">
+                    
+                    <a name="M000023"></a><b>local_guardfile_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The path to the `Guardfile` that is located at the directory, where <a
+href="Guard.html">Guard</a> has been started from.
+</p>
+<p>
+@return [String] the path to the local Guardfile
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000023_source')" id="l_M000023_source">show</a>
+                        
+                    </p>
+                    <div id="M000023_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 246</span>
+246:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">local_guardfile_path</span>
+247:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>, <span class="ruby-value str">'Guardfile'</span>)
+248:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000025">
+                    
+                    <a name="M000025"></a><b>user_config_path</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The path to the user configuration `.guard.rb` that is located at the users
+home directory.
+</p>
+<p>
+@return [String] the path to ~/.guard.rb
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000025_source')" id="l_M000025_source">show</a>
+                        
+                    </p>
+                    <div id="M000025_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/guard/dsl.rb, line 264</span>
+264:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">user_config_path</span>
+265:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">'~'</span>, <span class="ruby-value str">'.guard.rb'</span>))
+266:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

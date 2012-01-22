@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Archive::Tar::Minitar</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Archive::Tar::Minitar 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/archive/tar/minitar_rb.html">lib/archive/tar/minitar.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h1><a href="Minitar.html">Archive::Tar::Minitar</a> 0.5.2</h1>
+<p>
+<a href="Minitar.html">Archive::Tar::Minitar</a> is a pure-Ruby library and
+command-line utility that provides the ability to deal with POSIX tar(1)
+archive files. The implementation is based heavily on Mauricio
+Ferna&#8217;ndez&#8217;s implementation in rpa-base, but has been
+reorganised to promote reuse in other projects.
+</p>
+<p>
+This tar class performs a subset of all tar (POSIX tape archive)
+operations. We can only deal with typeflags 0, 1, 2, and 5 (see <a
+href="PosixHeader.html">Archive::Tar::PosixHeader</a>). All other typeflags
+will be treated as normal files.
+</p>
+<table>
+<tr><td valign="top">NOTE::</td><td>support for typeflags 1 and 2 is not yet implemented in this version.
+
+</td></tr>
+</table>
+<p>
+This release is version 0.5.2. The library can only handle files and
+directories at this point. A future version will be expanded to handle
+symbolic links and hard links in a portable manner. The command line
+utility, minitar, can only create archives, extract from archives, and list
+archive contents.
+</p>
+<h2>Synopsis</h2>
+<p>
+Using this library is easy. The simplest case is:
+</p>
+<pre>
+  require 'zlib'
+  require 'archive/tar/minitar'
+  include Archive::Tar
+
+    # Packs everything that matches Find.find('tests')
+  File.open('test.tar', 'wb') { |tar| Minitar.pack('tests', tar) }
+    # Unpacks 'test.tar' to 'x', creating 'x' if necessary.
+  Minitar.unpack('test.tar', 'x')
+</pre>
+<p>
+A gzipped tar can be written with:
+</p>
+<pre>
+  tgz = Zlib::GzipWriter.new(File.open('test.tgz', 'wb'))
+    # Warning: tgz will be closed!
+  Minitar.pack('tests', tgz)
+
+  tgz = Zlib::GzipReader.new(File.open('test.tgz', 'rb'))
+    # Warning: tgz will be closed!
+  Minitar.unpack(tgz, 'x')
+</pre>
+<p>
+As the case above shows, one need not write to a file. However, it will
+sometimes require that one dive a little deeper into the API, as in the
+case of StringIO objects. Note that I&#8217;m not providing a block with <a
+href="Minitar/Output.html">Minitar::Output</a>, as <a
+href="Minitar/Output.html#M000105">Minitar::Output#close</a> automatically
+closes both the <a href="Minitar/Output.html">Output</a> object and the
+wrapped data stream object.
+</p>
+<pre>
+  begin
+    sgz = Zlib::GzipWriter.new(StringIO.new(&quot;&quot;))
+    tar = Output.new(sgz)
+    Find.find('tests') do |entry|
+      Minitar.pack_file(entry, tar)
+    end
+  ensure
+      # Closes both tar and sgz.
+    tar.close
+  end
+</pre>
+<h2>Copyright</h2>
+<p>
+Copyright 2004 Mauricio Julio Ferna&#8217;ndez Pradier and Austin Ziegler
+</p>
+<p>
+This program is based on and incorporates parts of RPA::Package from
+rpa-base (lib/rpa/package.rb and lib/rpa/util.rb) by Mauricio and has been
+adapted to be more generic by Austin.
+</p>
+<p>
+&#8216;minitar&#8217; contains an adaptation of Ruby/ProgressBar by Satoru
+Takabayashi <satoru@namazu.org>, copyright 2001 - 2004.
+</p>
+<p>
+This program is free software. It may be redistributed and/or modified
+under the terms of the GPL version 2 (or later) or Ruby&#8217;s licence.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000106">dir?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000107">open</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000109">pack</a>,</li>
+                
+                <li><a href="#M000108">pack_file</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000110">unpack</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Minitar/Command.html">Archive::Tar::Minitar::Command</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/BlockRequired.html">Archive::Tar::Minitar::BlockRequired</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/ClosedStream.html">Archive::Tar::Minitar::ClosedStream</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/FileNameTooLong.html">Archive::Tar::Minitar::FileNameTooLong</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/Input.html">Archive::Tar::Minitar::Input</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/NonSeekableStream.html">Archive::Tar::Minitar::NonSeekableStream</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/Output.html">Archive::Tar::Minitar::Output</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/Reader.html">Archive::Tar::Minitar::Reader</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/UnexpectedEOF.html">Archive::Tar::Minitar::UnexpectedEOF</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Minitar/Writer.html">Archive::Tar::Minitar::Writer</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">VERSION</td>
+            <td>=</td>
+            <td class="attr-value">&quot;0.5.2&quot;</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000106">
+                    
+                    <a name="M000106"></a><b>dir?</b>(path)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Tests if <tt>path</tt> refers to a directory. Fixes an apparently corrupted
+<tt>stat()</tt> call on Windows.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000106_source')" id="l_M000106_source">show</a>
+                        
+                    </p>
+                    <div id="M000106_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/archive/tar/minitar.rb, line 832</span>
+832:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">dir?</span>(<span class="ruby-identifier">path</span>)
+833:       <span class="ruby-constant">File</span>.<span class="ruby-identifier">directory?</span>((<span class="ruby-identifier">path</span>[<span class="ruby-value">-1</span>] <span class="ruby-operator">==</span> <span class="ruby-value">?/</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">path</span> <span class="ruby-operator">:</span> <span class="ruby-node">&quot;#{path}/&quot;</span>)
+834:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000107">
+                    
+                    <a name="M000107"></a><b>open</b>(dest, mode = &quot;r&quot;, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A convenience method for wrapping <a
+href="Minitar/Input.html#M000095">Archive::Tar::Minitar::Input.open</a>
+(mode <tt>r</tt>) and <a
+href="Minitar/Output.html#M000102">Archive::Tar::Minitar::Output.open</a>
+(mode <tt>w</tt>). No other modes are currently supported.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000107_source')" id="l_M000107_source">show</a>
+                        
+                    </p>
+                    <div id="M000107_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/archive/tar/minitar.rb, line 839</span>
+839:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open</span>(<span class="ruby-identifier">dest</span>, <span class="ruby-identifier">mode</span> = <span class="ruby-value str">&quot;r&quot;</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+840:       <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">mode</span>
+841:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;r&quot;</span>
+842:         <span class="ruby-constant">Input</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">dest</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+843:       <span class="ruby-keyword kw">when</span> <span class="ruby-value str">&quot;w&quot;</span>
+844:         <span class="ruby-constant">Output</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">dest</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+845:       <span class="ruby-keyword kw">else</span>
+846:         <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;Unknown open mode for Archive::Tar::Minitar.open.&quot;</span>
+847:       <span class="ruby-keyword kw">end</span>
+848:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>pack</b>(src, dest, recurse_dirs = true, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A convenience method to pack files specified by <tt>src</tt> into
+<tt>dest</tt>. If <tt>src</tt> is an Array, then each file detailed therein
+will be packed into the resulting <a
+href="Minitar/Output.html">Archive::Tar::Minitar::Output</a> stream; if
+<tt>recurse_dirs</tt> is true, then directories will be recursed.
+</p>
+<p>
+If <tt>src</tt> is an Array, it will be treated as the argument to
+Find.find; all files matching will be packed.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/archive/tar/minitar.rb, line 941</span>
+941:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pack</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dest</span>, <span class="ruby-identifier">recurse_dirs</span> = <span class="ruby-keyword kw">true</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+942:       <span class="ruby-constant">Output</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">dest</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">outp</span><span class="ruby-operator">|</span>
+943:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">src</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Array</span>)
+944:           <span class="ruby-identifier">src</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span><span class="ruby-operator">|</span>
+945:             <span class="ruby-identifier">pack_file</span>(<span class="ruby-identifier">entry</span>, <span class="ruby-identifier">outp</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+946:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">dir?</span>(<span class="ruby-identifier">entry</span>) <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">recurse_dirs</span>
+947:               <span class="ruby-constant">Dir</span>[<span class="ruby-node">&quot;#{entry}/**/**&quot;</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ee</span><span class="ruby-operator">|</span>
+948:                 <span class="ruby-identifier">pack_file</span>(<span class="ruby-identifier">ee</span>, <span class="ruby-identifier">outp</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+949:               <span class="ruby-keyword kw">end</span>
+950:             <span class="ruby-keyword kw">end</span>
+951:           <span class="ruby-keyword kw">end</span>
+952:         <span class="ruby-keyword kw">else</span>
+953:           <span class="ruby-constant">Find</span>.<span class="ruby-identifier">find</span>(<span class="ruby-identifier">src</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span><span class="ruby-operator">|</span>
+954:             <span class="ruby-identifier">pack_file</span>(<span class="ruby-identifier">entry</span>, <span class="ruby-identifier">outp</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+955:           <span class="ruby-keyword kw">end</span>
+956:         <span class="ruby-keyword kw">end</span>
+957:       <span class="ruby-keyword kw">end</span>
+958:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000108">
+                    
+                    <a name="M000108"></a><b>pack_file</b>(entry, outputter)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A convenience method to packs the file provided. <tt>entry</tt> may either
+be a filename (in which case various values for the file (see below) will
+be obtained from <tt>File#stat(entry)</tt> or a Hash with the fields:
+</p>
+<table>
+<tr><td valign="top"><tt>:name</tt>:</td><td>The filename to be packed into the tarchive. <b>REQUIRED</b>.
+
+</td></tr>
+<tr><td valign="top"><tt>:mode</tt>:</td><td>The mode to be applied.
+
+</td></tr>
+<tr><td valign="top"><tt>:uid</tt>:</td><td>The user owner of the file. (Ignored on Windows.)
+
+</td></tr>
+<tr><td valign="top"><tt>:gid</tt>:</td><td>The group owner of the file. (Ignored on Windows.)
+
+</td></tr>
+<tr><td valign="top"><tt>:mtime</tt>:</td><td>The modification Time of the file.
+
+</td></tr>
+</table>
+<p>
+During packing, if a block is provided, <a
+href="Minitar.html#M000108">pack_file</a> yields an <tt>action</tt> Symol,
+the full name of the file being packed, and a Hash of statistical
+information, just as with <a
+href="Minitar/Input.html#M000098">Archive::Tar::Minitar::Input#extract_entry</a>.
+</p>
+<p>
+The <tt>action</tt> will be one of:
+</p>
+<table>
+<tr><td valign="top"><tt>:dir</tt>:</td><td>The <tt>entry</tt> is a directory.
+
+</td></tr>
+<tr><td valign="top"><tt>:file_start</tt>:</td><td>The <tt>entry</tt> is a file; the extract of the file is just beginning.
+
+</td></tr>
+<tr><td valign="top"><tt>:file_progress</tt>:</td><td>Yielded every 4096 bytes during the extract of the <tt>entry</tt>.
+
+</td></tr>
+<tr><td valign="top"><tt>:file_done</tt>:</td><td>Yielded when the <tt>entry</tt> is completed.
+
+</td></tr>
+</table>
+<p>
+The <tt>stats</tt> hash contains the following keys:
+</p>
+<table>
+<tr><td valign="top"><tt>:current</tt>:</td><td>The current total number of bytes read in the <tt>entry</tt>.
+
+</td></tr>
+<tr><td valign="top"><tt>:currinc</tt>:</td><td>The current number of bytes read in this read cycle.
+
+</td></tr>
+<tr><td valign="top"><tt>:name</tt>:</td><td>The filename to be packed into the tarchive. <b>REQUIRED</b>.
+
+</td></tr>
+<tr><td valign="top"><tt>:mode</tt>:</td><td>The mode to be applied.
+
+</td></tr>
+<tr><td valign="top"><tt>:uid</tt>:</td><td>The user owner of the file. (<tt>nil</tt> on Windows.)
+
+</td></tr>
+<tr><td valign="top"><tt>:gid</tt>:</td><td>The group owner of the file. (<tt>nil</tt> on Windows.)
+
+</td></tr>
+<tr><td valign="top"><tt>:mtime</tt>:</td><td>The modification Time of the file.
+
+</td></tr>
+</table>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000108_source')" id="l_M000108_source">show</a>
+                        
+                    </p>
+                    <div id="M000108_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/archive/tar/minitar.rb, line 885</span>
+885:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">pack_file</span>(<span class="ruby-identifier">entry</span>, <span class="ruby-identifier">outputter</span>) <span class="ruby-comment cmt">#:yields action, name, stats:</span>
+886:       <span class="ruby-identifier">outputter</span> = <span class="ruby-identifier">outputter</span>.<span class="ruby-identifier">tar</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">outputter</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Archive</span><span class="ruby-operator">::</span><span class="ruby-constant">Tar</span><span class="ruby-operator">::</span><span class="ruby-constant">Minitar</span><span class="ruby-operator">::</span><span class="ruby-constant">Output</span>)
+887: 
+888:       <span class="ruby-identifier">stats</span> = {}
+889: 
+890:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Hash</span>)
+891:         <span class="ruby-identifier">name</span> = <span class="ruby-identifier">entry</span>[<span class="ruby-identifier">:name</span>]
+892: 
+893:         <span class="ruby-identifier">entry</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">kk</span>, <span class="ruby-identifier">vv</span><span class="ruby-operator">|</span> <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">kk</span>] = <span class="ruby-identifier">vv</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">vv</span>.<span class="ruby-identifier">nil?</span> }
+894:       <span class="ruby-keyword kw">else</span>
+895:         <span class="ruby-identifier">name</span> = <span class="ruby-identifier">entry</span>
+896:       <span class="ruby-keyword kw">end</span>
+897:       
+898:       <span class="ruby-identifier">name</span> = <span class="ruby-identifier">name</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">%r{\./}</span>, <span class="ruby-value str">''</span>)
+899:       <span class="ruby-identifier">stat</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">stat</span>(<span class="ruby-identifier">name</span>)
+900:       <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:mode</span>]   <span class="ruby-operator">||=</span> <span class="ruby-identifier">stat</span>.<span class="ruby-identifier">mode</span>
+901:       <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:mtime</span>]  <span class="ruby-operator">||=</span> <span class="ruby-identifier">stat</span>.<span class="ruby-identifier">mtime</span>
+902:       <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:size</span>]   = <span class="ruby-identifier">stat</span>.<span class="ruby-identifier">size</span>
+903: 
+904:       <span class="ruby-keyword kw">if</span> <span class="ruby-constant">RUBY_PLATFORM</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/win32/</span>
+905:         <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:uid</span>]  = <span class="ruby-keyword kw">nil</span>
+906:         <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:gid</span>]  = <span class="ruby-keyword kw">nil</span>
+907:       <span class="ruby-keyword kw">else</span>
+908:         <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:uid</span>]  <span class="ruby-operator">||=</span> <span class="ruby-identifier">stat</span>.<span class="ruby-identifier">uid</span>
+909:         <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:gid</span>]  <span class="ruby-operator">||=</span> <span class="ruby-identifier">stat</span>.<span class="ruby-identifier">gid</span>
+910:       <span class="ruby-keyword kw">end</span>
+911: 
+912:       <span class="ruby-keyword kw">case</span>
+913:       <span class="ruby-keyword kw">when</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">file?</span>(<span class="ruby-identifier">name</span>)
+914:         <span class="ruby-identifier">outputter</span>.<span class="ruby-identifier">add_file_simple</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">os</span><span class="ruby-operator">|</span>
+915:           <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:current</span>] = <span class="ruby-value">0</span>
+916:           <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">file_start</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+917:           <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">name</span>, <span class="ruby-value str">&quot;rb&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ff</span><span class="ruby-operator">|</span>
+918:             <span class="ruby-keyword kw">until</span> <span class="ruby-identifier">ff</span>.<span class="ruby-identifier">eof?</span>
+919:               <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:currinc</span>] = <span class="ruby-identifier">os</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">ff</span>.<span class="ruby-identifier">read</span>(<span class="ruby-value">4096</span>))
+920:               <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:current</span>] <span class="ruby-operator">+=</span> <span class="ruby-identifier">stats</span>[<span class="ruby-identifier">:currinc</span>]
+921:               <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">file_progress</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+922:             <span class="ruby-keyword kw">end</span>
+923:           <span class="ruby-keyword kw">end</span>
+924:           <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">file_done</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+925:         <span class="ruby-keyword kw">end</span>
+926:       <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">dir?</span>(<span class="ruby-identifier">name</span>)
+927:         <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">dir</span>, <span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+928:         <span class="ruby-identifier">outputter</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">stats</span>)
+929:       <span class="ruby-keyword kw">else</span>
+930:         <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;Don't yet know how to pack this type of file.&quot;</span>
+931:       <span class="ruby-keyword kw">end</span>
+932:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000110">
+                    
+                    <a name="M000110"></a><b>unpack</b>(src, dest, files = [], &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A convenience method to unpack files from <tt>src</tt> into the directory
+specified by <tt>dest</tt>. Only those files named explicitly in
+<tt>files</tt> will be extracted.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000110_source')" id="l_M000110_source">show</a>
+                        
+                    </p>
+                    <div id="M000110_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/archive/tar/minitar.rb, line 963</span>
+963:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">unpack</span>(<span class="ruby-identifier">src</span>, <span class="ruby-identifier">dest</span>, <span class="ruby-identifier">files</span> = [], <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+964:       <span class="ruby-constant">Input</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">src</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">inp</span><span class="ruby-operator">|</span>
+965:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">dest</span>) <span class="ruby-keyword kw">and</span> (<span class="ruby-keyword kw">not</span> <span class="ruby-identifier">dir?</span>(<span class="ruby-identifier">dest</span>))
+966:           <span class="ruby-identifier">raise</span> <span class="ruby-value str">&quot;Can't unpack to a non-directory.&quot;</span>
+967:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-keyword kw">not</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-identifier">dest</span>)
+968:           <span class="ruby-constant">FileUtils</span>.<span class="ruby-identifier">mkdir_p</span>(<span class="ruby-identifier">dest</span>)
+969:         <span class="ruby-keyword kw">end</span>
+970: 
+971:         <span class="ruby-identifier">inp</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span><span class="ruby-operator">|</span>
+972:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">files</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">files</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">entry</span>.<span class="ruby-identifier">full_name</span>)
+973:             <span class="ruby-identifier">inp</span>.<span class="ruby-identifier">extract_entry</span>(<span class="ruby-identifier">dest</span>, <span class="ruby-identifier">entry</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+974:           <span class="ruby-keyword kw">end</span>
+975:         <span class="ruby-keyword kw">end</span>
+976:       <span class="ruby-keyword kw">end</span>
+977:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

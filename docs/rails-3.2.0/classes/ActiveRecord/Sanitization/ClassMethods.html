@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::Sanitization::ClassMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ActiveRecord::Sanitization::ClassMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/activerecord-3_2_0/lib/active_record/sanitization_rb.html">activerecord-3.2.0/lib/active_record/sanitization.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001665">expand_hash_conditions_for_aggregates</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001673">sanitize_conditions</a>,</li>
+                
+                <li><a href="#M001654">sanitize_sql</a>,</li>
+                
+                <li><a href="#M001672">sanitize_sql_array</a>,</li>
+                
+                <li><a href="#M001659">sanitize_sql_for_assignment</a>,</li>
+                
+                <li><a href="#M001653">sanitize_sql_for_conditions</a>,</li>
+                
+                <li><a href="#M001670">sanitize_sql_hash</a>,</li>
+                
+                <li><a href="#M001671">sanitize_sql_hash_for_assignment</a>,</li>
+                
+                <li><a href="#M001667">sanitize_sql_hash_for_conditions</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001665">
+                    
+                    <a name="M001665"></a><b>expand_hash_conditions_for_aggregates</b>(attrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts a hash of SQL conditions and replaces those attributes that
+correspond to a <tt>composed_of</tt> relationship with their expanded
+aggregate attribute values. Given:
+</p>
+<pre>
+    class Person &lt; ActiveRecord::Base
+      composed_of :address, :class_name =&gt; &quot;Address&quot;,
+        :mapping =&gt; [%w(address_street street), %w(address_city city)]
+    end
+</pre>
+<p>
+Then:
+</p>
+<pre>
+    { :address =&gt; Address.new(&quot;813 abc st.&quot;, &quot;chicago&quot;) }
+      # =&gt; { :address_street =&gt; &quot;813 abc st.&quot;, :address_city =&gt; &quot;chicago&quot; }
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001665_source')" id="l_M001665_source">show</a>
+                        
+                    </p>
+                    <div id="M001665_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 57</span>
+57:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">expand_hash_conditions_for_aggregates</span>(<span class="ruby-identifier">attrs</span>)
+58:         <span class="ruby-identifier">expanded_attrs</span> = {}
+59:         <span class="ruby-identifier">attrs</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+60:           <span class="ruby-keyword kw">unless</span> (<span class="ruby-identifier">aggregation</span> = <span class="ruby-identifier">reflect_on_aggregation</span>(<span class="ruby-identifier">attr</span>.<span class="ruby-identifier">to_sym</span>)).<span class="ruby-identifier">nil?</span>
+61:             <span class="ruby-identifier">mapping</span> = <span class="ruby-identifier">aggregate_mapping</span>(<span class="ruby-identifier">aggregation</span>)
+62:             <span class="ruby-identifier">mapping</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">field_attr</span>, <span class="ruby-identifier">aggregate_attr</span><span class="ruby-operator">|</span>
+63:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">mapping</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">value</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">aggregate_attr</span>)
+64:                 <span class="ruby-identifier">expanded_attrs</span>[<span class="ruby-identifier">field_attr</span>] = <span class="ruby-identifier">value</span>
+65:               <span class="ruby-keyword kw">else</span>
+66:                 <span class="ruby-identifier">expanded_attrs</span>[<span class="ruby-identifier">field_attr</span>] = <span class="ruby-identifier">value</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">aggregate_attr</span>)
+67:               <span class="ruby-keyword kw">end</span>
+68:             <span class="ruby-keyword kw">end</span>
+69:           <span class="ruby-keyword kw">else</span>
+70:             <span class="ruby-identifier">expanded_attrs</span>[<span class="ruby-identifier">attr</span>] = <span class="ruby-identifier">value</span>
+71:           <span class="ruby-keyword kw">end</span>
+72:         <span class="ruby-keyword kw">end</span>
+73:         <span class="ruby-identifier">expanded_attrs</span>
+74:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001673">
+                    
+                    <a name="M001673"></a><b>sanitize_conditions</b>(condition, table_name = self.table_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="ClassMethods.html#M001654">sanitize_sql</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001654">
+                    
+                    <a name="M001654"></a><b>sanitize_sql</b>(condition, table_name = self.table_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a
+href="ClassMethods.html#M001653">sanitize_sql_for_conditions</a>
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="ClassMethods.html#M001673">sanitize_conditions</a>
+                    
+                </div>
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001672">
+                    
+                    <a name="M001672"></a><b>sanitize_sql_array</b>(ary)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts an array of conditions. The array has each value sanitized and
+interpolated into the SQL statement.
+</p>
+<pre>
+  [&quot;name='%s' and group_id='%s'&quot;, &quot;foo'bar&quot;, 4]  returns  &quot;name='foo''bar' and group_id='4'&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001672_source')" id="l_M001672_source">show</a>
+                        
+                    </p>
+                    <div id="M001672_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 112</span>
+112:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sanitize_sql_array</span>(<span class="ruby-identifier">ary</span>)
+113:         <span class="ruby-identifier">statement</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">values</span> = <span class="ruby-identifier">ary</span>
+114:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">values</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">statement</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/:\w+/</span>
+115:           <span class="ruby-identifier">replace_named_bind_variables</span>(<span class="ruby-identifier">statement</span>, <span class="ruby-identifier">values</span>.<span class="ruby-identifier">first</span>)
+116:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">statement</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-value str">'?'</span>)
+117:           <span class="ruby-identifier">replace_bind_variables</span>(<span class="ruby-identifier">statement</span>, <span class="ruby-identifier">values</span>)
+118:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">statement</span>.<span class="ruby-identifier">blank?</span>
+119:           <span class="ruby-identifier">statement</span>
+120:         <span class="ruby-keyword kw">else</span>
+121:           <span class="ruby-identifier">statement</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">values</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">value</span><span class="ruby-operator">|</span> <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">quote_string</span>(<span class="ruby-identifier">value</span>.<span class="ruby-identifier">to_s</span>) }
+122:         <span class="ruby-keyword kw">end</span>
+123:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001659">
+                    
+                    <a name="M001659"></a><b>sanitize_sql_for_assignment</b>(assignments)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts an array, hash, or string of SQL conditions and sanitizes them into
+a valid SQL fragment for a SET clause.
+</p>
+<pre>
+  { :name =&gt; nil, :group_id =&gt; 4 }  returns &quot;name = NULL , group_id='4'&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001659_source')" id="l_M001659_source">show</a>
+                        
+                    </p>
+                    <div id="M001659_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 38</span>
+38:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sanitize_sql_for_assignment</span>(<span class="ruby-identifier">assignments</span>)
+39:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">assignments</span>
+40:           <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Array</span>; <span class="ruby-identifier">sanitize_sql_array</span>(<span class="ruby-identifier">assignments</span>)
+41:           <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Hash</span>;  <span class="ruby-identifier">sanitize_sql_hash_for_assignment</span>(<span class="ruby-identifier">assignments</span>)
+42:           <span class="ruby-keyword kw">else</span>        <span class="ruby-identifier">assignments</span>
+43:         <span class="ruby-keyword kw">end</span>
+44:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001653">
+                    
+                    <a name="M001653"></a><b>sanitize_sql_for_conditions</b>(condition, table_name = self.table_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts an array, hash, or string of SQL conditions and sanitizes them into
+a valid SQL fragment for a WHERE clause.
+</p>
+<pre>
+  [&quot;name='%s' and group_id='%s'&quot;, &quot;foo'bar&quot;, 4]  returns  &quot;name='foo''bar' and group_id='4'&quot;
+  { :name =&gt; &quot;foo'bar&quot;, :group_id =&gt; 4 }  returns &quot;name='foo''bar' and group_id='4'&quot;
+  &quot;name='foo''bar' and group_id='4'&quot; returns &quot;name='foo''bar' and group_id='4'&quot;
+</pre>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="ClassMethods.html#M001654">sanitize_sql</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001653_source')" id="l_M001653_source">show</a>
+                        
+                    </p>
+                    <div id="M001653_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 24</span>
+24:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sanitize_sql_for_conditions</span>(<span class="ruby-identifier">condition</span>, <span class="ruby-identifier">table_name</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">table_name</span>)
+25:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">condition</span>.<span class="ruby-identifier">blank?</span>
+26: 
+27:         <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">condition</span>
+28:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Array</span>; <span class="ruby-identifier">sanitize_sql_array</span>(<span class="ruby-identifier">condition</span>)
+29:         <span class="ruby-keyword kw">when</span> <span class="ruby-constant">Hash</span>;  <span class="ruby-identifier">sanitize_sql_hash_for_conditions</span>(<span class="ruby-identifier">condition</span>, <span class="ruby-identifier">table_name</span>)
+30:         <span class="ruby-keyword kw">else</span>        <span class="ruby-identifier">condition</span>
+31:         <span class="ruby-keyword kw">end</span>
+32:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001670">
+                    
+                    <a name="M001670"></a><b>sanitize_sql_hash</b>(attrs, default_table_name = self.table_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a
+href="ClassMethods.html#M001667">sanitize_sql_hash_for_conditions</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001671">
+                    
+                    <a name="M001671"></a><b>sanitize_sql_hash_for_assignment</b>(attrs)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sanitizes a hash of attribute/value pairs into SQL conditions for a SET
+clause.
+</p>
+<pre>
+  { :status =&gt; nil, :group_id =&gt; 1 }
+    # =&gt; &quot;status = NULL , group_id = 1&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001671_source')" id="l_M001671_source">show</a>
+                        
+                    </p>
+                    <div id="M001671_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 103</span>
+103:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sanitize_sql_hash_for_assignment</span>(<span class="ruby-identifier">attrs</span>)
+104:         <span class="ruby-identifier">attrs</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+105:           <span class="ruby-node">&quot;#{connection.quote_column_name(attr)} = #{quote_bound_value(value)}&quot;</span>
+106:         <span class="ruby-keyword kw">end</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">', '</span>)
+107:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001667">
+                    
+                    <a name="M001667"></a><b>sanitize_sql_hash_for_conditions</b>(attrs, default_table_name = self.table_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE
+clause.
+</p>
+<pre>
+  { :name =&gt; &quot;foo'bar&quot;, :group_id =&gt; 4 }
+    # =&gt; &quot;name='foo''bar' and group_id= 4&quot;
+  { :status =&gt; nil, :group_id =&gt; [1,2,3] }
+    # =&gt; &quot;status IS NULL and group_id IN (1,2,3)&quot;
+  { :age =&gt; 13..18 }
+    # =&gt; &quot;age BETWEEN 13 AND 18&quot;
+  { 'other_records.id' =&gt; 7 }
+    # =&gt; &quot;`other_records`.`id` = 7&quot;
+  { :other_records =&gt; { :id =&gt; 7 } }
+    # =&gt; &quot;`other_records`.`id` = 7&quot;
+</pre>
+<p>
+And for value objects on a composed_of relationship:
+</p>
+<pre>
+  { :address =&gt; Address.new(&quot;123 abc st.&quot;, &quot;chicago&quot;) }
+    # =&gt; &quot;address_street='123 abc st.' and address_city='chicago'&quot;
+</pre>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="ClassMethods.html#M001670">sanitize_sql_hash</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001667_source')" id="l_M001667_source">show</a>
+                        
+                    </p>
+                    <div id="M001667_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.0/lib/active_record/sanitization.rb, line 90</span>
+90:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sanitize_sql_hash_for_conditions</span>(<span class="ruby-identifier">attrs</span>, <span class="ruby-identifier">default_table_name</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">table_name</span>)
+91:         <span class="ruby-identifier">attrs</span> = <span class="ruby-identifier">expand_hash_conditions_for_aggregates</span>(<span class="ruby-identifier">attrs</span>)
+92: 
+93:         <span class="ruby-identifier">table</span> = <span class="ruby-constant">Arel</span><span class="ruby-operator">::</span><span class="ruby-constant">Table</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">table_name</span>).<span class="ruby-identifier">alias</span>(<span class="ruby-identifier">default_table_name</span>)
+94:         <span class="ruby-constant">PredicateBuilder</span>.<span class="ruby-identifier">build_from_hash</span>(<span class="ruby-identifier">arel_engine</span>, <span class="ruby-identifier">attrs</span>, <span class="ruby-identifier">table</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">b</span><span class="ruby-operator">|</span>
+95:           <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">visitor</span>.<span class="ruby-identifier">accept</span> <span class="ruby-identifier">b</span>
+96:         }.<span class="ruby-identifier">join</span>(<span class="ruby-value str">' AND '</span>)
+97:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

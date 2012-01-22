@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Action::VM::Provision</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Action::VM::Provision 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/vagrant/action/vm/provision_rb.html">lib/vagrant/action/vm/provision.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000130">call</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000131">enabled_provisioners</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000126">new</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000130">
+                    
+                    <a name="M000130"></a><b>call</b>(env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000130_source')" id="l_M000130_source">show</a>
+                        
+                    </p>
+                    <div id="M000130_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/vm/provision.rb, line 14</span>
+14:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+15:           <span class="ruby-ivar">@env</span> = <span class="ruby-identifier">env</span>
+16: 
+17:           <span class="ruby-identifier">provisioners</span> = <span class="ruby-keyword kw">nil</span>
+18: 
+19:           <span class="ruby-comment cmt"># We set this here so that even if this value is changed in the future,</span>
+20:           <span class="ruby-comment cmt"># it stays constant to what we expect here in this moment.</span>
+21:           <span class="ruby-identifier">enabled</span> = <span class="ruby-identifier">env</span>[<span class="ruby-value str">&quot;provision.enabled&quot;</span>]
+22:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">enabled</span>
+23:             <span class="ruby-comment cmt"># Instantiate and prepare the provisioners. Preparation must happen here</span>
+24:             <span class="ruby-comment cmt"># so that shared folders and such can properly take effect.</span>
+25:             <span class="ruby-identifier">provisioners</span> = <span class="ruby-identifier">enabled_provisioners</span>
+26:             <span class="ruby-identifier">provisioners</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">p</span><span class="ruby-operator">|</span> <span class="ruby-identifier">p</span>.<span class="ruby-identifier">prepare</span> }
+27:           <span class="ruby-keyword kw">end</span>
+28: 
+29:           <span class="ruby-ivar">@app</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+30: 
+31:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">enabled</span>
+32:             <span class="ruby-comment cmt"># Take prepared provisioners and run the provisioning</span>
+33:             <span class="ruby-identifier">provisioners</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">instance</span><span class="ruby-operator">|</span>
+34:               <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.vm.provision.beginning&quot;</span>,
+35:                                     <span class="ruby-identifier">:provisioner</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">instance</span>.<span class="ruby-identifier">class</span>)
+36:               <span class="ruby-identifier">instance</span>.<span class="ruby-identifier">provision!</span>
+37:             <span class="ruby-keyword kw">end</span>
+38:           <span class="ruby-keyword kw">end</span>
+39:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000131">
+                    
+                    <a name="M000131"></a><b>enabled_provisioners</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000131_source')" id="l_M000131_source">show</a>
+                        
+                    </p>
+                    <div id="M000131_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/vm/provision.rb, line 41</span>
+41:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">enabled_provisioners</span>
+42:           <span class="ruby-identifier">enabled</span> = []
+43:           <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">config</span>.<span class="ruby-identifier">vm</span>.<span class="ruby-identifier">provisioners</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">provisioner</span><span class="ruby-operator">|</span>
+44:             <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@env</span>[<span class="ruby-value str">&quot;provision.types&quot;</span>]
+45:               <span class="ruby-comment cmt"># If we've specified types of provisioners to enable, then we</span>
+46:               <span class="ruby-comment cmt"># only use those provisioners, and skip any that we haven't</span>
+47:               <span class="ruby-comment cmt"># specified.</span>
+48:               <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@env</span>[<span class="ruby-value str">&quot;provision.types&quot;</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">provisioner</span>.<span class="ruby-identifier">shortcut</span>.<span class="ruby-identifier">to_s</span>)
+49:                 <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Skipping provisioner: #{provisioner.shortcut}&quot;</span>)
+50:                 <span class="ruby-keyword kw">next</span>
+51:               <span class="ruby-keyword kw">end</span>
+52:             <span class="ruby-keyword kw">end</span>
+53: 
+54:             <span class="ruby-identifier">enabled</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">provisioner</span>.<span class="ruby-identifier">provisioner</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@env</span>, <span class="ruby-identifier">provisioner</span>.<span class="ruby-identifier">config</span>)
+55:           <span class="ruby-keyword kw">end</span>
+56: 
+57:           <span class="ruby-comment cmt"># Return the enable provisioners</span>
+58:           <span class="ruby-identifier">enabled</span>
+59:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000126">
+                    
+                    <a name="M000126"></a><b>new</b>(app, env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000126_source')" id="l_M000126_source">show</a>
+                        
+                    </p>
+                    <div id="M000126_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/vm/provision.rb, line 7</span>
+ 7:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">app</span>, <span class="ruby-identifier">env</span>)
+ 8:           <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Log4r</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant::action::vm::provision&quot;</span>)
+ 9:           <span class="ruby-ivar">@app</span> = <span class="ruby-identifier">app</span>
+10: 
+11:           <span class="ruby-identifier">env</span>[<span class="ruby-value str">&quot;provision.enabled&quot;</span>] = <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">env</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-value str">&quot;provision.enabled&quot;</span>)
+12:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

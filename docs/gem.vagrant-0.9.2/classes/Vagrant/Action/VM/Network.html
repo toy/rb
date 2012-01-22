@@ -1,0 +1,847 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Action::VM::Network</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Action::VM::Network 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/vagrant/action/vm/network_rb.html">lib/vagrant/action/vm/network.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+This action handles all `config.vm.network` configurations by setting up
+the <a href="../VM.html">VM</a> properly and enabling the networks
+afterword.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000103">assign_adapter_locations</a>,</li>
+                
+                <li><a href="#M000109">assign_interface_numbers</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000121">bridged_adapter</a>,</li>
+                
+                <li><a href="#M000120">bridged_config</a>,</li>
+                
+                <li><a href="#M000125">bridged_network_config</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000098">call</a>,</li>
+                
+                <li><a href="#M000117">create_hostonly_network</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000118">find_matching_hostonly_network</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000113">hostonly_adapter</a>,</li>
+                
+                <li><a href="#M000112">hostonly_config</a>,</li>
+                
+                <li><a href="#M000116">hostonly_network_config</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000097">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000107">verify_adapters</a>,</li>
+                
+                <li><a href="#M000119">verify_no_bridge_collision</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>Util::NetworkIP</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000103">
+                    
+                    <a name="M000103"></a><b>assign_adapter_locations</b>(adapters)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This method assigns the adapter to use for the adapter. e.g. it says that
+the first adapter is actually on the virtual machine&#8217;s 2nd adapter
+location.
+</p>
+<p>
+It determines the adapter numbers by simply finding the &#8220;next
+available&#8221; in each case.
+</p>
+<p>
+The adapters are modified in place by adding an &#8220;:adapter&#8221;
+field to each.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000103_source')" id="l_M000103_source">show</a>
+                        
+                    </p>
+                    <div id="M000103_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 82</span>
+ 82:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">assign_adapter_locations</span>(<span class="ruby-identifier">adapters</span>)
+ 83:           <span class="ruby-identifier">available</span>  = <span class="ruby-constant">Set</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">1</span><span class="ruby-operator">..</span><span class="ruby-value">8</span>)
+ 84: 
+ 85:           <span class="ruby-comment cmt"># Determine which NICs are actually available.</span>
+ 86:           <span class="ruby-identifier">interfaces</span> = <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">read_network_interfaces</span>
+ 87:           <span class="ruby-identifier">interfaces</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">number</span>, <span class="ruby-identifier">nic</span><span class="ruby-operator">|</span>
+ 88:             <span class="ruby-comment cmt"># Remove the number from the available NICs if the</span>
+ 89:             <span class="ruby-comment cmt"># NIC is in use.</span>
+ 90:             <span class="ruby-identifier">available</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">number</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">nic</span>[<span class="ruby-identifier">:type</span>] <span class="ruby-operator">!=</span> <span class="ruby-identifier">:none</span>
+ 91:           <span class="ruby-keyword kw">end</span>
+ 92: 
+ 93:           <span class="ruby-comment cmt"># Based on the available set, assign in order to</span>
+ 94:           <span class="ruby-comment cmt"># the adapters.</span>
+ 95:           <span class="ruby-identifier">available</span> = <span class="ruby-identifier">available</span>.<span class="ruby-identifier">to_a</span>.<span class="ruby-identifier">sort</span>
+ 96:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Available NICs: #{available.inspect}&quot;</span>)
+ 97:           <span class="ruby-identifier">adapters</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">adapter</span><span class="ruby-operator">|</span>
+ 98:             <span class="ruby-comment cmt"># Ignore the adapters that already have been assigned</span>
+ 99:             <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:adapter</span>]
+100:               <span class="ruby-comment cmt"># If we have no available adapters, then that is an exceptional</span>
+101:               <span class="ruby-comment cmt"># event.</span>
+102:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">NetworkNoAdapters</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">available</span>.<span class="ruby-identifier">empty?</span>
+103: 
+104:               <span class="ruby-comment cmt"># Otherwise, assign as the adapter the next available item</span>
+105:               <span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:adapter</span>] = <span class="ruby-identifier">available</span>.<span class="ruby-identifier">shift</span>
+106:             <span class="ruby-keyword kw">end</span>
+107:           <span class="ruby-keyword kw">end</span>
+108:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>assign_interface_numbers</b>(networks, adapters)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Assigns the actual interface number of a network based on the enabled NICs
+on the virtual machine.
+</p>
+<p>
+This interface number is used by the guest to configure the NIC on the
+guest <a href="../VM.html">VM</a>.
+</p>
+<p>
+The networks are modified in place by adding an &#8220;:interface&#8221;
+field to each.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 129</span>
+129:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">assign_interface_numbers</span>(<span class="ruby-identifier">networks</span>, <span class="ruby-identifier">adapters</span>)
+130:           <span class="ruby-identifier">current</span> = <span class="ruby-value">0</span>
+131:           <span class="ruby-identifier">adapter_to_interface</span> = {}
+132: 
+133:           <span class="ruby-comment cmt"># Make a first pass to assign interface numbers by adapter location</span>
+134:           <span class="ruby-identifier">vm_adapters</span> = <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">read_network_interfaces</span>
+135:           <span class="ruby-identifier">vm_adapters</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">number</span>, <span class="ruby-identifier">adapter</span><span class="ruby-operator">|</span>
+136:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:type</span>] <span class="ruby-operator">!=</span> <span class="ruby-identifier">:none</span>
+137:               <span class="ruby-comment cmt"># Not used, so assign the interface number and increment</span>
+138:               <span class="ruby-identifier">adapter_to_interface</span>[<span class="ruby-identifier">number</span>] = <span class="ruby-identifier">current</span>
+139:               <span class="ruby-identifier">current</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+140:             <span class="ruby-keyword kw">end</span>
+141:           <span class="ruby-keyword kw">end</span>
+142: 
+143:           <span class="ruby-comment cmt"># Make a pass through the adapters to assign the :interface</span>
+144:           <span class="ruby-comment cmt"># key to each network configuration.</span>
+145:           <span class="ruby-identifier">adapters</span>.<span class="ruby-identifier">each_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+146:             <span class="ruby-identifier">adapter</span> = <span class="ruby-identifier">adapters</span>[<span class="ruby-identifier">i</span>]
+147:             <span class="ruby-identifier">network</span> = <span class="ruby-identifier">networks</span>[<span class="ruby-identifier">i</span>]
+148: 
+149:             <span class="ruby-comment cmt"># Figure out the interface number by simple lookup</span>
+150:             <span class="ruby-identifier">network</span>[<span class="ruby-identifier">:interface</span>] = <span class="ruby-identifier">adapter_to_interface</span>[<span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:adapter</span>]]
+151:           <span class="ruby-keyword kw">end</span>
+152:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000121">
+                    
+                    <a name="M000121"></a><b>bridged_adapter</b>(config)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000121_source')" id="l_M000121_source">show</a>
+                        
+                    </p>
+                    <div id="M000121_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 314</span>
+314:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bridged_adapter</span>(<span class="ruby-identifier">config</span>)
+315:           <span class="ruby-identifier">bridgedifs</span> = <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">read_bridged_interfaces</span>
+316: 
+317:           <span class="ruby-identifier">chosen_bridge</span> = <span class="ruby-keyword kw">nil</span>
+318:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">bridgedifs</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>
+319:             <span class="ruby-comment cmt"># One bridgable interface? Just use it.</span>
+320:             <span class="ruby-identifier">chosen_bridge</span> = <span class="ruby-identifier">bridgedifs</span>[<span class="ruby-value">0</span>][<span class="ruby-identifier">:name</span>]
+321:           <span class="ruby-keyword kw">else</span>
+322:             <span class="ruby-comment cmt"># More than one bridgable interface requires a user decision, so</span>
+323:             <span class="ruby-comment cmt"># show options to choose from.</span>
+324:             <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.vm.bridged_networking.available&quot;</span>,
+325:                                   <span class="ruby-identifier">:prefix</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>)
+326:             <span class="ruby-identifier">bridgedifs</span>.<span class="ruby-identifier">each_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">index</span><span class="ruby-operator">|</span>
+327:               <span class="ruby-identifier">interface</span> = <span class="ruby-identifier">bridgedifs</span>[<span class="ruby-identifier">index</span>]
+328:               <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;#{index + 1}) #{interface[:name]}&quot;</span>, <span class="ruby-identifier">:prefix</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>)
+329:             <span class="ruby-keyword kw">end</span>
+330: 
+331:             <span class="ruby-comment cmt"># The range of valid choices</span>
+332:             <span class="ruby-identifier">valid</span> = <span class="ruby-constant">Range</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">1</span>, <span class="ruby-identifier">bridgedifs</span>.<span class="ruby-identifier">length</span>)
+333: 
+334:             <span class="ruby-comment cmt"># The choice that the user has chosen as the bridging interface</span>
+335:             <span class="ruby-identifier">choice</span> = <span class="ruby-keyword kw">nil</span>
+336:             <span class="ruby-keyword kw">while</span> <span class="ruby-operator">!</span><span class="ruby-identifier">valid</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">choice</span>)
+337:               <span class="ruby-identifier">choice</span> = <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">ask</span>(<span class="ruby-value str">&quot;What interface should the network bridge to? &quot;</span>)
+338:               <span class="ruby-identifier">choice</span> = <span class="ruby-identifier">choice</span>.<span class="ruby-identifier">to_i</span>
+339:             <span class="ruby-keyword kw">end</span>
+340: 
+341:             <span class="ruby-identifier">chosen_bridge</span> = <span class="ruby-identifier">bridgedifs</span>[<span class="ruby-identifier">choice</span> <span class="ruby-operator">-</span> <span class="ruby-value">1</span>][<span class="ruby-identifier">:name</span>]
+342:           <span class="ruby-keyword kw">end</span>
+343: 
+344:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Bridging adapter #{config[:adapter]} to #{bridge}&quot;</span>)
+345: 
+346:           <span class="ruby-comment cmt"># Given the choice we can now define the adapter we're using</span>
+347:           <span class="ruby-keyword kw">return</span> {
+348:             <span class="ruby-identifier">:adapter</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:adapter</span>],
+349:             <span class="ruby-identifier">:type</span>        =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:bridged</span>,
+350:             <span class="ruby-identifier">:bridge</span>      =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">chosen_bridge</span>,
+351:             <span class="ruby-identifier">:mac_address</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:mac</span>]
+352:           }
+353:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000120">
+                    
+                    <a name="M000120"></a><b>bridged_config</b>(args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000120_source')" id="l_M000120_source">show</a>
+                        
+                    </p>
+                    <div id="M000120_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 305</span>
+305:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bridged_config</span>(<span class="ruby-identifier">args</span>)
+306:           <span class="ruby-identifier">options</span> = <span class="ruby-identifier">args</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">||</span> {}
+307: 
+308:           <span class="ruby-keyword kw">return</span> {
+309:             <span class="ruby-identifier">:adapter</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>,
+310:             <span class="ruby-identifier">:mac</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>
+311:           }.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>)
+312:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000125">
+                    
+                    <a name="M000125"></a><b>bridged_network_config</b>(config)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000125_source')" id="l_M000125_source">show</a>
+                        
+                    </p>
+                    <div id="M000125_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 355</span>
+355:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bridged_network_config</span>(<span class="ruby-identifier">config</span>)
+356:           <span class="ruby-keyword kw">return</span> {
+357:             <span class="ruby-identifier">:type</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:dhcp</span>
+358:           }
+359:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000098">
+                    
+                    <a name="M000098"></a><b>call</b>(env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000098_source')" id="l_M000098_source">show</a>
+                        
+                    </p>
+                    <div id="M000098_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 22</span>
+22:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+23:           <span class="ruby-ivar">@env</span> = <span class="ruby-identifier">env</span>
+24: 
+25:           <span class="ruby-comment cmt"># First we have to get the array of adapters that we need</span>
+26:           <span class="ruby-comment cmt"># to create on the virtual machine itself, as well as the</span>
+27:           <span class="ruby-comment cmt"># driver-agnostic network configurations for each.</span>
+28:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Determining adapters and networks...&quot;</span>)
+29:           <span class="ruby-identifier">adapters</span> = []
+30:           <span class="ruby-identifier">networks</span> = []
+31:           <span class="ruby-identifier">env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">config</span>.<span class="ruby-identifier">vm</span>.<span class="ruby-identifier">networks</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">type</span>, <span class="ruby-identifier">args</span><span class="ruby-operator">|</span>
+32:             <span class="ruby-comment cmt"># Get the normalized configuration we'll use around</span>
+33:             <span class="ruby-identifier">config</span> = <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{type}_config&quot;</span>, <span class="ruby-identifier">args</span>)
+34: 
+35:             <span class="ruby-comment cmt"># Get the virtualbox adapter configuration</span>
+36:             <span class="ruby-identifier">adapter</span> = <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{type}_adapter&quot;</span>, <span class="ruby-identifier">config</span>)
+37:             <span class="ruby-identifier">adapters</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">adapter</span>
+38: 
+39:             <span class="ruby-comment cmt"># Get the network configuration</span>
+40:             <span class="ruby-identifier">network</span> = <span class="ruby-identifier">send</span>(<span class="ruby-node">&quot;#{type}_network_config&quot;</span>, <span class="ruby-identifier">config</span>)
+41:             <span class="ruby-identifier">networks</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">network</span>
+42:           <span class="ruby-keyword kw">end</span>
+43: 
+44:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">adapters</span>.<span class="ruby-identifier">empty?</span>
+45:             <span class="ruby-comment cmt"># Automatically assign an adapter number to any adapters</span>
+46:             <span class="ruby-comment cmt"># that aren't explicitly set.</span>
+47:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Assigning adapter locations...&quot;</span>)
+48:             <span class="ruby-identifier">assign_adapter_locations</span>(<span class="ruby-identifier">adapters</span>)
+49: 
+50:             <span class="ruby-comment cmt"># Verify that our adapters are good just prior to enabling them.</span>
+51:             <span class="ruby-identifier">verify_adapters</span>(<span class="ruby-identifier">adapters</span>)
+52: 
+53:             <span class="ruby-comment cmt"># Create all the network interfaces</span>
+54:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-value str">&quot;Enabling adapters...&quot;</span>)
+55:             <span class="ruby-identifier">env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.vm.network.preparing&quot;</span>)
+56:             <span class="ruby-identifier">env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">enable_adapters</span>(<span class="ruby-identifier">adapters</span>)
+57:           <span class="ruby-keyword kw">end</span>
+58: 
+59:           <span class="ruby-comment cmt"># Continue the middleware chain. We're done with our VM</span>
+60:           <span class="ruby-comment cmt"># setup until after it is booted.</span>
+61:           <span class="ruby-ivar">@app</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+62: 
+63:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">adapters</span>.<span class="ruby-identifier">empty?</span>
+64:             <span class="ruby-comment cmt"># Determine the interface numbers for the guest.</span>
+65:             <span class="ruby-identifier">assign_interface_numbers</span>(<span class="ruby-identifier">networks</span>, <span class="ruby-identifier">adapters</span>)
+66: 
+67:             <span class="ruby-comment cmt"># Configure all the network interfaces on the guest.</span>
+68:             <span class="ruby-identifier">env</span>[<span class="ruby-identifier">:ui</span>].<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.vm.network.configuring&quot;</span>)
+69:             <span class="ruby-identifier">env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">guest</span>.<span class="ruby-identifier">configure_networks</span>(<span class="ruby-identifier">networks</span>)
+70:           <span class="ruby-keyword kw">end</span>
+71:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000117">
+                    
+                    <a name="M000117"></a><b>create_hostonly_network</b>(config)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates a new hostonly network that matches the network requested by the
+given host-only network configuration.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000117_source')" id="l_M000117_source">show</a>
+                        
+                    </p>
+                    <div id="M000117_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 265</span>
+265:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_hostonly_network</span>(<span class="ruby-identifier">config</span>)
+266:           <span class="ruby-comment cmt"># Create the options that are going to be used to create our</span>
+267:           <span class="ruby-comment cmt"># new network.</span>
+268:           <span class="ruby-identifier">options</span> = <span class="ruby-identifier">config</span>.<span class="ruby-identifier">dup</span>
+269:           <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:ip</span>] = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:adapter_ip</span>]
+270: 
+271:           <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">create_host_only_network</span>(<span class="ruby-identifier">options</span>)
+272:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000118">
+                    
+                    <a name="M000118"></a><b>find_matching_hostonly_network</b>(config)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Finds a host only network that matches our configuration on VirtualBox.
+This will return nil if a matching network does not exist.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000118_source')" id="l_M000118_source">show</a>
+                        
+                    </p>
+                    <div id="M000118_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 276</span>
+276:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_matching_hostonly_network</span>(<span class="ruby-identifier">config</span>)
+277:           <span class="ruby-identifier">this_netaddr</span> = <span class="ruby-identifier">network_address</span>(<span class="ruby-identifier">config</span>[<span class="ruby-identifier">:ip</span>], <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:netmask</span>])
+278: 
+279:           <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">read_host_only_interfaces</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">interface</span><span class="ruby-operator">|</span>
+280:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:name</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:name</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:name</span>]
+281:               <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">interface</span>
+282:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">this_netaddr</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">network_address</span>(<span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:ip</span>], <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:netmask</span>])
+283:               <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">interface</span>
+284:             <span class="ruby-keyword kw">end</span>
+285:           <span class="ruby-keyword kw">end</span>
+286: 
+287:           <span class="ruby-keyword kw">nil</span>
+288:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000113">
+                    
+                    <a name="M000113"></a><b>hostonly_adapter</b>(config)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000113_source')" id="l_M000113_source">show</a>
+                        
+                    </p>
+                    <div id="M000113_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 209</span>
+209:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">hostonly_adapter</span>(<span class="ruby-identifier">config</span>)
+210:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Searching for matching network: #{config[:ip]}&quot;</span>)
+211:           <span class="ruby-identifier">interface</span> = <span class="ruby-identifier">find_matching_hostonly_network</span>(<span class="ruby-identifier">config</span>)
+212: 
+213:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">interface</span>
+214:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Network not found. Creating if we can.&quot;</span>)
+215: 
+216:             <span class="ruby-comment cmt"># It is an error case if a specific name was given but the network</span>
+217:             <span class="ruby-comment cmt"># doesn't exist.</span>
+218:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:name</span>]
+219:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">NetworkNotFound</span>, <span class="ruby-identifier">:name</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:name</span>]
+220:             <span class="ruby-keyword kw">end</span>
+221: 
+222:             <span class="ruby-comment cmt"># Otherwise, we create a new network and put the net network</span>
+223:             <span class="ruby-comment cmt"># in the list of available networks so other network definitions</span>
+224:             <span class="ruby-comment cmt"># can use it!</span>
+225:             <span class="ruby-identifier">interface</span> = <span class="ruby-identifier">create_hostonly_network</span>(<span class="ruby-identifier">config</span>)
+226:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Created network: #{interface[:name]}&quot;</span>)
+227:           <span class="ruby-keyword kw">end</span>
+228: 
+229:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:type</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">:dhcp</span>
+230:             <span class="ruby-comment cmt"># Check that if there is a DHCP server attached on our interface,</span>
+231:             <span class="ruby-comment cmt"># then it is identical. Otherwise, we can't set it.</span>
+232:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:dhcp</span>]
+233:               <span class="ruby-identifier">valid</span> = <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:dhcp</span>][<span class="ruby-identifier">:ip</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:dhcp_ip</span>] <span class="ruby-operator">&amp;&amp;</span>
+234:                 <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:dhcp</span>][<span class="ruby-identifier">:lower</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:dhcp_lower</span>] <span class="ruby-operator">&amp;&amp;</span>
+235:                 <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:dhcp</span>][<span class="ruby-identifier">:upper</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:dhcp_upper</span>]
+236: 
+237:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">NetworkDHCPAlreadyAttached</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">valid</span>
+238: 
+239:               <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;DHCP server already properly configured&quot;</span>)
+240:             <span class="ruby-keyword kw">else</span>
+241:               <span class="ruby-comment cmt"># Configure the DHCP server for the network.</span>
+242:               <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Creating a DHCP server...&quot;</span>)
+243:               <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">create_dhcp_server</span>(<span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:name</span>], <span class="ruby-identifier">config</span>)
+244:             <span class="ruby-keyword kw">end</span>
+245:           <span class="ruby-keyword kw">end</span>
+246: 
+247:           <span class="ruby-keyword kw">return</span> {
+248:             <span class="ruby-identifier">:adapter</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:adapter</span>],
+249:             <span class="ruby-identifier">:type</span>        =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:hostonly</span>,
+250:             <span class="ruby-identifier">:hostonly</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:name</span>],
+251:             <span class="ruby-identifier">:mac_address</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:mac</span>]
+252:           }
+253:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>hostonly_config</b>(args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 154</span>
+154:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">hostonly_config</span>(<span class="ruby-identifier">args</span>)
+155:           <span class="ruby-identifier">ip</span>      = <span class="ruby-identifier">args</span>[<span class="ruby-value">0</span>]
+156:           <span class="ruby-identifier">options</span> = <span class="ruby-identifier">args</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">||</span> {}
+157: 
+158:           <span class="ruby-comment cmt"># Determine if we're dealing with a static IP or a DHCP-served IP.</span>
+159:           <span class="ruby-identifier">type</span>    = <span class="ruby-identifier">ip</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:dhcp</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">:dhcp</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">:static</span>
+160: 
+161:           <span class="ruby-comment cmt"># Default IP is in the 20-bit private network block for DHCP based networks</span>
+162:           <span class="ruby-identifier">ip</span> = <span class="ruby-value str">&quot;172.28.128.1&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:dhcp</span>
+163: 
+164:           <span class="ruby-identifier">options</span> = {
+165:             <span class="ruby-identifier">:type</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">type</span>,
+166:             <span class="ruby-identifier">:ip</span>      =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ip</span>,
+167:             <span class="ruby-identifier">:netmask</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;255.255.255.0&quot;</span>,
+168:             <span class="ruby-identifier">:adapter</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>,
+169:             <span class="ruby-identifier">:mac</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>,
+170:             <span class="ruby-identifier">:name</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">nil</span>
+171:           }.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>)
+172: 
+173:           <span class="ruby-comment cmt"># Verify that this hostonly network wouldn't conflict with any</span>
+174:           <span class="ruby-comment cmt"># bridged interfaces</span>
+175:           <span class="ruby-identifier">verify_no_bridge_collision</span>(<span class="ruby-identifier">options</span>)
+176: 
+177:           <span class="ruby-comment cmt"># Get the network address and IP parts which are used for many</span>
+178:           <span class="ruby-comment cmt"># default calculations</span>
+179:           <span class="ruby-identifier">netaddr</span>  = <span class="ruby-identifier">network_address</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:ip</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:netmask</span>])
+180:           <span class="ruby-identifier">ip_parts</span> = <span class="ruby-identifier">netaddr</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;.&quot;</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">i</span>.<span class="ruby-identifier">to_i</span> }
+181: 
+182:           <span class="ruby-comment cmt"># Calculate the adapter IP, which we assume is the IP &quot;.1&quot; at the</span>
+183:           <span class="ruby-comment cmt"># end usually.</span>
+184:           <span class="ruby-identifier">adapter_ip</span>    = <span class="ruby-identifier">ip_parts</span>.<span class="ruby-identifier">dup</span>
+185:           <span class="ruby-identifier">adapter_ip</span>[<span class="ruby-value">3</span>] <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+186:           <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:adapter_ip</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">adapter_ip</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;.&quot;</span>)
+187: 
+188:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">:dhcp</span>
+189:             <span class="ruby-comment cmt"># Calculate the DHCP server IP, which is the network address</span>
+190:             <span class="ruby-comment cmt"># with the final octet + 2. So &quot;172.28.0.0&quot; turns into &quot;172.28.0.2&quot;</span>
+191:             <span class="ruby-identifier">dhcp_ip</span>    = <span class="ruby-identifier">ip_parts</span>.<span class="ruby-identifier">dup</span>
+192:             <span class="ruby-identifier">dhcp_ip</span>[<span class="ruby-value">3</span>] <span class="ruby-operator">+=</span> <span class="ruby-value">2</span>
+193:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:dhcp_ip</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">dhcp_ip</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;.&quot;</span>)
+194: 
+195:             <span class="ruby-comment cmt"># Calculate the lower and upper bound for the DHCP server</span>
+196:             <span class="ruby-identifier">dhcp_lower</span>    = <span class="ruby-identifier">ip_parts</span>.<span class="ruby-identifier">dup</span>
+197:             <span class="ruby-identifier">dhcp_lower</span>[<span class="ruby-value">3</span>] <span class="ruby-operator">+=</span> <span class="ruby-value">3</span>
+198:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:dhcp_lower</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">dhcp_lower</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;.&quot;</span>)
+199: 
+200:             <span class="ruby-identifier">dhcp_upper</span>    = <span class="ruby-identifier">ip_parts</span>.<span class="ruby-identifier">dup</span>
+201:             <span class="ruby-identifier">dhcp_upper</span>[<span class="ruby-value">3</span>] = <span class="ruby-value">254</span>
+202:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:dhcp_upper</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">dhcp_upper</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;.&quot;</span>)
+203:           <span class="ruby-keyword kw">end</span>
+204: 
+205:           <span class="ruby-comment cmt"># Return the hostonly network configuration</span>
+206:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">options</span>
+207:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000116">
+                    
+                    <a name="M000116"></a><b>hostonly_network_config</b>(config)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000116_source')" id="l_M000116_source">show</a>
+                        
+                    </p>
+                    <div id="M000116_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 255</span>
+255:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">hostonly_network_config</span>(<span class="ruby-identifier">config</span>)
+256:           <span class="ruby-keyword kw">return</span> {
+257:             <span class="ruby-identifier">:type</span>    =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:type</span>],
+258:             <span class="ruby-identifier">:ip</span>      =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:ip</span>],
+259:             <span class="ruby-identifier">:netmask</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">config</span>[<span class="ruby-identifier">:netmask</span>]
+260:           }
+261:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000107">
+                    
+                    <a name="M000107"></a><b>verify_adapters</b>(adapters)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Verifies that the adapter configurations look good. This will raise an
+exception in the case that any errors occur.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000107_source')" id="l_M000107_source">show</a>
+                        
+                    </p>
+                    <div id="M000107_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 112</span>
+112:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">verify_adapters</span>(<span class="ruby-identifier">adapters</span>)
+113:           <span class="ruby-comment cmt"># Verify that there are no collisions in the adapters being used.</span>
+114:           <span class="ruby-identifier">used</span> = <span class="ruby-constant">Set</span>.<span class="ruby-identifier">new</span>
+115:           <span class="ruby-identifier">adapters</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">adapter</span><span class="ruby-operator">|</span>
+116:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">NetworkAdapterCollision</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">used</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:adapter</span>])
+117:             <span class="ruby-identifier">used</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">adapter</span>[<span class="ruby-identifier">:adapter</span>])
+118:           <span class="ruby-keyword kw">end</span>
+119:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000119">
+                    
+                    <a name="M000119"></a><b>verify_no_bridge_collision</b>(options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Verifies that a host-only network subnet would not collide with a bridged
+networking interface.
+</p>
+<p>
+If the subnets overlap in any way then the host only network will not work
+because the routing tables will force the traffic onto the real interface
+rather than the virtualbox interface.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000119_source')" id="l_M000119_source">show</a>
+                        
+                    </p>
+                    <div id="M000119_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 296</span>
+296:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">verify_no_bridge_collision</span>(<span class="ruby-identifier">options</span>)
+297:           <span class="ruby-identifier">this_netaddr</span> = <span class="ruby-identifier">network_address</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:ip</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:netmask</span>])
+298: 
+299:           <span class="ruby-ivar">@env</span>[<span class="ruby-identifier">:vm</span>].<span class="ruby-identifier">driver</span>.<span class="ruby-identifier">read_bridged_interfaces</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">interface</span><span class="ruby-operator">|</span>
+300:             <span class="ruby-identifier">that_netaddr</span> = <span class="ruby-identifier">network_address</span>(<span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:ip</span>], <span class="ruby-identifier">interface</span>[<span class="ruby-identifier">:netmask</span>])
+301:             <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">NetworkCollision</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">this_netaddr</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">that_netaddr</span>
+302:           <span class="ruby-keyword kw">end</span>
+303:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000097">
+                    
+                    <a name="M000097"></a><b>new</b>(app, env)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000097_source')" id="l_M000097_source">show</a>
+                        
+                    </p>
+                    <div id="M000097_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/vm/network.rb, line 16</span>
+16:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">app</span>, <span class="ruby-identifier">env</span>)
+17:           <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Log4r</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant::action::vm::network&quot;</span>)
+18: 
+19:           <span class="ruby-ivar">@app</span> = <span class="ruby-identifier">app</span>
+20:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

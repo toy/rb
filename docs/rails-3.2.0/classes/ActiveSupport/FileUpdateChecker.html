@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveSupport::FileUpdateChecker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            ActiveSupport::FileUpdateChecker 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/activesupport-3_2_0/lib/active_support/file_update_checker_rb.html">activesupport-3.2.0/lib/active_support/file_update_checker.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+FileUpdateChecker specifies the API used by <a
+href="../Rails.html">Rails</a> to watch files and control reloading. The
+API depends on four methods:
+</p>
+<ul>
+<li><tt>initialize</tt> which expects two parameters and one block as described
+below;
+
+</li>
+<li><tt>updated?</tt> which returns a boolean if there were updates in the
+filesystem or not;
+
+</li>
+<li><tt>execute</tt> which executes the given block on initialization and
+updates the counter to the latest timestamp;
+
+</li>
+<li><tt><a href="FileUpdateChecker.html#M002622">execute_if_updated</a></tt>
+which just executes the block if it was updated;
+
+</li>
+</ul>
+<p>
+After initialization, a call to <tt><a
+href="FileUpdateChecker.html#M002622">execute_if_updated</a></tt> must
+execute the block only if there was really a change in the filesystem.
+</p>
+<h2>Examples</h2>
+<p>
+This class is used by <a href="../Rails.html">Rails</a> to reload the <a
+href="../I18n.html">I18n</a> framework whenever they are changed upon a new
+request.
+</p>
+<pre>
+  i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
+    I18n.reload!
+  end
+
+  ActionDispatch::Reloader.to_prepare do
+    i18n_reloader.execute_if_updated
+  end
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002621">execute</a>,</li>
+                
+                <li><a href="#M002622">execute_if_updated</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002619">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M002620">updated?</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002619">
+                    
+                    <a name="M002619"></a><b>new</b>(files, dirs={}, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+It accepts two parameters on initialization. The first is an array of files
+and the second is an optional hash of directories. The hash must have
+directories as keys and the value is an array of extensions to be watched
+under that directory.
+</p>
+<p>
+This method must also receive a block that will be called once a path
+changes.
+</p>
+<h2>Implementation details</h2>
+<p>
+This particular implementation checks for added and updated files, but not
+removed files. Directories lookup are compiled to a glob for performance.
+Therefore, while someone can add new files to the <tt>files</tt> array
+after initialization (and parts of <a href="../Rails.html">Rails</a> do
+depend on this feature), adding new directories after initialization is not
+allowed.
+</p>
+<p>
+Notice that other objects that implements <a
+href="FileUpdateChecker.html">FileUpdateChecker</a> API may not even allow
+new files to be added after initialization. If this is the case, we
+recommend freezing the <tt>files</tt> after initialization to avoid changes
+that won&#8217;t make effect.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002619_source')" id="l_M002619_source">show</a>
+                        
+                    </p>
+                    <div id="M002619_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-3.2.0/lib/active_support/file_update_checker.rb, line 55</span>
+55:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">files</span>, <span class="ruby-identifier">dirs</span>={}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+56:       <span class="ruby-ivar">@files</span> = <span class="ruby-identifier">files</span>
+57:       <span class="ruby-ivar">@glob</span>  = <span class="ruby-identifier">compile_glob</span>(<span class="ruby-identifier">dirs</span>)
+58:       <span class="ruby-ivar">@block</span> = <span class="ruby-identifier">block</span>
+59:       <span class="ruby-ivar">@updated_at</span> = <span class="ruby-keyword kw">nil</span>
+60:       <span class="ruby-ivar">@last_update_at</span> = <span class="ruby-identifier">updated_at</span>
+61:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M002621">
+                    
+                    <a name="M002621"></a><b>execute</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Executes the given block and updates the counter to latest timestamp.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002621_source')" id="l_M002621_source">show</a>
+                        
+                    </p>
+                    <div id="M002621_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-3.2.0/lib/active_support/file_update_checker.rb, line 76</span>
+76:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute</span>
+77:       <span class="ruby-ivar">@last_update_at</span> = <span class="ruby-identifier">updated_at</span>
+78:       <span class="ruby-ivar">@block</span>.<span class="ruby-identifier">call</span>
+79:     <span class="ruby-keyword kw">ensure</span>
+80:       <span class="ruby-ivar">@updated_at</span> = <span class="ruby-keyword kw">nil</span>
+81:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002622">
+                    
+                    <a name="M002622"></a><b>execute_if_updated</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Execute the block given if updated.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002622_source')" id="l_M002622_source">show</a>
+                        
+                    </p>
+                    <div id="M002622_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-3.2.0/lib/active_support/file_update_checker.rb, line 84</span>
+84:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute_if_updated</span>
+85:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">updated?</span>
+86:         <span class="ruby-identifier">execute</span>
+87:         <span class="ruby-keyword kw">true</span>
+88:       <span class="ruby-keyword kw">else</span>
+89:         <span class="ruby-keyword kw">false</span>
+90:       <span class="ruby-keyword kw">end</span>
+91:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M002620">
+                    
+                    <a name="M002620"></a><b>updated?</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Check if any of the entries were updated. If so, the updated_at value is
+cached until the block is executed via <tt>execute</tt> or <tt><a
+href="FileUpdateChecker.html#M002622">execute_if_updated</a></tt>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M002620_source')" id="l_M002620_source">show</a>
+                        
+                    </p>
+                    <div id="M002620_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activesupport-3.2.0/lib/active_support/file_update_checker.rb, line 65</span>
+65:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">updated?</span>
+66:       <span class="ruby-identifier">current_updated_at</span> = <span class="ruby-identifier">updated_at</span>
+67:       <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@last_update_at</span> <span class="ruby-operator">&lt;</span> <span class="ruby-identifier">current_updated_at</span>
+68:         <span class="ruby-ivar">@updated_at</span> = <span class="ruby-identifier">updated_at</span>
+69:         <span class="ruby-keyword kw">true</span>
+70:       <span class="ruby-keyword kw">else</span>
+71:         <span class="ruby-keyword kw">false</span>
+72:       <span class="ruby-keyword kw">end</span>
+73:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

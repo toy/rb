@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Guest::Redhat</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Guest::Redhat 
+            
+                <span class="parent">&lt; 
+                    
+                    Linux
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/guest/redhat_rb.html">lib/vagrant/guest/redhat.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000411">change_host_name</a>,</li>
+                
+                <li><a href="#M000407">configure_networks</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000410">network_scripts_dir</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <a href="../Command.html">Vagrant::Command</a>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000411">
+                    
+                    <a name="M000411"></a><b>change_host_name</b>(name)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000411_source')" id="l_M000411_source">show</a>
+                        
+                    </p>
+                    <div id="M000411_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/guest/redhat.rb, line 56</span>
+56:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">change_host_name</span>(<span class="ruby-identifier">name</span>)
+57:         <span class="ruby-comment cmt"># Only do this if the hostname is not already set</span>
+58:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">test</span>(<span class="ruby-node">&quot;sudo hostname | grep '#{name}'&quot;</span>)
+59:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;sed -i 's/\\(HOSTNAME=\\).*/\\1#{name}/' /etc/sysconfig/network&quot;</span>)
+60:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;hostname #{name}&quot;</span>)
+61:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;sed -i 's@^\\(127[.]0[.]0[.]1[[:space:]]\\+\\)@\\1#{name} #{name.split('.')[0]} @' /etc/hosts&quot;</span>)
+62:         <span class="ruby-keyword kw">end</span>
+63:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000407">
+                    
+                    <a name="M000407"></a><b>configure_networks</b>(networks)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000407_source')" id="l_M000407_source">show</a>
+                        
+                    </p>
+                    <div id="M000407_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/guest/redhat.rb, line 12</span>
+12:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">configure_networks</span>(<span class="ruby-identifier">networks</span>)
+13:         <span class="ruby-comment cmt"># Accumulate the configurations to add to the interfaces file as</span>
+14:         <span class="ruby-comment cmt"># well as what interfaces we're actually configuring since we use that</span>
+15:         <span class="ruby-comment cmt"># later.</span>
+16:         <span class="ruby-identifier">interfaces</span> = <span class="ruby-constant">Set</span>.<span class="ruby-identifier">new</span>
+17:         <span class="ruby-identifier">networks</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">network</span><span class="ruby-operator">|</span>
+18:           <span class="ruby-identifier">interfaces</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">network</span>[<span class="ruby-identifier">:interface</span>])
+19: 
+20:           <span class="ruby-comment cmt"># Remove any previous vagrant configuration in this network interface's</span>
+21:           <span class="ruby-comment cmt"># configuration files.</span>
+22:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;touch #{network_scripts_dir}/ifcfg-eth#{network[:interface]}&quot;</span>)
+23:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;sed -e '/^#VAGRANT-BEGIN/,/^#VAGRANT-END/ d' #{network_scripts_dir}/ifcfg-eth#{network[:interface]} &gt; /tmp/vagrant-ifcfg-eth#{network[:interface]}&quot;</span>)
+24:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;cat /tmp/vagrant-ifcfg-eth#{network[:interface]} &gt; #{network_scripts_dir}/ifcfg-eth#{network[:interface]}&quot;</span>)
+25: 
+26:           <span class="ruby-comment cmt"># Render and upload the network entry file to a deterministic</span>
+27:           <span class="ruby-comment cmt"># temporary location.</span>
+28:           <span class="ruby-identifier">entry</span> = <span class="ruby-constant">TemplateRenderer</span>.<span class="ruby-identifier">render</span>(<span class="ruby-node">&quot;guests/redhat/network_#{network[:type]}&quot;</span>,
+29:                                           <span class="ruby-identifier">:options</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">network</span>)
+30: 
+31:           <span class="ruby-identifier">temp</span> = <span class="ruby-constant">Tempfile</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant&quot;</span>)
+32:           <span class="ruby-identifier">temp</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">entry</span>)
+33:           <span class="ruby-identifier">temp</span>.<span class="ruby-identifier">close</span>
+34: 
+35:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">upload</span>(<span class="ruby-identifier">temp</span>.<span class="ruby-identifier">path</span>, <span class="ruby-node">&quot;/tmp/vagrant-network-entry_#{network[:interface]}&quot;</span>)
+36:         <span class="ruby-keyword kw">end</span>
+37: 
+38:         <span class="ruby-comment cmt"># Bring down all the interfaces we're reconfiguring. By bringing down</span>
+39:         <span class="ruby-comment cmt"># each specifically, we avoid reconfiguring eth0 (the NAT interface) so</span>
+40:         <span class="ruby-comment cmt"># SSH never dies.</span>
+41:         <span class="ruby-identifier">interfaces</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">interface</span><span class="ruby-operator">|</span>
+42:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;/sbin/ifconfig eth#{interface} down 2&gt; /dev/null&quot;</span>)
+43:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;cat /tmp/vagrant-network-entry_#{interface} &gt;&gt; #{network_scripts_dir}/ifcfg-eth#{interface}&quot;</span>)
+44:           <span class="ruby-identifier">vm</span>.<span class="ruby-identifier">channel</span>.<span class="ruby-identifier">sudo</span>(<span class="ruby-node">&quot;/sbin/ifup eth#{interface}&quot;</span>)
+45:         <span class="ruby-keyword kw">end</span>
+46:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000410">
+                    
+                    <a name="M000410"></a><b>network_scripts_dir</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+The path to the directory with the network configuration scripts. This is
+pulled out into its own directory since there are other operating systems
+(SuSE) which behave similarly but with a different path to the network
+scripts.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000410_source')" id="l_M000410_source">show</a>
+                        
+                    </p>
+                    <div id="M000410_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/guest/redhat.rb, line 52</span>
+52:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">network_scripts_dir</span>
+53:         <span class="ruby-value str">'/etc/sysconfig/network-scripts'</span>
+54:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    
