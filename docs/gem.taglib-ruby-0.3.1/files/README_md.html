@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Wed Jan 25 00:31:32 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+taglib-ruby
+</p>
+<h6>=====</h6>
+<p>
+Ruby interface for the [<a href="../classes/TagLib.html">TagLib</a> C++
+library][taglib].
+</p>
+<p>
+In contrast to other libraries, this one wraps the full C++ API, not only
+the minimal C API. This means that all tag data can be accessed, e.g. cover
+art of ID3v2 or custom fields of Ogg Vorbis comments.
+</p>
+<p>
+taglib-ruby is work in progress, but the following is already available:
+</p>
+<ul>
+<li>Reading/writing common tag data of all formats that <a
+href="../classes/TagLib.html">TagLib</a> supports
+
+</li>
+<li>Reading/writing ID3v1 and ID3v2 including ID3v2.4 and Unicode
+
+</li>
+<li>Reading/writing Ogg Vorbis comments
+
+</li>
+<li>Reading audio properties (e.g. bitrate) of the above formats
+
+</li>
+</ul>
+<p>
+Some things are still left to do (contributors very welcome):
+</p>
+<ul>
+<li>Pre-compiled Gem for Windows:
+
+<ul>
+<li>Unicode filename support
+
+</li>
+</ul>
+</li>
+<li>More coverage of the library
+
+</li>
+</ul>
+<p>
+[![flattr this project][flattr-img]][flattr-link]
+</p>
+<p>
+Installation
+</p>
+<hr size="10"></hr><p>
+Before you install the gem, make sure to have [taglib][taglib] installed
+with header files (and a C++ compiler of course):
+</p>
+<ul>
+<li>Debian/Ubuntu: `sudo apt-get install libtag1-dev`
+
+</li>
+<li>Fedora/RHEL: `sudo yum install taglib-devel`
+
+</li>
+<li>Brew: `brew install taglib`
+
+</li>
+<li>MacPorts: `sudo port install taglib`
+
+</li>
+</ul>
+<p>
+Then do:
+</p>
+<pre>
+    gem install taglib-ruby
+</pre>
+<p>
+Usage
+</p>
+<hr size="3"></hr><p>
+Complete API documentation can be found here:
+</p>
+<p>
+<a
+href="http://rubydoc.info/gems/taglib-ruby/frames">rubydoc.info/gems/taglib-ruby/frames</a>
+</p>
+<p>
+What follows are some examples of how to use taglib-ruby. Here&#8217;s how
+to read an ID3v2 tag:
+</p>
+<p>
+```ruby require &#8216;taglib&#8217;
+</p>
+<p>
+# Load an ID3v2 tag from a file file =
+TagLib::MPEG::File.new(&#8220;wake_up.mp3&#8220;) tag = file.id3v2_tag
+</p>
+<p>
+# Read basic attributes tag.title #=> &#8220;Wake Up&#8221; tag.artist #=>
+&#8220;Arcade Fire&#8221; tag.track #=> 7
+</p>
+<p>
+# Access all frames tag.frame_list.size #=> 13
+</p>
+<p>
+# Track frame track = tag.frame_list(&#8216;TRCK&#8217;).first track.to_s
+#=> &#8220;7/10&#8220;
+</p>
+<p>
+# Attached picture frame cover = tag.frame_list(&#8216;APIC&#8217;).first
+cover.mime_type #=> &#8220;image/jpeg&#8220; cover.picture #=>
+&#8220;xFFxD8xFFxE0x00x10JFIF...&#8220;
+</p>
+<p>
+# Close file to release resources file.close ```
+</p>
+<p>
+And here&#8217;s an example for writing one:
+</p>
+<p>
+```ruby file = TagLib::MPEG::File.new(&#8220;joga.mp3&#8220;) tag =
+file.id3v2_tag
+</p>
+<p>
+# Write basic attributes tag.artist = &#8220;Björk&#8221; tag.title =
+&#8220;Jóga&#8220;
+</p>
+<p>
+# Add attached picture frame apic = TagLib::ID3v2::AttachedPictureFrame.new
+apic.mime_type = &#8220;image/jpeg&#8220; apic.description =
+&#8220;Cover&#8221; apic.type =
+TagLib::ID3v2::AttachedPictureFrame::FrontCover apic.picture =
+File.open(&#8220;cover.jpg&#8220;, &#8216;rb&#8217;){ |f| f.read }
+</p>
+<p>
+tag.add_frame(apic)
+</p>
+<p>
+file.save file.close ```
+</p>
+<p>
+### Encoding
+</p>
+<p>
+By default, taglib stores text frames as ISO-8859-1 (Latin-1), if the text
+contains only characters that are available in that encoding. If not (e.g.
+with Cyrillic, Chinese, Japanese), it prints a warning and stores the text
+as UTF-8.
+</p>
+<p>
+When you already know that you want to store the text as UTF-8, you can
+change the default text encoding:
+</p>
+<p>
+```ruby frame_factory = TagLib::ID3v2::FrameFactory.instance
+frame_factory.default_text_encoding = TagLib::String::UTF8 ```
+</p>
+<p>
+Another option is using the advanced API:
+</p>
+<p>
+```ruby title = tag.frame_list(&#8216;TIT2&#8217;).first title.text =
+&#8220;Jóga&#8221; title.text_encoding = TagLib::String::UTF8 ```
+</p>
+<p>
+Release Notes
+</p>
+<hr size="10"></hr><p>
+See {file:<a href="CHANGES_md.html">CHANGES.md</a>}.
+</p>
+<p>
+Contributing
+</p>
+<hr size="10"></hr><ul>
+<li>Check out the latest master to make sure the feature hasn&#8217;t been
+implemented or the bug hasn&#8217;t been fixed yet
+
+</li>
+<li>Check out the issue tracker to make sure someone already hasn&#8217;t
+requested it and/or contributed it
+
+</li>
+<li>Fork the project
+
+</li>
+<li>Start a feature/bugfix branch
+
+</li>
+<li>Commit and push until you are happy with your contribution
+
+</li>
+<li>Make sure to add tests for it. This is important so I don&#8217;t break it
+in a future version unintentionally.
+
+</li>
+<li>Please try not to mess with the Rakefile, version, or history. If you want
+to have your own version, or is otherwise necessary, that is fine, but
+please isolate to its own commit so I can cherry-pick around it.
+
+</li>
+</ul>
+<p>
+License
+</p>
+<hr size="5"></hr><p>
+taglib-ruby is distributed under the MIT License, see <a
+href="LICENSE_txt.html">LICENSE.txt</a> for details.
+</p>
+<p>
+Copyright &#169; 2010-2012 Robin Stocker.
+</p>
+<p>
+[taglib]: <a
+href="http://developer.kde.org/~wheeler/taglib.html">developer.kde.org/~wheeler/taglib.html</a>
+[flattr-img]: <img
+src="http://api.flattr.com/button/flattr-badge-large.png" /> [flattr-link]:
+<a
+href="https://flattr.com/submit/auto?user_id=robinst&url=https://github.com/robinst/taglib-ruby&title=taglib-ruby&tags=github&category=software">flattr.com/submit/auto?user_id=robinst&url=https://github.com/robinst/taglib-ruby&title=taglib-ruby&tags=github&category=software</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

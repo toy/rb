@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>browser.js</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            browser.js
+        </h1>
+        <ul class="files">
+            <li>lib/less/js/lib/less/browser.js</li>
+            <li>Last modified: Wed Jan 25 00:30:25 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+// // browser.js - client-side engine //
+</p>
+<p>
+var isFileProtocol = (location.protocol === &#8216;file:&#8217; ||
+</p>
+<pre>
+                      location.protocol === 'chrome:'  ||
+                      location.protocol === 'chrome-extension:'  ||
+                      location.protocol === 'resource:');
+</pre>
+<p>
+less.env = less.env || (location.hostname == &#8216;127.0.0.1&#8217; ||
+</p>
+<pre>
+                        location.hostname == '0.0.0.0'   ||
+                        location.hostname == 'localhost' ||
+                        location.port.length &gt; 0         ||
+                        isFileProtocol                   ? 'development'
+                                                         : 'production');
+</pre>
+<p>
+// Load styles asynchronously (default: false) // // This is set to `false`
+by default, so that the body // doesn&#8217;t start loading before the
+stylesheets are parsed. // Setting this to `true` can result in flickering.
+// less.async = false;
+</p>
+<p>
+// Interval between watch polls less.poll = less.poll || (isFileProtocol ?
+1000 : 1500);
+</p>
+<p>
+// // Watch mode // less.watch = function () { return this.watchMode = true
+}; less.unwatch = function () { return this.watchMode = false };
+</p>
+<p>
+if (less.env === &#8216;development&#8217;) {
+</p>
+<pre>
+    less.optimization = 0;
+
+    if (/!watch/.test(location.hash)) {
+        less.watch();
+    }
+    less.watchTimer = setInterval(function () {
+        if (less.watchMode) {
+            loadStyleSheets(function (e, root, _, sheet, env) {
+                if (root) {
+                    createCSS(root.toCSS(), sheet, env.lastModified);
+                }
+            });
+        }
+    }, less.poll);
+</pre>
+<p>
+} else {
+</p>
+<pre>
+    less.optimization = 3;
+</pre>
+<p>
+}
+</p>
+<p>
+var cache;
+</p>
+<p>
+try {
+</p>
+<pre>
+    cache = (typeof(window.localStorage) === 'undefined') ? null : window.localStorage;
+</pre>
+<p>
+} catch (_) {
+</p>
+<pre>
+    cache = null;
+</pre>
+<p>
+}
+</p>
+<p>
+// // Get all <link> tags with the &#8216;rel&#8217; attribute set to
+&#8220;stylesheet/less&#8220; // var links =
+document.getElementsByTagName(&#8216;link&#8217;); var typePattern =
+/^text/(x-)?less$/;
+</p>
+<p>
+less.sheets = [];
+</p>
+<p>
+for (var i = 0; i < links.length; i++) {
+</p>
+<pre>
+    if (links[i].rel === 'stylesheet/less' || (links[i].rel.match(/stylesheet/) &amp;&amp;
+       (links[i].type.match(typePattern)))) {
+        less.sheets.push(links[i]);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+less.refresh = function (reload) {
+</p>
+<pre>
+    var startTime, endTime;
+    startTime = endTime = new(Date);
+
+    loadStyleSheets(function (e, root, _, sheet, env) {
+        if (env.local) {
+            log(&quot;loading &quot; + sheet.href + &quot; from cache.&quot;);
+        } else {
+            log(&quot;parsed &quot; + sheet.href + &quot; successfully.&quot;);
+            createCSS(root.toCSS(), sheet, env.lastModified);
+        }
+        log(&quot;css for &quot; + sheet.href + &quot; generated in &quot; + (new(Date) - endTime) + 'ms');
+        (env.remaining === 0) &amp;&amp; log(&quot;css generated in &quot; + (new(Date) - startTime) + 'ms');
+        endTime = new(Date);
+    }, reload);
+
+    loadStyles();
+</pre>
+<p>
+}; less.refreshStyles = loadStyles;
+</p>
+<p>
+less.refresh(less.env === &#8216;development&#8217;);
+</p>
+<p>
+function loadStyles() {
+</p>
+<pre>
+    var styles = document.getElementsByTagName('style');
+    for (var i = 0; i &lt; styles.length; i++) {
+        if (styles[i].type.match(typePattern)) {
+            new(less.Parser)().parse(styles[i].innerHTML || '', function (e, tree) {
+                var css = tree.toCSS();
+                var style = styles[i];
+                style.type = 'text/css';
+                if (style.styleSheet) {
+                    style.styleSheet.cssText = css;
+                } else {
+                    style.innerHTML = css;
+                }
+            });
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function loadStyleSheets(callback, reload) {
+</p>
+<pre>
+    for (var i = 0; i &lt; less.sheets.length; i++) {
+        loadStyleSheet(less.sheets[i], callback, reload, less.sheets.length - (i + 1));
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function loadStyleSheet(sheet, callback, reload, remaining) {
+</p>
+<pre>
+    var url       = window.location.href.replace(/[#?].*$/, '');
+    var href      = sheet.href.replace(/\?.*$/, '');
+    var css       = cache &amp;&amp; cache.getItem(href);
+    var timestamp = cache &amp;&amp; cache.getItem(href + ':timestamp');
+    var styles    = { css: css, timestamp: timestamp };
+
+    // Stylesheets in IE don't always return the full path
+    if (! /^(https?|file):/.test(href)) {
+        if (href.charAt(0) == &quot;/&quot;) {
+            href = window.location.protocol + &quot;//&quot; + window.location.host + href;
+        } else {
+            href = url.slice(0, url.lastIndexOf('/') + 1) + href;
+        }
+    }
+    var filename = href.match(/([^\/]+)$/)[1];
+
+    xhr(sheet.href, sheet.type, function (data, lastModified) {
+        if (!reload &amp;&amp; styles &amp;&amp; lastModified &amp;&amp;
+           (new(Date)(lastModified).valueOf() ===
+            new(Date)(styles.timestamp).valueOf())) {
+            // Use local copy
+            createCSS(styles.css, sheet);
+            callback(null, sheet, { local: true, remaining: remaining });
+        } else {
+            // Use remote copy (re-parse)
+            try {
+                new(less.Parser)({
+                    optimization: less.optimization,
+                    paths: [href.replace(/[\w\.-]+$/, '')],
+                    mime: sheet.type,
+                    filename: filename
+                }).parse(data, function (e, root) {
+                    if (e) { return error(e, href) }
+                    try {
+                        callback(e, root, data, sheet, { local: false, lastModified: lastModified, remaining: remaining });
+                        removeNode(document.getElementById('less-error-message:' + extractId(href)));
+                    } catch (e) {
+                        error(e, href);
+                    }
+                });
+            } catch (e) {
+                error(e, href);
+            }
+        }
+    }, function (status, url) {
+        throw new(Error)(&quot;Couldn't load &quot; + url + &quot; (&quot; + status + &quot;)&quot;);
+    });
+</pre>
+<p>
+}
+</p>
+<p>
+function extractId(href) {
+</p>
+<pre>
+    return href.replace(/^[a-z]+:\/\/?[^\/]+/, '' )  // Remove protocol &amp; domain
+               .replace(/^\//,                 '' )  // Remove root /
+               .replace(/\?.*$/,               '' )  // Remove query
+               .replace(/\.[^\.\/]+$/,         '' )  // Remove file extension
+               .replace(/[^\.\w-]+/g,          '-')  // Replace illegal characters
+               .replace(/\./g,                 ':'); // Replace dots with colons(for valid id)
+</pre>
+<p>
+}
+</p>
+<p>
+function createCSS(styles, sheet, lastModified) {
+</p>
+<pre>
+    var css;
+
+    // Strip the query-string
+    var href = sheet.href ? sheet.href.replace(/\?.*$/, '') : '';
+
+    // If there is no title set, use the filename, minus the extension
+    var id = 'less:' + (sheet.title || extractId(href));
+
+    // If the stylesheet doesn't exist, create a new node
+    if ((css = document.getElementById(id)) === null) {
+        css = document.createElement('style');
+        css.type = 'text/css';
+        css.media = sheet.media || 'screen';
+        css.id = id;
+        document.getElementsByTagName('head')[0].appendChild(css);
+    }
+
+    if (css.styleSheet) { // IE
+        try {
+            css.styleSheet.cssText = styles;
+        } catch (e) {
+            throw new(Error)(&quot;Couldn't reassign styleSheet.cssText.&quot;);
+        }
+    } else {
+        (function (node) {
+            if (css.childNodes.length &gt; 0) {
+                if (css.firstChild.nodeValue !== node.nodeValue) {
+                    css.replaceChild(node, css.firstChild);
+                }
+            } else {
+                css.appendChild(node);
+            }
+        })(document.createTextNode(styles));
+    }
+
+    // Don't update the local store if the file wasn't modified
+    if (lastModified &amp;&amp; cache) {
+        log('saving ' + href + ' to cache.');
+        cache.setItem(href, styles);
+        cache.setItem(href + ':timestamp', lastModified);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function xhr(url, type, callback, errback) {
+</p>
+<pre>
+    var xhr = getXMLHttpRequest();
+    var async = isFileProtocol ? false : less.async;
+
+    if (typeof(xhr.overrideMimeType) === 'function') {
+        xhr.overrideMimeType('text/css');
+    }
+    xhr.open('GET', url, async);
+    xhr.setRequestHeader('Accept', type || 'text/x-less, text/css; q=0.9, */*; q=0.5');
+    xhr.send(null);
+
+    if (isFileProtocol) {
+        if (xhr.status === 0 || (xhr.status &gt;= 200 &amp;&amp; xhr.status &lt; 300)) {
+            callback(xhr.responseText);
+        } else {
+            errback(xhr.status, url);
+        }
+    } else if (async) {
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                handleResponse(xhr, callback, errback);
+            }
+        };
+    } else {
+        handleResponse(xhr, callback, errback);
+    }
+
+    function handleResponse(xhr, callback, errback) {
+        if (xhr.status &gt;= 200 &amp;&amp; xhr.status &lt; 300) {
+            callback(xhr.responseText,
+                     xhr.getResponseHeader(&quot;Last-Modified&quot;));
+        } else if (typeof(errback) === 'function') {
+            errback(xhr.status, url);
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function getXMLHttpRequest() {
+</p>
+<pre>
+    if (window.XMLHttpRequest) {
+        return new(XMLHttpRequest);
+    } else {
+        try {
+            return new(ActiveXObject)(&quot;MSXML2.XMLHTTP.3.0&quot;);
+        } catch (e) {
+            log(&quot;browser doesn't support AJAX.&quot;);
+            return null;
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function removeNode(node) {
+</p>
+<pre>
+    return node &amp;&amp; node.parentNode.removeChild(node);
+</pre>
+<p>
+}
+</p>
+<p>
+function log(str) {
+</p>
+<pre>
+    if (less.env == 'development' &amp;&amp; typeof(console) !== &quot;undefined&quot;) { console.log('less: ' + str) }
+</pre>
+<p>
+}
+</p>
+<p>
+function error(e, href) {
+</p>
+<pre>
+    var id = 'less-error-message:' + extractId(href);
+    var template = '&lt;li&gt;&lt;label&gt;{line}&lt;/label&gt;&lt;pre class=&quot;{class}&quot;&gt;{content}&lt;/pre&gt;&lt;/li&gt;';
+    var elem = document.createElement('div'), timer, content, error = [];
+    var filename = e.filename || href;
+
+    elem.id        = id;
+    elem.className = &quot;less-error-message&quot;;
+
+    content = '&lt;h3&gt;'  + (e.message || 'There is an error in your .less file') +
+              '&lt;/h3&gt;' + '&lt;p&gt;in &lt;a href=&quot;' + filename   + '&quot;&gt;' + filename + &quot;&lt;/a&gt; &quot;;
+
+    var errorline = function (e, i, classname) {
+        if (e.extract[i]) {
+            error.push(template.replace(/\{line\}/, parseInt(e.line) + (i - 1))
+                               .replace(/\{class\}/, classname)
+                               .replace(/\{content\}/, e.extract[i]));
+        }
+    };
+
+    if (e.stack) {
+        content += '&lt;br/&gt;' + e.stack.split('\n').slice(1).join('&lt;br/&gt;');
+    } else if (e.extract) {
+        errorline(e, 0, '');
+        errorline(e, 1, 'line');
+        errorline(e, 2, '');
+        content += 'on line ' + e.line + ', column ' + (e.column + 1) + ':&lt;/p&gt;' +
+                    '&lt;ul&gt;' + error.join('') + '&lt;/ul&gt;';
+    }
+    elem.innerHTML = content;
+
+    // CSS for error messages
+    createCSS([
+        '.less-error-message ul, .less-error-message li {',
+            'list-style-type: none;',
+            'margin-right: 15px;',
+            'padding: 4px 0;',
+            'margin: 0;',
+        '}',
+        '.less-error-message label {',
+            'font-size: 12px;',
+            'margin-right: 15px;',
+            'padding: 4px 0;',
+            'color: #cc7777;',
+        '}',
+        '.less-error-message pre {',
+            'color: #dd6666;',
+            'padding: 4px 0;',
+            'margin: 0;',
+            'display: inline-block;',
+        '}',
+        '.less-error-message pre.line {',
+            'color: #ff0000;',
+        '}',
+        '.less-error-message h3 {',
+            'font-size: 20px;',
+            'font-weight: bold;',
+            'padding: 15px 0 5px 0;',
+            'margin: 0;',
+        '}',
+        '.less-error-message a {',
+            'color: #10a',
+        '}',
+        '.less-error-message .error {',
+            'color: red;',
+            'font-weight: bold;',
+            'padding-bottom: 2px;',
+            'border-bottom: 1px dashed red;',
+        '}'
+    ].join('\n'), { title: 'error-message' });
+
+    elem.style.cssText = [
+        &quot;font-family: Arial, sans-serif&quot;,
+        &quot;border: 1px solid #e00&quot;,
+        &quot;background-color: #eee&quot;,
+        &quot;border-radius: 5px&quot;,
+        &quot;-webkit-border-radius: 5px&quot;,
+        &quot;-moz-border-radius: 5px&quot;,
+        &quot;color: #e00&quot;,
+        &quot;padding: 15px&quot;,
+        &quot;margin-bottom: 15px&quot;
+    ].join(';');
+
+    if (less.env == 'development') {
+        timer = setInterval(function () {
+            if (document.body) {
+                if (document.getElementById(id)) {
+                    document.body.replaceChild(elem, document.getElementById(id));
+                } else {
+                    document.body.insertBefore(elem, document.body.firstChild);
+                }
+                clearInterval(timer);
+            }
+        }, 10);
+    }
+</pre>
+<p>
+}
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

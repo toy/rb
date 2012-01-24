@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Action::Runner</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Action::Runner 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/action/runner_rb.html">lib/vagrant/action/runner.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000044">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000045">run</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000045">
+                    
+                    <a name="M000045"></a><b>run</b>(callable_id, options=nil)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000045_source')" id="l_M000045_source">show</a>
+                        
+                    </p>
+                    <div id="M000045_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/runner.rb, line 20</span>
+20:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">run</span>(<span class="ruby-identifier">callable_id</span>, <span class="ruby-identifier">options</span>=<span class="ruby-keyword kw">nil</span>)
+21:         <span class="ruby-identifier">callable</span> = <span class="ruby-identifier">callable_id</span>
+22:         <span class="ruby-identifier">callable</span> = <span class="ruby-constant">Builder</span>.<span class="ruby-identifier">new</span>.<span class="ruby-identifier">use</span>(<span class="ruby-identifier">callable_id</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">callable_id</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Class</span>)
+23:         <span class="ruby-identifier">callable</span> = <span class="ruby-ivar">@registry</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">callable_id</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">callable_id</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Symbol</span>)
+24:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;Argument to run must be a callable object or registered action.&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">callable</span> <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-identifier">callable</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+25: 
+26:         <span class="ruby-comment cmt"># Create the initial environment with the options given</span>
+27:         <span class="ruby-identifier">environment</span> = <span class="ruby-constant">Environment</span>.<span class="ruby-identifier">new</span>
+28:         <span class="ruby-identifier">environment</span>.<span class="ruby-identifier">merge!</span>(<span class="ruby-ivar">@globals</span>)
+29:         <span class="ruby-identifier">environment</span>.<span class="ruby-identifier">merge!</span>(<span class="ruby-ivar">@lazy_globals</span>.<span class="ruby-identifier">call</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@lazy_globals</span>
+30:         <span class="ruby-identifier">environment</span>.<span class="ruby-identifier">merge!</span>(<span class="ruby-identifier">options</span> <span class="ruby-operator">||</span> {})
+31: 
+32:         <span class="ruby-comment cmt"># Run the action chain in a busy block, marking the environment as</span>
+33:         <span class="ruby-comment cmt"># interrupted if a SIGINT occurs, and exiting cleanly once the</span>
+34:         <span class="ruby-comment cmt"># chain has been run.</span>
+35:         <span class="ruby-identifier">ui</span> = <span class="ruby-identifier">environment</span>[<span class="ruby-identifier">:ui</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">environment</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-identifier">:ui</span>)
+36:         <span class="ruby-identifier">int_callback</span> = <span class="ruby-identifier">lambda</span> <span class="ruby-keyword kw">do</span>
+37:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">environment</span>[<span class="ruby-identifier">:interrupted</span>]
+38:             <span class="ruby-identifier">ui</span>.<span class="ruby-identifier">error</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.runner.exit_immediately&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ui</span>
+39:             <span class="ruby-identifier">abort</span>
+40:           <span class="ruby-keyword kw">end</span>
+41: 
+42:           <span class="ruby-identifier">ui</span>.<span class="ruby-identifier">warn</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.actions.runner.waiting_cleanup&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ui</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@@reported_interrupt</span>
+43:           <span class="ruby-identifier">environment</span>[<span class="ruby-identifier">:interrupted</span>] = <span class="ruby-keyword kw">true</span>
+44:           <span class="ruby-ivar">@@reported_interrupt</span> = <span class="ruby-keyword kw">true</span>
+45:         <span class="ruby-keyword kw">end</span>
+46: 
+47:         <span class="ruby-comment cmt"># We place a process lock around every action that is called</span>
+48:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Running action: #{callable_id}&quot;</span>)
+49:         <span class="ruby-constant">Util</span><span class="ruby-operator">::</span><span class="ruby-constant">Busy</span>.<span class="ruby-identifier">busy</span>(<span class="ruby-identifier">int_callback</span>) { <span class="ruby-identifier">callable</span>.<span class="ruby-identifier">call</span>(<span class="ruby-identifier">environment</span>) }
+50:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000044">
+                    
+                    <a name="M000044"></a><b>new</b>(registry, globals=nil, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000044_source')" id="l_M000044_source">show</a>
+                        
+                    </p>
+                    <div id="M000044_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/action/runner.rb, line 13</span>
+13:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">registry</span>, <span class="ruby-identifier">globals</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+14:         <span class="ruby-ivar">@registry</span>     = <span class="ruby-identifier">registry</span>
+15:         <span class="ruby-ivar">@globals</span>      = <span class="ruby-identifier">globals</span> <span class="ruby-operator">||</span> {}
+16:         <span class="ruby-ivar">@lazy_globals</span> = <span class="ruby-identifier">block</span>
+17:         <span class="ruby-ivar">@logger</span>       = <span class="ruby-constant">Log4r</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant::action::runner&quot;</span>)
+18:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

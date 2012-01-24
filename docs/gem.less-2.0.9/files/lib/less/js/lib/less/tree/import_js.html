@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>import.js</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            import.js
+        </h1>
+        <ul class="files">
+            <li>lib/less/js/lib/less/tree/import.js</li>
+            <li>Last modified: Wed Jan 25 00:30:25 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+(function (tree) { // // CSS @import node // // The general strategy here
+is that we don&#8217;t want to wait // for the parsing to be completed,
+before we start importing // the file. That&#8217;s because in the context
+of a browser, // most of the time will be spent waiting for the server to
+respond. // // On creation, we push the import path to our import queue,
+though // `import,push`, we also pass it a callback, which it&#8217;ll call
+once // the file has been fetched, and parsed. // tree.Import = function
+(path, imports, features, index) {
+</p>
+<pre>
+    var that = this;
+
+    this.index = index;
+    this._path = path;
+    this.features = features &amp;&amp; new(tree.Value)(features);
+
+    // The '.less' extension is optional
+    if (path instanceof tree.Quoted) {
+        this.path = /\.(le?|c)ss(\?.*)?$/.test(path.value) ? path.value : path.value + '.less';
+    } else {
+        this.path = path.value.value || path.value;
+    }
+
+    this.css = /css(\?.*)?$/.test(this.path);
+
+    // Only pre-compile .less files
+    if (! this.css) {
+        imports.push(this.path, function (e, root) {
+            if (e) { e.index = index }
+            that.root = root || new(tree.Ruleset)([], []);
+        });
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+// // The actual import node doesn&#8217;t return anything, when converted
+to CSS. // The reason is that it&#8217;s used at the evaluation stage, so
+that the rules // it imports can be treated like any other rules. // // In
+`eval`, we make sure all Import nodes get evaluated, recursively, so // we
+end up with a flat structure, which can easily be imported in the parent //
+ruleset. // tree.Import.prototype = {
+</p>
+<pre>
+    toCSS: function (env) {
+        var features = this.features ? ' ' + this.features.toCSS(env) : '';
+
+        if (this.css) {
+            return &quot;@import &quot; + this._path.toCSS() + features + ';\n';
+        } else {
+            return &quot;&quot;;
+        }
+    },
+    eval: function (env) {
+        var ruleset, features = this.features &amp;&amp; this.features.eval(env);
+
+        if (this.css) {
+            return this;
+        } else {
+            ruleset = new(tree.Ruleset)([], this.root.rules.slice(0));
+
+            for (var i = 0; i &lt; ruleset.rules.length; i++) {
+                if (ruleset.rules[i] instanceof tree.Import) {
+                    Array.prototype
+                         .splice
+                         .apply(ruleset.rules,
+                                [i, 1].concat(ruleset.rules[i].eval(env)));
+                }
+            }
+            return this.features ? new(tree.Directive)('@media', ruleset.rules, this.features.value) : ruleset.rules;
+        }
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8217;../tree&#8217;));
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

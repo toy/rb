@@ -1,0 +1,3055 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>less-1.1.0.js</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            less-1.1.0.js
+        </h1>
+        <ul class="files">
+            <li>lib/less/js/dist/less-1.1.0.js</li>
+            <li>Last modified: Wed Jan 25 00:30:25 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+// // LESS - Leaner CSS v1.1.0 // <a
+href="http://lesscss.org">lesscss.org</a> // // Copyright &#169; 2009-2011,
+Alexis Sellier // Licensed under the Apache 2.0 License. // (function
+(window, undefined) { // // Stub out `require` in the browser // function
+require(arg) {
+</p>
+<pre>
+    return window.less[arg.split('/')[1]];
+</pre>
+<p>
+};
+</p>
+<p>
+// ecma-5.js // // &#8212; kriskowal Kris Kowal Copyright (C) 2009-2010 MIT
+License // &#8212; tlrobinson Tom Robinson // dantman Daniel Friesen
+</p>
+<p>
+// // Array // if (!Array.isArray) {
+</p>
+<pre>
+    Array.isArray = function(obj) {
+        return Object.prototype.toString.call(obj) === &quot;[object Array]&quot; ||
+               (obj instanceof Array);
+    };
+</pre>
+<p>
+} if (!Array.prototype.forEach) {
+</p>
+<pre>
+    Array.prototype.forEach =  function(block, thisObject) {
+        var len = this.length &gt;&gt;&gt; 0;
+        for (var i = 0; i &lt; len; i++) {
+            if (i in this) {
+                block.call(thisObject, this[i], i, this);
+            }
+        }
+    };
+</pre>
+<p>
+} if (!Array.prototype.map) {
+</p>
+<pre>
+    Array.prototype.map = function(fun /*, thisp*/) {
+        var len = this.length &gt;&gt;&gt; 0;
+        var res = new Array(len);
+        var thisp = arguments[1];
+
+        for (var i = 0; i &lt; len; i++) {
+            if (i in this) {
+                res[i] = fun.call(thisp, this[i], i, this);
+            }
+        }
+        return res;
+    };
+</pre>
+<p>
+} if (!Array.prototype.filter) {
+</p>
+<pre>
+    Array.prototype.filter = function (block /*, thisp */) {
+        var values = [];
+        var thisp = arguments[1];
+        for (var i = 0; i &lt; this.length; i++) {
+            if (block.call(thisp, this[i])) {
+                values.push(this[i]);
+            }
+        }
+        return values;
+    };
+</pre>
+<p>
+} if (!Array.prototype.reduce) {
+</p>
+<pre>
+    Array.prototype.reduce = function(fun /*, initial*/) {
+        var len = this.length &gt;&gt;&gt; 0;
+        var i = 0;
+
+        // no value to return if no initial value and an empty array
+        if (len === 0 &amp;&amp; arguments.length === 1) throw new TypeError();
+
+        if (arguments.length &gt;= 2) {
+            var rv = arguments[1];
+        } else {
+            do {
+                if (i in this) {
+                    rv = this[i++];
+                    break;
+                }
+                // if array contains no values, no initial value to return
+                if (++i &gt;= len) throw new TypeError();
+            } while (true);
+        }
+        for (; i &lt; len; i++) {
+            if (i in this) {
+                rv = fun.call(null, rv, this[i], i, this);
+            }
+        }
+        return rv;
+    };
+</pre>
+<p>
+} if (!Array.prototype.indexOf) {
+</p>
+<pre>
+    Array.prototype.indexOf = function (value /*, fromIndex */ ) {
+        var length = this.length;
+        var i = arguments[1] || 0;
+
+        if (!length)     return -1;
+        if (i &gt;= length) return -1;
+        if (i &lt; 0)       i += length;
+
+        for (; i &lt; length; i++) {
+            if (!Object.prototype.hasOwnProperty.call(this, i)) { continue }
+            if (value === this[i]) return i;
+        }
+        return -1;
+    };
+</pre>
+<p>
+}
+</p>
+<p>
+// // Object // if (!Object.keys) {
+</p>
+<pre>
+    Object.keys = function (object) {
+        var keys = [];
+        for (var name in object) {
+            if (Object.prototype.hasOwnProperty.call(object, name)) {
+                keys.push(name);
+            }
+        }
+        return keys;
+    };
+</pre>
+<p>
+}
+</p>
+<p>
+// // String // if (!String.prototype.trim) {
+</p>
+<pre>
+    String.prototype.trim = function () {
+        return String(this).replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+    };
+</pre>
+<p>
+} var less, tree;
+</p>
+<p>
+if (typeof(window) === &#8216;undefined&#8217;) {
+</p>
+<pre>
+    less = exports,
+    tree = require('less/tree');
+</pre>
+<p>
+} else {
+</p>
+<pre>
+    if (typeof(window.less) === 'undefined') { window.less = {} }
+    less = window.less,
+    tree = window.less.tree = {};
+</pre>
+<p>
+} // // less.js - parser // // A relatively straight-forward predictive
+parser. // There is no tokenization/lexing stage, the input is parsed // in
+one sweep. // // To make the parser fast enough to run in the browser,
+several // optimization had to be made: // // - Matching and slicing on a
+huge input is often cause of slowdowns. // The solution is to chunkify the
+input into smaller strings. // The chunks are stored in the `chunks` var,
+// `j` holds the current chunk index, and `current` holds // the index of
+the current chunk in relation to `input`. // This gives us an almost 4x
+speed-up. // // - In many cases, we don&#8217;t need to match individual
+tokens; // for example, if a value doesn&#8217;t hold any variables,
+operations // or dynamic references, the parser can effectively
+&#8216;skip&#8217; it, // treating it as a literal. // An example would be
+&#8216;1px solid 000&#8217; - which evaluates to itself, // we don&#8217;t
+need to know what the individual components are. // The drawback, of course
+is that you don&#8217;t get the benefits of // syntax-checking on the CSS.
+This gives us a 50% speed-up in the parser, // and a smaller speed-up in
+the code-gen. // // // Token matching is done with the `$` function, which
+either takes // a terminal string or regexp, or a non-terminal function to
+call. // It also takes care of moving all the indices forwards. // //
+less.Parser = function Parser(env) {
+</p>
+<pre>
+    var input,       // LeSS input string
+        i,           // current index in `input`
+        j,           // current chunk
+        temp,        // temporarily holds a chunk's state, for backtracking
+        memo,        // temporarily holds `i`, when backtracking
+        furthest,    // furthest index the parser has gone to
+        chunks,      // chunkified input
+        current,     // index of current chunk, in `input`
+        parser;
+
+    var that = this;
+
+    // This function is called after all files
+    // have been imported through `@import`.
+    var finish = function () {};
+
+    var imports = this.imports = {
+        paths: env &amp;&amp; env.paths || [],  // Search paths, when importing
+        queue: [],                      // Files which haven't been imported yet
+        files: {},                      // Holds the imported parse trees
+        mime:  env &amp;&amp; env.mime,         // MIME type of .less files
+        push: function (path, callback) {
+            var that = this;
+            this.queue.push(path);
+
+            //
+            // Import a file asynchronously
+            //
+            less.Parser.importer(path, this.paths, function (root) {
+                that.queue.splice(that.queue.indexOf(path), 1); // Remove the path from the queue
+                that.files[path] = root;                        // Store the root
+
+                callback(root);
+
+                if (that.queue.length === 0) { finish() }       // Call `finish` if we're done importing
+            }, env);
+        }
+    };
+
+    function save()    { temp = chunks[j], memo = i, current = i }
+    function restore() { chunks[j] = temp, i = memo, current = i }
+
+    function sync() {
+        if (i &gt; current) {
+            chunks[j] = chunks[j].slice(i - current);
+            current = i;
+        }
+    }
+    //
+    // Parse from a token, regexp or string, and move forward if match
+    //
+    function $(tok) {
+        var match, args, length, c, index, endIndex, k, mem;
+
+        //
+        // Non-terminal
+        //
+        if (tok instanceof Function) {
+            return tok.call(parser.parsers);
+        //
+        // Terminal
+        //
+        //     Either match a single character in the input,
+        //     or match a regexp in the current chunk (chunk[j]).
+        //
+        } else if (typeof(tok) === 'string') {
+            match = input.charAt(i) === tok ? tok : null;
+            length = 1;
+            sync ();
+        } else {
+            sync ();
+
+            if (match = tok.exec(chunks[j])) {
+                length = match[0].length;
+            } else {
+                return null;
+            }
+        }
+
+        // The match is confirmed, add the match length to `i`,
+        // and consume any extra white-space characters (' ' || '\n')
+        // which come after that. The reason for this is that LeSS's
+        // grammar is mostly white-space insensitive.
+        //
+        if (match) {
+            mem = i += length;
+            endIndex = i + chunks[j].length - length;
+
+            while (i &lt; endIndex) {
+                c = input.charCodeAt(i);
+                if (! (c === 32 || c === 10 || c === 9)) { break }
+                i++;
+            }
+            chunks[j] = chunks[j].slice(length + (i - mem));
+            current = i;
+
+            if (chunks[j].length === 0 &amp;&amp; j &lt; chunks.length - 1) { j++ }
+
+            if(typeof(match) === 'string') {
+                return match;
+            } else {
+                return match.length === 1 ? match[0] : match;
+            }
+        }
+    }
+
+    // Same as $(), but don't change the state of the parser,
+    // just return the match.
+    function peek(tok) {
+        if (typeof(tok) === 'string') {
+            return input.charAt(i) === tok;
+        } else {
+            if (tok.test(chunks[j])) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    this.env = env = env || {};
+
+    // The optimization level dictates the thoroughness of the parser,
+    // the lower the number, the less nodes it will create in the tree.
+    // This could matter for debugging, or if you want to access
+    // the individual nodes in the tree.
+    this.optimization = ('optimization' in this.env) ? this.env.optimization : 1;
+
+    this.env.filename = this.env.filename || null;
+
+    //
+    // The Parser
+    //
+    return parser = {
+
+        imports: imports,
+        //
+        // Parse an input string into an abstract syntax tree,
+        // call `callback` when done.
+        //
+        parse: function (str, callback) {
+            var root, start, end, zone, line, lines, buff = [], c, error = null;
+
+            i = j = current = furthest = 0;
+            chunks = [];
+            input = str.replace(/\r\n/g, '\n');
+
+            // Split the input into chunks.
+            chunks = (function (chunks) {
+                var j = 0,
+                    skip = /[^&quot;'`\{\}\/\(\)]+/g,
+                    comment = /\/\*(?:[^*]|\*+[^\/*])*\*+\/|\/\/.*/g,
+                    level = 0,
+                    match,
+                    chunk = chunks[0],
+                    inParam,
+                    inString;
+
+                for (var i = 0, c, cc; i &lt; input.length; i++) {
+                    skip.lastIndex = i;
+                    if (match = skip.exec(input)) {
+                        if (match.index === i) {
+                            i += match[0].length;
+                            chunk.push(match[0]);
+                        }
+                    }
+                    c = input.charAt(i);
+                    comment.lastIndex = i;
+
+                    if (!inString &amp;&amp; !inParam &amp;&amp; c === '/') {
+                        cc = input.charAt(i + 1);
+                        if (cc === '/' || cc === '*') {
+                            if (match = comment.exec(input)) {
+                                if (match.index === i) {
+                                    i += match[0].length;
+                                    chunk.push(match[0]);
+                                    c = input.charAt(i);
+                                }
+                            }
+                        }
+                    }
+
+                    if        (c === '{' &amp;&amp; !inString &amp;&amp; !inParam) { level ++;
+                        chunk.push(c);
+                    } else if (c === '}' &amp;&amp; !inString &amp;&amp; !inParam) { level --;
+                        chunk.push(c);
+                        chunks[++j] = chunk = [];
+                    } else if (c === '(' &amp;&amp; !inString &amp;&amp; !inParam) {
+                        chunk.push(c);
+                        inParam = true;
+                    } else if (c === ')' &amp;&amp; !inString &amp;&amp; inParam) {
+                        chunk.push(c);
+                        inParam = false;
+                    } else {
+                        if (c === '&quot;' || c === &quot;'&quot; || c === '`') {
+                            if (! inString) {
+                                inString = c;
+                            } else {
+                                inString = inString === c ? false : inString;
+                            }
+                        }
+                        chunk.push(c);
+                    }
+                }
+                if (level &gt; 0) {
+                    throw {
+                        type: 'Syntax',
+                        message: &quot;Missing closing `}`&quot;,
+                        filename: env.filename
+                    };
+                }
+
+                return chunks.map(function (c) { return c.join('') });;
+            })([[]]);
+
+            // Start with the primary rule.
+            // The whole syntax tree is held under a Ruleset node,
+            // with the `root` property set to true, so no `{}` are
+            // output. The callback is called when the input is parsed.
+            root = new(tree.Ruleset)([], $(this.parsers.primary));
+            root.root = true;
+
+            root.toCSS = (function (evaluate) {
+                var line, lines, column;
+
+                return function (options, variables) {
+                    var frames = [];
+
+                    options = options || {};
+                    //
+                    // Allows setting variables with a hash, so:
+                    //
+                    //   `{ color: new(tree.Color)('#f01') }` will become:
+                    //
+                    //   new(tree.Rule)('@color',
+                    //     new(tree.Value)([
+                    //       new(tree.Expression)([
+                    //         new(tree.Color)('#f01')
+                    //       ])
+                    //     ])
+                    //   )
+                    //
+                    if (typeof(variables) === 'object' &amp;&amp; !Array.isArray(variables)) {
+                        variables = Object.keys(variables).map(function (k) {
+                            var value = variables[k];
+
+                            if (! (value instanceof tree.Value)) {
+                                if (! (value instanceof tree.Expression)) {
+                                    value = new(tree.Expression)([value]);
+                                }
+                                value = new(tree.Value)([value]);
+                            }
+                            return new(tree.Rule)('@' + k, value, false, 0);
+                        });
+                        frames = [new(tree.Ruleset)(null, variables)];
+                    }
+
+                    try {
+                        var css = evaluate.call(this, { frames: frames })
+                                          .toCSS([], { compress: options.compress || false });
+                    } catch (e) {
+                        lines = input.split('\n');
+                        line = getLine(e.index);
+
+                        for (var n = e.index, column = -1;
+                                 n &gt;= 0 &amp;&amp; input.charAt(n) !== '\n';
+                                 n--) { column++ }
+
+                        throw {
+                            type: e.type,
+                            message: e.message,
+                            filename: env.filename,
+                            index: e.index,
+                            line: typeof(line) === 'number' ? line + 1 : null,
+                            callLine: e.call &amp;&amp; (getLine(e.call) + 1),
+                            callExtract: lines[getLine(e.call)],
+                            stack: e.stack,
+                            column: column,
+                            extract: [
+                                lines[line - 1],
+                                lines[line],
+                                lines[line + 1]
+                            ]
+                        };
+                    }
+                    if (options.compress) {
+                        return css.replace(/(\s)+/g, &quot;$1&quot;);
+                    } else {
+                        return css;
+                    }
+
+                    function getLine(index) {
+                        return index ? (input.slice(0, index).match(/\n/g) || &quot;&quot;).length : null;
+                    }
+                };
+            })(root.eval);
+
+            // If `i` is smaller than the `input.length - 1`,
+            // it means the parser wasn't able to parse the whole
+            // string, so we've got a parsing error.
+            //
+            // We try to extract a \n delimited string,
+            // showing the line where the parse error occured.
+            // We split it up into two parts (the part which parsed,
+            // and the part which didn't), so we can color them differently.
+            if (i &lt; input.length - 1) {
+                i = furthest;
+                lines = input.split('\n');
+                line = (input.slice(0, i).match(/\n/g) || &quot;&quot;).length + 1;
+
+                for (var n = i, column = -1; n &gt;= 0 &amp;&amp; input.charAt(n) !== '\n'; n--) { column++ }
+
+                error = {
+                    name: &quot;ParseError&quot;,
+                    message: &quot;Syntax Error on line &quot; + line,
+                    index: i,
+                    filename: env.filename,
+                    line: line,
+                    column: column,
+                    extract: [
+                        lines[line - 2],
+                        lines[line - 1],
+                        lines[line]
+                    ]
+                };
+            }
+
+            if (this.imports.queue.length &gt; 0) {
+                finish = function () { callback(error, root) };
+            } else {
+                callback(error, root);
+            }
+        },
+
+        //
+        // Here in, the parsing rules/functions
+        //
+        // The basic structure of the syntax tree generated is as follows:
+        //
+        //   Ruleset -&gt;  Rule -&gt; Value -&gt; Expression -&gt; Entity
+        //
+        // Here's some LESS code:
+        //
+        //    .class {
+        //      color: #fff;
+        //      border: 1px solid #000;
+        //      width: @w + 4px;
+        //      &gt; .child {...}
+        //    }
+        //
+        // And here's what the parse tree might look like:
+        //
+        //     Ruleset (Selector '.class', [
+        //         Rule (&quot;color&quot;,  Value ([Expression [Color #fff]]))
+        //         Rule (&quot;border&quot;, Value ([Expression [Dimension 1px][Keyword &quot;solid&quot;][Color #000]]))
+        //         Rule (&quot;width&quot;,  Value ([Expression [Operation &quot;+&quot; [Variable &quot;@w&quot;][Dimension 4px]]]))
+        //         Ruleset (Selector [Element '&gt;', '.child'], [...])
+        //     ])
+        //
+        //  In general, most rules will try to parse a token with the `$()` function, and if the return
+        //  value is truly, will return a new node, of the relevant type. Sometimes, we need to check
+        //  first, before parsing, that's when we use `peek()`.
+        //
+        parsers: {
+            //
+            // The `primary` rule is the *entry* and *exit* point of the parser.
+            // The rules here can appear at any level of the parse tree.
+            //
+            // The recursive nature of the grammar is an interplay between the `block`
+            // rule, which represents `{ ... }`, the `ruleset` rule, and this `primary` rule,
+            // as represented by this simplified grammar:
+            //
+            //     primary  →  (ruleset | rule)+
+            //     ruleset  →  selector+ block
+            //     block    →  '{' primary '}'
+            //
+            // Only at one point is the primary rule not called from the
+            // block rule: at the root level.
+            //
+            primary: function () {
+                var node, root = [];
+
+                while ((node = $(this.mixin.definition) || $(this.rule)    ||  $(this.ruleset) ||
+                               $(this.mixin.call)       || $(this.comment) ||  $(this.directive))
+                               || $(/^[\s\n]+/)) {
+                    node &amp;&amp; root.push(node);
+                }
+                return root;
+            },
+
+            // We create a Comment node for CSS comments `/* */`,
+            // but keep the LeSS comments `//` silent, by just skipping
+            // over them.
+            comment: function () {
+                var comment;
+
+                if (input.charAt(i) !== '/') return;
+
+                if (input.charAt(i + 1) === '/') {
+                    return new(tree.Comment)($(/^\/\/.*/), true);
+                } else if (comment = $(/^\/\*(?:[^*]|\*+[^\/*])*\*+\/\n?/)) {
+                    return new(tree.Comment)(comment);
+                }
+            },
+
+            //
+            // Entities are tokens which can be found inside an Expression
+            //
+            entities: {
+                //
+                // A string, which supports escaping &quot; and '
+                //
+                //     &quot;milky way&quot; 'he\'s the one!'
+                //
+                quoted: function () {
+                    var str, j = i, e;
+
+                    if (input.charAt(j) === '~') { j++, e = true } // Escaped strings
+                    if (input.charAt(j) !== '&quot;' &amp;&amp; input.charAt(j) !== &quot;'&quot;) return;
+
+                    e &amp;&amp; $('~');
+
+                    if (str = $(/^&quot;((?:[^&quot;\\\r\n]|\\.)*)&quot;|'((?:[^'\\\r\n]|\\.)*)'/)) {
+                        return new(tree.Quoted)(str[0], str[1] || str[2], e);
+                    }
+                },
+
+                //
+                // A catch-all word, such as:
+                //
+                //     black border-collapse
+                //
+                keyword: function () {
+                    var k;
+                    if (k = $(/^[A-Za-z-]+/)) { return new(tree.Keyword)(k) }
+                },
+
+                //
+                // A function call
+                //
+                //     rgb(255, 0, 255)
+                //
+                // We also try to catch IE's `alpha()`, but let the `alpha` parser
+                // deal with the details.
+                //
+                // The arguments are parsed with the `entities.arguments` parser.
+                //
+                call: function () {
+                    var name, args;
+
+                    if (! (name = /^([\w-]+|%)\(/.exec(chunks[j]))) return;
+
+                    name = name[1].toLowerCase();
+
+                    if (name === 'url') { return null }
+                    else                { i += name.length }
+
+                    if (name === 'alpha') { return $(this.alpha) }
+
+                    $('('); // Parse the '(' and consume whitespace.
+
+                    args = $(this.entities.arguments);
+
+                    if (! $(')')) return;
+
+                    if (name) { return new(tree.Call)(name, args) }
+                },
+                arguments: function () {
+                    var args = [], arg;
+
+                    while (arg = $(this.expression)) {
+                        args.push(arg);
+                        if (! $(',')) { break }
+                    }
+                    return args;
+                },
+                literal: function () {
+                    return $(this.entities.dimension) ||
+                           $(this.entities.color) ||
+                           $(this.entities.quoted);
+                },
+
+                //
+                // Parse url() tokens
+                //
+                // We use a specific rule for urls, because they don't really behave like
+                // standard function calls. The difference is that the argument doesn't have
+                // to be enclosed within a string, so it can't be parsed as an Expression.
+                //
+                url: function () {
+                    var value;
+
+                    if (input.charAt(i) !== 'u' || !$(/^url\(/)) return;
+                    value = $(this.entities.quoted)  || $(this.entities.variable) ||
+                            $(this.entities.dataURI) || $(/^[-\w%@$\/.&amp;=:;#+?~]+/) || &quot;&quot;;
+                    if (! $(')')) throw new(Error)(&quot;missing closing ) for url()&quot;);
+
+                    return new(tree.URL)((value.value || value.data || value instanceof tree.Variable)
+                                        ? value : new(tree.Anonymous)(value), imports.paths);
+                },
+
+                dataURI: function () {
+                    var obj;
+
+                    if ($(/^data:/)) {
+                        obj         = {};
+                        obj.mime    = $(/^[^\/]+\/[^,;)]+/)     || '';
+                        obj.charset = $(/^;\s*charset=[^,;)]+/) || '';
+                        obj.base64  = $(/^;\s*base64/)          || '';
+                        obj.data    = $(/^,\s*[^)]+/);
+
+                        if (obj.data) { return obj }
+                    }
+                },
+
+                //
+                // A Variable entity, such as `@fink`, in
+                //
+                //     width: @fink + 2px
+                //
+                // We use a different parser for variable definitions,
+                // see `parsers.variable`.
+                //
+                variable: function () {
+                    var name, index = i;
+
+                    if (input.charAt(i) === '@' &amp;&amp; (name = $(/^@@?[\w-]+/))) {
+                        return new(tree.Variable)(name, index);
+                    }
+                },
+
+                //
+                // A Hexadecimal color
+                //
+                //     #4F3C2F
+                //
+                // `rgb` and `hsl` colors are parsed through the `entities.call` parser.
+                //
+                color: function () {
+                    var rgb;
+
+                    if (input.charAt(i) === '#' &amp;&amp; (rgb = $(/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/))) {
+                        return new(tree.Color)(rgb[1]);
+                    }
+                },
+
+                //
+                // A Dimension, that is, a number and a unit
+                //
+                //     0.5em 95%
+                //
+                dimension: function () {
+                    var value, c = input.charCodeAt(i);
+                    if ((c &gt; 57 || c &lt; 45) || c === 47) return;
+
+                    if (value = $(/^(-?\d*\.?\d+)(px|%|em|pc|ex|in|deg|s|ms|pt|cm|mm|rad|grad|turn)?/)) {
+                        return new(tree.Dimension)(value[1], value[2]);
+                    }
+                },
+
+                //
+                // JavaScript code to be evaluated
+                //
+                //     `window.location.href`
+                //
+                javascript: function () {
+                    var str, j = i, e;
+
+                    if (input.charAt(j) === '~') { j++, e = true } // Escaped strings
+                    if (input.charAt(j) !== '`') { return }
+
+                    e &amp;&amp; $('~');
+
+                    if (str = $(/^`([^`]*)`/)) {
+                        return new(tree.JavaScript)(str[1], i, e);
+                    }
+                }
+            },
+
+            //
+            // The variable part of a variable definition. Used in the `rule` parser
+            //
+            //     @fink:
+            //
+            variable: function () {
+                var name;
+
+                if (input.charAt(i) === '@' &amp;&amp; (name = $(/^(@[\w-]+)\s*:/))) { return name[1] }
+            },
+
+            //
+            // A font size/line-height shorthand
+            //
+            //     small/12px
+            //
+            // We need to peek first, or we'll match on keywords and dimensions
+            //
+            shorthand: function () {
+                var a, b;
+
+                if (! peek(/^[@\w.%-]+\/[@\w.-]+/)) return;
+
+                if ((a = $(this.entity)) &amp;&amp; $('/') &amp;&amp; (b = $(this.entity))) {
+                    return new(tree.Shorthand)(a, b);
+                }
+            },
+
+            //
+            // Mixins
+            //
+            mixin: {
+                //
+                // A Mixin call, with an optional argument list
+                //
+                //     #mixins &gt; .square(#fff);
+                //     .rounded(4px, black);
+                //     .button;
+                //
+                // The `while` loop is there because mixins can be
+                // namespaced, but we only support the child and descendant
+                // selector for now.
+                //
+                call: function () {
+                    var elements = [], e, c, args, index = i, s = input.charAt(i);
+
+                    if (s !== '.' &amp;&amp; s !== '#') { return }
+
+                    while (e = $(/^[#.](?:[\w-]|\\(?:[a-fA-F0-9]{1,6} ?|[^a-fA-F0-9]))+/)) {
+                        elements.push(new(tree.Element)(c, e));
+                        c = $('&gt;');
+                    }
+                    $('(') &amp;&amp; (args = $(this.entities.arguments)) &amp;&amp; $(')');
+
+                    if (elements.length &gt; 0 &amp;&amp; ($(';') || peek('}'))) {
+                        return new(tree.mixin.Call)(elements, args, index);
+                    }
+                },
+
+                //
+                // A Mixin definition, with a list of parameters
+                //
+                //     .rounded (@radius: 2px, @color) {
+                //        ...
+                //     }
+                //
+                // Until we have a finer grained state-machine, we have to
+                // do a look-ahead, to make sure we don't have a mixin call.
+                // See the `rule` function for more information.
+                //
+                // We start by matching `.rounded (`, and then proceed on to
+                // the argument list, which has optional default values.
+                // We store the parameters in `params`, with a `value` key,
+                // if there is a value, such as in the case of `@radius`.
+                //
+                // Once we've got our params list, and a closing `)`, we parse
+                // the `{...}` block.
+                //
+                definition: function () {
+                    var name, params = [], match, ruleset, param, value;
+
+                    if ((input.charAt(i) !== '.' &amp;&amp; input.charAt(i) !== '#') ||
+                        peek(/^[^{]*(;|})/)) return;
+
+                    if (match = $(/^([#.](?:[\w-]|\\(?:[a-fA-F0-9]{1,6} ?|[^a-fA-F0-9]))+)\s*\(/)) {
+                        name = match[1];
+
+                        while (param = $(this.entities.variable) || $(this.entities.literal)
+                                                                 || $(this.entities.keyword)) {
+                            // Variable
+                            if (param instanceof tree.Variable) {
+                                if ($(':')) {
+                                    if (value = $(this.expression)) {
+                                        params.push({ name: param.name, value: value });
+                                    } else {
+                                        throw new(Error)(&quot;Expected value&quot;);
+                                    }
+                                } else {
+                                    params.push({ name: param.name });
+                                }
+                            } else {
+                                params.push({ value: param });
+                            }
+                            if (! $(',')) { break }
+                        }
+                        if (! $(')')) throw new(Error)(&quot;Expected )&quot;);
+
+                        ruleset = $(this.block);
+
+                        if (ruleset) {
+                            return new(tree.mixin.Definition)(name, params, ruleset);
+                        }
+                    }
+                }
+            },
+
+            //
+            // Entities are the smallest recognized token,
+            // and can be found inside a rule's value.
+            //
+            entity: function () {
+                return $(this.entities.literal) || $(this.entities.variable) || $(this.entities.url) ||
+                       $(this.entities.call)    || $(this.entities.keyword)  || $(this.entities.javascript) ||
+                       $(this.comment);
+            },
+
+            //
+            // A Rule terminator. Note that we use `peek()` to check for '}',
+            // because the `block` rule will be expecting it, but we still need to make sure
+            // it's there, if ';' was ommitted.
+            //
+            end: function () {
+                return $(';') || peek('}');
+            },
+
+            //
+            // IE's alpha function
+            //
+            //     alpha(opacity=88)
+            //
+            alpha: function () {
+                var value;
+
+                if (! $(/^opacity=/i)) return;
+                if (value = $(/^\d+/) || $(this.entities.variable)) {
+                    if (! $(')')) throw new(Error)(&quot;missing closing ) for alpha()&quot;);
+                    return new(tree.Alpha)(value);
+                }
+            },
+
+            //
+            // A Selector Element
+            //
+            //     div
+            //     + h1
+            //     #socks
+            //     input[type=&quot;text&quot;]
+            //
+            // Elements are the building blocks for Selectors,
+            // they are made out of a `Combinator` (see combinator rule),
+            // and an element name, such as a tag a class, or `*`.
+            //
+            element: function () {
+                var e, t, c;
+
+                c = $(this.combinator);
+                e = $(/^(?:[.#]?|:*)(?:[\w-]|\\(?:[a-fA-F0-9]{1,6} ?|[^a-fA-F0-9]))+/) || $('*') || $(this.attribute) || $(/^\([^)@]+\)/);
+
+                if (e) { return new(tree.Element)(c, e) }
+            },
+
+            //
+            // Combinators combine elements together, in a Selector.
+            //
+            // Because our parser isn't white-space sensitive, special care
+            // has to be taken, when parsing the descendant combinator, ` `,
+            // as it's an empty space. We have to check the previous character
+            // in the input, to see if it's a ` ` character. More info on how
+            // we deal with this in *combinator.js*.
+            //
+            combinator: function () {
+                var match, c = input.charAt(i);
+
+                if (c === '&gt;' || c === '&amp;' || c === '+' || c === '~') {
+                    i++;
+                    while (input.charAt(i) === ' ') { i++ }
+                    return new(tree.Combinator)(c);
+                } else if (c === ':' &amp;&amp; input.charAt(i + 1) === ':') {
+                    i += 2;
+                    while (input.charAt(i) === ' ') { i++ }
+                    return new(tree.Combinator)('::');
+                } else if (input.charAt(i - 1) === ' ') {
+                    return new(tree.Combinator)(&quot; &quot;);
+                } else {
+                    return new(tree.Combinator)(null);
+                }
+            },
+
+            //
+            // A CSS Selector
+            //
+            //     .class &gt; div + h1
+            //     li a:hover
+            //
+            // Selectors are made out of one or more Elements, see above.
+            //
+            selector: function () {
+                var sel, e, elements = [], c, match;
+
+                while (e = $(this.element)) {
+                    c = input.charAt(i);
+                    elements.push(e)
+                    if (c === '{' || c === '}' || c === ';' || c === ',') { break }
+                }
+
+                if (elements.length &gt; 0) { return new(tree.Selector)(elements) }
+            },
+            tag: function () {
+                return $(/^[a-zA-Z][a-zA-Z-]*[0-9]?/) || $('*');
+            },
+            attribute: function () {
+                var attr = '', key, val, op;
+
+                if (! $('[')) return;
+
+                if (key = $(/^[a-zA-Z-]+/) || $(this.entities.quoted)) {
+                    if ((op = $(/^[|~*$^]?=/)) &amp;&amp;
+                        (val = $(this.entities.quoted) || $(/^[\w-]+/))) {
+                        attr = [key, op, val.toCSS ? val.toCSS() : val].join('');
+                    } else { attr = key }
+                }
+
+                if (! $(']')) return;
+
+                if (attr) { return &quot;[&quot; + attr + &quot;]&quot; }
+            },
+
+            //
+            // The `block` rule is used by `ruleset` and `mixin.definition`.
+            // It's a wrapper around the `primary` rule, with added `{}`.
+            //
+            block: function () {
+                var content;
+
+                if ($('{') &amp;&amp; (content = $(this.primary)) &amp;&amp; $('}')) {
+                    return content;
+                }
+            },
+
+            //
+            // div, .class, body &gt; p {...}
+            //
+            ruleset: function () {
+                var selectors = [], s, rules, match;
+                save();
+
+                if (match = /^([.#: \w-]+)[\s\n]*\{/.exec(chunks[j])) {
+                    i += match[0].length - 1;
+                    selectors = [new(tree.Selector)([new(tree.Element)(null, match[1])])];
+                } else {
+                    while (s = $(this.selector)) {
+                        selectors.push(s);
+                        $(this.comment);
+                        if (! $(',')) { break }
+                        $(this.comment);
+                    }
+                }
+
+                if (selectors.length &gt; 0 &amp;&amp; (rules = $(this.block))) {
+                    return new(tree.Ruleset)(selectors, rules);
+                } else {
+                    // Backtrack
+                    furthest = i;
+                    restore();
+                }
+            },
+            rule: function () {
+                var name, value, c = input.charAt(i), important, match;
+                save();
+
+                if (c === '.' || c === '#' || c === '&amp;') { return }
+
+                if (name = $(this.variable) || $(this.property)) {
+                    if ((name.charAt(0) != '@') &amp;&amp; (match = /^([^@+\/'&quot;*`(;{}-]*);/.exec(chunks[j]))) {
+                        i += match[0].length - 1;
+                        value = new(tree.Anonymous)(match[1]);
+                    } else if (name === &quot;font&quot;) {
+                        value = $(this.font);
+                    } else {
+                        value = $(this.value);
+                    }
+                    important = $(this.important);
+
+                    if (value &amp;&amp; $(this.end)) {
+                        return new(tree.Rule)(name, value, important, memo);
+                    } else {
+                        furthest = i;
+                        restore();
+                    }
+                }
+            },
+
+            //
+            // An @import directive
+            //
+            //     @import &quot;lib&quot;;
+            //
+            // Depending on our environemnt, importing is done differently:
+            // In the browser, it's an XHR request, in Node, it would be a
+            // file-system operation. The function used for importing is
+            // stored in `import`, which we pass to the Import constructor.
+            //
+            &quot;import&quot;: function () {
+                var path;
+                if ($(/^@import\s+/) &amp;&amp;
+                    (path = $(this.entities.quoted) || $(this.entities.url)) &amp;&amp;
+                    $(';')) {
+                    return new(tree.Import)(path, imports);
+                }
+            },
+
+            //
+            // A CSS Directive
+            //
+            //     @charset &quot;utf-8&quot;;
+            //
+            directive: function () {
+                var name, value, rules, types;
+
+                if (input.charAt(i) !== '@') return;
+
+                if (value = $(this['import'])) {
+                    return value;
+                } else if (name = $(/^@media|@page|@-[-a-z]+/)) {
+                    types = ($(/^[^{]+/) || '').trim();
+                    if (rules = $(this.block)) {
+                        return new(tree.Directive)(name + &quot; &quot; + types, rules);
+                    }
+                } else if (name = $(/^@[-a-z]+/)) {
+                    if (name === '@font-face') {
+                        if (rules = $(this.block)) {
+                            return new(tree.Directive)(name, rules);
+                        }
+                    } else if ((value = $(this.entity)) &amp;&amp; $(';')) {
+                        return new(tree.Directive)(name, value);
+                    }
+                }
+            },
+            font: function () {
+                var value = [], expression = [], weight, shorthand, font, e;
+
+                while (e = $(this.shorthand) || $(this.entity)) {
+                    expression.push(e);
+                }
+                value.push(new(tree.Expression)(expression));
+
+                if ($(',')) {
+                    while (e = $(this.expression)) {
+                        value.push(e);
+                        if (! $(',')) { break }
+                    }
+                }
+                return new(tree.Value)(value);
+            },
+
+            //
+            // A Value is a comma-delimited list of Expressions
+            //
+            //     font-family: Baskerville, Georgia, serif;
+            //
+            // In a Rule, a Value represents everything after the `:`,
+            // and before the `;`.
+            //
+            value: function () {
+                var e, expressions = [], important;
+
+                while (e = $(this.expression)) {
+                    expressions.push(e);
+                    if (! $(',')) { break }
+                }
+
+                if (expressions.length &gt; 0) {
+                    return new(tree.Value)(expressions);
+                }
+            },
+            important: function () {
+                if (input.charAt(i) === '!') {
+                    return $(/^! *important/);
+                }
+            },
+            sub: function () {
+                var e;
+
+                if ($('(') &amp;&amp; (e = $(this.expression)) &amp;&amp; $(')')) {
+                    return e;
+                }
+            },
+            multiplication: function () {
+                var m, a, op, operation;
+                if (m = $(this.operand)) {
+                    while ((op = ($('/') || $('*'))) &amp;&amp; (a = $(this.operand))) {
+                        operation = new(tree.Operation)(op, [operation || m, a]);
+                    }
+                    return operation || m;
+                }
+            },
+            addition: function () {
+                var m, a, op, operation;
+                if (m = $(this.multiplication)) {
+                    while ((op = $(/^[-+]\s+/) || (input.charAt(i - 1) != ' ' &amp;&amp; ($('+') || $('-')))) &amp;&amp;
+                           (a = $(this.multiplication))) {
+                        operation = new(tree.Operation)(op, [operation || m, a]);
+                    }
+                    return operation || m;
+                }
+            },
+
+            //
+            // An operand is anything that can be part of an operation,
+            // such as a Color, or a Variable
+            //
+            operand: function () {
+                var negate, p = input.charAt(i + 1);
+
+                if (input.charAt(i) === '-' &amp;&amp; (p === '@' || p === '(')) { negate = $('-') }
+                var o = $(this.sub) || $(this.entities.dimension) ||
+                        $(this.entities.color) || $(this.entities.variable) ||
+                        $(this.entities.call);
+                return negate ? new(tree.Operation)('*', [new(tree.Dimension)(-1), o])
+                              : o;
+            },
+
+            //
+            // Expressions either represent mathematical operations,
+            // or white-space delimited Entities.
+            //
+            //     1px solid black
+            //     @var * 2
+            //
+            expression: function () {
+                var e, delim, entities = [], d;
+
+                while (e = $(this.addition) || $(this.entity)) {
+                    entities.push(e);
+                }
+                if (entities.length &gt; 0) {
+                    return new(tree.Expression)(entities);
+                }
+            },
+            property: function () {
+                var name;
+
+                if (name = $(/^(\*?-?[-a-z_0-9]+)\s*:/)) {
+                    return name[1];
+                }
+            }
+        }
+    };
+</pre>
+<p>
+};
+</p>
+<p>
+if (typeof(window) !== &#8216;undefined&#8217;) {
+</p>
+<pre>
+    //
+    // Used by `@import` directives
+    //
+    less.Parser.importer = function (path, paths, callback, env) {
+        if (path.charAt(0) !== '/' &amp;&amp; paths.length &gt; 0) {
+            path = paths[0] + path;
+        }
+        // We pass `true` as 3rd argument, to force the reload of the import.
+        // This is so we can get the syntax tree as opposed to just the CSS output,
+        // as we need this to evaluate the current stylesheet.
+        loadStyleSheet({ href: path, title: path, type: env.mime }, callback, true);
+    };
+</pre>
+<p>
+}
+</p>
+<p>
+(function (tree) {
+</p>
+<p>
+tree.functions = {
+</p>
+<pre>
+    rgb: function (r, g, b) {
+        return this.rgba(r, g, b, 1.0);
+    },
+    rgba: function (r, g, b, a) {
+        var rgb = [r, g, b].map(function (c) { return number(c) }),
+            a = number(a);
+        return new(tree.Color)(rgb, a);
+    },
+    hsl: function (h, s, l) {
+        return this.hsla(h, s, l, 1.0);
+    },
+    hsla: function (h, s, l, a) {
+        h = (number(h) % 360) / 360;
+        s = number(s); l = number(l); a = number(a);
+
+        var m2 = l &lt;= 0.5 ? l * (s + 1) : l + s - l * s;
+        var m1 = l * 2 - m2;
+
+        return this.rgba(hue(h + 1/3) * 255,
+                         hue(h)       * 255,
+                         hue(h - 1/3) * 255,
+                         a);
+
+        function hue(h) {
+            h = h &lt; 0 ? h + 1 : (h &gt; 1 ? h - 1 : h);
+            if      (h * 6 &lt; 1) return m1 + (m2 - m1) * h * 6;
+            else if (h * 2 &lt; 1) return m2;
+            else if (h * 3 &lt; 2) return m1 + (m2 - m1) * (2/3 - h) * 6;
+            else                return m1;
+        }
+    },
+    hue: function (color) {
+        return new(tree.Dimension)(Math.round(color.toHSL().h));
+    },
+    saturation: function (color) {
+        return new(tree.Dimension)(Math.round(color.toHSL().s * 100), '%');
+    },
+    lightness: function (color) {
+        return new(tree.Dimension)(Math.round(color.toHSL().l * 100), '%');
+    },
+    alpha: function (color) {
+        return new(tree.Dimension)(color.toHSL().a);
+    },
+    saturate: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.s += amount.value / 100;
+        hsl.s = clamp(hsl.s);
+        return hsla(hsl);
+    },
+    desaturate: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.s -= amount.value / 100;
+        hsl.s = clamp(hsl.s);
+        return hsla(hsl);
+    },
+    lighten: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.l += amount.value / 100;
+        hsl.l = clamp(hsl.l);
+        return hsla(hsl);
+    },
+    darken: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.l -= amount.value / 100;
+        hsl.l = clamp(hsl.l);
+        return hsla(hsl);
+    },
+    fadein: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.a += amount.value / 100;
+        hsl.a = clamp(hsl.a);
+        return hsla(hsl);
+    },
+    fadeout: function (color, amount) {
+        var hsl = color.toHSL();
+
+        hsl.a -= amount.value / 100;
+        hsl.a = clamp(hsl.a);
+        return hsla(hsl);
+    },
+    spin: function (color, amount) {
+        var hsl = color.toHSL();
+        var hue = (hsl.h + amount.value) % 360;
+
+        hsl.h = hue &lt; 0 ? 360 + hue : hue;
+
+        return hsla(hsl);
+    },
+    //
+    // Copyright (c) 2006-2009 Hampton Catlin, Nathan Weizenbaum, and Chris Eppstein
+    // http://sass-lang.com
+    //
+    mix: function (color1, color2, weight) {
+        var p = weight.value / 100.0;
+        var w = p * 2 - 1;
+        var a = color1.toHSL().a - color2.toHSL().a;
+
+        var w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0;
+        var w2 = 1 - w1;
+
+        var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
+                   color1.rgb[1] * w1 + color2.rgb[1] * w2,
+                   color1.rgb[2] * w1 + color2.rgb[2] * w2];
+
+        var alpha = color1.alpha * p + color2.alpha * (1 - p);
+
+        return new(tree.Color)(rgb, alpha);
+    },
+    greyscale: function (color) {
+        return this.desaturate(color, new(tree.Dimension)(100));
+    },
+    e: function (str) {
+        return new(tree.Anonymous)(str instanceof tree.JavaScript ? str.evaluated : str);
+    },
+    escape: function (str) {
+        return new(tree.Anonymous)(encodeURI(str.value).replace(/=/g, &quot;%3D&quot;).replace(/:/g, &quot;%3A&quot;).replace(/#/g, &quot;%23&quot;).replace(/;/g, &quot;%3B&quot;).replace(/\(/g, &quot;%28&quot;).replace(/\)/g, &quot;%29&quot;));
+    },
+    '%': function (quoted /* arg, arg, ...*/) {
+        var args = Array.prototype.slice.call(arguments, 1),
+            str = quoted.value;
+
+        for (var i = 0; i &lt; args.length; i++) {
+            str = str.replace(/%[sda]/i, function(token) {
+                var value = token.match(/s/i) ? args[i].value : args[i].toCSS();
+                return token.match(/[A-Z]$/) ? encodeURIComponent(value) : value;
+            });
+        }
+        str = str.replace(/%%/g, '%');
+        return new(tree.Quoted)('&quot;' + str + '&quot;', str);
+    },
+    round: function (n) {
+        if (n instanceof tree.Dimension) {
+            return new(tree.Dimension)(Math.round(number(n)), n.unit);
+        } else if (typeof(n) === 'number') {
+            return Math.round(n);
+        } else {
+            throw {
+                error: &quot;RuntimeError&quot;,
+                message: &quot;math functions take numbers as parameters&quot;
+            };
+        }
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+function hsla(hsla) {
+</p>
+<pre>
+    return tree.functions.hsla(hsla.h, hsla.s, hsla.l, hsla.a);
+</pre>
+<p>
+}
+</p>
+<p>
+function number(n) {
+</p>
+<pre>
+    if (n instanceof tree.Dimension) {
+        return parseFloat(n.unit == '%' ? n.value / 100 : n.value);
+    } else if (typeof(n) === 'number') {
+        return n;
+    } else {
+        throw {
+            error: &quot;RuntimeError&quot;,
+            message: &quot;color functions take numbers as parameters&quot;
+        };
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function clamp(val) {
+</p>
+<pre>
+    return Math.min(1, Math.max(0, val));
+</pre>
+<p>
+}
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Alpha = function (val) {
+</p>
+<pre>
+    this.value = val;
+</pre>
+<p>
+}; tree.Alpha.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        return &quot;alpha(opacity=&quot; +
+               (this.value.toCSS ? this.value.toCSS() : this.value) + &quot;)&quot;;
+    },
+    eval: function () { return this }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Anonymous = function (string) {
+</p>
+<pre>
+    this.value = string.value || string;
+</pre>
+<p>
+}; tree.Anonymous.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        return this.value;
+    },
+    eval: function () { return this }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+// // A function call node. // tree.Call = function (name, args) {
+</p>
+<pre>
+    this.name = name;
+    this.args = args;
+</pre>
+<p>
+}; tree.Call.prototype = {
+</p>
+<pre>
+    //
+    // When evaluating a function call,
+    // we either find the function in `tree.functions` [1],
+    // in which case we call it, passing the  evaluated arguments,
+    // or we simply print it out as it appeared originally [2].
+    //
+    // The *functions.js* file contains the built-in functions.
+    //
+    // The reason why we evaluate the arguments, is in the case where
+    // we try to pass a variable to a function, like: `saturate(@color)`.
+    // The function should receive the value, not the variable.
+    //
+    eval: function (env) {
+        var args = this.args.map(function (a) { return a.eval(env) });
+
+        if (this.name in tree.functions) { // 1.
+            return tree.functions[this.name].apply(tree.functions, args);
+        } else { // 2.
+            return new(tree.Anonymous)(this.name +
+                   &quot;(&quot; + args.map(function (a) { return a.toCSS() }).join(', ') + &quot;)&quot;);
+        }
+    },
+
+    toCSS: function (env) {
+        return this.eval(env).toCSS();
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) { // // RGB Colors -
+ff0014, eee // tree.Color = function (rgb, a) {
+</p>
+<pre>
+    //
+    // The end goal here, is to parse the arguments
+    // into an integer triplet, such as `128, 255, 0`
+    //
+    // This facilitates operations and conversions.
+    //
+    if (Array.isArray(rgb)) {
+        this.rgb = rgb;
+    } else if (rgb.length == 6) {
+        this.rgb = rgb.match(/.{2}/g).map(function (c) {
+            return parseInt(c, 16);
+        });
+    } else if (rgb.length == 8) {
+        this.alpha = parseInt(rgb.substring(0,2), 16) / 255.0;
+        this.rgb = rgb.substr(2).match(/.{2}/g).map(function (c) {
+            return parseInt(c, 16);
+        });
+    } else {
+        this.rgb = rgb.split('').map(function (c) {
+            return parseInt(c + c, 16);
+        });
+    }
+    this.alpha = typeof(a) === 'number' ? a : 1;
+</pre>
+<p>
+}; tree.Color.prototype = {
+</p>
+<pre>
+    eval: function () { return this },
+
+    //
+    // If we have some transparency, the only way to represent it
+    // is via `rgba`. Otherwise, we use the hex representation,
+    // which has better compatibility with older browsers.
+    // Values are capped between `0` and `255`, rounded and zero-padded.
+    //
+    toCSS: function () {
+        if (this.alpha &lt; 1.0) {
+            return &quot;rgba(&quot; + this.rgb.map(function (c) {
+                return Math.round(c);
+            }).concat(this.alpha).join(', ') + &quot;)&quot;;
+        } else {
+            return '#' + this.rgb.map(function (i) {
+                i = Math.round(i);
+                i = (i &gt; 255 ? 255 : (i &lt; 0 ? 0 : i)).toString(16);
+                return i.length === 1 ? '0' + i : i;
+            }).join('');
+        }
+    },
+
+    //
+    // Operations have to be done per-channel, if not,
+    // channels will spill onto each other. Once we have
+    // our result, in the form of an integer triplet,
+    // we create a new Color node to hold the result.
+    //
+    operate: function (op, other) {
+        var result = [];
+
+        if (! (other instanceof tree.Color)) {
+            other = other.toColor();
+        }
+
+        for (var c = 0; c &lt; 3; c++) {
+            result[c] = tree.operate(op, this.rgb[c], other.rgb[c]);
+        }
+        return new(tree.Color)(result, this.alpha + other.alpha);
+    },
+
+    toHSL: function () {
+        var r = this.rgb[0] / 255,
+            g = this.rgb[1] / 255,
+            b = this.rgb[2] / 255,
+            a = this.alpha;
+
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2, d = max - min;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            s = l &gt; 0.5 ? d / (2 - max - min) : d / (max + min);
+
+            switch (max) {
+                case r: h = (g - b) / d + (g &lt; b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2;               break;
+                case b: h = (r - g) / d + 4;               break;
+            }
+            h /= 6;
+        }
+        return { h: h * 360, s: s, l: l, a: a };
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Comment = function (value, silent) {
+</p>
+<pre>
+    this.value = value;
+    this.silent = !!silent;
+</pre>
+<p>
+}; tree.Comment.prototype = {
+</p>
+<pre>
+    toCSS: function (env) {
+        return env.compress ? '' : this.value;
+    },
+    eval: function () { return this }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+// // A number with a unit // tree.Dimension = function (value, unit) {
+</p>
+<pre>
+    this.value = parseFloat(value);
+    this.unit = unit || null;
+</pre>
+<p>
+};
+</p>
+<p>
+tree.Dimension.prototype = {
+</p>
+<pre>
+    eval: function () { return this },
+    toColor: function () {
+        return new(tree.Color)([this.value, this.value, this.value]);
+    },
+    toCSS: function () {
+        var css = this.value + this.unit;
+        return css;
+    },
+
+    // In an operation between two Dimensions,
+    // we default to the first Dimension's unit,
+    // so `1px + 2em` will yield `3px`.
+    // In the future, we could implement some unit
+    // conversions such that `100cm + 10mm` would yield
+    // `101cm`.
+    operate: function (op, other) {
+        return new(tree.Dimension)
+                  (tree.operate(op, this.value, other.value),
+                  this.unit || other.unit);
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Directive = function (name, value) {
+</p>
+<pre>
+    this.name = name;
+    if (Array.isArray(value)) {
+        this.ruleset = new(tree.Ruleset)([], value);
+    } else {
+        this.value = value;
+    }
+</pre>
+<p>
+}; tree.Directive.prototype = {
+</p>
+<pre>
+    toCSS: function (ctx, env) {
+        if (this.ruleset) {
+            this.ruleset.root = true;
+            return this.name + (env.compress ? '{' : ' {\n  ') +
+                   this.ruleset.toCSS(ctx, env).trim().replace(/\n/g, '\n  ') +
+                               (env.compress ? '}': '\n}\n');
+        } else {
+            return this.name + ' ' + this.value.toCSS() + ';\n';
+        }
+    },
+    eval: function (env) {
+        env.frames.unshift(this);
+        this.ruleset = this.ruleset &amp;&amp; this.ruleset.eval(env);
+        env.frames.shift();
+        return this;
+    },
+    variable: function (name) { return tree.Ruleset.prototype.variable.call(this.ruleset, name) },
+    find: function () { return tree.Ruleset.prototype.find.apply(this.ruleset, arguments) },
+    rulesets: function () { return tree.Ruleset.prototype.rulesets.apply(this.ruleset) }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Element = function (combinator, value) {
+</p>
+<pre>
+    this.combinator = combinator instanceof tree.Combinator ?
+                      combinator : new(tree.Combinator)(combinator);
+    this.value = value.trim();
+</pre>
+<p>
+}; tree.Element.prototype.toCSS = function (env) {
+</p>
+<pre>
+    return this.combinator.toCSS(env || {}) + this.value;
+</pre>
+<p>
+};
+</p>
+<p>
+tree.Combinator = function (value) {
+</p>
+<pre>
+    if (value === ' ') {
+        this.value = ' ';
+    } else {
+        this.value = value ? value.trim() : &quot;&quot;;
+    }
+</pre>
+<p>
+}; tree.Combinator.prototype.toCSS = function (env) {
+</p>
+<pre>
+    return {
+        ''  : '',
+        ' ' : ' ',
+        '&amp;' : '',
+        ':' : ' :',
+        '::': '::',
+        '+' : env.compress ? '+' : ' + ',
+        '~' : env.compress ? '~' : ' ~ ',
+        '&gt;' : env.compress ? '&gt;' : ' &gt; '
+    }[this.value];
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Expression = function (value) { this.value = value };
+tree.Expression.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        if (this.value.length &gt; 1) {
+            return new(tree.Expression)(this.value.map(function (e) {
+                return e.eval(env);
+            }));
+        } else {
+            return this.value[0].eval(env);
+        }
+    },
+    toCSS: function (env) {
+        return this.value.map(function (e) {
+            return e.toCSS(env);
+        }).join(' ');
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) { // // CSS @import
+node // // The general strategy here is that we don&#8217;t want to wait //
+for the parsing to be completed, before we start importing // the file.
+That&#8217;s because in the context of a browser, // most of the time will
+be spent waiting for the server to respond. // // On creation, we push the
+import path to our import queue, though // `import,push`, we also pass it a
+callback, which it&#8217;ll call once // the file has been fetched, and
+parsed. // tree.Import = function (path, imports) {
+</p>
+<pre>
+    var that = this;
+
+    this._path = path;
+
+    // The '.less' extension is optional
+    if (path instanceof tree.Quoted) {
+        this.path = /\.(le?|c)ss$/.test(path.value) ? path.value : path.value + '.less';
+    } else {
+        this.path = path.value.value || path.value;
+    }
+
+    this.css = /css$/.test(this.path);
+
+    // Only pre-compile .less files
+    if (! this.css) {
+        imports.push(this.path, function (root) {
+            if (! root) {
+                throw new(Error)(&quot;Error parsing &quot; + that.path);
+            }
+            that.root = root;
+        });
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+// // The actual import node doesn&#8217;t return anything, when converted
+to CSS. // The reason is that it&#8217;s used at the evaluation stage, so
+that the rules // it imports can be treated like any other rules. // // In
+`eval`, we make sure all Import nodes get evaluated, recursively, so // we
+end up with a flat structure, which can easily be imported in the parent //
+ruleset. // tree.Import.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        if (this.css) {
+            return &quot;@import &quot; + this._path.toCSS() + ';\n';
+        } else {
+            return &quot;&quot;;
+        }
+    },
+    eval: function (env) {
+        var ruleset;
+
+        if (this.css) {
+            return this;
+        } else {
+            ruleset = new(tree.Ruleset)(null, this.root.rules.slice(0));
+
+            for (var i = 0; i &lt; ruleset.rules.length; i++) {
+                if (ruleset.rules[i] instanceof tree.Import) {
+                    Array.prototype
+                         .splice
+                         .apply(ruleset.rules,
+                                [i, 1].concat(ruleset.rules[i].eval(env)));
+                }
+            }
+            return ruleset.rules;
+        }
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.JavaScript = function (string, index, escaped) {
+</p>
+<pre>
+    this.escaped = escaped;
+    this.expression = string;
+    this.index = index;
+</pre>
+<p>
+}; tree.JavaScript.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        if (this.escaped) {
+            return this.evaluated;
+        } else {
+            return JSON.stringify(this.evaluated);
+        }
+    },
+    eval: function (env) {
+        var result,
+            context = {};
+
+        var expression = this.expression.replace(/@\{([\w-]+)\}/g, function (_, name) {
+            return new(tree.Variable)('@' + name).eval(env).value;
+        });
+
+        expression = new(Function)('return (' + expression + ')');
+
+        for (var k in env.frames[0].variables()) {
+            context[k.slice(1)] = {
+                value: env.frames[0].variables()[k].value,
+                toJS: function () {
+                    return this.value.eval(env).toCSS();
+                }
+            };
+        }
+
+        try {
+            this.evaluated = expression.call(context);
+        } catch (e) {
+            throw { message: &quot;JavaScript evaluation error: '&quot; + e.name + ': ' + e.message + &quot;'&quot; ,
+                    index: this.index };
+        }
+        return this;
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;));
+</p>
+<p>
+(function (tree) {
+</p>
+<p>
+tree.Keyword = function (value) { this.value = value };
+tree.Keyword.prototype = {
+</p>
+<pre>
+    eval: function () { return this },
+    toCSS: function () { return this.value }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.mixin = {}; tree.mixin.Call = function (elements, args, index) {
+</p>
+<pre>
+    this.selector = new(tree.Selector)(elements);
+    this.arguments = args;
+    this.index = index;
+</pre>
+<p>
+}; tree.mixin.Call.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        var mixins, rules = [], match = false;
+
+        for (var i = 0; i &lt; env.frames.length; i++) {
+            if ((mixins = env.frames[i].find(this.selector)).length &gt; 0) {
+                for (var m = 0; m &lt; mixins.length; m++) {
+                    if (mixins[m].match(this.arguments, env)) {
+                        try {
+                            Array.prototype.push.apply(
+                                  rules, mixins[m].eval(env, this.arguments).rules);
+                            match = true;
+                        } catch (e) {
+                            throw { message: e.message, index: e.index, stack: e.stack, call: this.index };
+                        }
+                    }
+                }
+                if (match) {
+                    return rules;
+                } else {
+                    throw { message: 'No matching definition was found for `' +
+                                      this.selector.toCSS().trim() + '('      +
+                                      this.arguments.map(function (a) {
+                                          return a.toCSS();
+                                      }).join(', ') + &quot;)`&quot;,
+                            index:   this.index };
+                }
+            }
+        }
+        throw { message: this.selector.toCSS().trim() + &quot; is undefined&quot;,
+                index: this.index };
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+tree.mixin.Definition = function (name, params, rules) {
+</p>
+<pre>
+    this.name = name;
+    this.selectors = [new(tree.Selector)([new(tree.Element)(null, name)])];
+    this.params = params;
+    this.arity = params.length;
+    this.rules = rules;
+    this._lookups = {};
+    this.required = params.reduce(function (count, p) {
+        if (!p.name || (p.name &amp;&amp; !p.value)) { return count + 1 }
+        else                                 { return count }
+    }, 0);
+    this.parent = tree.Ruleset.prototype;
+    this.frames = [];
+</pre>
+<p>
+}; tree.mixin.Definition.prototype = {
+</p>
+<pre>
+    toCSS:     function ()     { return &quot;&quot; },
+    variable:  function (name) { return this.parent.variable.call(this, name) },
+    variables: function ()     { return this.parent.variables.call(this) },
+    find:      function ()     { return this.parent.find.apply(this, arguments) },
+    rulesets:  function ()     { return this.parent.rulesets.apply(this) },
+
+    eval: function (env, args) {
+        var frame = new(tree.Ruleset)(null, []), context, _arguments = [];
+
+        for (var i = 0, val; i &lt; this.params.length; i++) {
+            if (this.params[i].name) {
+                if (val = (args &amp;&amp; args[i]) || this.params[i].value) {
+                    frame.rules.unshift(new(tree.Rule)(this.params[i].name, val.eval(env)));
+                } else {
+                    throw { message: &quot;wrong number of arguments for &quot; + this.name +
+                            ' (' + args.length + ' for ' + this.arity + ')' };
+                }
+            }
+        }
+        for (var i = 0; i &lt; Math.max(this.params.length, args &amp;&amp; args.length); i++) {
+            _arguments.push(args[i] || this.params[i].value);
+        }
+        frame.rules.unshift(new(tree.Rule)('@arguments', new(tree.Expression)(_arguments)));
+
+        return new(tree.Ruleset)(null, this.rules.slice(0)).eval({
+            frames: [this, frame].concat(this.frames, env.frames)
+        });
+    },
+    match: function (args, env) {
+        var argsLength = (args &amp;&amp; args.length) || 0, len;
+
+        if (argsLength &lt; this.required)                               { return false }
+        if ((this.required &gt; 0) &amp;&amp; (argsLength &gt; this.params.length)) { return false }
+
+        len = Math.min(argsLength, this.arity);
+
+        for (var i = 0; i &lt; len; i++) {
+            if (!this.params[i].name) {
+                if (args[i].eval(env).toCSS() != this.params[i].value.eval(env).toCSS()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Operation = function (op, operands) {
+</p>
+<pre>
+    this.op = op.trim();
+    this.operands = operands;
+</pre>
+<p>
+}; tree.Operation.prototype.eval = function (env) {
+</p>
+<pre>
+    var a = this.operands[0].eval(env),
+        b = this.operands[1].eval(env),
+        temp;
+
+    if (a instanceof tree.Dimension &amp;&amp; b instanceof tree.Color) {
+        if (this.op === '*' || this.op === '+') {
+            temp = b, b = a, a = temp;
+        } else {
+            throw { name: &quot;OperationError&quot;,
+                    message: &quot;Can't substract or divide a color from a number&quot; };
+        }
+    }
+    return a.operate(this.op, b);
+</pre>
+<p>
+};
+</p>
+<p>
+tree.operate = function (op, a, b) {
+</p>
+<pre>
+    switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return a / b;
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Quoted = function (str, content, escaped, i) {
+</p>
+<pre>
+    this.escaped = escaped;
+    this.value = content || '';
+    this.quote = str.charAt(0);
+    this.index = i;
+</pre>
+<p>
+}; tree.Quoted.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        if (this.escaped) {
+            return this.value;
+        } else {
+            return this.quote + this.value + this.quote;
+        }
+    },
+    eval: function (env) {
+        this.value = this.value.replace(/@\{([\w-]+)\}/g, function (_, name) {
+            return new(tree.Variable)('@' + name).eval(env).value;
+        }).replace(/`([^`]+)`/g, function (_, exp) {
+            return new(tree.JavaScript)(exp, this.index, true).eval(env).toCSS();
+        });
+        return this;
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Rule = function (name, value, important, index) {
+</p>
+<pre>
+    this.name = name;
+    this.value = (value instanceof tree.Value) ? value : new(tree.Value)([value]);
+    this.important = important ? ' ' + important.trim() : '';
+    this.index = index;
+
+    if (name.charAt(0) === '@') {
+        this.variable = true;
+    } else { this.variable = false }
+</pre>
+<p>
+}; tree.Rule.prototype.toCSS = function (env) {
+</p>
+<pre>
+    if (this.variable) { return &quot;&quot; }
+    else {
+        return this.name + (env.compress ? ':' : ': ') +
+               this.value.toCSS(env) +
+               this.important + &quot;;&quot;;
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+tree.Rule.prototype.eval = function (context) {
+</p>
+<pre>
+    return new(tree.Rule)(this.name, this.value.eval(context), this.important, this.index);
+</pre>
+<p>
+};
+</p>
+<p>
+tree.Shorthand = function (a, b) {
+</p>
+<pre>
+    this.a = a;
+    this.b = b;
+</pre>
+<p>
+};
+</p>
+<p>
+tree.Shorthand.prototype = {
+</p>
+<pre>
+    toCSS: function (env) {
+        return this.a.toCSS(env) + &quot;/&quot; + this.b.toCSS(env);
+    },
+    eval: function () { return this }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Ruleset = function (selectors, rules) {
+</p>
+<pre>
+    this.selectors = selectors;
+    this.rules = rules;
+    this._lookups = {};
+</pre>
+<p>
+}; tree.Ruleset.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        var ruleset = new(tree.Ruleset)(this.selectors, this.rules.slice(0));
+
+        ruleset.root = this.root;
+
+        // push the current ruleset to the frames stack
+        env.frames.unshift(ruleset);
+
+        // Evaluate imports
+        if (ruleset.root) {
+            for (var i = 0; i &lt; ruleset.rules.length; i++) {
+                if (ruleset.rules[i] instanceof tree.Import) {
+                    Array.prototype.splice
+                         .apply(ruleset.rules, [i, 1].concat(ruleset.rules[i].eval(env)));
+                }
+            }
+        }
+
+        // Store the frames around mixin definitions,
+        // so they can be evaluated like closures when the time comes.
+        for (var i = 0; i &lt; ruleset.rules.length; i++) {
+            if (ruleset.rules[i] instanceof tree.mixin.Definition) {
+                ruleset.rules[i].frames = env.frames.slice(0);
+            }
+        }
+
+        // Evaluate mixin calls.
+        for (var i = 0; i &lt; ruleset.rules.length; i++) {
+            if (ruleset.rules[i] instanceof tree.mixin.Call) {
+                Array.prototype.splice
+                     .apply(ruleset.rules, [i, 1].concat(ruleset.rules[i].eval(env)));
+            }
+        }
+
+        // Evaluate everything else
+        for (var i = 0, rule; i &lt; ruleset.rules.length; i++) {
+            rule = ruleset.rules[i];
+
+            if (! (rule instanceof tree.mixin.Definition)) {
+                ruleset.rules[i] = rule.eval ? rule.eval(env) : rule;
+            }
+        }
+
+        // Pop the stack
+        env.frames.shift();
+
+        return ruleset;
+    },
+    match: function (args) {
+        return !args || args.length === 0;
+    },
+    variables: function () {
+        if (this._variables) { return this._variables }
+        else {
+            return this._variables = this.rules.reduce(function (hash, r) {
+                if (r instanceof tree.Rule &amp;&amp; r.variable === true) {
+                    hash[r.name] = r;
+                }
+                return hash;
+            }, {});
+        }
+    },
+    variable: function (name) {
+        return this.variables()[name];
+    },
+    rulesets: function () {
+        if (this._rulesets) { return this._rulesets }
+        else {
+            return this._rulesets = this.rules.filter(function (r) {
+                return (r instanceof tree.Ruleset) || (r instanceof tree.mixin.Definition);
+            });
+        }
+    },
+    find: function (selector, self) {
+        self = self || this;
+        var rules = [], rule, match,
+            key = selector.toCSS();
+
+        if (key in this._lookups) { return this._lookups[key] }
+
+        this.rulesets().forEach(function (rule) {
+            if (rule !== self) {
+                for (var j = 0; j &lt; rule.selectors.length; j++) {
+                    if (match = selector.match(rule.selectors[j])) {
+                        if (selector.elements.length &gt; 1) {
+                            Array.prototype.push.apply(rules, rule.find(
+                                new(tree.Selector)(selector.elements.slice(1)), self));
+                        } else {
+                            rules.push(rule);
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+        return this._lookups[key] = rules;
+    },
+    //
+    // Entry point for code generation
+    //
+    //     `context` holds an array of arrays.
+    //
+    toCSS: function (context, env) {
+        var css = [],      // The CSS output
+            rules = [],    // node.Rule instances
+            rulesets = [], // node.Ruleset instances
+            paths = [],    // Current selectors
+            selector,      // The fully rendered selector
+            rule;
+
+        if (! this.root) {
+            if (context.length === 0) {
+                paths = this.selectors.map(function (s) { return [s] });
+            } else {
+                for (var s = 0; s &lt; this.selectors.length; s++) {
+                    for (var c = 0; c &lt; context.length; c++) {
+                        paths.push(context[c].concat([this.selectors[s]]));
+                    }
+                }
+            }
+        }
+
+        // Compile rules and rulesets
+        for (var i = 0; i &lt; this.rules.length; i++) {
+            rule = this.rules[i];
+
+            if (rule.rules || (rule instanceof tree.Directive)) {
+                rulesets.push(rule.toCSS(paths, env));
+            } else if (rule instanceof tree.Comment) {
+                if (!rule.silent) {
+                    if (this.root) {
+                        rulesets.push(rule.toCSS(env));
+                    } else {
+                        rules.push(rule.toCSS(env));
+                    }
+                }
+            } else {
+                if (rule.toCSS &amp;&amp; !rule.variable) {
+                    rules.push(rule.toCSS(env));
+                } else if (rule.value &amp;&amp; !rule.variable) {
+                    rules.push(rule.value.toString());
+                }
+            }
+        }
+
+        rulesets = rulesets.join('');
+
+        // If this is the root node, we don't render
+        // a selector, or {}.
+        // Otherwise, only output if this ruleset has rules.
+        if (this.root) {
+            css.push(rules.join(env.compress ? '' : '\n'));
+        } else {
+            if (rules.length &gt; 0) {
+                selector = paths.map(function (p) {
+                    return p.map(function (s) {
+                        return s.toCSS(env);
+                    }).join('').trim();
+                }).join(env.compress ? ',' : (paths.length &gt; 3 ? ',\n' : ', '));
+                css.push(selector,
+                        (env.compress ? '{' : ' {\n  ') +
+                        rules.join(env.compress ? '' : '\n  ') +
+                        (env.compress ? '}' : '\n}\n'));
+            }
+        }
+        css.push(rulesets);
+
+        return css.join('') + (env.compress ? '\n' : '');
+    }
+</pre>
+<p>
+}; })(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Selector = function (elements) {
+</p>
+<pre>
+    this.elements = elements;
+    if (this.elements[0].combinator.value === &quot;&quot;) {
+        this.elements[0].combinator.value = ' ';
+    }
+</pre>
+<p>
+}; tree.Selector.prototype.match = function (other) {
+</p>
+<pre>
+    if (this.elements[0].value === other.elements[0].value) {
+        return true;
+    } else {
+        return false;
+    }
+</pre>
+<p>
+}; tree.Selector.prototype.toCSS = function (env) {
+</p>
+<pre>
+    if (this._css) { return this._css }
+
+    return this._css = this.elements.map(function (e) {
+        if (typeof(e) === 'string') {
+            return ' ' + e.trim();
+        } else {
+            return e.toCSS(env);
+        }
+    }).join('');
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.URL = function (val, paths) {
+</p>
+<pre>
+    if (val.data) {
+        this.attrs = val;
+    } else {
+        // Add the base path if the URL is relative and we are in the browser
+        if (!/^(?:https?:\/|file:\/|data:\/)?\//.test(val.value) &amp;&amp; paths.length &gt; 0 &amp;&amp; typeof(window) !== 'undefined') {
+            val.value = paths[0] + (val.value.charAt(0) === '/' ? val.value.slice(1) : val.value);
+        }
+        this.value = val;
+        this.paths = paths;
+    }
+</pre>
+<p>
+}; tree.URL.prototype = {
+</p>
+<pre>
+    toCSS: function () {
+        return &quot;url(&quot; + (this.attrs ? 'data:' + this.attrs.mime + this.attrs.charset + this.attrs.base64 + this.attrs.data
+                                    : this.value.toCSS()) + &quot;)&quot;;
+    },
+    eval: function (ctx) {
+        return this.attrs ? this : new(tree.URL)(this.value.eval(ctx), this.paths);
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Value = function (value) {
+</p>
+<pre>
+    this.value = value;
+    this.is = 'value';
+</pre>
+<p>
+}; tree.Value.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        if (this.value.length === 1) {
+            return this.value[0].eval(env);
+        } else {
+            return new(tree.Value)(this.value.map(function (v) {
+                return v.eval(env);
+            }));
+        }
+    },
+    toCSS: function (env) {
+        return this.value.map(function (e) {
+            return e.toCSS(env);
+        }).join(env.compress ? ',' : ', ');
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); (function (tree) {
+</p>
+<p>
+tree.Variable = function (name, index) { this.name = name, this.index =
+index }; tree.Variable.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        var variable, v, name = this.name;
+
+        if (name.indexOf('@@') == 0) {
+            name = '@' + new(tree.Variable)(name.slice(1)).eval(env).value;
+        }
+
+        if (variable = tree.find(env.frames, function (frame) {
+            if (v = frame.variable(name)) {
+                return v.value.eval(env);
+            }
+        })) { return variable }
+        else {
+            throw { message: &quot;variable &quot; + name + &quot; is undefined&quot;,
+                    index: this.index };
+        }
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8216;less/tree&#8217;)); require(&#8216;less/tree&#8217;).find
+= function (obj, fun) {
+</p>
+<pre>
+    for (var i = 0, r; i &lt; obj.length; i++) {
+        if (r = fun.call(obj, obj[i])) { return r }
+    }
+    return null;
+</pre>
+<p>
+}; // // browser.js - client-side engine //
+</p>
+<p>
+var isFileProtocol = (location.protocol === &#8216;file:&#8217; ||
+</p>
+<pre>
+                      location.protocol === 'chrome:'  ||
+                      location.protocol === 'chrome-extension:'  ||
+                      location.protocol === 'resource:');
+</pre>
+<p>
+less.env = less.env || (location.hostname == &#8216;127.0.0.1&#8217; ||
+</p>
+<pre>
+                        location.hostname == '0.0.0.0'   ||
+                        location.hostname == 'localhost' ||
+                        location.port.length &gt; 0         ||
+                        isFileProtocol                   ? 'development'
+                                                         : 'production');
+</pre>
+<p>
+// Load styles asynchronously (default: false) // // This is set to `false`
+by default, so that the body // doesn&#8217;t start loading before the
+stylesheets are parsed. // Setting this to `true` can result in flickering.
+// less.async = false;
+</p>
+<p>
+// Interval between watch polls less.poll = less.poll || (isFileProtocol ?
+1000 : 1500);
+</p>
+<p>
+// // Watch mode // less.watch = function () { return this.watchMode = true
+}; less.unwatch = function () { return this.watchMode = false };
+</p>
+<p>
+if (less.env === &#8216;development&#8217;) {
+</p>
+<pre>
+    less.optimization = 0;
+
+    if (/!watch/.test(location.hash)) {
+        less.watch();
+    }
+    less.watchTimer = setInterval(function () {
+        if (less.watchMode) {
+            loadStyleSheets(function (root, sheet, env) {
+                if (root) {
+                    createCSS(root.toCSS(), sheet, env.lastModified);
+                }
+            });
+        }
+    }, less.poll);
+</pre>
+<p>
+} else {
+</p>
+<pre>
+    less.optimization = 3;
+</pre>
+<p>
+}
+</p>
+<p>
+var cache;
+</p>
+<p>
+try {
+</p>
+<pre>
+    cache = (typeof(window.localStorage) === 'undefined') ? null : window.localStorage;
+</pre>
+<p>
+} catch (_) {
+</p>
+<pre>
+    cache = null;
+</pre>
+<p>
+}
+</p>
+<p>
+// // Get all <link> tags with the &#8216;rel&#8217; attribute set to
+&#8220;stylesheet/less&#8220; // var links =
+document.getElementsByTagName(&#8216;link&#8217;); var typePattern =
+/^text/(x-)?less$/;
+</p>
+<p>
+less.sheets = [];
+</p>
+<p>
+for (var i = 0; i < links.length; i++) {
+</p>
+<pre>
+    if (links[i].rel === 'stylesheet/less' || (links[i].rel.match(/stylesheet/) &amp;&amp;
+       (links[i].type.match(typePattern)))) {
+        less.sheets.push(links[i]);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+less.refresh = function (reload) {
+</p>
+<pre>
+    var startTime, endTime;
+    startTime = endTime = new(Date);
+
+    loadStyleSheets(function (root, sheet, env) {
+        if (env.local) {
+            log(&quot;loading &quot; + sheet.href + &quot; from cache.&quot;);
+        } else {
+            log(&quot;parsed &quot; + sheet.href + &quot; successfully.&quot;);
+            createCSS(root.toCSS(), sheet, env.lastModified);
+        }
+        log(&quot;css for &quot; + sheet.href + &quot; generated in &quot; + (new(Date) - endTime) + 'ms');
+        (env.remaining === 0) &amp;&amp; log(&quot;css generated in &quot; + (new(Date) - startTime) + 'ms');
+        endTime = new(Date);
+    }, reload);
+
+    loadStyles();
+</pre>
+<p>
+}; less.refreshStyles = loadStyles;
+</p>
+<p>
+less.refresh(less.env === &#8216;development&#8217;);
+</p>
+<p>
+function loadStyles() {
+</p>
+<pre>
+    var styles = document.getElementsByTagName('style');
+    for (var i = 0; i &lt; styles.length; i++) {
+        if (styles[i].type.match(typePattern)) {
+            new(less.Parser)().parse(styles[i].innerHTML || '', function (e, tree) {
+                styles[i].type      = 'text/css';
+                styles[i].innerHTML = tree.toCSS();
+            });
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function loadStyleSheets(callback, reload) {
+</p>
+<pre>
+    for (var i = 0; i &lt; less.sheets.length; i++) {
+        loadStyleSheet(less.sheets[i], callback, reload, less.sheets.length - (i + 1));
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function loadStyleSheet(sheet, callback, reload, remaining) {
+</p>
+<pre>
+    var url       = window.location.href.replace(/[#?].*$/, '');
+    var href      = sheet.href.replace(/\?.*$/, '');
+    var css       = cache &amp;&amp; cache.getItem(href);
+    var timestamp = cache &amp;&amp; cache.getItem(href + ':timestamp');
+    var styles    = { css: css, timestamp: timestamp };
+
+    // Stylesheets in IE don't always return the full path
+    if (! /^(https?|file):/.test(href)) {
+        if (href.charAt(0) == &quot;/&quot;) {
+            href = window.location.protocol + &quot;//&quot; + window.location.host + href;
+        } else {
+            href = url.slice(0, url.lastIndexOf('/') + 1) + href;
+        }
+    }
+
+    xhr(sheet.href, sheet.type, function (data, lastModified) {
+        if (!reload &amp;&amp; styles &amp;&amp; lastModified &amp;&amp;
+           (new(Date)(lastModified).valueOf() ===
+            new(Date)(styles.timestamp).valueOf())) {
+            // Use local copy
+            createCSS(styles.css, sheet);
+            callback(null, sheet, { local: true, remaining: remaining });
+        } else {
+            // Use remote copy (re-parse)
+            try {
+                new(less.Parser)({
+                    optimization: less.optimization,
+                    paths: [href.replace(/[\w\.-]+$/, '')],
+                    mime: sheet.type
+                }).parse(data, function (e, root) {
+                    if (e) { return error(e, href) }
+                    try {
+                        callback(root, sheet, { local: false, lastModified: lastModified, remaining: remaining });
+                        removeNode(document.getElementById('less-error-message:' + extractId(href)));
+                    } catch (e) {
+                        error(e, href);
+                    }
+                });
+            } catch (e) {
+                error(e, href);
+            }
+        }
+    }, function (status, url) {
+        throw new(Error)(&quot;Couldn't load &quot; + url + &quot; (&quot; + status + &quot;)&quot;);
+    });
+</pre>
+<p>
+}
+</p>
+<p>
+function extractId(href) {
+</p>
+<pre>
+    return href.replace(/^[a-z]+:\/\/?[^\/]+/, '' )  // Remove protocol &amp; domain
+               .replace(/^\//,                 '' )  // Remove root /
+               .replace(/\?.*$/,               '' )  // Remove query
+               .replace(/\.[^\.\/]+$/,         '' )  // Remove file extension
+               .replace(/[^\.\w-]+/g,          '-')  // Replace illegal characters
+               .replace(/\./g,                 ':'); // Replace dots with colons(for valid id)
+</pre>
+<p>
+}
+</p>
+<p>
+function createCSS(styles, sheet, lastModified) {
+</p>
+<pre>
+    var css;
+
+    // Strip the query-string
+    var href = sheet.href ? sheet.href.replace(/\?.*$/, '') : '';
+
+    // If there is no title set, use the filename, minus the extension
+    var id = 'less:' + (sheet.title || extractId(href));
+
+    // If the stylesheet doesn't exist, create a new node
+    if ((css = document.getElementById(id)) === null) {
+        css = document.createElement('style');
+        css.type = 'text/css';
+        css.media = sheet.media || 'screen';
+        css.id = id;
+        document.getElementsByTagName('head')[0].appendChild(css);
+    }
+
+    if (css.styleSheet) { // IE
+        try {
+            css.styleSheet.cssText = styles;
+        } catch (e) {
+            throw new(Error)(&quot;Couldn't reassign styleSheet.cssText.&quot;);
+        }
+    } else {
+        (function (node) {
+            if (css.childNodes.length &gt; 0) {
+                if (css.firstChild.nodeValue !== node.nodeValue) {
+                    css.replaceChild(node, css.firstChild);
+                }
+            } else {
+                css.appendChild(node);
+            }
+        })(document.createTextNode(styles));
+    }
+
+    // Don't update the local store if the file wasn't modified
+    if (lastModified &amp;&amp; cache) {
+        log('saving ' + href + ' to cache.');
+        cache.setItem(href, styles);
+        cache.setItem(href + ':timestamp', lastModified);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function xhr(url, type, callback, errback) {
+</p>
+<pre>
+    var xhr = getXMLHttpRequest();
+    var async = isFileProtocol ? false : less.async;
+
+    if (typeof(xhr.overrideMimeType) === 'function') {
+        xhr.overrideMimeType('text/css');
+    }
+    xhr.open('GET', url, async);
+    xhr.setRequestHeader('Accept', type || 'text/x-less, text/css; q=0.9, */*; q=0.5');
+    xhr.send(null);
+
+    if (isFileProtocol) {
+        if (xhr.status === 0) {
+            callback(xhr.responseText);
+        } else {
+            errback(xhr.status, url);
+        }
+    } else if (async) {
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                handleResponse(xhr, callback, errback);
+            }
+        };
+    } else {
+        handleResponse(xhr, callback, errback);
+    }
+
+    function handleResponse(xhr, callback, errback) {
+        if (xhr.status &gt;= 200 &amp;&amp; xhr.status &lt; 300) {
+            callback(xhr.responseText,
+                     xhr.getResponseHeader(&quot;Last-Modified&quot;));
+        } else if (typeof(errback) === 'function') {
+            errback(xhr.status, url);
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function getXMLHttpRequest() {
+</p>
+<pre>
+    if (window.XMLHttpRequest) {
+        return new(XMLHttpRequest);
+    } else {
+        try {
+            return new(ActiveXObject)(&quot;MSXML2.XMLHTTP.3.0&quot;);
+        } catch (e) {
+            log(&quot;browser doesn't support AJAX.&quot;);
+            return null;
+        }
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+function removeNode(node) {
+</p>
+<pre>
+    return node &amp;&amp; node.parentNode.removeChild(node);
+</pre>
+<p>
+}
+</p>
+<p>
+function log(str) {
+</p>
+<pre>
+    if (less.env == 'development' &amp;&amp; typeof(console) !== &quot;undefined&quot;) { console.log('less: ' + str) }
+</pre>
+<p>
+}
+</p>
+<p>
+function error(e, href) {
+</p>
+<pre>
+    var id = 'less-error-message:' + extractId(href);
+
+    var template = ['&lt;ul&gt;',
+                        '&lt;li&gt;&lt;label&gt;[-1]&lt;/label&gt;&lt;pre class=&quot;ctx&quot;&gt;{0}&lt;/pre&gt;&lt;/li&gt;',
+                        '&lt;li&gt;&lt;label&gt;[0]&lt;/label&gt;&lt;pre&gt;{current}&lt;/pre&gt;&lt;/li&gt;',
+                        '&lt;li&gt;&lt;label&gt;[1]&lt;/label&gt;&lt;pre class=&quot;ctx&quot;&gt;{2}&lt;/pre&gt;&lt;/li&gt;',
+                    '&lt;/ul&gt;'].join('\n');
+
+    var elem = document.createElement('div'), timer, content;
+
+    elem.id        = id;
+    elem.className = &quot;less-error-message&quot;;
+
+    content = '&lt;h3&gt;'  + (e.message || 'There is an error in your .less file') +
+              '&lt;/h3&gt;' + '&lt;p&gt;&lt;a href=&quot;' + href   + '&quot;&gt;' + href + &quot;&lt;/a&gt; &quot;;
+
+    if (e.extract) {
+        content += 'on line ' + e.line + ', column ' + (e.column + 1) + ':&lt;/p&gt;' +
+            template.replace(/\[(-?\d)\]/g, function (_, i) {
+                return (parseInt(e.line) + parseInt(i)) || '';
+            }).replace(/\{(\d)\}/g, function (_, i) {
+                return e.extract[parseInt(i)] || '';
+            }).replace(/\{current\}/, e.extract[1].slice(0, e.column) + '&lt;span class=&quot;error&quot;&gt;' +
+                                      e.extract[1].slice(e.column)    + '&lt;/span&gt;');
+    }
+    elem.innerHTML = content;
+
+    // CSS for error messages
+    createCSS([
+        '.less-error-message ul, .less-error-message li {',
+            'list-style-type: none;',
+            'margin-right: 15px;',
+            'padding: 4px 0;',
+            'margin: 0;',
+        '}',
+        '.less-error-message label {',
+            'font-size: 12px;',
+            'margin-right: 15px;',
+            'padding: 4px 0;',
+            'color: #cc7777;',
+        '}',
+        '.less-error-message pre {',
+            'color: #ee4444;',
+            'padding: 4px 0;',
+            'margin: 0;',
+            'display: inline-block;',
+        '}',
+        '.less-error-message pre.ctx {',
+            'color: #dd4444;',
+        '}',
+        '.less-error-message h3 {',
+            'font-size: 20px;',
+            'font-weight: bold;',
+            'padding: 15px 0 5px 0;',
+            'margin: 0;',
+        '}',
+        '.less-error-message a {',
+            'color: #10a',
+        '}',
+        '.less-error-message .error {',
+            'color: red;',
+            'font-weight: bold;',
+            'padding-bottom: 2px;',
+            'border-bottom: 1px dashed red;',
+        '}'
+    ].join('\n'), { title: 'error-message' });
+
+    elem.style.cssText = [
+        &quot;font-family: Arial, sans-serif&quot;,
+        &quot;border: 1px solid #e00&quot;,
+        &quot;background-color: #eee&quot;,
+        &quot;border-radius: 5px&quot;,
+        &quot;-webkit-border-radius: 5px&quot;,
+        &quot;-moz-border-radius: 5px&quot;,
+        &quot;color: #e00&quot;,
+        &quot;padding: 15px&quot;,
+        &quot;margin-bottom: 15px&quot;
+    ].join(';');
+
+    if (less.env == 'development') {
+        timer = setInterval(function () {
+            if (document.body) {
+                if (document.getElementById(id)) {
+                    document.body.replaceChild(elem, document.getElementById(id));
+                } else {
+                    document.body.insertBefore(elem, document.body.firstChild);
+                }
+                clearInterval(timer);
+            }
+        }, 10);
+    }
+</pre>
+<p>
+}
+</p>
+<p>
+})(window);
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Rack::Server::Options</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Rack::Server::Options 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/rack/server_rb.html">lib/rack/server.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000324">handler_opts</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000321">parse!</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000324">
+                    
+                    <a name="M000324"></a><b>handler_opts</b>(options)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000324_source')" id="l_M000324_source">show</a>
+                        
+                    </p>
+                    <div id="M000324_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/rack/server.rb, line 96</span>
+ 96:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handler_opts</span>(<span class="ruby-identifier">options</span>)
+ 97:         <span class="ruby-keyword kw">begin</span>
+ 98:           <span class="ruby-identifier">info</span> = []
+ 99:           <span class="ruby-identifier">server</span> = <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">Handler</span>.<span class="ruby-identifier">get</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:server</span>]) <span class="ruby-operator">||</span> <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">Handler</span>.<span class="ruby-identifier">default</span>(<span class="ruby-identifier">options</span>)
+100:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">server</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">server</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:valid_options</span>)
+101:             <span class="ruby-identifier">info</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;&quot;</span>
+102:             <span class="ruby-identifier">info</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;Server-specific options for #{server.name}:&quot;</span>
+103: 
+104:             <span class="ruby-identifier">has_options</span> = <span class="ruby-keyword kw">false</span>
+105:             <span class="ruby-identifier">server</span>.<span class="ruby-identifier">valid_options</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">name</span>, <span class="ruby-identifier">description</span><span class="ruby-operator">|</span>
+106:               <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp re">/^(Host|Port)[^a-zA-Z]/</span>) <span class="ruby-comment cmt"># ignore handler's host and port options, we do our own.</span>
+107:               <span class="ruby-identifier">info</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;  -O %-21s %s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">name</span>, <span class="ruby-identifier">description</span>]
+108:               <span class="ruby-identifier">has_options</span> = <span class="ruby-keyword kw">true</span>
+109:             <span class="ruby-keyword kw">end</span>
+110:             <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">has_options</span>
+111:           <span class="ruby-keyword kw">end</span>
+112:           <span class="ruby-identifier">info</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot;\n&quot;</span>)
+113:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">NameError</span>
+114:           <span class="ruby-keyword kw">return</span> <span class="ruby-node">&quot;Warning: Could not find handler specified (#{options[:server] || 'default'}) to determine handler-specific options&quot;</span>
+115:         <span class="ruby-keyword kw">end</span>
+116:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000321">
+                    
+                    <a name="M000321"></a><b>parse!</b>(args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000321_source')" id="l_M000321_source">show</a>
+                        
+                    </p>
+                    <div id="M000321_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/rack/server.rb, line 6</span>
+ 6:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse!</span>(<span class="ruby-identifier">args</span>)
+ 7:         <span class="ruby-identifier">options</span> = {}
+ 8:         <span class="ruby-identifier">opt_parser</span> = <span class="ruby-constant">OptionParser</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;&quot;</span>, <span class="ruby-value">24</span>, <span class="ruby-value str">'  '</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">opts</span><span class="ruby-operator">|</span>
+ 9:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">banner</span> = <span class="ruby-value str">&quot;Usage: rackup [ruby options] [rack options] [rackup config]&quot;</span>
+10: 
+11:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;&quot;</span>
+12:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;Ruby options:&quot;</span>
+13: 
+14:           <span class="ruby-identifier">lineno</span> = <span class="ruby-value">1</span>
+15:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-e&quot;</span>, <span class="ruby-value str">&quot;--eval LINE&quot;</span>, <span class="ruby-value str">&quot;evaluate a LINE of code&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+16:             <span class="ruby-identifier">eval</span> <span class="ruby-identifier">line</span>, <span class="ruby-constant">TOPLEVEL_BINDING</span>, <span class="ruby-value str">&quot;-e&quot;</span>, <span class="ruby-identifier">lineno</span>
+17:             <span class="ruby-identifier">lineno</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+18:           }
+19: 
+20:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-d&quot;</span>, <span class="ruby-value str">&quot;--debug&quot;</span>, <span class="ruby-value str">&quot;set debugging flags (set $DEBUG to true)&quot;</span>) {
+21:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:debug</span>] = <span class="ruby-keyword kw">true</span>
+22:           }
+23:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-w&quot;</span>, <span class="ruby-value str">&quot;--warn&quot;</span>, <span class="ruby-value str">&quot;turn warnings on for your script&quot;</span>) {
+24:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:warn</span>] = <span class="ruby-keyword kw">true</span>
+25:           }
+26: 
+27:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-I&quot;</span>, <span class="ruby-value str">&quot;--include PATH&quot;</span>,
+28:                   <span class="ruby-value str">&quot;specify $LOAD_PATH (may be used more than once)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">path</span><span class="ruby-operator">|</span>
+29:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:include</span>] = <span class="ruby-identifier">path</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>)
+30:           }
+31: 
+32:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-r&quot;</span>, <span class="ruby-value str">&quot;--require LIBRARY&quot;</span>,
+33:                   <span class="ruby-value str">&quot;require the library, before executing your script&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">library</span><span class="ruby-operator">|</span>
+34:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:require</span>] = <span class="ruby-identifier">library</span>
+35:           }
+36: 
+37:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;&quot;</span>
+38:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;Rack options:&quot;</span>
+39:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-s&quot;</span>, <span class="ruby-value str">&quot;--server SERVER&quot;</span>, <span class="ruby-value str">&quot;serve using SERVER (webrick/mongrel)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+40:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:server</span>] = <span class="ruby-identifier">s</span>
+41:           }
+42: 
+43:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-o&quot;</span>, <span class="ruby-value str">&quot;--host HOST&quot;</span>, <span class="ruby-value str">&quot;listen on HOST (default: 0.0.0.0)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">host</span><span class="ruby-operator">|</span>
+44:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:Host</span>] = <span class="ruby-identifier">host</span>
+45:           }
+46: 
+47:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-p&quot;</span>, <span class="ruby-value str">&quot;--port PORT&quot;</span>, <span class="ruby-value str">&quot;use PORT (default: 9292)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">port</span><span class="ruby-operator">|</span>
+48:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:Port</span>] = <span class="ruby-identifier">port</span>
+49:           }
+50: 
+51:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-O&quot;</span>, <span class="ruby-value str">&quot;--option NAME[=VALUE]&quot;</span>, <span class="ruby-node">&quot;pass VALUE to the server as option NAME. If no VALUE, sets it to true. Run '#{$0} -s SERVER -h' to get a list of options for SERVER&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">name</span><span class="ruby-operator">|</span>
+52:             <span class="ruby-identifier">name</span>, <span class="ruby-identifier">value</span> = <span class="ruby-identifier">name</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'='</span>, <span class="ruby-value">2</span>)
+53:             <span class="ruby-identifier">value</span> = <span class="ruby-keyword kw">true</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">value</span>.<span class="ruby-identifier">nil?</span>
+54:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">name</span>.<span class="ruby-identifier">to_sym</span>] = <span class="ruby-identifier">value</span>
+55:           }
+56: 
+57:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-E&quot;</span>, <span class="ruby-value str">&quot;--env ENVIRONMENT&quot;</span>, <span class="ruby-value str">&quot;use ENVIRONMENT for defaults (default: development)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">e</span><span class="ruby-operator">|</span>
+58:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:environment</span>] = <span class="ruby-identifier">e</span>
+59:           }
+60: 
+61:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-D&quot;</span>, <span class="ruby-value str">&quot;--daemonize&quot;</span>, <span class="ruby-value str">&quot;run daemonized in the background&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">d</span><span class="ruby-operator">|</span>
+62:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:daemonize</span>] = <span class="ruby-identifier">d</span> <span class="ruby-value">? </span><span class="ruby-keyword kw">true</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">false</span>
+63:           }
+64: 
+65:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on</span>(<span class="ruby-value str">&quot;-P&quot;</span>, <span class="ruby-value str">&quot;--pid FILE&quot;</span>, <span class="ruby-value str">&quot;file to store PID (default: rack.pid)&quot;</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">f</span><span class="ruby-operator">|</span>
+66:             <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:pid</span>] = <span class="ruby-operator">::</span><span class="ruby-constant">File</span>.<span class="ruby-identifier">expand_path</span>(<span class="ruby-identifier">f</span>)
+67:           }
+68: 
+69:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;&quot;</span>
+70:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">separator</span> <span class="ruby-value str">&quot;Common options:&quot;</span>
+71: 
+72:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on_tail</span>(<span class="ruby-value str">&quot;-h&quot;</span>, <span class="ruby-value str">&quot;-?&quot;</span>, <span class="ruby-value str">&quot;--help&quot;</span>, <span class="ruby-value str">&quot;Show this message&quot;</span>) <span class="ruby-keyword kw">do</span>
+73:             <span class="ruby-identifier">puts</span> <span class="ruby-identifier">opts</span>
+74:             <span class="ruby-identifier">puts</span> <span class="ruby-identifier">handler_opts</span>(<span class="ruby-identifier">options</span>)
+75: 
+76:             <span class="ruby-identifier">exit</span>
+77:           <span class="ruby-keyword kw">end</span>
+78: 
+79:           <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">on_tail</span>(<span class="ruby-value str">&quot;--version&quot;</span>, <span class="ruby-value str">&quot;Show version&quot;</span>) <span class="ruby-keyword kw">do</span>
+80:             <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Rack #{Rack.version} (Release: #{Rack.release})&quot;</span>
+81:             <span class="ruby-identifier">exit</span>
+82:           <span class="ruby-keyword kw">end</span>
+83:         <span class="ruby-keyword kw">end</span>
+84: 
+85:         <span class="ruby-keyword kw">begin</span>
+86:           <span class="ruby-identifier">opt_parser</span>.<span class="ruby-identifier">parse!</span> <span class="ruby-identifier">args</span>
+87:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">OptionParser</span><span class="ruby-operator">::</span><span class="ruby-constant">InvalidOption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+88:           <span class="ruby-identifier">warn</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span>
+89:           <span class="ruby-identifier">abort</span> <span class="ruby-identifier">opt_parser</span>.<span class="ruby-identifier">to_s</span>
+90:         <span class="ruby-keyword kw">end</span>
+91: 
+92:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:config</span>] = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>
+93:         <span class="ruby-identifier">options</span>
+94:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

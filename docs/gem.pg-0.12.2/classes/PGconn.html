@@ -860,6 +860,768 @@ object end
     
 
     
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000012">
+                    
+                    <a name="M000012"></a><b>PGconn.conndefaults() &rarr; Array
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns an array of hashes. Each hash has the keys:
+</p>
+<dl>
+<dt><tt>:keyword</tt></dt><dd>the name of the option
+
+</dd>
+<dt><tt>:envvar</tt></dt><dd>the environment variable to fall back to
+
+</dd>
+<dt><tt>:compiled</tt></dt><dd>the compiled in option as a secondary fallback
+
+</dd>
+<dt><tt>:val</tt></dt><dd>the option&#8217;s current value, or <tt>nil</tt> if not known
+
+</dd>
+<dt><tt>:label</tt></dt><dd>the label for the field
+
+</dd>
+<dt><tt>:dispchar</tt></dt><dd>&#8220;&#8221; for normal, &#8220;D&#8221; for debug, and &#8220;*&#8221;
+for password
+
+</dd>
+<dt><tt>:dispsize</tt></dt><dd>field size
+
+</dd>
+</dl>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
+                        
+                    </p>
+                    <div id="M000012_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_conndefaults(VALUE self)
+{
+  PQconninfoOption *options = PQconndefaults();
+  VALUE ary = rb_ary_new();
+  VALUE hash;
+  int i = 0;
+
+  for(i = 0; options[i].keyword != NULL; i++) {
+    hash = rb_hash_new();
+    if(options[i].keyword)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;keyword&quot;)), 
+        rb_str_new2(options[i].keyword));
+    if(options[i].envvar)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;envvar&quot;)), 
+        rb_str_new2(options[i].envvar));
+    if(options[i].compiled)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;compiled&quot;)), 
+        rb_str_new2(options[i].compiled));
+    if(options[i].val)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;val&quot;)), 
+        rb_str_new2(options[i].val));
+    if(options[i].label)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;label&quot;)), 
+        rb_str_new2(options[i].label));
+    if(options[i].dispchar)
+      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;dispchar&quot;)), 
+        rb_str_new2(options[i].dispchar));
+    rb_hash_aset(hash, ID2SYM(rb_intern(&quot;dispsize&quot;)), 
+      INT2NUM(options[i].dispsize));
+    rb_ary_push(ary, hash);
+  }
+  PQconninfoFree(options);
+  return ary;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000011">
+                    
+                    <a name="M000011"></a><b>PGconn.connect_start(connection_hash)       &rarr; PGconn
+PGconn.connect_start(connection_string)     &rarr; PGconn
+PGconn.connect_start(host, port, options, tty, dbname, login, password) &rarr;  PGconn
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This is an asynchronous version of PGconn.connect().
+</p>
+<p>
+Use <a href="PGconn.html#M000014">PGconn#connect_poll</a> to poll the
+status of the connection.
+</p>
+<p>
+NOTE: this does <b>not</b> set the connection&#8217;s
+<tt>client_encoding</tt> for you if Encoding.default_internal is set. To
+set it after the connection is established, call <a
+href="PGconn.html#M000003">PGconn#internal_encoding=</a>. You can also set
+it automatically by setting ENV[&#8216;PGCLIENTENCODING&#8217;], or include
+the &#8216;options&#8217; connection parameter.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
+                        
+                    </p>
+                    <div id="M000011_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_connect_start(int argc, VALUE *argv, VALUE self)
+{
+  PGconn *conn = NULL;
+  VALUE rb_conn;
+  VALUE conninfo;
+  VALUE error;
+
+  /*
+   * PGconn.connect_start must act as both alloc() and initialize()
+   * because it is not invoked by calling new().
+   */
+  rb_conn = pgconn_alloc(rb_cPGconn);
+
+  conninfo = rb_funcall2( rb_cPGconn, rb_intern(&quot;parse_connect_args&quot;), argc, argv );
+  conn = PQconnectStart(StringValuePtr(conninfo));
+
+  if(conn == NULL)
+    rb_raise(rb_ePGError, &quot;PQconnectStart() unable to allocate structure&quot;);
+  if (PQstatus(conn) == CONNECTION_BAD) {
+    error = rb_exc_new2(rb_ePGError, PQerrorMessage(conn));
+    rb_iv_set(error, &quot;@connection&quot;, self);
+    rb_exc_raise(error);
+  }
+
+  Check_Type(rb_conn, T_DATA);
+  DATA_PTR(rb_conn) = conn;
+
+  if (rb_block_given_p()) {
+    return rb_ensure(rb_yield, self, pgconn_finish, self);
+  }
+  return rb_conn;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000009">
+                    
+                    <a name="M000009"></a><b>PGconn.encrypt_password( password, username ) &rarr; String
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This function is intended to be used by client applications that send
+commands like: +ALTER USER joe PASSWORD &#8216;pwd&#8217;+. The arguments
+are the cleartext password, and the SQL name of the user it is for.
+</p>
+<p>
+Return value is the encrypted password.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000009_source')" id="l_M000009_source">show</a>
+                        
+                    </p>
+                    <div id="M000009_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_encrypt_password(VALUE self, VALUE password, VALUE username)
+{
+  char *encrypted = NULL;
+  VALUE rval = Qnil;
+
+  Check_Type(password, T_STRING);
+  Check_Type(username, T_STRING);
+
+  encrypted = PQencryptPassword(StringValuePtr(password), StringValuePtr(username));
+  rval = rb_str_new2( encrypted );
+  PQfreemem( encrypted );
+
+  OBJ_INFECT( rval, password );
+  OBJ_INFECT( rval, username );
+
+  return rval;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000006">
+                    
+                    <a name="M000006"></a><b>conn.escape_bytea( string ) &rarr; String 
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Connection instance method for versions of 8.1 and higher of libpq uses
+PQescapeByteaConn, which is safer. Avoid calling as a class method, the
+class method uses the deprecated PQescapeBytea() API function.
+</p>
+<p>
+Use the instance method version of this function, it is safer than the
+class method.
+</p>
+<p>
+Escapes binary data for use within an SQL command with the type
+<tt>bytea</tt>.
+</p>
+<p>
+Certain byte values must be escaped (but all byte values may be escaped)
+when used as part of a <tt>bytea</tt> literal in an SQL statement. In
+general, to escape a byte, it is converted into the three digit octal
+number equal to the octet value, and preceded by two backslashes. The
+single quote (&#8217;) and backslash () characters have special alternative
+escape sequences. <a href="PGconn.html#M000006">escape_bytea</a> performs
+this operation, escaping only the minimally required bytes.
+</p>
+<p>
+Consider using exec_params, which avoids the need for passing values inside
+of SQL commands.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
+                        
+                    </p>
+                    <div id="M000006_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_escape_bytea(VALUE self, VALUE str)
+{
+  unsigned char *from, *to;
+  size_t from_len, to_len;
+  VALUE ret;
+
+  Check_Type(str, T_STRING);
+  from      = (unsigned char*)RSTRING_PTR(str);
+  from_len  = RSTRING_LEN(str);
+
+  if(rb_obj_class(self) == rb_cPGconn) {
+    to = PQescapeByteaConn(get_pgconn(self), from, from_len, &amp;to_len);
+  } else {
+    to = PQescapeBytea( from, from_len, &amp;to_len);
+  }
+
+  ret = rb_str_new((char*)to, to_len - 1);
+  OBJ_INFECT(ret, str);
+  PQfreemem(to);
+  return ret;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000005">
+                    
+                    <a name="M000005"></a><b>conn.escape_string( str ) &rarr; String
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Connection instance method for versions of 8.1 and higher of libpq uses
+PQescapeStringConn, which is safer. Avoid calling as a class method, the
+class method uses the deprecated PQescapeString() API function.
+</p>
+<p>
+Returns a SQL-safe version of the String <em>str</em>. This is the
+preferred way to make strings safe for inclusion in SQL queries.
+</p>
+<p>
+Consider using exec_params, which avoids the need for passing values inside
+of SQL commands.
+</p>
+<p>
+Encoding of escaped string will be equal to client encoding of connection.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
+                        
+                    </p>
+                    <div id="M000005_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_escape(VALUE self, VALUE string)
+{
+  char *escaped;
+  int size,error;
+  VALUE result;
+#ifdef M17N_SUPPORTED 
+  rb_encoding* enc;
+#endif
+
+  Check_Type(string, T_STRING);
+
+  escaped = ALLOC_N(char, RSTRING_LEN(string) * 2 + 1);
+  if(rb_obj_class(self) == rb_cPGconn) {
+    size = PQescapeStringConn(get_pgconn(self), escaped, 
+      RSTRING_PTR(string), RSTRING_LEN(string), &amp;error);
+    if(error) {
+      xfree(escaped);
+      rb_raise(rb_ePGError, &quot;%s&quot;, PQerrorMessage(get_pgconn(self)));
+    }
+  } else {
+    size = PQescapeString(escaped, RSTRING_PTR(string),
+      RSTRING_LEN(string));
+  }
+  result = rb_str_new(escaped, size);
+  xfree(escaped);
+  OBJ_INFECT(result, string);
+
+#ifdef M17N_SUPPORTED
+  if(rb_obj_class(self) == rb_cPGconn) {
+    enc = pgconn_get_client_encoding_as_rb_encoding(get_pgconn(self));
+  } else {
+    enc = rb_enc_get(string);
+  }
+  rb_enc_associate(result, enc);
+#endif
+
+  return result;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000008">
+                    
+                    <a name="M000008"></a><b>PGconn.isthreadsafe() &rarr; Boolean
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns <tt>true</tt> if libpq is thread safe, <tt>false</tt> otherwise.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
+                        
+                    </p>
+                    <div id="M000008_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_isthreadsafe(VALUE self)
+{
+  return PQisthreadsafe() ? Qtrue : Qfalse;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000013">
+                    
+                    <a name="M000013"></a><b>PGconn.new &rarr; PGconn
+PGconn.new(connection_hash) &rarr; PGconn
+PGconn.new(connection_string) &rarr; PGconn
+PGconn.new(host, port, options, tty, dbname, user, password) &rarr;  PGconn
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Create a connection to the specified server.
+</p>
+<dl>
+<dt><tt>host</tt></dt><dd>server hostname
+
+</dd>
+<dt><tt>hostaddr</tt></dt><dd>server address (avoids hostname lookup, overrides <tt>host</tt>)
+
+</dd>
+<dt><tt>port</tt></dt><dd>server port number
+
+</dd>
+<dt><tt>dbname</tt></dt><dd>connecting database name
+
+</dd>
+<dt><tt>user</tt></dt><dd>login user name
+
+</dd>
+<dt><tt>password</tt></dt><dd>login password
+
+</dd>
+<dt><tt>connect_timeout</tt></dt><dd>maximum time to wait for connection to succeed
+
+</dd>
+<dt><tt>options</tt></dt><dd>backend options
+
+</dd>
+<dt><tt>tty</tt></dt><dd>(ignored in newer versions of PostgreSQL)
+
+</dd>
+<dt><tt>sslmode</tt></dt><dd>(disable|allow|prefer|require)
+
+</dd>
+<dt><tt>krbsrvname</tt></dt><dd>kerberos service name
+
+</dd>
+<dt><tt>gsslib</tt></dt><dd>GSS library to use for GSSAPI authentication
+
+</dd>
+<dt><tt>service</tt></dt><dd>service name to use for additional parameters
+
+</dd>
+</dl>
+<p>
+Examples:
+</p>
+<pre>
+  # Connect using all defaults
+  PGconn.connect
+
+  # As a Hash
+  PGconn.connect( :dbname =&gt; 'test', :port =&gt; 5432 )
+
+  # As a String
+  PGconn.connect( &quot;dbname=test port=5432&quot; )
+
+  # As an Array
+  PGconn.connect( nil, 5432, nil, nil, 'test', nil, nil )
+</pre>
+<p>
+If the Ruby default internal encoding is set (i.e.,
+Encoding.default_internal != nil), the connection will have its
+<tt>client_encoding</tt> set accordingly.
+</p>
+<p>
+Raises a <a href="PGError.html">PGError</a> if the connection fails.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000013_source')" id="l_M000013_source">show</a>
+                        
+                    </p>
+                    <div id="M000013_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_init(int argc, VALUE *argv, VALUE self)
+{
+  PGconn *conn = NULL;
+  VALUE conninfo;
+  VALUE error;
+#ifdef M17N_SUPPORTED 
+  rb_encoding *enc;
+  const char *encname;
+#endif
+
+  conninfo = rb_funcall2( rb_cPGconn, rb_intern(&quot;parse_connect_args&quot;), argc, argv );
+  conn = PQconnectdb(StringValuePtr(conninfo));
+
+  if(conn == NULL)
+    rb_raise(rb_ePGError, &quot;PQconnectStart() unable to allocate structure&quot;);
+
+  Check_Type(self, T_DATA);
+  DATA_PTR(self) = conn;
+
+  if (PQstatus(conn) == CONNECTION_BAD) {
+    error = rb_exc_new2(rb_ePGError, PQerrorMessage(conn));
+    rb_iv_set(error, &quot;@connection&quot;, self);
+    rb_exc_raise(error);
+  }
+
+#ifdef M17N_SUPPORTED
+  /* If Ruby has its Encoding.default_internal set, set PostgreSQL's client_encoding 
+   * to match */
+  if (( enc = rb_default_internal_encoding() )) {
+    encname = pgconn_get_rb_encoding_as_pg_encname( enc );
+    if ( PQsetClientEncoding(conn, encname) != 0 )
+      rb_warn( &quot;Failed to set the default_internal encoding to %s: '%s'&quot;,
+               encname, PQerrorMessage(conn) );
+  }
+#endif
+
+  if (rb_block_given_p()) {
+    return rb_ensure(rb_yield, self, pgconn_finish, self);
+  }
+  return self;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000001">
+                    
+                    <a name="M000001"></a><b>parse_connect_args</b>( *args )
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Parse the connection <tt>args</tt> into a connection-parameter string. See
+<a href="PGconn.html#M000013">PGconn.new</a> for valid arguments.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000001_source')" id="l_M000001_source">show</a>
+                        
+                    </p>
+                    <div id="M000001_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/pg.rb, line 33</span>
+33:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span><span class="ruby-operator">::</span><span class="ruby-identifier">parse_connect_args</span>( <span class="ruby-operator">*</span><span class="ruby-identifier">args</span> )
+34:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">''</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">empty?</span>
+35: 
+36:     <span class="ruby-comment cmt"># This will be swapped soon for code that makes options like those required for</span>
+37:     <span class="ruby-comment cmt"># PQconnectdbParams()/PQconnectStartParams(). For now, stick to an options string for</span>
+38:     <span class="ruby-comment cmt"># PQconnectdb()/PQconnectStart().</span>
+39:     <span class="ruby-identifier">connopts</span> = []
+40: 
+41:     <span class="ruby-comment cmt"># Handle an options hash first</span>
+42:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>( <span class="ruby-constant">Hash</span> )
+43:       <span class="ruby-identifier">opthash</span> = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">pop</span> 
+44:       <span class="ruby-identifier">opthash</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">val</span><span class="ruby-operator">|</span>
+45:         <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">push</span>( <span class="ruby-value str">&quot;%s=%s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">key</span>, <span class="ruby-constant">PGconn</span>.<span class="ruby-identifier">quote_connstr</span>(<span class="ruby-identifier">val</span>)] )
+46:       <span class="ruby-keyword kw">end</span>
+47:     <span class="ruby-keyword kw">end</span>
+48: 
+49:     <span class="ruby-comment cmt"># Option string style</span>
+50:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">index</span>( <span class="ruby-value str">'='</span> )
+51:       <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">unshift</span>( <span class="ruby-identifier">args</span>.<span class="ruby-identifier">first</span> )
+52: 
+53:     <span class="ruby-comment cmt"># Append positional parameters</span>
+54:     <span class="ruby-keyword kw">else</span>
+55:       <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">val</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
+56:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">val</span> <span class="ruby-comment cmt"># Skip nil placeholders</span>
+57: 
+58:         <span class="ruby-identifier">key</span> = <span class="ruby-constant">CONNECT_ARGUMENT_ORDER</span>[ <span class="ruby-identifier">i</span> ] <span class="ruby-keyword kw">or</span>
+59:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;Extra positional parameter %d: %p&quot;</span> <span class="ruby-operator">%</span> [ <span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>, <span class="ruby-identifier">val</span> ]
+60:         <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">push</span>( <span class="ruby-value str">&quot;%s=%s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">key</span>, <span class="ruby-constant">PGconn</span>.<span class="ruby-identifier">quote_connstr</span>(<span class="ruby-identifier">val</span>.<span class="ruby-identifier">to_s</span>)] )
+61:       <span class="ruby-keyword kw">end</span>
+62:     <span class="ruby-keyword kw">end</span>
+63: 
+64:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">' '</span>)
+65:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000000">
+                    
+                    <a name="M000000"></a><b>quote_connstr</b>( value )
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Quote the given <tt>value</tt> for use in a connection-parameter string.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
+                        
+                    </p>
+                    <div id="M000000_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/pg.rb, line 26</span>
+26:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span><span class="ruby-operator">::</span><span class="ruby-identifier">quote_connstr</span>( <span class="ruby-identifier">value</span> )
+27:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;'&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">value</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">gsub</span>( <span class="ruby-regexp re">/[\\']/</span> ) {<span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span> <span class="ruby-value str">'\\'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">m</span> } <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;'&quot;</span>
+28:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000010">
+                    
+                    <a name="M000010"></a><b>PGconn.quote_ident( str ) &rarr; String
+conn.quote_ident( str ) &rarr; String
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a string that is safe for inclusion in a SQL query as an
+identifier. Note: this is not a quote function for values, but for
+identifiers.
+</p>
+<p>
+For example, in a typical SQL query: <tt>SELECT FOO FROM MYTABLE</tt> The
+identifier <tt>FOO</tt> is folded to lower case, so it actually means
+<tt>foo</tt>. If you really want to access the case-sensitive field name
+<tt>FOO</tt>, use this function like <tt><a
+href="PGconn.html#M000010">PGconn.quote_ident</a>('FOO')</tt>, which will
+return <tt>&quot;FOO&quot;</tt> (with double-quotes). PostgreSQL will see
+the double-quotes, and it will not fold to lower case.
+</p>
+<p>
+Similarly, this function also protects against special characters, and
+other things that might allow SQL injection if the identifier comes from an
+untrusted source.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
+                        
+                    </p>
+                    <div id="M000010_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_quote_ident(VALUE self, VALUE in_str)
+{
+  VALUE ret;
+  char *str = StringValuePtr(in_str);
+  /* result size at most NAMEDATALEN*2 plus surrounding
+   * double-quotes. */
+  char buffer[NAMEDATALEN*2+2];
+  unsigned int i=0,j=0;
+
+  if(strlen(str) &gt;= NAMEDATALEN) {
+    rb_raise(rb_eArgError, 
+      &quot;Input string is longer than NAMEDATALEN-1 (%d)&quot;,
+      NAMEDATALEN-1);
+  }
+  buffer[j++] = '&quot;';
+  for(i = 0; i &lt; strlen(str) &amp;&amp; str[i]; i++) {
+    if(str[i] == '&quot;') 
+      buffer[j++] = '&quot;';
+    buffer[j++] = str[i];
+  }
+  buffer[j++] = '&quot;';
+  ret = rb_str_new(buffer,j);
+  OBJ_INFECT(ret, in_str);
+  return ret;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000007">
+                    
+                    <a name="M000007"></a><b>PGconn.unescape_bytea( string )
+</b>
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Converts an escaped string representation of binary data into binary data
+&#8212; the reverse of <a href="PGconn.html#M000006">escape_bytea</a>. This
+is needed when retrieving <tt>bytea</tt> data in text format, but not when
+retrieving it in binary format.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
+                        
+                    </p>
+                    <div id="M000007_source" class="dyn-source">
+                        <pre>static VALUE
+pgconn_s_unescape_bytea(VALUE self, VALUE str)
+{
+  unsigned char *from, *to;
+  size_t to_len;
+  VALUE ret;
+
+  Check_Type(str, T_STRING);
+  from = (unsigned char*)StringValuePtr(str);
+
+  to = PQunescapeBytea(from, &amp;to_len);
+
+  ret = rb_str_new((char*)to, to_len);
+  OBJ_INFECT(ret, str);
+  PQfreemem(to);
+  return ret;
+}</pre>
+                    </div>
+                </div>
+                
+            </div>
+            
             <div class="sectiontitle">Instance Public methods</div>
             
             <div class="method">
@@ -5722,768 +6484,6 @@ pgconn_wait_for_notify(int argc, VALUE *argv, VALUE self)
     rb_yield_values( 3, relname, be_pid, extra );
 
   return relname;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="sectiontitle">Class Public methods</div>
-            
-            <div class="method">
-                <div class="title" id="M000012">
-                    
-                    <a name="M000012"></a><b>PGconn.conndefaults() &rarr; Array
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Returns an array of hashes. Each hash has the keys:
-</p>
-<dl>
-<dt><tt>:keyword</tt></dt><dd>the name of the option
-
-</dd>
-<dt><tt>:envvar</tt></dt><dd>the environment variable to fall back to
-
-</dd>
-<dt><tt>:compiled</tt></dt><dd>the compiled in option as a secondary fallback
-
-</dd>
-<dt><tt>:val</tt></dt><dd>the option&#8217;s current value, or <tt>nil</tt> if not known
-
-</dd>
-<dt><tt>:label</tt></dt><dd>the label for the field
-
-</dd>
-<dt><tt>:dispchar</tt></dt><dd>&#8220;&#8221; for normal, &#8220;D&#8221; for debug, and &#8220;*&#8221;
-for password
-
-</dd>
-<dt><tt>:dispsize</tt></dt><dd>field size
-
-</dd>
-</dl>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000012_source')" id="l_M000012_source">show</a>
-                        
-                    </p>
-                    <div id="M000012_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_conndefaults(VALUE self)
-{
-  PQconninfoOption *options = PQconndefaults();
-  VALUE ary = rb_ary_new();
-  VALUE hash;
-  int i = 0;
-
-  for(i = 0; options[i].keyword != NULL; i++) {
-    hash = rb_hash_new();
-    if(options[i].keyword)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;keyword&quot;)), 
-        rb_str_new2(options[i].keyword));
-    if(options[i].envvar)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;envvar&quot;)), 
-        rb_str_new2(options[i].envvar));
-    if(options[i].compiled)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;compiled&quot;)), 
-        rb_str_new2(options[i].compiled));
-    if(options[i].val)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;val&quot;)), 
-        rb_str_new2(options[i].val));
-    if(options[i].label)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;label&quot;)), 
-        rb_str_new2(options[i].label));
-    if(options[i].dispchar)
-      rb_hash_aset(hash, ID2SYM(rb_intern(&quot;dispchar&quot;)), 
-        rb_str_new2(options[i].dispchar));
-    rb_hash_aset(hash, ID2SYM(rb_intern(&quot;dispsize&quot;)), 
-      INT2NUM(options[i].dispsize));
-    rb_ary_push(ary, hash);
-  }
-  PQconninfoFree(options);
-  return ary;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000011">
-                    
-                    <a name="M000011"></a><b>PGconn.connect_start(connection_hash)       &rarr; PGconn
-PGconn.connect_start(connection_string)     &rarr; PGconn
-PGconn.connect_start(host, port, options, tty, dbname, login, password) &rarr;  PGconn
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-This is an asynchronous version of PGconn.connect().
-</p>
-<p>
-Use <a href="PGconn.html#M000014">PGconn#connect_poll</a> to poll the
-status of the connection.
-</p>
-<p>
-NOTE: this does <b>not</b> set the connection&#8217;s
-<tt>client_encoding</tt> for you if Encoding.default_internal is set. To
-set it after the connection is established, call <a
-href="PGconn.html#M000003">PGconn#internal_encoding=</a>. You can also set
-it automatically by setting ENV[&#8216;PGCLIENTENCODING&#8217;], or include
-the &#8216;options&#8217; connection parameter.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000011_source')" id="l_M000011_source">show</a>
-                        
-                    </p>
-                    <div id="M000011_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_connect_start(int argc, VALUE *argv, VALUE self)
-{
-  PGconn *conn = NULL;
-  VALUE rb_conn;
-  VALUE conninfo;
-  VALUE error;
-
-  /*
-   * PGconn.connect_start must act as both alloc() and initialize()
-   * because it is not invoked by calling new().
-   */
-  rb_conn = pgconn_alloc(rb_cPGconn);
-
-  conninfo = rb_funcall2( rb_cPGconn, rb_intern(&quot;parse_connect_args&quot;), argc, argv );
-  conn = PQconnectStart(StringValuePtr(conninfo));
-
-  if(conn == NULL)
-    rb_raise(rb_ePGError, &quot;PQconnectStart() unable to allocate structure&quot;);
-  if (PQstatus(conn) == CONNECTION_BAD) {
-    error = rb_exc_new2(rb_ePGError, PQerrorMessage(conn));
-    rb_iv_set(error, &quot;@connection&quot;, self);
-    rb_exc_raise(error);
-  }
-
-  Check_Type(rb_conn, T_DATA);
-  DATA_PTR(rb_conn) = conn;
-
-  if (rb_block_given_p()) {
-    return rb_ensure(rb_yield, self, pgconn_finish, self);
-  }
-  return rb_conn;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000009">
-                    
-                    <a name="M000009"></a><b>PGconn.encrypt_password( password, username ) &rarr; String
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-This function is intended to be used by client applications that send
-commands like: +ALTER USER joe PASSWORD &#8216;pwd&#8217;+. The arguments
-are the cleartext password, and the SQL name of the user it is for.
-</p>
-<p>
-Return value is the encrypted password.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000009_source')" id="l_M000009_source">show</a>
-                        
-                    </p>
-                    <div id="M000009_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_encrypt_password(VALUE self, VALUE password, VALUE username)
-{
-  char *encrypted = NULL;
-  VALUE rval = Qnil;
-
-  Check_Type(password, T_STRING);
-  Check_Type(username, T_STRING);
-
-  encrypted = PQencryptPassword(StringValuePtr(password), StringValuePtr(username));
-  rval = rb_str_new2( encrypted );
-  PQfreemem( encrypted );
-
-  OBJ_INFECT( rval, password );
-  OBJ_INFECT( rval, username );
-
-  return rval;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000006">
-                    
-                    <a name="M000006"></a><b>conn.escape_bytea( string ) &rarr; String 
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Connection instance method for versions of 8.1 and higher of libpq uses
-PQescapeByteaConn, which is safer. Avoid calling as a class method, the
-class method uses the deprecated PQescapeBytea() API function.
-</p>
-<p>
-Use the instance method version of this function, it is safer than the
-class method.
-</p>
-<p>
-Escapes binary data for use within an SQL command with the type
-<tt>bytea</tt>.
-</p>
-<p>
-Certain byte values must be escaped (but all byte values may be escaped)
-when used as part of a <tt>bytea</tt> literal in an SQL statement. In
-general, to escape a byte, it is converted into the three digit octal
-number equal to the octet value, and preceded by two backslashes. The
-single quote (&#8217;) and backslash () characters have special alternative
-escape sequences. <a href="PGconn.html#M000006">escape_bytea</a> performs
-this operation, escaping only the minimally required bytes.
-</p>
-<p>
-Consider using exec_params, which avoids the need for passing values inside
-of SQL commands.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000006_source')" id="l_M000006_source">show</a>
-                        
-                    </p>
-                    <div id="M000006_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_escape_bytea(VALUE self, VALUE str)
-{
-  unsigned char *from, *to;
-  size_t from_len, to_len;
-  VALUE ret;
-
-  Check_Type(str, T_STRING);
-  from      = (unsigned char*)RSTRING_PTR(str);
-  from_len  = RSTRING_LEN(str);
-
-  if(rb_obj_class(self) == rb_cPGconn) {
-    to = PQescapeByteaConn(get_pgconn(self), from, from_len, &amp;to_len);
-  } else {
-    to = PQescapeBytea( from, from_len, &amp;to_len);
-  }
-
-  ret = rb_str_new((char*)to, to_len - 1);
-  OBJ_INFECT(ret, str);
-  PQfreemem(to);
-  return ret;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000005">
-                    
-                    <a name="M000005"></a><b>conn.escape_string( str ) &rarr; String
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Connection instance method for versions of 8.1 and higher of libpq uses
-PQescapeStringConn, which is safer. Avoid calling as a class method, the
-class method uses the deprecated PQescapeString() API function.
-</p>
-<p>
-Returns a SQL-safe version of the String <em>str</em>. This is the
-preferred way to make strings safe for inclusion in SQL queries.
-</p>
-<p>
-Consider using exec_params, which avoids the need for passing values inside
-of SQL commands.
-</p>
-<p>
-Encoding of escaped string will be equal to client encoding of connection.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000005_source')" id="l_M000005_source">show</a>
-                        
-                    </p>
-                    <div id="M000005_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_escape(VALUE self, VALUE string)
-{
-  char *escaped;
-  int size,error;
-  VALUE result;
-#ifdef M17N_SUPPORTED 
-  rb_encoding* enc;
-#endif
-
-  Check_Type(string, T_STRING);
-
-  escaped = ALLOC_N(char, RSTRING_LEN(string) * 2 + 1);
-  if(rb_obj_class(self) == rb_cPGconn) {
-    size = PQescapeStringConn(get_pgconn(self), escaped, 
-      RSTRING_PTR(string), RSTRING_LEN(string), &amp;error);
-    if(error) {
-      xfree(escaped);
-      rb_raise(rb_ePGError, &quot;%s&quot;, PQerrorMessage(get_pgconn(self)));
-    }
-  } else {
-    size = PQescapeString(escaped, RSTRING_PTR(string),
-      RSTRING_LEN(string));
-  }
-  result = rb_str_new(escaped, size);
-  xfree(escaped);
-  OBJ_INFECT(result, string);
-
-#ifdef M17N_SUPPORTED
-  if(rb_obj_class(self) == rb_cPGconn) {
-    enc = pgconn_get_client_encoding_as_rb_encoding(get_pgconn(self));
-  } else {
-    enc = rb_enc_get(string);
-  }
-  rb_enc_associate(result, enc);
-#endif
-
-  return result;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000008">
-                    
-                    <a name="M000008"></a><b>PGconn.isthreadsafe() &rarr; Boolean
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Returns <tt>true</tt> if libpq is thread safe, <tt>false</tt> otherwise.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000008_source')" id="l_M000008_source">show</a>
-                        
-                    </p>
-                    <div id="M000008_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_isthreadsafe(VALUE self)
-{
-  return PQisthreadsafe() ? Qtrue : Qfalse;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000013">
-                    
-                    <a name="M000013"></a><b>PGconn.new &rarr; PGconn
-PGconn.new(connection_hash) &rarr; PGconn
-PGconn.new(connection_string) &rarr; PGconn
-PGconn.new(host, port, options, tty, dbname, user, password) &rarr;  PGconn
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Create a connection to the specified server.
-</p>
-<dl>
-<dt><tt>host</tt></dt><dd>server hostname
-
-</dd>
-<dt><tt>hostaddr</tt></dt><dd>server address (avoids hostname lookup, overrides <tt>host</tt>)
-
-</dd>
-<dt><tt>port</tt></dt><dd>server port number
-
-</dd>
-<dt><tt>dbname</tt></dt><dd>connecting database name
-
-</dd>
-<dt><tt>user</tt></dt><dd>login user name
-
-</dd>
-<dt><tt>password</tt></dt><dd>login password
-
-</dd>
-<dt><tt>connect_timeout</tt></dt><dd>maximum time to wait for connection to succeed
-
-</dd>
-<dt><tt>options</tt></dt><dd>backend options
-
-</dd>
-<dt><tt>tty</tt></dt><dd>(ignored in newer versions of PostgreSQL)
-
-</dd>
-<dt><tt>sslmode</tt></dt><dd>(disable|allow|prefer|require)
-
-</dd>
-<dt><tt>krbsrvname</tt></dt><dd>kerberos service name
-
-</dd>
-<dt><tt>gsslib</tt></dt><dd>GSS library to use for GSSAPI authentication
-
-</dd>
-<dt><tt>service</tt></dt><dd>service name to use for additional parameters
-
-</dd>
-</dl>
-<p>
-Examples:
-</p>
-<pre>
-  # Connect using all defaults
-  PGconn.connect
-
-  # As a Hash
-  PGconn.connect( :dbname =&gt; 'test', :port =&gt; 5432 )
-
-  # As a String
-  PGconn.connect( &quot;dbname=test port=5432&quot; )
-
-  # As an Array
-  PGconn.connect( nil, 5432, nil, nil, 'test', nil, nil )
-</pre>
-<p>
-If the Ruby default internal encoding is set (i.e.,
-Encoding.default_internal != nil), the connection will have its
-<tt>client_encoding</tt> set accordingly.
-</p>
-<p>
-Raises a <a href="PGError.html">PGError</a> if the connection fails.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000013_source')" id="l_M000013_source">show</a>
-                        
-                    </p>
-                    <div id="M000013_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_init(int argc, VALUE *argv, VALUE self)
-{
-  PGconn *conn = NULL;
-  VALUE conninfo;
-  VALUE error;
-#ifdef M17N_SUPPORTED 
-  rb_encoding *enc;
-  const char *encname;
-#endif
-
-  conninfo = rb_funcall2( rb_cPGconn, rb_intern(&quot;parse_connect_args&quot;), argc, argv );
-  conn = PQconnectdb(StringValuePtr(conninfo));
-
-  if(conn == NULL)
-    rb_raise(rb_ePGError, &quot;PQconnectStart() unable to allocate structure&quot;);
-
-  Check_Type(self, T_DATA);
-  DATA_PTR(self) = conn;
-
-  if (PQstatus(conn) == CONNECTION_BAD) {
-    error = rb_exc_new2(rb_ePGError, PQerrorMessage(conn));
-    rb_iv_set(error, &quot;@connection&quot;, self);
-    rb_exc_raise(error);
-  }
-
-#ifdef M17N_SUPPORTED
-  /* If Ruby has its Encoding.default_internal set, set PostgreSQL's client_encoding 
-   * to match */
-  if (( enc = rb_default_internal_encoding() )) {
-    encname = pgconn_get_rb_encoding_as_pg_encname( enc );
-    if ( PQsetClientEncoding(conn, encname) != 0 )
-      rb_warn( &quot;Failed to set the default_internal encoding to %s: '%s'&quot;,
-               encname, PQerrorMessage(conn) );
-  }
-#endif
-
-  if (rb_block_given_p()) {
-    return rb_ensure(rb_yield, self, pgconn_finish, self);
-  }
-  return self;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000001">
-                    
-                    <a name="M000001"></a><b>parse_connect_args</b>( *args )
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Parse the connection <tt>args</tt> into a connection-parameter string. See
-<a href="PGconn.html#M000013">PGconn.new</a> for valid arguments.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000001_source')" id="l_M000001_source">show</a>
-                        
-                    </p>
-                    <div id="M000001_source" class="dyn-source">
-                        <pre>    <span class="ruby-comment cmt"># File lib/pg.rb, line 33</span>
-33:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span><span class="ruby-operator">::</span><span class="ruby-identifier">parse_connect_args</span>( <span class="ruby-operator">*</span><span class="ruby-identifier">args</span> )
-34:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">''</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">empty?</span>
-35: 
-36:     <span class="ruby-comment cmt"># This will be swapped soon for code that makes options like those required for</span>
-37:     <span class="ruby-comment cmt"># PQconnectdbParams()/PQconnectStartParams(). For now, stick to an options string for</span>
-38:     <span class="ruby-comment cmt"># PQconnectdb()/PQconnectStart().</span>
-39:     <span class="ruby-identifier">connopts</span> = []
-40: 
-41:     <span class="ruby-comment cmt"># Handle an options hash first</span>
-42:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>( <span class="ruby-constant">Hash</span> )
-43:       <span class="ruby-identifier">opthash</span> = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">pop</span> 
-44:       <span class="ruby-identifier">opthash</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">val</span><span class="ruby-operator">|</span>
-45:         <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">push</span>( <span class="ruby-value str">&quot;%s=%s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">key</span>, <span class="ruby-constant">PGconn</span>.<span class="ruby-identifier">quote_connstr</span>(<span class="ruby-identifier">val</span>)] )
-46:       <span class="ruby-keyword kw">end</span>
-47:     <span class="ruby-keyword kw">end</span>
-48: 
-49:     <span class="ruby-comment cmt"># Option string style</span>
-50:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">index</span>( <span class="ruby-value str">'='</span> )
-51:       <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">unshift</span>( <span class="ruby-identifier">args</span>.<span class="ruby-identifier">first</span> )
-52: 
-53:     <span class="ruby-comment cmt"># Append positional parameters</span>
-54:     <span class="ruby-keyword kw">else</span>
-55:       <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each_with_index</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">val</span>, <span class="ruby-identifier">i</span><span class="ruby-operator">|</span>
-56:         <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">val</span> <span class="ruby-comment cmt"># Skip nil placeholders</span>
-57: 
-58:         <span class="ruby-identifier">key</span> = <span class="ruby-constant">CONNECT_ARGUMENT_ORDER</span>[ <span class="ruby-identifier">i</span> ] <span class="ruby-keyword kw">or</span>
-59:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;Extra positional parameter %d: %p&quot;</span> <span class="ruby-operator">%</span> [ <span class="ruby-identifier">i</span><span class="ruby-operator">+</span><span class="ruby-value">1</span>, <span class="ruby-identifier">val</span> ]
-60:         <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">push</span>( <span class="ruby-value str">&quot;%s=%s&quot;</span> <span class="ruby-operator">%</span> [<span class="ruby-identifier">key</span>, <span class="ruby-constant">PGconn</span>.<span class="ruby-identifier">quote_connstr</span>(<span class="ruby-identifier">val</span>.<span class="ruby-identifier">to_s</span>)] )
-61:       <span class="ruby-keyword kw">end</span>
-62:     <span class="ruby-keyword kw">end</span>
-63: 
-64:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">connopts</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">' '</span>)
-65:   <span class="ruby-keyword kw">end</span></pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000000">
-                    
-                    <a name="M000000"></a><b>quote_connstr</b>( value )
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Quote the given <tt>value</tt> for use in a connection-parameter string.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000000_source')" id="l_M000000_source">show</a>
-                        
-                    </p>
-                    <div id="M000000_source" class="dyn-source">
-                        <pre>    <span class="ruby-comment cmt"># File lib/pg.rb, line 26</span>
-26:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span><span class="ruby-operator">::</span><span class="ruby-identifier">quote_connstr</span>( <span class="ruby-identifier">value</span> )
-27:     <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;'&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">value</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">gsub</span>( <span class="ruby-regexp re">/[\\']/</span> ) {<span class="ruby-operator">|</span><span class="ruby-identifier">m</span><span class="ruby-operator">|</span> <span class="ruby-value str">'\\'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">m</span> } <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;'&quot;</span>
-28:   <span class="ruby-keyword kw">end</span></pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000010">
-                    
-                    <a name="M000010"></a><b>PGconn.quote_ident( str ) &rarr; String
-conn.quote_ident( str ) &rarr; String
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Returns a string that is safe for inclusion in a SQL query as an
-identifier. Note: this is not a quote function for values, but for
-identifiers.
-</p>
-<p>
-For example, in a typical SQL query: <tt>SELECT FOO FROM MYTABLE</tt> The
-identifier <tt>FOO</tt> is folded to lower case, so it actually means
-<tt>foo</tt>. If you really want to access the case-sensitive field name
-<tt>FOO</tt>, use this function like <tt><a
-href="PGconn.html#M000010">PGconn.quote_ident</a>('FOO')</tt>, which will
-return <tt>&quot;FOO&quot;</tt> (with double-quotes). PostgreSQL will see
-the double-quotes, and it will not fold to lower case.
-</p>
-<p>
-Similarly, this function also protects against special characters, and
-other things that might allow SQL injection if the identifier comes from an
-untrusted source.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000010_source')" id="l_M000010_source">show</a>
-                        
-                    </p>
-                    <div id="M000010_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_quote_ident(VALUE self, VALUE in_str)
-{
-  VALUE ret;
-  char *str = StringValuePtr(in_str);
-  /* result size at most NAMEDATALEN*2 plus surrounding
-   * double-quotes. */
-  char buffer[NAMEDATALEN*2+2];
-  unsigned int i=0,j=0;
-
-  if(strlen(str) &gt;= NAMEDATALEN) {
-    rb_raise(rb_eArgError, 
-      &quot;Input string is longer than NAMEDATALEN-1 (%d)&quot;,
-      NAMEDATALEN-1);
-  }
-  buffer[j++] = '&quot;';
-  for(i = 0; i &lt; strlen(str) &amp;&amp; str[i]; i++) {
-    if(str[i] == '&quot;') 
-      buffer[j++] = '&quot;';
-    buffer[j++] = str[i];
-  }
-  buffer[j++] = '&quot;';
-  ret = rb_str_new(buffer,j);
-  OBJ_INFECT(ret, in_str);
-  return ret;
-}</pre>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div class="method">
-                <div class="title" id="M000007">
-                    
-                    <a name="M000007"></a><b>PGconn.unescape_bytea( string )
-</b>
-                    
-                </div>
-                
-                <div class="description">
-                  <p>
-Converts an escaped string representation of binary data into binary data
-&#8212; the reverse of <a href="PGconn.html#M000006">escape_bytea</a>. This
-is needed when retrieving <tt>bytea</tt> data in text format, but not when
-retrieving it in binary format.
-</p>
-
-                </div>
-                
-                
-                
-                
-                <div class="sourcecode">
-                    <p class="source-link">
-                        Source: <a href="javascript:toggleSource('M000007_source')" id="l_M000007_source">show</a>
-                        
-                    </p>
-                    <div id="M000007_source" class="dyn-source">
-                        <pre>static VALUE
-pgconn_s_unescape_bytea(VALUE self, VALUE str)
-{
-  unsigned char *from, *to;
-  size_t to_len;
-  VALUE ret;
-
-  Check_Type(str, T_STRING);
-  from = (unsigned char*)StringValuePtr(str);
-
-  to = PQunescapeBytea(from, &amp;to_len);
-
-  ret = rb_str_new((char*)to, to_len);
-  OBJ_INFECT(ret, str);
-  PQfreemem(to);
-  return ret;
 }</pre>
                     </div>
                 </div>

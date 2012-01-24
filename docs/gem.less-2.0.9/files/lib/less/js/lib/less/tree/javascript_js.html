@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>javascript.js</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            javascript.js
+        </h1>
+        <ul class="files">
+            <li>lib/less/js/lib/less/tree/javascript.js</li>
+            <li>Last modified: Wed Jan 25 00:30:25 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+(function (tree) {
+</p>
+<p>
+tree.JavaScript = function (string, index, escaped) {
+</p>
+<pre>
+    this.escaped = escaped;
+    this.expression = string;
+    this.index = index;
+</pre>
+<p>
+}; tree.JavaScript.prototype = {
+</p>
+<pre>
+    eval: function (env) {
+        var result,
+            that = this,
+            context = {};
+
+        var expression = this.expression.replace(/@\{([\w-]+)\}/g, function (_, name) {
+            return tree.jsify(new(tree.Variable)('@' + name, that.index).eval(env));
+        });
+
+        try {
+            expression = new(Function)('return (' + expression + ')');
+        } catch (e) {
+            throw { message: &quot;JavaScript evaluation error: `&quot; + expression + &quot;`&quot; ,
+                    index: this.index };
+        }
+
+        for (var k in env.frames[0].variables()) {
+            context[k.slice(1)] = {
+                value: env.frames[0].variables()[k].value,
+                toJS: function () {
+                    return this.value.eval(env).toCSS();
+                }
+            };
+        }
+
+        try {
+            result = expression.call(context);
+        } catch (e) {
+            throw { message: &quot;JavaScript evaluation error: '&quot; + e.name + ': ' + e.message + &quot;'&quot; ,
+                    index: this.index };
+        }
+        if (typeof(result) === 'string') {
+            return new(tree.Quoted)('&quot;' + result + '&quot;', result, this.escaped, this.index);
+        } else if (Array.isArray(result)) {
+            return new(tree.Anonymous)(result.join(', '));
+        } else {
+            return new(tree.Anonymous)(result);
+        }
+    }
+</pre>
+<p>
+};
+</p>
+<p>
+})(require(&#8217;../tree&#8217;));
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

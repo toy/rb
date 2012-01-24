@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Communication::SSH</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Communication::SSH 
+            
+                <span class="parent">&lt; 
+                    
+                    Base
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/communication/ssh_rb.html">lib/vagrant/communication/ssh.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Provides communication with the <a href="../VM.html">VM</a> via <a
+href="SSH.html">SSH</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000200">connect</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000197">execute</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000195">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000196">ready?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000202">shell_execute</a>,</li>
+                
+                <li><a href="#M000198">sudo</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>U</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000199">upload</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>Util::ANSIEscapeCodeRemover</span>
+            
+            START:includes
+        </li>
+        
+        <li>
+            
+            <span>Util::Retryable</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000197">
+                    
+                    <a name="M000197"></a><b>execute</b>(command, opts=nil, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000197_source')" id="l_M000197_source">show</a>
+                        
+                    </p>
+                    <div id="M000197_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 42</span>
+42:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute</span>(<span class="ruby-identifier">command</span>, <span class="ruby-identifier">opts</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+43:         <span class="ruby-identifier">opts</span> = {
+44:           <span class="ruby-identifier">:error_check</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>,
+45:           <span class="ruby-identifier">:error_class</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">VagrantError</span>,
+46:           <span class="ruby-identifier">:error_key</span>   =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:ssh_bad_exit_status</span>,
+47:           <span class="ruby-identifier">:command</span>     =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">command</span>,
+48:           <span class="ruby-identifier">:sudo</span>        =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>
+49:         }.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">opts</span> <span class="ruby-operator">||</span> {})
+50: 
+51:         <span class="ruby-comment cmt"># Connect via SSH and execute the command in the shell.</span>
+52:         <span class="ruby-identifier">exit_status</span> = <span class="ruby-identifier">connect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">connection</span><span class="ruby-operator">|</span>
+53:           <span class="ruby-identifier">shell_execute</span>(<span class="ruby-identifier">connection</span>, <span class="ruby-identifier">command</span>, <span class="ruby-identifier">opts</span>[<span class="ruby-identifier">:sudo</span>], <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+54:         <span class="ruby-keyword kw">end</span>
+55: 
+56:         <span class="ruby-comment cmt"># Check for any errors</span>
+57:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">opts</span>[<span class="ruby-identifier">:error_check</span>] <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">exit_status</span> <span class="ruby-operator">!=</span> <span class="ruby-value">0</span>
+58:           <span class="ruby-comment cmt"># The error classes expect the translation key to be _key,</span>
+59:           <span class="ruby-comment cmt"># but that makes for an ugly configuration parameter, so we</span>
+60:           <span class="ruby-comment cmt"># set it here from `error_key`</span>
+61:           <span class="ruby-identifier">error_opts</span> = <span class="ruby-identifier">opts</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:_key</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">opts</span>[<span class="ruby-identifier">:error_key</span>])
+62:           <span class="ruby-identifier">raise</span> <span class="ruby-identifier">opts</span>[<span class="ruby-identifier">:error_class</span>], <span class="ruby-identifier">error_opts</span>
+63:         <span class="ruby-keyword kw">end</span>
+64: 
+65:         <span class="ruby-comment cmt"># Return the exit status</span>
+66:         <span class="ruby-identifier">exit_status</span>
+67:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000196">
+                    
+                    <a name="M000196"></a><b>ready?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000196_source')" id="l_M000196_source">show</a>
+                        
+                    </p>
+                    <div id="M000196_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 25</span>
+25:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">ready?</span>
+26:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Checking whether SSH is ready...&quot;</span>)
+27: 
+28:         <span class="ruby-constant">Timeout</span>.<span class="ruby-identifier">timeout</span>(<span class="ruby-ivar">@vm</span>.<span class="ruby-identifier">config</span>.<span class="ruby-identifier">ssh</span>.<span class="ruby-identifier">timeout</span>) <span class="ruby-keyword kw">do</span>
+29:           <span class="ruby-identifier">connect</span>
+30:         <span class="ruby-keyword kw">end</span>
+31: 
+32:         <span class="ruby-comment cmt"># If we reached this point then we successfully connected</span>
+33:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-value str">&quot;SSH is ready!&quot;</span>)
+34:         <span class="ruby-keyword kw">true</span>
+35:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Timeout</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">SSHConnectionRefused</span>, <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Disconnect</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+36:         <span class="ruby-comment cmt"># The above errors represent various reasons that SSH may not be</span>
+37:         <span class="ruby-comment cmt"># ready yet. Return false.</span>
+38:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;SSH not up: #{e.inspect}&quot;</span>)
+39:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">false</span>
+40:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000198">
+                    
+                    <a name="M000198"></a><b>sudo</b>(command, opts=nil, &amp;block)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000198_source')" id="l_M000198_source">show</a>
+                        
+                    </p>
+                    <div id="M000198_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 69</span>
+69:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sudo</span>(<span class="ruby-identifier">command</span>, <span class="ruby-identifier">opts</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+70:         <span class="ruby-comment cmt"># Run `execute` but with the `sudo` option.</span>
+71:         <span class="ruby-identifier">opts</span> = { <span class="ruby-identifier">:sudo</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span> }.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">opts</span> <span class="ruby-operator">||</span> {})
+72:         <span class="ruby-identifier">execute</span>(<span class="ruby-identifier">command</span>, <span class="ruby-identifier">opts</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+73:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000199">
+                    
+                    <a name="M000199"></a><b>upload</b>(from, to)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000199_source')" id="l_M000199_source">show</a>
+                        
+                    </p>
+                    <div id="M000199_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 75</span>
+75:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>)
+76:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Uploading: #{from} to #{to}&quot;</span>)
+77: 
+78:         <span class="ruby-comment cmt"># Do an SCP-based upload...</span>
+79:         <span class="ruby-identifier">connect</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">connection</span><span class="ruby-operator">|</span>
+80:           <span class="ruby-identifier">scp</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">connection</span>)
+81:           <span class="ruby-identifier">scp</span>.<span class="ruby-identifier">upload!</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>)
+82:         <span class="ruby-keyword kw">end</span>
+83:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SCP</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+84:         <span class="ruby-comment cmt"># If we get the exit code of 127, then this means SCP is unavailable.</span>
+85:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">SCPUnavailable</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">message</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/\(127\)/</span>
+86: 
+87:         <span class="ruby-comment cmt"># Otherwise, just raise the error up</span>
+88:         <span class="ruby-identifier">raise</span>
+89:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000200">
+                    
+                    <a name="M000200"></a><b>connect</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens an <a href="SSH.html">SSH</a> connection and yields it to a block.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000200_source')" id="l_M000200_source">show</a>
+                        
+                    </p>
+                    <div id="M000200_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 94</span>
+ 94:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">connect</span>
+ 95:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@connection</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">closed?</span>
+ 96:           <span class="ruby-comment cmt"># There is a chance that the socket is closed despite us checking</span>
+ 97:           <span class="ruby-comment cmt"># 'closed?' above. To test this we need to send data through the</span>
+ 98:           <span class="ruby-comment cmt"># socket.</span>
+ 99:           <span class="ruby-keyword kw">begin</span>
+100:             <span class="ruby-ivar">@connection</span>.<span class="ruby-identifier">exec!</span>(<span class="ruby-value str">&quot;&quot;</span>)
+101:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">IOError</span>
+102:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-value str">&quot;Connection has been closed. Not re-using.&quot;</span>)
+103:             <span class="ruby-ivar">@connection</span> = <span class="ruby-keyword kw">nil</span>
+104:           <span class="ruby-keyword kw">end</span>
+105: 
+106:           <span class="ruby-comment cmt"># If the @connection is still around, then it is valid,</span>
+107:           <span class="ruby-comment cmt"># and we use it.</span>
+108:           <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@connection</span>
+109:             <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Re-using SSH connection.&quot;</span>)
+110:             <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">yield</span> <span class="ruby-ivar">@connection</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+111:             <span class="ruby-keyword kw">return</span>
+112:           <span class="ruby-keyword kw">end</span>
+113:         <span class="ruby-keyword kw">end</span>
+114: 
+115:         <span class="ruby-identifier">ssh_info</span> = <span class="ruby-ivar">@vm</span>.<span class="ruby-identifier">ssh</span>.<span class="ruby-identifier">info</span>
+116: 
+117:         <span class="ruby-comment cmt"># Build the options we'll use to initiate the connection via Net::SSH</span>
+118:         <span class="ruby-identifier">opts</span> = {
+119:           <span class="ruby-identifier">:port</span>                  =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:port</span>],
+120:           <span class="ruby-identifier">:keys</span>                  =<span class="ruby-operator">&gt;</span> [<span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:private_key_path</span>]],
+121:           <span class="ruby-identifier">:keys_only</span>             =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>,
+122:           <span class="ruby-identifier">:user_known_hosts_file</span> =<span class="ruby-operator">&gt;</span> [],
+123:           <span class="ruby-identifier">:paranoid</span>              =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>,
+124:           <span class="ruby-identifier">:config</span>                =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">false</span>,
+125:           <span class="ruby-identifier">:forward_agent</span>         =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:forward_agent</span>]
+126:         }
+127: 
+128:         <span class="ruby-comment cmt"># Check that the private key permissions are valid</span>
+129:         <span class="ruby-ivar">@vm</span>.<span class="ruby-identifier">ssh</span>.<span class="ruby-identifier">check_key_permissions</span>(<span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:private_key_path</span>])
+130: 
+131:         <span class="ruby-comment cmt"># Connect to SSH, giving it a few tries</span>
+132:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Connecting to SSH: #{ssh_info[:host]}:#{ssh_info[:port]}&quot;</span>)
+133:         <span class="ruby-identifier">exceptions</span> = [<span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNREFUSED</span>, <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">Disconnect</span>]
+134:         <span class="ruby-identifier">connection</span> = <span class="ruby-identifier">retryable</span>(<span class="ruby-identifier">:tries</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@vm</span>.<span class="ruby-identifier">config</span>.<span class="ruby-identifier">ssh</span>.<span class="ruby-identifier">max_tries</span>, <span class="ruby-identifier">:on</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">exceptions</span>) <span class="ruby-keyword kw">do</span>
+135:           <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:host</span>], <span class="ruby-identifier">ssh_info</span>[<span class="ruby-identifier">:username</span>], <span class="ruby-identifier">opts</span>)
+136:         <span class="ruby-keyword kw">end</span>
+137: 
+138:         <span class="ruby-ivar">@connection</span> = <span class="ruby-identifier">connection</span>
+139: 
+140:         <span class="ruby-comment cmt"># This is hacky but actually helps with some issues where</span>
+141:         <span class="ruby-comment cmt"># Net::SSH is simply not robust enough to handle... see</span>
+142:         <span class="ruby-comment cmt"># issue #391, #455, etc.</span>
+143:         <span class="ruby-identifier">sleep</span> <span class="ruby-value">4</span>
+144: 
+145:         <span class="ruby-comment cmt"># Yield the connection that is ready to be used and</span>
+146:         <span class="ruby-comment cmt"># return the value of the block</span>
+147:         <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">connection</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+148:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">SSH</span><span class="ruby-operator">::</span><span class="ruby-constant">AuthenticationFailed</span>
+149:         <span class="ruby-comment cmt"># This happens if authentication failed. We wrap the error in our</span>
+150:         <span class="ruby-comment cmt"># own exception.</span>
+151:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">SSHAuthenticationFailed</span>
+152:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">ECONNREFUSED</span>
+153:         <span class="ruby-comment cmt"># This is raised if we failed to connect the max amount of times</span>
+154:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">SSHConnectionRefused</span>
+155:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000202">
+                    
+                    <a name="M000202"></a><b>shell_execute</b>(connection, command, sudo=false)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Executes the command on an <a href="SSH.html">SSH</a> connection within a
+login shell.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000202_source')" id="l_M000202_source">show</a>
+                        
+                    </p>
+                    <div id="M000202_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 158</span>
+158:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">shell_execute</span>(<span class="ruby-identifier">connection</span>, <span class="ruby-identifier">command</span>, <span class="ruby-identifier">sudo</span>=<span class="ruby-keyword kw">false</span>)
+159:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Execute: #{command} (sudo=#{sudo.inspect})&quot;</span>)
+160:         <span class="ruby-identifier">exit_status</span> = <span class="ruby-keyword kw">nil</span>
+161: 
+162:         <span class="ruby-comment cmt"># Determine the shell to execute. If we are using `sudo` then we</span>
+163:         <span class="ruby-comment cmt"># need to wrap the shell in a `sudo` call.</span>
+164:         <span class="ruby-identifier">shell</span> = <span class="ruby-node">&quot;#{@vm.config.ssh.shell} -l&quot;</span>
+165:         <span class="ruby-identifier">shell</span> = <span class="ruby-node">&quot;sudo -H #{shell}&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sudo</span>
+166: 
+167:         <span class="ruby-comment cmt"># Open the channel so we can execute or command</span>
+168:         <span class="ruby-identifier">channel</span> = <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">open_channel</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch</span><span class="ruby-operator">|</span>
+169:           <span class="ruby-identifier">ch</span>.<span class="ruby-identifier">exec</span>(<span class="ruby-identifier">shell</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch2</span>, <span class="ruby-identifier">_</span><span class="ruby-operator">|</span>
+170:             <span class="ruby-comment cmt"># Setup the channel callbacks so we can get data and exit status</span>
+171:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">on_data</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch3</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span>
+172:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+173:                 <span class="ruby-comment cmt"># Filter out the clear screen command</span>
+174:                 <span class="ruby-identifier">data</span> = <span class="ruby-identifier">remove_ansi_escape_codes</span>(<span class="ruby-identifier">data</span>)
+175:                 <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;stdout: #{data}&quot;</span>)
+176:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">data</span>
+177:               <span class="ruby-keyword kw">end</span>
+178:             <span class="ruby-keyword kw">end</span>
+179: 
+180:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">on_extended_data</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch3</span>, <span class="ruby-identifier">type</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span>
+181:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+182:                 <span class="ruby-comment cmt"># Filter out the clear screen command</span>
+183:                 <span class="ruby-identifier">data</span> = <span class="ruby-identifier">remove_ansi_escape_codes</span>(<span class="ruby-identifier">data</span>)
+184:                 <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;stderr: #{data}&quot;</span>)
+185:                 <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">stderr</span>, <span class="ruby-identifier">data</span>
+186:               <span class="ruby-keyword kw">end</span>
+187:             <span class="ruby-keyword kw">end</span>
+188: 
+189:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">on_request</span>(<span class="ruby-value str">&quot;exit-status&quot;</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ch3</span>, <span class="ruby-identifier">data</span><span class="ruby-operator">|</span>
+190:               <span class="ruby-identifier">exit_status</span> = <span class="ruby-identifier">data</span>.<span class="ruby-identifier">read_long</span>
+191:               <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Exit status: #{exit_status}&quot;</span>)
+192:             <span class="ruby-keyword kw">end</span>
+193: 
+194:             <span class="ruby-comment cmt"># Set the terminal</span>
+195:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-value str">&quot;export TERM=vt100\n&quot;</span>
+196: 
+197:             <span class="ruby-comment cmt"># Output the command</span>
+198:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-node">&quot;#{command}\n&quot;</span>
+199: 
+200:             <span class="ruby-comment cmt"># Remember to exit or this channel will hang open</span>
+201:             <span class="ruby-identifier">ch2</span>.<span class="ruby-identifier">send_data</span> <span class="ruby-value str">&quot;exit\n&quot;</span>
+202:           <span class="ruby-keyword kw">end</span>
+203:         <span class="ruby-keyword kw">end</span>
+204: 
+205:         <span class="ruby-comment cmt"># Wait for the channel to complete</span>
+206:         <span class="ruby-identifier">channel</span>.<span class="ruby-identifier">wait</span>
+207: 
+208:         <span class="ruby-comment cmt"># Return the final exit status</span>
+209:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">exit_status</span>
+210:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000195">
+                    
+                    <a name="M000195"></a><b>new</b>(vm)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000195_source')" id="l_M000195_source">show</a>
+                        
+                    </p>
+                    <div id="M000195_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/communication/ssh.rb, line 19</span>
+19:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">vm</span>)
+20:         <span class="ruby-ivar">@vm</span>     = <span class="ruby-identifier">vm</span>
+21:         <span class="ruby-ivar">@logger</span> = <span class="ruby-constant">Log4r</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant::communication::ssh&quot;</span>)
+22:         <span class="ruby-ivar">@connection</span> = <span class="ruby-keyword kw">nil</span>
+23:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    
