@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Util::Subprocess</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Util::Subprocess 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/util/subprocess_rb.html">lib/vagrant/util/subprocess.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Execute a command in a subprocess, gathering the results and exit status.
+</p>
+<p>
+This class also allows you to read the data as it is outputted from the
+subprocess in real time, by simply passing a block to the execute method.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000615">execute</a>,</li>
+                
+                <li><a href="#M000619">execute</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000616">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000622">read_io</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Subprocess/LaunchError.html">Vagrant::Util::Subprocess::LaunchError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Subprocess/Result.html">Vagrant::Util::Subprocess::Result</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="Subprocess/TimeoutExceeded.html">Vagrant::Util::Subprocess::TimeoutExceeded</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">READ_CHUNK_SIZE</td>
+            <td>=</td>
+            <td class="attr-value">4096</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The chunk size for reading from subprocess IO.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000619">
+                    
+                    <a name="M000619"></a><b>execute</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000619_source')" id="l_M000619_source">show</a>
+                        
+                    </p>
+                    <div id="M000619_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/util/subprocess.rb, line 29</span>
+ 29:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute</span>
+ 30:         <span class="ruby-comment cmt"># Get the timeout, if we have one</span>
+ 31:         <span class="ruby-identifier">timeout</span> = <span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:timeout</span>]
+ 32:         <span class="ruby-identifier">workdir</span> = <span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:workdir</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+ 33: 
+ 34:         <span class="ruby-comment cmt"># Build the ChildProcess</span>
+ 35:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Starting process: #{@command.inspect}&quot;</span>)
+ 36:         <span class="ruby-identifier">process</span> = <span class="ruby-constant">ChildProcess</span>.<span class="ruby-identifier">build</span>(<span class="ruby-operator">*</span><span class="ruby-ivar">@command</span>)
+ 37: 
+ 38:         <span class="ruby-comment cmt"># Create the pipes so we can read the output in real time as</span>
+ 39:         <span class="ruby-comment cmt"># we execute the command.</span>
+ 40:         <span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stdout_writer</span> = <span class="ruby-constant">IO</span>.<span class="ruby-identifier">pipe</span>
+ 41:         <span class="ruby-identifier">stderr</span>, <span class="ruby-identifier">stderr_writer</span> = <span class="ruby-constant">IO</span>.<span class="ruby-identifier">pipe</span>
+ 42:         <span class="ruby-identifier">process</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">stdout</span> = <span class="ruby-identifier">stdout_writer</span>
+ 43:         <span class="ruby-identifier">process</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">stderr</span> = <span class="ruby-identifier">stderr_writer</span>
+ 44:         <span class="ruby-identifier">process</span>.<span class="ruby-identifier">duplex</span> = <span class="ruby-keyword kw">true</span>
+ 45: 
+ 46:         <span class="ruby-comment cmt"># Set the environment on the process if we must</span>
+ 47:         <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:env</span>]
+ 48:           <span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:env</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span>, <span class="ruby-identifier">v</span><span class="ruby-operator">|</span>
+ 49:             <span class="ruby-identifier">process</span>.<span class="ruby-identifier">environment</span>[<span class="ruby-identifier">k</span>] = <span class="ruby-identifier">v</span>
+ 50:           <span class="ruby-keyword kw">end</span>
+ 51:         <span class="ruby-keyword kw">end</span>
+ 52: 
+ 53:         <span class="ruby-comment cmt"># Start the process</span>
+ 54:         <span class="ruby-keyword kw">begin</span>
+ 55:           <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-identifier">workdir</span>) <span class="ruby-keyword kw">do</span>
+ 56:             <span class="ruby-identifier">process</span>.<span class="ruby-identifier">start</span>
+ 57:           <span class="ruby-keyword kw">end</span>
+ 58:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ChildProcess</span><span class="ruby-operator">::</span><span class="ruby-constant">LaunchError</span>
+ 59:           <span class="ruby-comment cmt"># Raise our own version of the error so that users of the class</span>
+ 60:           <span class="ruby-comment cmt"># don't need to be aware of ChildProcess</span>
+ 61:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">LaunchError</span>
+ 62:         <span class="ruby-keyword kw">end</span>
+ 63: 
+ 64:         <span class="ruby-comment cmt"># Make sure the stdin does not buffer</span>
+ 65:         <span class="ruby-identifier">process</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">stdin</span>.<span class="ruby-identifier">sync</span> = <span class="ruby-keyword kw">true</span>
+ 66: 
+ 67:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">RUBY_PLATFORM</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">&quot;java&quot;</span>
+ 68:           <span class="ruby-comment cmt"># On Java, we have to close after. See down the method...</span>
+ 69:           <span class="ruby-comment cmt"># Otherwise, we close the writers right here, since we're</span>
+ 70:           <span class="ruby-comment cmt"># not on the writing side.</span>
+ 71:           <span class="ruby-identifier">stdout_writer</span>.<span class="ruby-identifier">close</span>
+ 72:           <span class="ruby-identifier">stderr_writer</span>.<span class="ruby-identifier">close</span>
+ 73:         <span class="ruby-keyword kw">end</span>
+ 74: 
+ 75:         <span class="ruby-comment cmt"># Create a dictionary to store all the output we see.</span>
+ 76:         <span class="ruby-identifier">io_data</span> = { <span class="ruby-identifier">:stdout</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;&quot;</span>, <span class="ruby-identifier">:stderr</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;&quot;</span> }
+ 77: 
+ 78:         <span class="ruby-comment cmt"># Record the start time for timeout purposes</span>
+ 79:         <span class="ruby-identifier">start_time</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_i</span>
+ 80: 
+ 81:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;Selecting on IO&quot;</span>)
+ 82:         <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+ 83:           <span class="ruby-identifier">results</span> = <span class="ruby-constant">IO</span>.<span class="ruby-identifier">select</span>([<span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stderr</span>], [<span class="ruby-identifier">process</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">stdin</span>], <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">timeout</span> <span class="ruby-operator">||</span> <span class="ruby-value">5</span>)
+ 84:           <span class="ruby-identifier">readers</span>, <span class="ruby-identifier">writers</span> = <span class="ruby-identifier">results</span>
+ 85: 
+ 86:           <span class="ruby-comment cmt"># Check if we have exceeded our timeout</span>
+ 87:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">TimeoutExceeded</span>, <span class="ruby-identifier">process</span>.<span class="ruby-identifier">pid</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">timeout</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">timeout</span>
+ 88: 
+ 89:           <span class="ruby-comment cmt"># Check the readers to see if they're ready</span>
+ 90:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">readers</span>.<span class="ruby-identifier">empty?</span>
+ 91:             <span class="ruby-identifier">readers</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">r</span><span class="ruby-operator">|</span>
+ 92:               <span class="ruby-comment cmt"># Read from the IO object</span>
+ 93:               <span class="ruby-identifier">data</span> = <span class="ruby-identifier">read_io</span>(<span class="ruby-identifier">r</span>)
+ 94: 
+ 95:               <span class="ruby-comment cmt"># We don't need to do anything if the data is empty</span>
+ 96:               <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">data</span>.<span class="ruby-identifier">empty?</span>
+ 97: 
+ 98:               <span class="ruby-identifier">io_name</span> = <span class="ruby-identifier">r</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">stdout</span> <span class="ruby-value">? </span><span class="ruby-operator">:</span><span class="ruby-identifier">stdout</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">:stderr</span>
+ 99:               <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;#{io_name}: #{data}&quot;</span>)
+100: 
+101:               <span class="ruby-identifier">io_data</span>[<span class="ruby-identifier">io_name</span>] <span class="ruby-operator">+=</span> <span class="ruby-identifier">data</span>
+102:               <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">io_name</span>, <span class="ruby-identifier">data</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+103:             <span class="ruby-keyword kw">end</span>
+104:           <span class="ruby-keyword kw">end</span>
+105: 
+106:           <span class="ruby-comment cmt"># Break out if the process exited. We have to do this before</span>
+107:           <span class="ruby-comment cmt"># attempting to write to stdin otherwise we'll get a broken pipe</span>
+108:           <span class="ruby-comment cmt"># error.</span>
+109:           <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">process</span>.<span class="ruby-identifier">exited?</span>
+110: 
+111:           <span class="ruby-comment cmt"># Check the writers to see if they're ready, and notify any listeners</span>
+112:           <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">writers</span>.<span class="ruby-identifier">empty?</span>
+113:             <span class="ruby-keyword kw">yield</span> <span class="ruby-operator">:</span><span class="ruby-identifier">stdin</span>, <span class="ruby-identifier">process</span>.<span class="ruby-identifier">io</span>.<span class="ruby-identifier">stdin</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+114:           <span class="ruby-keyword kw">end</span>
+115:         <span class="ruby-keyword kw">end</span>
+116: 
+117:         <span class="ruby-comment cmt"># Wait for the process to end.</span>
+118:         <span class="ruby-keyword kw">begin</span>
+119:           <span class="ruby-identifier">remaining</span> = (<span class="ruby-identifier">timeout</span> <span class="ruby-operator">||</span> <span class="ruby-value">32000</span>) <span class="ruby-operator">-</span> (<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start_time</span>)
+120:           <span class="ruby-identifier">remaining</span> = <span class="ruby-value">0</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">remaining</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span>
+121:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Waiting for process to exit. Remaining to timeout: #{remaining}&quot;</span>)
+122: 
+123:           <span class="ruby-identifier">process</span>.<span class="ruby-identifier">poll_for_exit</span>(<span class="ruby-identifier">remaining</span>)
+124:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">ChildProcess</span><span class="ruby-operator">::</span><span class="ruby-constant">TimeoutError</span>
+125:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">TimeoutExceeded</span>, <span class="ruby-identifier">process</span>.<span class="ruby-identifier">pid</span>
+126:         <span class="ruby-keyword kw">end</span>
+127: 
+128:         <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Exit status: #{process.exit_code}&quot;</span>)
+129: 
+130:         <span class="ruby-comment cmt"># Read the final output data, since it is possible we missed a small</span>
+131:         <span class="ruby-comment cmt"># amount of text between the time we last read data and when the</span>
+132:         <span class="ruby-comment cmt"># process exited.</span>
+133:         [<span class="ruby-identifier">stdout</span>, <span class="ruby-identifier">stderr</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+134:           <span class="ruby-comment cmt"># Read the extra data, ignoring if there isn't any</span>
+135:           <span class="ruby-identifier">extra_data</span> = <span class="ruby-identifier">read_io</span>(<span class="ruby-identifier">io</span>)
+136:           <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">extra_data</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;&quot;</span>
+137: 
+138:           <span class="ruby-comment cmt"># Log it out and accumulate</span>
+139:           <span class="ruby-ivar">@logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-identifier">extra_data</span>)
+140:           <span class="ruby-identifier">io_name</span> = <span class="ruby-identifier">io</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">stdout</span> <span class="ruby-value">? </span><span class="ruby-operator">:</span><span class="ruby-identifier">stdout</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">:stderr</span>
+141:           <span class="ruby-identifier">io_data</span>[<span class="ruby-identifier">io_name</span>] <span class="ruby-operator">+=</span> <span class="ruby-identifier">extra_data</span>
+142: 
+143:           <span class="ruby-comment cmt"># Yield to any listeners any remaining data</span>
+144:           <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">io_name</span>, <span class="ruby-identifier">extra_data</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+145:         <span class="ruby-keyword kw">end</span>
+146: 
+147:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">RUBY_PLATFORM</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;java&quot;</span>
+148:           <span class="ruby-comment cmt"># On JRuby, we need to close the writers after the process,</span>
+149:           <span class="ruby-comment cmt"># for some reason. See GH-711.</span>
+150:           <span class="ruby-identifier">stdout_writer</span>.<span class="ruby-identifier">close</span>
+151:           <span class="ruby-identifier">stderr_writer</span>.<span class="ruby-identifier">close</span>
+152:         <span class="ruby-keyword kw">end</span>
+153: 
+154:         <span class="ruby-comment cmt"># Return an exit status container</span>
+155:         <span class="ruby-keyword kw">return</span> <span class="ruby-constant">Result</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">process</span>.<span class="ruby-identifier">exit_code</span>, <span class="ruby-identifier">io_data</span>[<span class="ruby-identifier">:stdout</span>], <span class="ruby-identifier">io_data</span>[<span class="ruby-identifier">:stderr</span>])
+156:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000622">
+                    
+                    <a name="M000622"></a><b>read_io</b>(io)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Reads data from an IO object while it can, returning the data it reads.
+When it encounters a case when it can&#8217;t read anymore, it returns the
+data.
+</p>
+<p>
+@return [String]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000622_source')" id="l_M000622_source">show</a>
+                        
+                    </p>
+                    <div id="M000622_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/vagrant/util/subprocess.rb, line 165</span>
+165:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">read_io</span>(<span class="ruby-identifier">io</span>)
+166:         <span class="ruby-identifier">data</span> = <span class="ruby-value str">&quot;&quot;</span>
+167: 
+168:         <span class="ruby-keyword kw">while</span> <span class="ruby-keyword kw">true</span>
+169:           <span class="ruby-keyword kw">begin</span>
+170:             <span class="ruby-keyword kw">if</span> <span class="ruby-constant">Platform</span>.<span class="ruby-identifier">windows?</span>
+171:               <span class="ruby-comment cmt"># Windows doesn't support non-blocking reads on</span>
+172:               <span class="ruby-comment cmt"># file descriptors or pipes so we have to get</span>
+173:               <span class="ruby-comment cmt"># a bit more creative.</span>
+174:               <span class="ruby-identifier">data</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">readpartial</span>(<span class="ruby-constant">READ_CHUNK_SIZE</span>)
+175:             <span class="ruby-keyword kw">else</span>
+176:               <span class="ruby-comment cmt"># Do a simple non-blocking read on the IO object</span>
+177:               <span class="ruby-identifier">data</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read_nonblock</span>(<span class="ruby-constant">READ_CHUNK_SIZE</span>)
+178:             <span class="ruby-keyword kw">end</span>
+179:           <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">e</span>
+180:             <span class="ruby-comment cmt"># The catch-all rescue here is to support multiple Ruby versions,</span>
+181:             <span class="ruby-comment cmt"># since we use some Ruby 1.9 specific exceptions.</span>
+182: 
+183:             <span class="ruby-identifier">breakable</span> = <span class="ruby-keyword kw">false</span>
+184:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">EOFError</span>)
+185:               <span class="ruby-comment cmt"># An `EOFError` means this IO object is done!</span>
+186:               <span class="ruby-identifier">breakable</span> = <span class="ruby-keyword kw">true</span>
+187:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-keyword kw">defined?</span>(<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">WaitReadable</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">IO</span><span class="ruby-operator">::</span><span class="ruby-constant">WaitReadable</span>)
+188:               <span class="ruby-comment cmt"># IO::WaitReadable is only available on Ruby 1.9+</span>
+189: 
+190:               <span class="ruby-comment cmt"># An IO::WaitReadable means there may be more IO but this</span>
+191:               <span class="ruby-comment cmt"># IO object is not ready to be read from yet. No problem,</span>
+192:               <span class="ruby-comment cmt"># we read as much as we can, so we break.</span>
+193:               <span class="ruby-identifier">breakable</span> = <span class="ruby-keyword kw">true</span>
+194:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">e</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EAGAIN</span>)
+195:               <span class="ruby-comment cmt"># Otherwise, we just look for the EAGAIN error which should be</span>
+196:               <span class="ruby-comment cmt"># all that IO::WaitReadable does in Ruby 1.9.</span>
+197:               <span class="ruby-identifier">breakable</span> = <span class="ruby-keyword kw">true</span>
+198:             <span class="ruby-keyword kw">end</span>
+199: 
+200:             <span class="ruby-comment cmt"># Break out if we're supposed to. Otherwise re-raise the error</span>
+201:             <span class="ruby-comment cmt"># because it is a real problem.</span>
+202:             <span class="ruby-keyword kw">break</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">breakable</span>
+203:             <span class="ruby-identifier">raise</span>
+204:           <span class="ruby-keyword kw">end</span>
+205:         <span class="ruby-keyword kw">end</span>
+206: 
+207:         <span class="ruby-identifier">data</span>
+208:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000615">
+                    
+                    <a name="M000615"></a><b>execute</b>(*command, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Convenience method for executing a method.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000615_source')" id="l_M000615_source">show</a>
+                        
+                    </p>
+                    <div id="M000615_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/util/subprocess.rb, line 19</span>
+19:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">execute</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">command</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+20:         <span class="ruby-identifier">new</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">command</span>).<span class="ruby-identifier">execute</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+21:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000616">
+                    
+                    <a name="M000616"></a><b>new</b>(*command)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000616_source')" id="l_M000616_source">show</a>
+                        
+                    </p>
+                    <div id="M000616_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/util/subprocess.rb, line 23</span>
+23:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">command</span>)
+24:         <span class="ruby-ivar">@options</span> = <span class="ruby-identifier">command</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">command</span>.<span class="ruby-identifier">pop</span> <span class="ruby-operator">:</span> {}
+25:         <span class="ruby-ivar">@command</span> = <span class="ruby-identifier">command</span>
+26:         <span class="ruby-ivar">@logger</span>  = <span class="ruby-constant">Log4r</span><span class="ruby-operator">::</span><span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;vagrant::util::subprocess&quot;</span>)
+27:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

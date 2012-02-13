@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>ActiveRecord::Validations::ClassMethods</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            ActiveRecord::Validations::ClassMethods 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/activerecord-3_2_1/lib/active_record/validations/associated_rb.html">activerecord-3.2.1/lib/active_record/validations/associated.rb</a></li>
+            
+            <li><a href="../../../files/activerecord-3_2_1/lib/active_record/validations_rb.html">activerecord-3.2.1/lib/active_record/validations.rb</a></li>
+            
+            <li><a href="../../../files/activerecord-3_2_1/lib/active_record/validations/uniqueness_rb.html">activerecord-3.2.1/lib/active_record/validations/uniqueness.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001801">create!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M001785">validates_associated</a>,</li>
+                
+                <li><a href="#M001806">validates_uniqueness_of</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M001801">
+                    
+                    <a name="M001801"></a><b>create!</b>(attributes = nil, options = {}, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Creates an object just like Base.create but calls <tt>save!</tt> instead of
+<tt>save</tt> so an exception is raised if the record is invalid.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001801_source')" id="l_M001801_source">show</a>
+                        
+                    </p>
+                    <div id="M001801_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.1/lib/active_record/validations.rb, line 35</span>
+35:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create!</span>(<span class="ruby-identifier">attributes</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">options</span> = {}, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+36:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Array</span>)
+37:           <span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">collect</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">attr</span><span class="ruby-operator">|</span> <span class="ruby-identifier">create!</span>(<span class="ruby-identifier">attr</span>, <span class="ruby-identifier">options</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>) }
+38:         <span class="ruby-keyword kw">else</span>
+39:           <span class="ruby-identifier">object</span> = <span class="ruby-identifier">new</span>(<span class="ruby-identifier">attributes</span>, <span class="ruby-identifier">options</span>)
+40:           <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">object</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+41:           <span class="ruby-identifier">object</span>.<span class="ruby-identifier">save!</span>
+42:           <span class="ruby-identifier">object</span>
+43:         <span class="ruby-keyword kw">end</span>
+44:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001785">
+                    
+                    <a name="M001785"></a><b>validates_associated</b>(*attr_names)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Validates whether the associated object or objects are all valid
+themselves. Works with any kind of association.
+</p>
+<pre>
+  class Book &lt; ActiveRecord::Base
+    has_many :pages
+    belongs_to :library
+
+    validates_associated :pages, :library
+  end
+</pre>
+<p>
+WARNING: This validation must not be used on both ends of an association.
+Doing so will lead to a circular dependency and cause infinite recursion.
+</p>
+<p>
+NOTE: This validation will not fail if the association hasn&#8217;t been
+assigned. If you want to ensure that the association is both present and
+guaranteed to be valid, you also need to use
+<tt>validates_presence_of</tt>.
+</p>
+<p>
+Configuration options:
+</p>
+<ul>
+<li><tt>:message</tt> - A custom error message (default is: &#8220;is
+invalid&#8221;)
+
+</li>
+<li><tt>:on</tt> - Specifies when this validation is active. Runs in all
+validation contexts by default (<tt>nil</tt>), other options are
+<tt>:create</tt> and <tt>:update</tt>.
+
+</li>
+<li><tt>:if</tt> - Specifies a method, proc or string to call to determine if
+the validation should occur (e.g. <tt>:if =&gt; :allow_validation</tt>, or
+<tt>:if =&gt; Proc.new { |user| user.signup_step &gt; 2 }</tt>). The
+method, proc or string should return or evaluate to a true or false value.
+
+</li>
+<li><tt>:unless</tt> - Specifies a method, proc or string to call to determine
+if the validation should not occur (e.g. <tt>:unless =&gt;
+:skip_validation</tt>, or <tt>:unless =&gt; Proc.new { |user|
+user.signup_step &lt;= 2 }</tt>). The method, proc or string should return
+or evaluate to a true or false value.
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001785_source')" id="l_M001785_source">show</a>
+                        
+                    </p>
+                    <div id="M001785_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File activerecord-3.2.1/lib/active_record/validations/associated.rb, line 38</span>
+38:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validates_associated</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">attr_names</span>)
+39:         <span class="ruby-identifier">validates_with</span> <span class="ruby-constant">AssociatedValidator</span>, <span class="ruby-identifier">_merge_attributes</span>(<span class="ruby-identifier">attr_names</span>)
+40:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M001806">
+                    
+                    <a name="M001806"></a><b>validates_uniqueness_of</b>(*attr_names)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Validates whether the value of the specified attributes are unique across
+the system. Useful for making sure that only one user can be named
+&#8220;davidhh&#8221;.
+</p>
+<pre>
+  class Person &lt; ActiveRecord::Base
+    validates_uniqueness_of :user_name
+  end
+</pre>
+<p>
+It can also validate whether the value of the specified attributes are
+unique based on a scope parameter:
+</p>
+<pre>
+  class Person &lt; ActiveRecord::Base
+    validates_uniqueness_of :user_name, :scope =&gt; :account_id
+  end
+</pre>
+<p>
+Or even multiple scope parameters. For example, making sure that a teacher
+can only be on the schedule once per semester for a particular class.
+</p>
+<pre>
+  class TeacherSchedule &lt; ActiveRecord::Base
+    validates_uniqueness_of :teacher_id, :scope =&gt; [:semester_id, :class_id]
+  end
+</pre>
+<p>
+When the record is created, a check is performed to make sure that no
+record exists in the database with the given value for the specified
+attribute (that maps to a column). When the record is updated, the same
+check is made but disregarding the record itself.
+</p>
+<p>
+Configuration options:
+</p>
+<ul>
+<li><tt>:message</tt> - Specifies a custom error message (default is:
+&#8220;has already been taken&#8221;).
+
+</li>
+<li><tt>:scope</tt> - One or more columns by which to limit the scope of the
+uniqueness constraint.
+
+</li>
+<li><tt>:case_sensitive</tt> - Looks for an exact match. Ignored by non-text
+columns (<tt>true</tt> by default).
+
+</li>
+<li><tt>:allow_nil</tt> - If set to true, skips this validation if the
+attribute is <tt>nil</tt> (default is <tt>false</tt>).
+
+</li>
+<li><tt>:allow_blank</tt> - If set to true, skips this validation if the
+attribute is blank (default is <tt>false</tt>).
+
+</li>
+<li><tt>:if</tt> - Specifies a method, proc or string to call to determine if
+the validation should occur (e.g. <tt>:if =&gt; :allow_validation</tt>, or
+<tt>:if =&gt; Proc.new { |user| user.signup_step &gt; 2 }</tt>). The
+method, proc or string should return or evaluate to a true or false value.
+
+</li>
+<li><tt>:unless</tt> - Specifies a method, proc or string to call to determine
+if the validation should not occur (e.g. <tt>:unless =&gt;
+:skip_validation</tt>, or <tt>:unless =&gt; Proc.new { |user|
+user.signup_step &lt;= 2 }</tt>). The method, proc or string should return
+or evaluate to a true or false value.
+
+</li>
+</ul>
+<h3>Concurrency and integrity</h3>
+<p>
+Using this validation method in conjunction with ActiveRecord::Base#save
+does not guarantee the absence of duplicate record insertions, because
+uniqueness checks on the application level are inherently prone to race
+conditions. For example, suppose that two users try to post a Comment at
+the same time, and a Comment&#8217;s title must be unique. At the
+database-level, the actions performed by these users could be interleaved
+in the following manner:
+</p>
+<pre>
+              User 1                 |               User 2
+ ------------------------------------+--------------------------------------
+ # User 1 checks whether there's     |
+ # already a comment with the title  |
+ # 'My Post'. This is not the case.  |
+ SELECT * FROM comments              |
+ WHERE title = 'My Post'             |
+                                     |
+                                     | # User 2 does the same thing and also
+                                     | # infers that his title is unique.
+                                     | SELECT * FROM comments
+                                     | WHERE title = 'My Post'
+                                     |
+ # User 1 inserts his comment.       |
+ INSERT INTO comments                |
+ (title, content) VALUES             |
+ ('My Post', 'hi!')                  |
+                                     |
+                                     | # User 2 does the same thing.
+                                     | INSERT INTO comments
+                                     | (title, content) VALUES
+                                     | ('My Post', 'hello!')
+                                     |
+                                     | # ^^^^^^
+                                     | # Boom! We now have a duplicate
+                                     | # title!
+</pre>
+<p>
+This could even happen if you use transactions with the
+&#8216;serializable&#8217; isolation level. The best way to work around
+this problem is to add a unique index to the database table using
+ActiveRecord::ConnectionAdapters::SchemaStatements#add_index. In the rare
+case that a race condition occurs, the database will guarantee the
+field&#8217;s uniqueness.
+</p>
+<p>
+When the database catches such a duplicate insertion,
+ActiveRecord::Base#save will raise an <a
+href="../StatementInvalid.html">ActiveRecord::StatementInvalid</a>
+exception. You can either choose to let this error propagate (which will
+result in the default <a href="../../Rails.html">Rails</a> exception page
+being shown), or you can catch it and restart the transaction (e.g. by
+telling the user that the title already exists, and asking him to re-enter
+the title). This technique is also known as optimistic concurrency control:
+<a
+href="http://en.wikipedia.org/wiki/Optimistic_concurrency_control">en.wikipedia.org/wiki/Optimistic_concurrency_control</a>
+</p>
+<p>
+The bundled ActiveRecord::ConnectionAdapters distinguish unique index
+constraint errors from other types of database errors by throwing an <a
+href="../RecordNotUnique.html">ActiveRecord::RecordNotUnique</a> exception.
+For other adapters you will have to parse the (database-specific) exception
+message to detect such a case. The following bundled adapters throw the <a
+href="../RecordNotUnique.html">ActiveRecord::RecordNotUnique</a> exception:
+</p>
+<ul>
+<li><a
+href="../ConnectionAdapters/MysqlAdapter.html">ActiveRecord::ConnectionAdapters::MysqlAdapter</a>
+
+</li>
+<li><a
+href="../ConnectionAdapters/Mysql2Adapter.html">ActiveRecord::ConnectionAdapters::Mysql2Adapter</a>
+
+</li>
+<li><a
+href="../ConnectionAdapters/SQLiteAdapter.html">ActiveRecord::ConnectionAdapters::SQLiteAdapter</a>
+
+</li>
+<li>ActiveRecord::ConnectionAdapters::SQLite3Adapter
+
+</li>
+<li><a
+href="../ConnectionAdapters/PostgreSQLAdapter.html">ActiveRecord::ConnectionAdapters::PostgreSQLAdapter</a>
+
+</li>
+</ul>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M001806_source')" id="l_M001806_source">show</a>
+                        
+                    </p>
+                    <div id="M001806_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File activerecord-3.2.1/lib/active_record/validations/uniqueness.rb, line 175</span>
+175:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">validates_uniqueness_of</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">attr_names</span>)
+176:         <span class="ruby-identifier">validates_with</span> <span class="ruby-constant">UniquenessValidator</span>, <span class="ruby-identifier">_merge_attributes</span>(<span class="ruby-identifier">attr_names</span>)
+177:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

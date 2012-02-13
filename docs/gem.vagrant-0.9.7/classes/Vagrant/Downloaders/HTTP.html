@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Downloaders::HTTP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Downloaders::HTTP 
+            
+                <span class="parent">&lt; 
+                    
+                    Base
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/downloaders/http_rb.html">lib/vagrant/downloaders/http.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Downloads a file from an <a href="HTTP.html">HTTP</a> URL to a temporary
+file. This downloader reports its progress to stdout while downloading.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000257">download!</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000256">match?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000258">resolve_proxy</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000257">
+                    
+                    <a name="M000257"></a><b>download!</b>(source_url, destination_file)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000257_source')" id="l_M000257_source">show</a>
+                        
+                    </p>
+                    <div id="M000257_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/downloaders/http.rb, line 17</span>
+17:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">download!</span>(<span class="ruby-identifier">source_url</span>, <span class="ruby-identifier">destination_file</span>)
+18:         <span class="ruby-identifier">uri</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">source_url</span>)
+19:         <span class="ruby-identifier">proxy_uri</span> = <span class="ruby-identifier">resolve_proxy</span>(<span class="ruby-identifier">uri</span>)
+20: 
+21:         <span class="ruby-identifier">http</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">port</span>, <span class="ruby-identifier">proxy_uri</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">proxy_uri</span>.<span class="ruby-identifier">port</span>, <span class="ruby-identifier">proxy_uri</span>.<span class="ruby-identifier">user</span>, <span class="ruby-identifier">proxy_uri</span>.<span class="ruby-identifier">password</span>)
+22: 
+23:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">scheme</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;https&quot;</span>
+24:           <span class="ruby-identifier">http</span>.<span class="ruby-identifier">use_ssl</span> = <span class="ruby-keyword kw">true</span>
+25:           <span class="ruby-identifier">http</span>.<span class="ruby-identifier">verify_mode</span> = <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSL</span><span class="ruby-operator">::</span><span class="ruby-constant">VERIFY_NONE</span>
+26:         <span class="ruby-keyword kw">end</span>
+27: 
+28:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">start</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">h</span><span class="ruby-operator">|</span>
+29:           <span class="ruby-ivar">@ui</span>.<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.downloaders.http.download&quot;</span>, <span class="ruby-identifier">:url</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">source_url</span>)
+30: 
+31:           <span class="ruby-identifier">headers</span> = <span class="ruby-keyword kw">nil</span>
+32:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">user</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">password</span>
+33:             <span class="ruby-identifier">headers</span> = {<span class="ruby-value str">'Authorization'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'Basic '</span> <span class="ruby-operator">+</span> <span class="ruby-constant">Base64</span>.<span class="ruby-identifier">encode64</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">user</span> <span class="ruby-operator">+</span> <span class="ruby-value str">':'</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">uri</span>.<span class="ruby-identifier">password</span>)}
+34:           <span class="ruby-keyword kw">end</span>
+35: 
+36:           <span class="ruby-identifier">h</span>.<span class="ruby-identifier">request_get</span>(<span class="ruby-identifier">uri</span>.<span class="ruby-identifier">request_uri</span>, <span class="ruby-identifier">headers</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">response</span><span class="ruby-operator">|</span>
+37:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPRedirection</span>)
+38:               <span class="ruby-comment cmt"># Follow the HTTP redirect.</span>
+39:               <span class="ruby-comment cmt"># TODO: Error on some redirect limit</span>
+40:               <span class="ruby-identifier">download!</span>(<span class="ruby-identifier">response</span>[<span class="ruby-value str">&quot;Location&quot;</span>], <span class="ruby-identifier">destination_file</span>)
+41:               <span class="ruby-keyword kw">return</span>
+42:             <span class="ruby-keyword kw">elsif</span> <span class="ruby-operator">!</span><span class="ruby-identifier">response</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPOK</span>)
+43:               <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">DownloaderHTTPStatusError</span>, <span class="ruby-identifier">:status</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">code</span>
+44:             <span class="ruby-keyword kw">end</span>
+45: 
+46:             <span class="ruby-identifier">total</span> = <span class="ruby-identifier">response</span>.<span class="ruby-identifier">content_length</span>
+47:             <span class="ruby-identifier">progress</span> = <span class="ruby-value">0</span>
+48:             <span class="ruby-identifier">segment_count</span> = <span class="ruby-value">0</span>
+49: 
+50:             <span class="ruby-identifier">response</span>.<span class="ruby-identifier">read_body</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">segment</span><span class="ruby-operator">|</span>
+51:               <span class="ruby-comment cmt"># Report the progress out</span>
+52:               <span class="ruby-identifier">progress</span> <span class="ruby-operator">+=</span> <span class="ruby-identifier">segment</span>.<span class="ruby-identifier">length</span>
+53:               <span class="ruby-identifier">segment_count</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+54: 
+55:               <span class="ruby-comment cmt"># Progress reporting is limited to every 25 segments just so</span>
+56:               <span class="ruby-comment cmt"># we're not constantly updating</span>
+57:               <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">segment_count</span> <span class="ruby-operator">%</span> <span class="ruby-value">25</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+58:                 <span class="ruby-ivar">@ui</span>.<span class="ruby-identifier">clear_line</span>
+59:                 <span class="ruby-ivar">@ui</span>.<span class="ruby-identifier">report_progress</span>(<span class="ruby-identifier">progress</span>, <span class="ruby-identifier">total</span>)
+60:                 <span class="ruby-identifier">segment_count</span> = <span class="ruby-value">0</span>
+61:               <span class="ruby-keyword kw">end</span>
+62: 
+63:               <span class="ruby-comment cmt"># Store the segment</span>
+64:               <span class="ruby-identifier">destination_file</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">segment</span>)
+65:             <span class="ruby-keyword kw">end</span>
+66: 
+67:             <span class="ruby-comment cmt"># Clear the line one last time so that the progress meter disappears</span>
+68:             <span class="ruby-ivar">@ui</span>.<span class="ruby-identifier">clear_line</span>
+69:           <span class="ruby-keyword kw">end</span>
+70:         <span class="ruby-keyword kw">end</span>
+71:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">SocketError</span>
+72:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Errors</span><span class="ruby-operator">::</span><span class="ruby-constant">DownloaderHTTPSocketError</span>
+73:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000258">
+                    
+                    <a name="M000258"></a><b>resolve_proxy</b>(source_uri)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This method respects the &#8220;http_proxy&#8220; and
+&#8220;no_proxy&#8220; environmental variables so that <a
+href="HTTP.html">HTTP</a> proxies can properly be used with <a
+href="../../Vagrant.html">Vagrant</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000258_source')" id="l_M000258_source">show</a>
+                        
+                    </p>
+                    <div id="M000258_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/downloaders/http.rb, line 79</span>
+79:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">resolve_proxy</span>(<span class="ruby-identifier">source_uri</span>)
+80:         <span class="ruby-identifier">proxy_string</span> = <span class="ruby-constant">ENV</span>[<span class="ruby-value str">&quot;http_proxy&quot;</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&quot;</span>
+81:         <span class="ruby-keyword kw">if</span> <span class="ruby-operator">!</span><span class="ruby-identifier">proxy_string</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-constant">ENV</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-value str">&quot;no_proxy&quot;</span>)
+82:           <span class="ruby-comment cmt"># Respect the &quot;no_proxy&quot; environmental variable which contains a list</span>
+83:           <span class="ruby-comment cmt"># of hosts that a proxy should not be used for.</span>
+84:           <span class="ruby-constant">ENV</span>[<span class="ruby-value str">&quot;no_proxy&quot;</span>].<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;,&quot;</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">host</span><span class="ruby-operator">|</span>
+85:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">source_uri</span>.<span class="ruby-identifier">host</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/#{Regexp.quote(host.strip)}$/</span>
+86:               <span class="ruby-identifier">proxy_string</span> = <span class="ruby-value str">&quot;&quot;</span>
+87:               <span class="ruby-keyword kw">break</span>
+88:             <span class="ruby-keyword kw">end</span>
+89:           <span class="ruby-keyword kw">end</span>
+90:         <span class="ruby-keyword kw">end</span>
+91: 
+92:         <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">proxy_string</span>)
+93:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000256">
+                    
+                    <a name="M000256"></a><b>match?</b>(uri)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000256_source')" id="l_M000256_source">show</a>
+                        
+                    </p>
+                    <div id="M000256_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/downloaders/http.rb, line 11</span>
+11:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">match?</span>(<span class="ruby-identifier">uri</span>)
+12:         <span class="ruby-comment cmt"># URI.parse barfs on '&lt;drive letter&gt;:\\files \on\ windows'</span>
+13:         <span class="ruby-identifier">extracted</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">extract</span>(<span class="ruby-identifier">uri</span>).<span class="ruby-identifier">first</span>
+14:         <span class="ruby-identifier">extracted</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">extracted</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">uri</span>)
+15:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

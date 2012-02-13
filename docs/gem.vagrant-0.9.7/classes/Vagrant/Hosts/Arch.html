@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Vagrant::Hosts::Arch</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Vagrant::Hosts::Arch 
+            
+                <span class="parent">&lt; 
+                    
+                    Linux
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/vagrant/hosts/arch_rb.html">lib/vagrant/hosts/arch.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000425">match?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000427">nfs_export</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000426">precedence</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000427">
+                    
+                    <a name="M000427"></a><b>nfs_export</b>(id, ip, folders)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000427_source')" id="l_M000427_source">show</a>
+                        
+                    </p>
+                    <div id="M000427_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/hosts/arch.rb, line 13</span>
+13:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">nfs_export</span>(<span class="ruby-identifier">id</span>, <span class="ruby-identifier">ip</span>, <span class="ruby-identifier">folders</span>)
+14:         <span class="ruby-identifier">output</span> = <span class="ruby-constant">TemplateRenderer</span>.<span class="ruby-identifier">render</span>(<span class="ruby-value str">'nfs/exports_linux'</span>,
+15:                                          <span class="ruby-identifier">:uuid</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">id</span>,
+16:                                          <span class="ruby-identifier">:ip</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ip</span>,
+17:                                          <span class="ruby-identifier">:folders</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">folders</span>)
+18: 
+19:         <span class="ruby-ivar">@ui</span>.<span class="ruby-identifier">info</span> <span class="ruby-constant">I18n</span>.<span class="ruby-identifier">t</span>(<span class="ruby-value str">&quot;vagrant.hosts.arch.nfs_export.prepare&quot;</span>)
+20:         <span class="ruby-identifier">sleep</span> <span class="ruby-value">0</span><span class="ruby-value">.5</span>
+21: 
+22:         <span class="ruby-identifier">output</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;\n&quot;</span>).<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">line</span><span class="ruby-operator">|</span>
+23:           <span class="ruby-comment cmt"># This should only ask for administrative permission once, even</span>
+24:           <span class="ruby-comment cmt"># though its executed in multiple subshells.</span>
+25:           <span class="ruby-identifier">system</span>(<span class="ruby-node">%Q[sudo su root -c &quot;echo '#{line}' &gt;&gt; /etc/exports&quot;]</span>)
+26:         <span class="ruby-keyword kw">end</span>
+27: 
+28:         <span class="ruby-comment cmt"># We run restart here instead of &quot;update&quot; just in case nfsd</span>
+29:         <span class="ruby-comment cmt"># is not starting</span>
+30:         <span class="ruby-identifier">system</span>(<span class="ruby-value str">&quot;sudo /etc/rc.d/rpcbind restart&quot;</span>)
+31:         <span class="ruby-identifier">system</span>(<span class="ruby-value str">&quot;sudo /etc/rc.d/nfs-common restart&quot;</span>)
+32:         <span class="ruby-identifier">system</span>(<span class="ruby-value str">&quot;sudo /etc/rc.d/nfs-server restart&quot;</span>)
+33:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000425">
+                    
+                    <a name="M000425"></a><b>match?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000425_source')" id="l_M000425_source">show</a>
+                        
+                    </p>
+                    <div id="M000425_source" class="dyn-source">
+                        <pre>   <span class="ruby-comment cmt"># File lib/vagrant/hosts/arch.rb, line 4</span>
+4:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">match?</span>
+5:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-value str">&quot;/etc/rc.conf&quot;</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">exist?</span>(<span class="ruby-value str">&quot;/etc/pacman.conf&quot;</span>)
+6:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000426">
+                    
+                    <a name="M000426"></a><b>precedence</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Normal, mid-range precedence.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000426_source')" id="l_M000426_source">show</a>
+                        
+                    </p>
+                    <div id="M000426_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/vagrant/hosts/arch.rb, line 9</span>
+ 9:       <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">precedence</span>
+10:         <span class="ruby-value">5</span>
+11:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

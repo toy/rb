@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Daemonize</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Daemonize 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../files/lib/daemons/daemonize_rb.html">lib/daemons/daemonize.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000045">call_as_daemon</a>,</li>
+                
+                <li><a href="#M000045">call_as_daemon</a>,</li>
+                
+                <li><a href="#M000047">close_io</a>,</li>
+                
+                <li><a href="#M000047">close_io</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000046">daemonize</a>,</li>
+                
+                <li><a href="#M000046">daemonize</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000048">redirect_io</a>,</li>
+                
+                <li><a href="#M000048">redirect_io</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000043">safefork</a>,</li>
+                
+                <li><a href="#M000043">safefork</a>,</li>
+                
+                <li><a href="#M000044">simulate</a>,</li>
+                
+                <li><a href="#M000044">simulate</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000045">
+                    
+                    <a name="M000045"></a><b>call_as_daemon</b>(block, logfile_name = nil, app_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Call a given block as a daemon
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000045_source')" id="l_M000045_source">show</a>
+                        
+                    </p>
+                    <div id="M000045_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 39</span>
+39:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call_as_daemon</span>(<span class="ruby-identifier">block</span>, <span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">app_name</span> = <span class="ruby-keyword kw">nil</span>)
+40:     <span class="ruby-comment cmt"># we use a pipe to return the PID of the daemon</span>
+41:     <span class="ruby-identifier">rd</span>, <span class="ruby-identifier">wr</span> = <span class="ruby-constant">IO</span>.<span class="ruby-identifier">pipe</span>
+42:     
+43:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tmppid</span> = <span class="ruby-identifier">safefork</span>
+44:       <span class="ruby-comment cmt"># in the parent</span>
+45:       
+46:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">close</span>
+47:       <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">read</span>.<span class="ruby-identifier">to_i</span>
+48:       <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">close</span>
+49:       
+50:       <span class="ruby-constant">Process</span>.<span class="ruby-identifier">waitpid</span>(<span class="ruby-identifier">tmppid</span>)
+51:       
+52:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">pid</span>
+53:     <span class="ruby-keyword kw">else</span>
+54:       <span class="ruby-comment cmt"># in the child</span>
+55:       
+56:       <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">close</span>
+57:       
+58:       <span class="ruby-comment cmt"># Detach from the controlling terminal</span>
+59:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">sess_id</span> = <span class="ruby-constant">Process</span>.<span class="ruby-identifier">setsid</span>
+60:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Daemons</span>.<span class="ruby-constant">RuntimeException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'cannot detach from controlling terminal'</span>)
+61:       <span class="ruby-keyword kw">end</span>
+62:   
+63:       <span class="ruby-comment cmt"># Prevent the possibility of acquiring a controlling terminal</span>
+64:       <span class="ruby-identifier">trap</span> <span class="ruby-value str">'SIGHUP'</span>, <span class="ruby-value str">'IGNORE'</span>
+65:       <span class="ruby-identifier">exit</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">safefork</span>
+66:   
+67:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">write</span> <span class="ruby-constant">Process</span>.<span class="ruby-identifier">pid</span>
+68:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">close</span>
+69:       
+70:       <span class="ruby-identifier">$0</span> = <span class="ruby-identifier">app_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">app_name</span>
+71:       
+72:       <span class="ruby-comment cmt"># Release old working directory</span>
+73:       <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>   
+74:   
+75:       <span class="ruby-identifier">close_io</span>()
+76: 
+77:       <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)  
+78:     
+79:       <span class="ruby-identifier">block</span>.<span class="ruby-identifier">call</span>
+80:       
+81:       <span class="ruby-identifier">exit</span>
+82:     <span class="ruby-keyword kw">end</span>
+83:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000047">
+                    
+                    <a name="M000047"></a><b>close_io</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000047_source')" id="l_M000047_source">show</a>
+                        
+                    </p>
+                    <div id="M000047_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 118</span>
+118:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">close_io</span>()
+119:     <span class="ruby-comment cmt"># Make sure all input/output streams are closed</span>
+120:     <span class="ruby-comment cmt"># Part I: close all IO objects (except for STDIN/STDOUT/STDERR)</span>
+121:     <span class="ruby-constant">ObjectSpace</span>.<span class="ruby-identifier">each_object</span>(<span class="ruby-constant">IO</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+122:       <span class="ruby-keyword kw">unless</span> [<span class="ruby-constant">STDIN</span>, <span class="ruby-constant">STDOUT</span>, <span class="ruby-constant">STDERR</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">io</span>)
+123:         <span class="ruby-keyword kw">begin</span>
+124:           <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">closed?</span>
+125:             <span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+126:           <span class="ruby-keyword kw">end</span>
+127:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>
+128:         <span class="ruby-keyword kw">end</span>
+129:       <span class="ruby-keyword kw">end</span>
+130:     <span class="ruby-keyword kw">end</span>
+131:     
+132:     <span class="ruby-comment cmt"># Make sure all input/output streams are closed</span>
+133:     <span class="ruby-comment cmt"># Part II: close all file decriptors (except for STDIN/STDOUT/STDERR)</span>
+134:     <span class="ruby-identifier">ios</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">8192</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-constant">IO</span>.<span class="ruby-identifier">for_fd</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">nil</span>}.<span class="ruby-identifier">compact</span>
+135:     <span class="ruby-identifier">ios</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+136:       <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">fileno</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">3</span>
+137:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+138:     <span class="ruby-keyword kw">end</span>
+139:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000046">
+                    
+                    <a name="M000046"></a><b>daemonize</b>(logfile_name = nil, app_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Transform the current process into a daemon
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000046_source')" id="l_M000046_source">show</a>
+                        
+                    </p>
+                    <div id="M000046_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 88</span>
+ 88:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">daemonize</span>(<span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">app_name</span> = <span class="ruby-keyword kw">nil</span>)
+ 89:     <span class="ruby-comment cmt"># Split rand streams between spawning and daemonized process</span>
+ 90:     <span class="ruby-identifier">srand</span> 
+ 91:     
+ 92:      <span class="ruby-comment cmt"># Fork and exit from the parent</span>
+ 93:     <span class="ruby-identifier">safefork</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">exit</span>
+ 94: 
+ 95:     <span class="ruby-comment cmt"># Detach from the controlling terminal</span>
+ 96:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">sess_id</span> = <span class="ruby-constant">Process</span>.<span class="ruby-identifier">setsid</span>
+ 97:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">Daemons</span>.<span class="ruby-constant">RuntimeException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'cannot detach from controlling terminal'</span>)
+ 98:     <span class="ruby-keyword kw">end</span>
+ 99: 
+100:     <span class="ruby-comment cmt"># Prevent the possibility of acquiring a controlling terminal</span>
+101:     <span class="ruby-identifier">trap</span> <span class="ruby-value str">'SIGHUP'</span>, <span class="ruby-value str">'IGNORE'</span>
+102:     <span class="ruby-identifier">exit</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">safefork</span>
+103:     
+104:     <span class="ruby-identifier">$0</span> = <span class="ruby-identifier">app_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">app_name</span>
+105:     
+106:     <span class="ruby-comment cmt"># Release old working directory</span>
+107:     <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>  
+108: 
+109:     <span class="ruby-identifier">close_io</span>()
+110: 
+111:     <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)
+112:     
+113:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">sess_id</span>
+114:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000048">
+                    
+                    <a name="M000048"></a><b>redirect_io</b>(logfile_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Free STDIN/STDOUT/STDERR file descriptors and point them somewhere sensible
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000048_source')" id="l_M000048_source">show</a>
+                        
+                    </p>
+                    <div id="M000048_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 145</span>
+145:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)
+146:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDIN</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>       
+147:      
+148:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">logfile_name</span>
+149:       <span class="ruby-keyword kw">begin</span>
+150:         <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-identifier">logfile_name</span>, <span class="ruby-value str">&quot;a&quot;</span> 
+151:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">chmod</span>(<span class="ruby-value">0644</span>, <span class="ruby-identifier">logfile_name</span>)
+152:         <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">sync</span> = <span class="ruby-keyword kw">true</span>
+153:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>
+154:         <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+155:       <span class="ruby-keyword kw">end</span>
+156:     <span class="ruby-keyword kw">else</span>
+157:       <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+158:     <span class="ruby-keyword kw">end</span>
+159:     
+160:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDERR</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-constant">STDOUT</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+161:     <span class="ruby-constant">STDERR</span>.<span class="ruby-identifier">sync</span> = <span class="ruby-keyword kw">true</span>
+162:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000043">
+                    
+                    <a name="M000043"></a><b>safefork</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to fork if at all possible retrying every 5 sec if the maximum process
+limit for the system has been reached
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000043_source')" id="l_M000043_source">show</a>
+                        
+                    </p>
+                    <div id="M000043_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 5</span>
+ 5:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">safefork</span>
+ 6:     <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">true</span>
+ 7: 
+ 8:     <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">tryagain</span>
+ 9:       <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">false</span>
+10:       <span class="ruby-keyword kw">begin</span>
+11:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">fork</span>
+12:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">pid</span>
+13:         <span class="ruby-keyword kw">end</span>
+14:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EWOULDBLOCK</span>
+15:         <span class="ruby-identifier">sleep</span> <span class="ruby-value">5</span>
+16:         <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">true</span>
+17:       <span class="ruby-keyword kw">end</span>
+18:     <span class="ruby-keyword kw">end</span>
+19:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000044">
+                    
+                    <a name="M000044"></a><b>simulate</b>(logfile_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Simulate the daemonization process (:ontop mode) NOTE: STDOUT and STDERR
+will not be redirected to the logfile, because in :ontop mode, we normally
+want to see the output
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000044_source')" id="l_M000044_source">show</a>
+                        
+                    </p>
+                    <div id="M000044_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 26</span>
+26:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">simulate</span>(<span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>)
+27:     <span class="ruby-comment cmt"># Release old working directory</span>
+28:     <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>   
+29: 
+30:     <span class="ruby-identifier">close_io</span>()
+31: 
+32:     <span class="ruby-comment cmt"># Free STDIN and point them somewhere sensible</span>
+33:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDIN</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>       
+34:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000045">
+                    
+                    <a name="M000045"></a><b>call_as_daemon</b>(block, logfile_name = nil, app_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Call a given block as a daemon
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000045_source')" id="l_M000045_source">show</a>
+                        
+                    </p>
+                    <div id="M000045_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 39</span>
+39:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call_as_daemon</span>(<span class="ruby-identifier">block</span>, <span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">app_name</span> = <span class="ruby-keyword kw">nil</span>)
+40:     <span class="ruby-comment cmt"># we use a pipe to return the PID of the daemon</span>
+41:     <span class="ruby-identifier">rd</span>, <span class="ruby-identifier">wr</span> = <span class="ruby-constant">IO</span>.<span class="ruby-identifier">pipe</span>
+42:     
+43:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">tmppid</span> = <span class="ruby-identifier">safefork</span>
+44:       <span class="ruby-comment cmt"># in the parent</span>
+45:       
+46:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">close</span>
+47:       <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">read</span>.<span class="ruby-identifier">to_i</span>
+48:       <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">close</span>
+49:       
+50:       <span class="ruby-constant">Process</span>.<span class="ruby-identifier">waitpid</span>(<span class="ruby-identifier">tmppid</span>)
+51:       
+52:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">pid</span>
+53:     <span class="ruby-keyword kw">else</span>
+54:       <span class="ruby-comment cmt"># in the child</span>
+55:       
+56:       <span class="ruby-identifier">rd</span>.<span class="ruby-identifier">close</span>
+57:       
+58:       <span class="ruby-comment cmt"># Detach from the controlling terminal</span>
+59:       <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">sess_id</span> = <span class="ruby-constant">Process</span>.<span class="ruby-identifier">setsid</span>
+60:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">Daemons</span>.<span class="ruby-constant">RuntimeException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'cannot detach from controlling terminal'</span>)
+61:       <span class="ruby-keyword kw">end</span>
+62:   
+63:       <span class="ruby-comment cmt"># Prevent the possibility of acquiring a controlling terminal</span>
+64:       <span class="ruby-identifier">trap</span> <span class="ruby-value str">'SIGHUP'</span>, <span class="ruby-value str">'IGNORE'</span>
+65:       <span class="ruby-identifier">exit</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">safefork</span>
+66:   
+67:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">write</span> <span class="ruby-constant">Process</span>.<span class="ruby-identifier">pid</span>
+68:       <span class="ruby-identifier">wr</span>.<span class="ruby-identifier">close</span>
+69:       
+70:       <span class="ruby-identifier">$0</span> = <span class="ruby-identifier">app_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">app_name</span>
+71:       
+72:       <span class="ruby-comment cmt"># Release old working directory</span>
+73:       <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>   
+74:   
+75:       <span class="ruby-identifier">close_io</span>()
+76: 
+77:       <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)  
+78:     
+79:       <span class="ruby-identifier">block</span>.<span class="ruby-identifier">call</span>
+80:       
+81:       <span class="ruby-identifier">exit</span>
+82:     <span class="ruby-keyword kw">end</span>
+83:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000047">
+                    
+                    <a name="M000047"></a><b>close_io</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000047_source')" id="l_M000047_source">show</a>
+                        
+                    </p>
+                    <div id="M000047_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 118</span>
+118:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">close_io</span>()
+119:     <span class="ruby-comment cmt"># Make sure all input/output streams are closed</span>
+120:     <span class="ruby-comment cmt"># Part I: close all IO objects (except for STDIN/STDOUT/STDERR)</span>
+121:     <span class="ruby-constant">ObjectSpace</span>.<span class="ruby-identifier">each_object</span>(<span class="ruby-constant">IO</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+122:       <span class="ruby-keyword kw">unless</span> [<span class="ruby-constant">STDIN</span>, <span class="ruby-constant">STDOUT</span>, <span class="ruby-constant">STDERR</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">io</span>)
+123:         <span class="ruby-keyword kw">begin</span>
+124:           <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">closed?</span>
+125:             <span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+126:           <span class="ruby-keyword kw">end</span>
+127:         <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>
+128:         <span class="ruby-keyword kw">end</span>
+129:       <span class="ruby-keyword kw">end</span>
+130:     <span class="ruby-keyword kw">end</span>
+131:     
+132:     <span class="ruby-comment cmt"># Make sure all input/output streams are closed</span>
+133:     <span class="ruby-comment cmt"># Part II: close all file decriptors (except for STDIN/STDOUT/STDERR)</span>
+134:     <span class="ruby-identifier">ios</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">8192</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-constant">IO</span>.<span class="ruby-identifier">for_fd</span>(<span class="ruby-identifier">i</span>) <span class="ruby-keyword kw">rescue</span> <span class="ruby-keyword kw">nil</span>}.<span class="ruby-identifier">compact</span>
+135:     <span class="ruby-identifier">ios</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+136:       <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">fileno</span> <span class="ruby-operator">&lt;</span> <span class="ruby-value">3</span>
+137:       <span class="ruby-identifier">io</span>.<span class="ruby-identifier">close</span>
+138:     <span class="ruby-keyword kw">end</span>
+139:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000046">
+                    
+                    <a name="M000046"></a><b>daemonize</b>(logfile_name = nil, app_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Transform the current process into a daemon
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000046_source')" id="l_M000046_source">show</a>
+                        
+                    </p>
+                    <div id="M000046_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 88</span>
+ 88:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">daemonize</span>(<span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">app_name</span> = <span class="ruby-keyword kw">nil</span>)
+ 89:     <span class="ruby-comment cmt"># Split rand streams between spawning and daemonized process</span>
+ 90:     <span class="ruby-identifier">srand</span> 
+ 91:     
+ 92:      <span class="ruby-comment cmt"># Fork and exit from the parent</span>
+ 93:     <span class="ruby-identifier">safefork</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">exit</span>
+ 94: 
+ 95:     <span class="ruby-comment cmt"># Detach from the controlling terminal</span>
+ 96:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">sess_id</span> = <span class="ruby-constant">Process</span>.<span class="ruby-identifier">setsid</span>
+ 97:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">Daemons</span>.<span class="ruby-constant">RuntimeException</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">'cannot detach from controlling terminal'</span>)
+ 98:     <span class="ruby-keyword kw">end</span>
+ 99: 
+100:     <span class="ruby-comment cmt"># Prevent the possibility of acquiring a controlling terminal</span>
+101:     <span class="ruby-identifier">trap</span> <span class="ruby-value str">'SIGHUP'</span>, <span class="ruby-value str">'IGNORE'</span>
+102:     <span class="ruby-identifier">exit</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">safefork</span>
+103:     
+104:     <span class="ruby-identifier">$0</span> = <span class="ruby-identifier">app_name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">app_name</span>
+105:     
+106:     <span class="ruby-comment cmt"># Release old working directory</span>
+107:     <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>  
+108: 
+109:     <span class="ruby-identifier">close_io</span>()
+110: 
+111:     <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)
+112:     
+113:     <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">sess_id</span>
+114:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000048">
+                    
+                    <a name="M000048"></a><b>redirect_io</b>(logfile_name)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Free STDIN/STDOUT/STDERR file descriptors and point them somewhere sensible
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000048_source')" id="l_M000048_source">show</a>
+                        
+                    </p>
+                    <div id="M000048_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 145</span>
+145:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect_io</span>(<span class="ruby-identifier">logfile_name</span>)
+146:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDIN</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>       
+147:      
+148:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">logfile_name</span>
+149:       <span class="ruby-keyword kw">begin</span>
+150:         <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-identifier">logfile_name</span>, <span class="ruby-value str">&quot;a&quot;</span> 
+151:         <span class="ruby-constant">File</span>.<span class="ruby-identifier">chmod</span>(<span class="ruby-value">0644</span>, <span class="ruby-identifier">logfile_name</span>)
+152:         <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">sync</span> = <span class="ruby-keyword kw">true</span>
+153:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>
+154:         <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+155:       <span class="ruby-keyword kw">end</span>
+156:     <span class="ruby-keyword kw">else</span>
+157:       <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDOUT</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+158:     <span class="ruby-keyword kw">end</span>
+159:     
+160:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDERR</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-constant">STDOUT</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>
+161:     <span class="ruby-constant">STDERR</span>.<span class="ruby-identifier">sync</span> = <span class="ruby-keyword kw">true</span>
+162:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000043">
+                    
+                    <a name="M000043"></a><b>safefork</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Try to fork if at all possible retrying every 5 sec if the maximum process
+limit for the system has been reached
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000043_source')" id="l_M000043_source">show</a>
+                        
+                    </p>
+                    <div id="M000043_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 5</span>
+ 5:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">safefork</span>
+ 6:     <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">true</span>
+ 7: 
+ 8:     <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">tryagain</span>
+ 9:       <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">false</span>
+10:       <span class="ruby-keyword kw">begin</span>
+11:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pid</span> = <span class="ruby-identifier">fork</span>
+12:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">pid</span>
+13:         <span class="ruby-keyword kw">end</span>
+14:       <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Errno</span><span class="ruby-operator">::</span><span class="ruby-constant">EWOULDBLOCK</span>
+15:         <span class="ruby-identifier">sleep</span> <span class="ruby-value">5</span>
+16:         <span class="ruby-identifier">tryagain</span> = <span class="ruby-keyword kw">true</span>
+17:       <span class="ruby-keyword kw">end</span>
+18:     <span class="ruby-keyword kw">end</span>
+19:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000044">
+                    
+                    <a name="M000044"></a><b>simulate</b>(logfile_name = nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Simulate the daemonization process (:ontop mode) NOTE: STDOUT and STDERR
+will not be redirected to the logfile, because in :ontop mode, we normally
+want to see the output
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000044_source')" id="l_M000044_source">show</a>
+                        
+                    </p>
+                    <div id="M000044_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/daemons/daemonize.rb, line 26</span>
+26:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">simulate</span>(<span class="ruby-identifier">logfile_name</span> = <span class="ruby-keyword kw">nil</span>)
+27:     <span class="ruby-comment cmt"># Release old working directory</span>
+28:     <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span> <span class="ruby-value str">&quot;/&quot;</span>   
+29: 
+30:     <span class="ruby-identifier">close_io</span>()
+31: 
+32:     <span class="ruby-comment cmt"># Free STDIN and point them somewhere sensible</span>
+33:     <span class="ruby-keyword kw">begin</span>; <span class="ruby-constant">STDIN</span>.<span class="ruby-identifier">reopen</span> <span class="ruby-value str">&quot;/dev/null&quot;</span>; <span class="ruby-keyword kw">rescue</span> <span class="ruby-operator">::</span><span class="ruby-constant">Exception</span>; <span class="ruby-keyword kw">end</span>       
+34:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

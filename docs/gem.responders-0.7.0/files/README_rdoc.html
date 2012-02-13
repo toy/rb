@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.rdoc</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.rdoc
+        </h1>
+        <ul class="files">
+            <li>README.rdoc</li>
+            <li>Last modified: Wed Jan 25 21:44:30 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2><a href="../classes/Responders.html">Responders</a></h2>
+<p>
+A set of responders modules to dry up your <a
+href="../classes/Rails.html">Rails</a> 3 app. If you are interested in the
+version to be used with <a href="../classes/Rails.html">Rails</a> 2.3
+together with Inherited Resources, please check this branch instead:
+</p>
+<pre>
+  http://github.com/plataformatec/responders/tree/v0.4
+</pre>
+<ul>
+<li>FlashResponder - Sets the flash based on the controller action and resource
+status. For instance, if you do: respond_with(@post) on a POST request and
+the resource @post does not contain errors, it will automatically set the
+flash message to &#8220;Post was successfully created&#8221; as long as you
+configure your I18n file:
+
+<pre>
+  flash:
+    actions:
+      create:
+        notice: &quot;%{resource_name} was successfully created.&quot;
+      update:
+        notice: &quot;%{resource_name} was successfully updated.&quot;
+      destroy:
+        notice: &quot;%{resource_name} was successfully destroyed.&quot;
+        alert: &quot;%{resource_name} could not be destroyed.&quot;
+</pre>
+<p>
+In case the resource contains errors, you should use the failure key on
+I18n. This is useful to dry up flash messages from your controllers. If you
+need a specific message for a controller, let&#8217;s say, for
+PostsController, you can also do:
+</p>
+<pre>
+  flash:
+    posts:
+      create:
+        notice: &quot;Your post was created and will be published soon&quot;
+</pre>
+<p>
+This responder is activated in all non get requests. By default it will use
+the keys :notice and :alert, but they can be changed in your application:
+</p>
+<pre>
+      config.responders.flash_keys = [ :success, :failure ]
+</pre>
+<p>
+Or:
+</p>
+<pre>
+  Responders::FlashResponder.flash_keys = [ :success, :failure ]
+</pre>
+</li>
+<li>HttpCacheResponder - Automatically adds Last-Modified headers to API
+requests. This allows clients to easily query the server if a resource
+changed and if the client tries to retrieve a resource that has not been
+modified, it returns not_modified status.
+
+</li>
+<li>CollectionResponder - Makes your create and update action redirect to the
+collection on success.
+
+</li>
+</ul>
+<h2>Configuring your own responder</h2>
+<p>
+The first step is instal responders gem and configure it in your
+application:
+</p>
+<pre>
+  gem install responders
+</pre>
+<p>
+In your Gemfile, add this line:
+</p>
+<pre>
+  gem &quot;responders&quot;
+</pre>
+<p>
+<a href="../classes/Responders.html">Responders</a> only provides a set of
+modules, to use them, you have to create your own responder. This can be
+done inside the lib folder for example:
+</p>
+<pre>
+  # lib/app_responder.rb
+  class AppResponder &lt; ActionController::Responder
+    include Responders::FlashResponder
+    include Responders::HttpCacheResponder
+  end
+</pre>
+<p>
+And then you need to configure your application to use it:
+</p>
+<pre>
+  # app/controllers/application_controller.rb
+  require &quot;app_responder&quot;
+
+  class ApplicationController &lt; ActionController::Base
+    self.responder = AppResponder
+    respond_to :html
+  end
+</pre>
+<p>
+Or, for your convenience, just do:
+</p>
+<pre>
+  rails generate responders:install
+</pre>
+<h2>Controller method</h2>
+<p>
+This gem also includes the controller method &#8216;responders&#8217;,
+which allows you to cherry-pick which responders you want included in your
+controller.
+</p>
+<pre>
+  class InvitationsController &lt; ApplicationController
+    responders :flash, :http_cache
+  end
+</pre>
+<h2>Generator</h2>
+<p>
+This gem also includes a responders controller generator, so your scaffold
+can be customized to use respond_with instead of default respond_to blocks.
+Installing this gem automatically sets the generator.
+</p>
+<h2>Bugs and Feedback</h2>
+<p>
+If you discover any bugs or want to drop a line, feel free to create an
+issue on GitHub.
+</p>
+<p>
+<a
+href="http://github.com/plataformatec/responders/issues">github.com/plataformatec/responders/issues</a>
+</p>
+<p>
+MIT License. Copyright 2012 Plataforma Tecnologia. <a
+href="http://blog.plataformatec.com.br">blog.plataformatec.com.br</a>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

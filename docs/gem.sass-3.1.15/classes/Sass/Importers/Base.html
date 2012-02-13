@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Sass::Importers::Base</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Sass::Importers::Base 
+            
+                <span class="parent">&lt; 
+                    
+                    <a href="../../Object.html">Object</a>
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/sass/importers/base_rb.html">lib/sass/importers/base.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+The abstract base class for <a href="../../Sass.html">Sass</a> importers.
+All importers should inherit from this.
+</p>
+<p>
+At the most basic level, an importer is given a string and must return a
+{Sass::Engine} containing some <a href="../../Sass.html">Sass</a> code.
+This string can be interpreted however the importer wants; however,
+subclasses are encouraged to use the URI format for pathnames.
+</p>
+<p>
+<a href="../Importers.html">Importers</a> that have some notion of
+&#8220;relative imports&#8221; should take a single load path in their
+constructor, and interpret paths as relative to that. They should also
+implement the {#find_relative} method.
+</p>
+<p>
+<a href="../Importers.html">Importers</a> should be serializable via
+`Marshal.dump`. In addition to the standard `_dump` and `_load` methods,
+importers can define `_before_dump`, `_after_dump`, `_around_dump`, and
+`_after_load` methods as per {Sass::Util#dump} and {Sass::Util#load}.
+</p>
+<p>
+@abstract
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000125">find</a>,</li>
+                
+                <li><a href="#M000123">find_relative</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>K</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000127">key</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000126">mtime</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>T</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000128">to_s</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000125">
+                    
+                    <a name="M000125"></a><b>find</b>(uri, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Find a <a href="../../Sass.html">Sass</a> file, if it exists.
+</p>
+<p>
+This is the primary entry point of the Importer. It corresponds directly to
+an `@import` statement in <a href="../../Sass.html">Sass</a>. It should do
+three basic things:
+</p>
+<ul>
+<li>Determine if the URI is in this importer&#8217;s format. If not, return
+nil.
+
+</li>
+<li>Determine if the file indicated by the URI actually exists and is readable.
+If not, return nil.
+
+</li>
+<li>Read the file and place the contents in a {Sass::Engine}. Return that
+engine.
+
+</li>
+</ul>
+<p>
+If this importer&#8217;s format allows for file extensions, it should treat
+them the same way as the default {Filesystem} importer. If the URI
+explicitly has a `.sass` or `.scss` filename, the importer should look for
+that exact file and import it as the syntax indicated. If it doesn&#8217;t
+exist, the importer should return nil.
+</p>
+<p>
+If the URI doesn&#8217;t have either of these extensions, the importer
+should look for files with the extensions. If no such files exist, it
+should return nil.
+</p>
+<p>
+The {Sass::Engine} to be returned should be passed `options`, with a few
+modifications. `:syntax` should be set appropriately, `:filename` should be
+set to `uri`, and `:importer` should be set to this importer.
+</p>
+<p>
+@param uri [String] The URI to import. @param options [{Symbol => Object}]
+Options for the <a href="../../Sass.html">Sass</a> file
+</p>
+<pre>
+  containing the `@import` that's currently being resolved.
+  This is safe for subclasses to modify destructively.
+  Callers should only pass in a value they don't mind being destructively modified.
+</pre>
+<p>
+@return [<a href="../Engine.html">Sass::Engine</a>, nil] An <a
+href="../Engine.html">Engine</a> containing the imported file,
+</p>
+<pre>
+  or nil if it couldn't be found or was in the wrong format.
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000125_source')" id="l_M000125_source">show</a>
+                        
+                    </p>
+                    <div id="M000125_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/sass/importers/base.rb, line 86</span>
+86:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">options</span>)
+87:         <span class="ruby-constant">Sass</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span>.<span class="ruby-identifier">abstract</span>(<span class="ruby-keyword kw">self</span>)
+88:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000123">
+                    
+                    <a name="M000123"></a><b>find_relative</b>(uri, base, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Find a <a href="../../Sass.html">Sass</a> file relative to another file. <a
+href="../Importers.html">Importers</a> without a notion of &#8220;relative
+paths&#8221; should just return nil here.
+</p>
+<p>
+If the importer does have a notion of &#8220;relative paths&#8221;, it
+should ignore its load path during this method.
+</p>
+<p>
+See {#find} for important information on how this method should behave.
+</p>
+<p>
+The `:filename` option passed to the returned {Sass::Engine} should be of a
+format that could be passed to {#find}.
+</p>
+<p>
+@param uri [String] The URI to import. This is not necessarily relative,
+</p>
+<pre>
+  but this method should only return true if it is.
+</pre>
+<p>
+@param base [String] The base filename. If `uri` is relative,
+</p>
+<pre>
+  it should be interpreted as relative to `base`.
+  `base` is guaranteed to be in a format importable by this importer.
+</pre>
+<p>
+@param options [{Symbol => Object}] Options for the <a
+href="../../Sass.html">Sass</a> file
+</p>
+<pre>
+  containing the `@import` that's currently being resolved.
+</pre>
+<p>
+@return [<a href="../Engine.html">Sass::Engine</a>, nil] An <a
+href="../Engine.html">Engine</a> containing the imported file,
+</p>
+<pre>
+  or nil if it couldn't be found or was in the wrong format.
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000123_source')" id="l_M000123_source">show</a>
+                        
+                    </p>
+                    <div id="M000123_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/sass/importers/base.rb, line 46</span>
+46:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_relative</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">base</span>, <span class="ruby-identifier">options</span>)
+47:         <span class="ruby-constant">Sass</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span>.<span class="ruby-identifier">abstract</span>(<span class="ruby-keyword kw">self</span>)
+48:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000127">
+                    
+                    <a name="M000127"></a><b>key</b>(uri, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Get the cache key pair for the given <a href="../../Sass.html">Sass</a>
+URI. The URI need not be checked for validity.
+</p>
+<p>
+The only strict requirement is that the returned pair of strings uniquely
+identify the file at the given URI. However, the first component generally
+corresponds roughly to the directory, and the second to the basename, of
+the URI.
+</p>
+<p>
+Note that keys must be unique *across importers*. Thus it&#8217;s probably
+a good idea to include the importer name at the beginning of the first
+component.
+</p>
+<p>
+@param uri [String] A URI known to be valid for this importer. @param
+options [{Symbol => Object}] Options for the <a
+href="../../Sass.html">Sass</a> file
+</p>
+<pre>
+  containing the `@import` currently being checked.
+</pre>
+<p>
+@return [(String, String)] The key pair which uniquely identifies
+</p>
+<pre>
+  the file at the given URI.
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000127_source')" id="l_M000127_source">show</a>
+                        
+                    </p>
+                    <div id="M000127_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/sass/importers/base.rb, line 121</span>
+121:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">key</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">options</span>)
+122:         <span class="ruby-constant">Sass</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span>.<span class="ruby-identifier">abstract</span>(<span class="ruby-keyword kw">self</span>)
+123:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000126">
+                    
+                    <a name="M000126"></a><b>mtime</b>(uri, options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the time the given <a href="../../Sass.html">Sass</a> file was last
+modified.
+</p>
+<p>
+If the given file has been deleted or the time can&#8217;t be accessed for
+some other reason, this should return nil.
+</p>
+<p>
+@param uri [String] The URI of the file to check.
+</p>
+<pre>
+  Comes from a `:filename` option set on an engine returned by this importer.
+</pre>
+<p>
+@param options [{Symbol => Objet}] Options for the <a
+href="../../Sass.html">Sass</a> file
+</p>
+<pre>
+  containing the `@import` currently being checked.
+</pre>
+<p>
+@return [Time, nil]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000126_source')" id="l_M000126_source">show</a>
+                        
+                    </p>
+                    <div id="M000126_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/sass/importers/base.rb, line 100</span>
+100:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">mtime</span>(<span class="ruby-identifier">uri</span>, <span class="ruby-identifier">options</span>)
+101:         <span class="ruby-constant">Sass</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span>.<span class="ruby-identifier">abstract</span>(<span class="ruby-keyword kw">self</span>)
+102:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000128">
+                    
+                    <a name="M000128"></a><b>to_s</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A string representation of the importer. Should be overridden by
+subclasses.
+</p>
+<p>
+This is used to help debugging, and should usually just show the load path
+encapsulated by this importer.
+</p>
+<p>
+@return [String]
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000128_source')" id="l_M000128_source">show</a>
+                        
+                    </p>
+                    <div id="M000128_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/sass/importers/base.rb, line 132</span>
+132:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">to_s</span>
+133:         <span class="ruby-constant">Sass</span><span class="ruby-operator">::</span><span class="ruby-constant">Util</span>.<span class="ruby-identifier">abstract</span>(<span class="ruby-keyword kw">self</span>)
+134:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

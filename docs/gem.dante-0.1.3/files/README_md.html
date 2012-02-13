@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Mon Feb 06 01:41:27 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# <a href="../classes/Dante.html">Dante</a>
+</p>
+<p>
+Turn any ruby into a daemon.
+</p>
+<p>
+## Description
+</p>
+<p>
+<a href="../classes/Dante.html">Dante</a> is the simplest possible thing
+that will work to turn arbitrary ruby code into an executable that can be
+started via command line or start/stop a daemon, and will store a pid file
+for you.
+</p>
+<p>
+If you need to create a ruby executable and you want standard daemon
+start/stop with pid files and no hassle, this gem will be a great way to
+get started.
+</p>
+<p>
+## Installation
+</p>
+<p>
+Add to your Gemfile:
+</p>
+<p>
+```ruby # Gemfile
+</p>
+<p>
+gem &#8220;dante&#8221; ```
+</p>
+<p>
+or to your gemspec:
+</p>
+<p>
+```ruby # mygem.gemspec
+</p>
+<p>
+Gem::Specification.new do |s|
+</p>
+<pre>
+  s.add_dependency &quot;dante&quot;
+</pre>
+<p>
+end ```
+</p>
+<p>
+## Usage
+</p>
+<p>
+<a href="../classes/Dante.html">Dante</a> is meant to be used from any
+&#8220;bin&#8221; executable. For instance, to create a binary for a web
+server, create a file in `bin/myapp`:
+</p>
+<p>
+```ruby #!/usr/bin/env ruby
+</p>
+<p>
+require File.expand_path(&#8220;../../myapp.rb&#8220;, <em>FILE</em>)
+</p>
+<p>
+<a href="../classes/Dante.html#M000007">Dante.run</a>(&#8216;myapp&#8217;)
+do |opts|
+</p>
+<pre>
+  # opts: host, pid_path, port, daemonize, user, group
+  Thin::Server.start('0.0.0.0', opts[:port]) do
+    use Rack::CommonLogger
+    use Rack::ShowExceptions
+    run MyApp
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+Be sure to properly make your bin executable:
+</p>
+<p>
+``` chmod +x bin/myapp ```
+</p>
+<p>
+### CLI
+</p>
+<p>
+This gives your binary several useful things for free:
+</p>
+<p>
+``` ./bin/myapp ```
+</p>
+<p>
+will start the app undaemonized in the terminal, handling trapping and
+stopping the process.
+</p>
+<p>
+``` ./bin/myapp -p 8080 -d -P /var/run/myapp.pid -l /var/log/myapp.log ```
+</p>
+<p>
+will daemonize and start the process, storing the pid in the specified pid
+file. All stdout and stderr will be redirected to the specified logfile.
+</p>
+<p>
+``` ./bin/myapp -k -P /var/run/myapp.pid ```
+</p>
+<p>
+will stop all daemonized processes for the specified pid file.
+</p>
+<p>
+``` ./bin/myapp &#8212;help ```
+</p>
+<p>
+Will return a useful help banner message explaining the simple usage.
+</p>
+<p>
+### Advanced
+</p>
+<p>
+In many cases, you will need to add custom flags/options or a custom
+description to your executable. You can do this easily by using
+`Dante::Runner` more explicitly:
+</p>
+<p>
+```ruby #!/usr/bin/env ruby
+</p>
+<p>
+require File.expand_path(&#8220;../../myapp.rb&#8220;, <em>FILE</em>)
+</p>
+<p>
+# Set default port to 8080 runner = <a
+href="../classes/Dante/Runner.html#M000001">Dante::Runner.new</a>(&#8216;myapp&#8217;,
+:port => 8080) # Sets the description in &#8216;help&#8217;
+runner.description = &#8220;This is myapp&#8221; # Setup custom
+&#8216;test&#8217; option flag runner.with_options do |opts|
+</p>
+<pre>
+  opts.on(&quot;-t&quot;, &quot;--test TEST&quot;, String, &quot;Test this thing&quot;) do |test|
+    options[:test] = test
+  end
+</pre>
+<p>
+end # Parse command-line options and execute the process runner.execute do
+|opts|
+</p>
+<pre>
+  # opts: host, pid_path, port, daemonize, user, group
+  Thin::Server.start('0.0.0.0', opts[:port]) do
+    puts opts[:test] # Referencing my custom option
+    use Rack::CommonLogger
+    use Rack::ShowExceptions
+    run MyApp
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+Now you would be able to do:
+</p>
+<p>
+``` ./bin/myapp -t custom ```
+</p>
+<p>
+and the `opts` would contain the `:test` option for use in your script. In
+addition, help will now contain your customized description in the banner.
+</p>
+<p>
+You can also use dante programmatically to start, stop and restart
+arbitrary code:
+</p>
+<p>
+```ruby # daemon start <a
+href="../classes/Dante/Runner.html#M000001">Dante::Runner.new</a>(&#8216;gitdocs&#8217;).execute(:daemonize
+=> true, :pid_path => @pid, :log_path => @log_path) { something! } # daemon
+stop <a
+href="../classes/Dante/Runner.html#M000001">Dante::Runner.new</a>(&#8216;gitdocs&#8217;).execute(:kill
+=> true, :pid_path => @pid) # daemon restart <a
+href="../classes/Dante/Runner.html#M000001">Dante::Runner.new</a>(&#8216;gitdocs&#8217;).execute(:daemonize
+=> true, :restart => true, :pid_path => @pid) { something! } ```
+</p>
+<p>
+so you can use dante as part of a more complex CLI executable.
+</p>
+<p>
+## God
+</p>
+<p>
+<a href="../classes/Dante.html">Dante</a> can be used well in conjunction
+with the excellent God process manager. Simply, use <a
+href="../classes/Dante.html">Dante</a> to daemonize a process and then you
+can easily use God to monitor:
+</p>
+<p>
+```ruby # /etc/god/myapp.rb
+</p>
+<p>
+God.watch do |w|
+</p>
+<pre>
+  w.name            = &quot;myapp&quot;
+  w.interval        = 30.seconds
+  w.start           = &quot;ruby /path/to/myapp/bin/myapp -d&quot;
+  w.stop            = &quot;ruby /path/to/myapp/bin/myapp -k&quot;
+  w.start_grace     = 15.seconds
+  w.restart_grace   = 15.seconds
+  w.pid_file        = &quot;/var/run/myapp.pid&quot;
+
+  w.behavior(:clean_pid_file)
+
+  w.start_if do |start|
+    start.condition(:process_running) do |c|
+      c.interval = 5.seconds
+      c.running = false
+    end
+  end
+</pre>
+<p>
+end ```
+</p>
+<p>
+and that&#8217;s all. Of course now you can also easily daemonize as well
+as start/stop the process on the command line as well.
+</p>
+<p>
+## Copyright
+</p>
+<p>
+Copyright © 2011 Nathan Esquenazi. See [LICENSE](<a
+href="https://github.com/bazaarlabs/dante/blob/master/LICENSE">github.com/bazaarlabs/dante/blob/master/LICENSE</a>)
+for details.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>
