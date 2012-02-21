@@ -1,0 +1,2067 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::LDAP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::LDAP 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/net/ldap_rb.html">lib/net/ldap.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2>Quick-start for the Impatient</h2>
+<h3>Quick Example of a user-authentication against an <a href="LDAP.html">LDAP</a> directory:</h3>
+<pre>
+ require 'rubygems'
+ require 'net/ldap'
+
+ ldap = Net::LDAP.new
+ ldap.host = your_server_ip_address
+ ldap.port = 389
+ ldap.auth &quot;joe_user&quot;, &quot;opensesame&quot;
+ if ldap.bind
+   # authentication succeeded
+ else
+   # authentication failed
+ end
+</pre>
+<h3>Quick Example of a search against an <a href="LDAP.html">LDAP</a> directory:</h3>
+<pre>
+ require 'rubygems'
+ require 'net/ldap'
+
+ ldap = Net::LDAP.new :host =&gt; server_ip_address,
+      :port =&gt; 389,
+      :auth =&gt; {
+            :method =&gt; :simple,
+            :username =&gt; &quot;cn=manager, dc=example, dc=com&quot;,
+            :password =&gt; &quot;opensesame&quot;
+      }
+
+ filter = Net::LDAP::Filter.eq(&quot;cn&quot;, &quot;George*&quot;)
+ treebase = &quot;dc=example, dc=com&quot;
+
+ ldap.search(:base =&gt; treebase, :filter =&gt; filter) do |entry|
+   puts &quot;DN: #{entry.dn}&quot;
+   entry.each do |attribute, values|
+     puts &quot;   #{attribute}:&quot;
+     values.each do |value|
+       puts &quot;      ---&gt;#{value}&quot;
+     end
+   end
+ end
+
+ p ldap.get_operation_result
+</pre>
+<h2>A Brief Introduction to <a href="LDAP.html">LDAP</a></h2>
+<p>
+We&#8217;re going to provide a quick, informal introduction to <a
+href="LDAP.html">LDAP</a> terminology and typical operations. If
+you&#8217;re comfortable with this material, skip ahead to &#8220;How to
+use <a href="LDAP.html">Net::LDAP</a>.&#8221; If you want a more rigorous
+treatment of this material, we recommend you start with the various IETF
+and ITU standards that relate to <a href="LDAP.html">LDAP</a>.
+</p>
+<h3>Entities</h3>
+<p>
+<a href="LDAP.html">LDAP</a> is an Internet-standard protocol used to
+access directory servers. The basic search unit is the <em>entity, </em>
+which corresponds to a person or other domain-specific object. A directory
+service which supports the <a href="LDAP.html">LDAP</a> protocol typically
+stores information about a number of entities.
+</p>
+<h3>Principals</h3>
+<p>
+<a href="LDAP.html">LDAP</a> servers are typically used to access
+information about people, but also very often about such items as printers,
+computers, and other resources. To reflect this, <a
+href="LDAP.html">LDAP</a> uses the term <em>entity, </em> or less commonly,
+<em>principal, </em> to denote its basic data-storage unit.
+</p>
+<h3>Distinguished Names</h3>
+<p>
+In LDAP&#8217;s view of the world, an entity is uniquely identified by a
+globally-unique text string called a <em>Distinguished Name, </em>
+originally defined in the X.400 standards from which <a
+href="LDAP.html">LDAP</a> is ultimately derived. Much like a DNS hostname,
+a <a href="LDAP/DN.html">DN</a> is a &#8220;flattened&#8221; text
+representation of a string of tree nodes. Also like DNS (and unlike Java
+package names), a <a href="LDAP/DN.html">DN</a> expresses a chain of
+tree-nodes written from left to right in order from the most-resolved node
+to the most-general one.
+</p>
+<p>
+If you know the <a href="LDAP/DN.html">DN</a> of a person or other entity,
+then you can query an LDAP-enabled directory for information (attributes)
+about the entity. Alternatively, you can query the directory for a list of
+DNs matching a set of criteria that you supply.
+</p>
+<h3>Attributes</h3>
+<p>
+In the <a href="LDAP.html">LDAP</a> view of the world, a <a
+href="LDAP/DN.html">DN</a> uniquely identifies an entity. Information about
+the entity is stored as a set of <em>Attributes.</em> An attribute is a
+text string which is associated with zero or more values. Most LDAP-enabled
+directories store a well-standardized range of attributes, and constrain
+their values according to standard rules.
+</p>
+<p>
+A good example of an attribute is <tt>sn, </tt> which stands for
+&#8220;Surname.&#8221; This attribute is generally used to store a
+person&#8217;s surname, or last name. Most directories enforce the standard
+convention that an entity&#8217;s <tt>sn</tt> attribute have <em>exactly
+one</em> value. In <a href="LDAP.html">LDAP</a> jargon, that means that
+<tt>sn</tt> must be <em>present</em> and <em>single-valued.</em>
+</p>
+<p>
+Another attribute is <tt>mail, </tt> which is used to store email
+addresses. (No, there is no attribute called &#8220;email, &#8220; perhaps
+because X.400 terminology predates the invention of the term
+<em>email.</em>) <tt>mail</tt> differs from <tt>sn</tt> in that most
+directories permit any number of values for the <tt>mail</tt> attribute,
+including zero.
+</p>
+<h3>Tree-Base</h3>
+<p>
+We said above that X.400 Distinguished Names are <em>globally unique.</em>
+In a manner reminiscent of DNS, <a href="LDAP.html">LDAP</a> supposes that
+each directory server contains authoritative attribute data for a set of
+DNs corresponding to a specific sub-tree of the (notional) global directory
+tree. This subtree is generally configured into a directory server when it
+is created. It matters for this discussion because most servers will not
+allow you to query them unless you specify a correct tree-base.
+</p>
+<p>
+Let&#8217;s say you work for the engineering department of Big Company,
+Inc., whose internet domain is bigcompany.com. You may find that your
+departmental directory is stored in a server with a defined tree-base of
+</p>
+<pre>
+   ou=engineering, dc=bigcompany, dc=com
+</pre>
+<p>
+You will need to supply this string as the <em>tree-base</em> when querying
+this directory. (Ou is a very old X.400 term meaning &#8220;organizational
+unit.&#8221; Dc is a more recent term meaning &#8220;domain
+component.&#8221;)
+</p>
+<h3><a href="LDAP.html">LDAP</a> Versions</h3>
+<p>
+(stub, discuss v2 and v3)
+</p>
+<h3><a href="LDAP.html">LDAP</a> Operations</h3>
+<p>
+The essential operations are: <a href="LDAP.html#M000114">bind</a>, <a
+href="LDAP.html#M000113">search</a>, <a href="LDAP.html#M000116">add</a>,
+<a href="LDAP.html#M000117">modify</a>, <a
+href="LDAP.html#M000123">delete</a>, and <a
+href="LDAP.html#M000121">rename</a>.
+</p>
+<h4>Bind</h4>
+<p>
+<a href="LDAP.html#M000114">bind</a> supplies a user&#8217;s authentication
+credentials to a server, which in turn verifies or rejects them. There is a
+range of possibilities for credentials, but most directories support a
+simple username and password authentication.
+</p>
+<p>
+Taken by itself, <a href="LDAP.html#M000114">bind</a> can be used to
+authenticate a user against information stored in a directory, for example
+to permit or deny access to some other resource. In terms of the other <a
+href="LDAP.html">LDAP</a> operations, most directories require a successful
+<a href="LDAP.html#M000114">bind</a> to be performed before the other
+operations will be permitted. Some servers permit certain operations to be
+performed with an &#8220;anonymous&#8221; binding, meaning that no
+credentials are presented by the user. (We&#8217;re glossing over a lot of
+platform-specific detail here.)
+</p>
+<h4>Search</h4>
+<p>
+Calling <a href="LDAP.html#M000113">search</a> against the directory
+involves specifying a treebase, a set of <em>search filters, </em> and a
+list of attribute values. The filters specify ranges of possible values for
+particular attributes. Multiple filters can be joined together with AND,
+OR, and NOT operators. A server will respond to a <a
+href="LDAP.html#M000113">search</a> by returning a list of matching DNs
+together with a set of attribute values for each entity, depending on what
+attributes the search requested.
+</p>
+<h4>Add</h4>
+<p>
+<a href="LDAP.html#M000116">add</a> specifies a new <a
+href="LDAP/DN.html">DN</a> and an initial set of attribute values. If the
+operation succeeds, a new entity with the corresponding <a
+href="LDAP/DN.html">DN</a> and attributes is added to the directory.
+</p>
+<h4>Modify</h4>
+<p>
+<a href="LDAP.html#M000117">modify</a> specifies an entity <a
+href="LDAP/DN.html">DN</a>, and a list of attribute operations. <a
+href="LDAP.html#M000117">modify</a> is used to change the attribute values
+stored in the directory for a particular entity. <a
+href="LDAP.html#M000117">modify</a> may add or delete attributes (which are
+lists of values) or it change attributes by adding to or deleting from
+their values. <a href="LDAP.html">Net::LDAP</a> provides three easier
+methods to modify an entry&#8217;s attribute values: <a
+href="LDAP.html#M000118">add_attribute</a>, <a
+href="LDAP.html#M000119">replace_attribute</a>, and <a
+href="LDAP.html#M000120">delete_attribute</a>.
+</p>
+<h4>Delete</h4>
+<p>
+<a href="LDAP.html#M000123">delete</a> specifies an entity <a
+href="LDAP/DN.html">DN</a>. If it succeeds, the entity and all its
+attributes is removed from the directory.
+</p>
+<h4>Rename (or Modify RDN)</h4>
+<p>
+<a href="LDAP.html#M000121">rename</a> (or <a
+href="LDAP.html#M000122">modify_rdn</a>) is an operation added to version 3
+of the <a href="LDAP.html">LDAP</a> protocol. It responds to the
+often-arising need to change the <a href="LDAP/DN.html">DN</a> of an entity
+without discarding its attribute values. In earlier <a
+href="LDAP.html">LDAP</a> versions, the only way to do this was to delete
+the whole entity and add it again with a different <a
+href="LDAP/DN.html">DN</a>.
+</p>
+<p>
+<a href="LDAP.html#M000121">rename</a> works by taking an &#8220;old&#8221;
+<a href="LDAP/DN.html">DN</a> (the one to change) and a &#8220;new RDN,
+&#8220; which is the left-most part of the <a href="LDAP/DN.html">DN</a>
+string. If successful, <a href="LDAP.html#M000121">rename</a> changes the
+entity <a href="LDAP/DN.html">DN</a> so that its left-most node corresponds
+to the new RDN given in the request. (RDN, or &#8220;relative distinguished
+name, &#8220; denotes a single tree-node as expressed in a <a
+href="LDAP/DN.html">DN</a>, which is a chain of tree nodes.)
+</p>
+<h2>How to use <a href="LDAP.html">Net::LDAP</a></h2>
+<p>
+To access <a href="LDAP.html">Net::LDAP</a> functionality in your Ruby
+programs, start by requiring the library:
+</p>
+<pre>
+ require 'net/ldap'
+</pre>
+<p>
+If you installed the Gem version of <a href="LDAP.html">Net::LDAP</a>, and
+depending on your version of Ruby and rubygems, you <em>may</em> also need
+to require rubygems explicitly:
+</p>
+<pre>
+ require 'rubygems'
+ require 'net/ldap'
+</pre>
+<p>
+Most operations with <a href="LDAP.html">Net::LDAP</a> start by
+instantiating a <a href="LDAP.html">Net::LDAP</a> object. The constructor
+for this object takes arguments specifying the network location (address
+and port) of the <a href="LDAP.html">LDAP</a> server, and also the binding
+(authentication) credentials, typically a username and password. Given an
+object of class Net:<a href="LDAP.html">LDAP</a>, you can then perform <a
+href="LDAP.html">LDAP</a> operations by calling instance methods on the
+object. These are documented with usage examples below.
+</p>
+<p>
+The <a href="LDAP.html">Net::LDAP</a> library is designed to be very
+disciplined about how it makes network connections to servers. This is
+different from many of the standard native-code libraries that are provided
+on most platforms, which share bloodlines with the original
+Netscape/Michigan <a href="LDAP.html">LDAP</a> client implementations.
+These libraries sought to insulate user code from the workings of the
+network. This is a good idea of course, but the practical effect has been
+confusing and many difficult bugs have been caused by the opacity of the
+native libraries, and their variable behavior across platforms.
+</p>
+<p>
+In general, <a href="LDAP.html">Net::LDAP</a> instance methods which invoke
+server operations make a connection to the server when the method is
+called. They execute the operation (typically binding first) and then
+disconnect from the server. The exception is <a
+href="LDAP.html#M000110">Net::LDAP#open</a>, which makes a connection to
+the server and then keeps it open while it executes a user-supplied block.
+<a href="LDAP.html#M000110">Net::LDAP#open</a> closes the connection on
+completion of the block.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>A</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000116">add</a>,</li>
+                
+                <li><a href="#M000118">add_attribute</a>,</li>
+                
+                <li><a href="#M000108">auth</a>,</li>
+                
+                <li><a href="#M000107">authenticate</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000114">bind</a>,</li>
+                
+                <li><a href="#M000115">bind_as</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000123">delete</a>,</li>
+                
+                <li><a href="#M000120">delete_attribute</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000109">encryption</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>G</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000111">get_operation_result</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>M</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000117">modify</a>,</li>
+                
+                <li><a href="#M000122">modify_rdn</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000106">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000110">open</a>,</li>
+                
+                <li><a href="#M000112">open</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000126">paged_searches_supported?</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000121">rename</a>,</li>
+                
+                <li><a href="#M000119">replace_attribute</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000113">search</a>,</li>
+                
+                <li><a href="#M000124">search_root_dse</a>,</li>
+                
+                <li><a href="#M000125">search_subschema_entry</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="LDAP/LdapControls.html">Net::LDAP::LdapControls</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/Connection.html">Net::LDAP::Connection</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/DN.html">Net::LDAP::DN</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/Dataset.html">Net::LDAP::Dataset</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/Entry.html">Net::LDAP::Entry</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/Filter.html">Net::LDAP::Filter</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/LdapError.html">Net::LDAP::LdapError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/PDU.html">Net::LDAP::PDU</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="LDAP/Password.html">Net::LDAP::Password</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">HasOpenSSL</td>
+            <td>=</td>
+            <td class="attr-value">true</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Set to <tt>true</tt> if OpenSSL is available and LDAPS is supported.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">VERSION</td>
+            <td>=</td>
+            <td class="attr-value">&quot;0.3.1&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchScope_BaseObject</td>
+            <td>=</td>
+            <td class="attr-value">0</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchScope_SingleLevel</td>
+            <td>=</td>
+            <td class="attr-value">1</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchScope_WholeSubtree</td>
+            <td>=</td>
+            <td class="attr-value">2</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchScopes</td>
+            <td>=</td>
+            <td class="attr-value">[ SearchScope_BaseObject, SearchScope_SingleLevel,     SearchScope_WholeSubtree ]</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">AsnSyntax</td>
+            <td>=</td>
+            <td class="attr-value">Net::BER.compile_syntax(:application =&gt; application,                                       :context_specific =&gt; context_specific)</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DefaultHost</td>
+            <td>=</td>
+            <td class="attr-value">&quot;127.0.0.1&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DefaultPort</td>
+            <td>=</td>
+            <td class="attr-value">389</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DefaultAuth</td>
+            <td>=</td>
+            <td class="attr-value">{ :method =&gt; :anonymous }</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DefaultTreebase</td>
+            <td>=</td>
+            <td class="attr-value">&quot;dc=com&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">StartTlsOid</td>
+            <td>=</td>
+            <td class="attr-value">&quot;1.3.6.1.4.1.1466.20037&quot;</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ResultStrings</td>
+            <td>=</td>
+            <td class="attr-value">{     0 =&gt; &quot;Success&quot;,     1 =&gt; &quot;Operations Error&quot;,     2 =&gt; &quot;Protocol Error&quot;,     3 =&gt; &quot;Time Limit Exceeded&quot;,     4 =&gt; &quot;Size Limit Exceeded&quot;,     10 =&gt; &quot;Referral&quot;,     12 =&gt; &quot;Unavailable crtical extension&quot;,     14 =&gt; &quot;saslBindInProgress&quot;,     16 =&gt; &quot;No Such Attribute&quot;,     17 =&gt; &quot;Undefined Attribute Type&quot;,     20 =&gt; &quot;Attribute or Value Exists&quot;,     32 =&gt; &quot;No Such Object&quot;,     34 =&gt; &quot;Invalid DN Syntax&quot;,     48 =&gt; &quot;Inappropriate Authentication&quot;,     49 =&gt; &quot;Invalid Credentials&quot;,     50 =&gt; &quot;Insufficient Access Rights&quot;,     51 =&gt; &quot;Busy&quot;,     52 =&gt; &quot;Unavailable&quot;,     53 =&gt; &quot;Unwilling to perform&quot;,     65 =&gt; &quot;Object Class Violation&quot;,     68 =&gt; &quot;Entry Already Exists&quot;   }</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>host</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>port</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [RW]
+            </td>
+            <td class='attr-name'>base</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000106">
+                    
+                    <a name="M000106"></a><b>new</b>(args = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Instantiate an object of type <a href="LDAP.html">Net::LDAP</a> to perform
+directory operations. This constructor takes a Hash containing arguments,
+all of which are either optional or may be specified later with other
+methods as described below. The following arguments are supported:
+</p>
+<ul>
+<li>:host => the <a href="LDAP.html">LDAP</a> server&#8217;s IP-address
+(default 127.0.0.1)
+
+</li>
+<li>:port => the <a href="LDAP.html">LDAP</a> server&#8217;s TCP port (default
+389)
+
+</li>
+<li>:auth => a Hash containing authorization parameters. Currently supported
+values include: {:method => :anonymous} and {:method => :simple, :username
+=> your_user_name, :password => your_password } The password parameter may
+be a Proc that returns a String.
+
+</li>
+<li>:base => a default treebase parameter for searches performed against the <a
+href="LDAP.html">LDAP</a> server. If you don&#8217;t give this value, then
+each call to <a href="LDAP.html#M000113">search</a> must specify a treebase
+parameter. If you do give this value, then it will be used in subsequent
+calls to <a href="LDAP.html#M000113">search</a> that do not specify a
+treebase. If you give a treebase value in any particular call to <a
+href="LDAP.html#M000113">search</a>, that value will override any treebase
+value you give here.
+
+</li>
+<li>:encryption => specifies the encryption to be used in communicating with
+the <a href="LDAP.html">LDAP</a> server. The value is either a Hash
+containing additional parameters, or the Symbol :simple_tls, which is
+equivalent to specifying the Hash {:method => :simple_tls}. There is a
+fairly large range of potential values that may be given for this
+parameter. See <a href="LDAP.html#M000109">encryption</a> for details.
+
+</li>
+</ul>
+<p>
+Instantiating a <a href="LDAP.html">Net::LDAP</a> object does <em>not</em>
+result in network traffic to the <a href="LDAP.html">LDAP</a> server. It
+simply stores the connection and binding parameters in the object.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000106_source')" id="l_M000106_source">show</a>
+                        
+                    </p>
+                    <div id="M000106_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 377</span>
+377:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">args</span> = {})
+378:     <span class="ruby-ivar">@host</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:host</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DefaultHost</span>
+379:     <span class="ruby-ivar">@port</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:port</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DefaultPort</span>
+380:     <span class="ruby-ivar">@verbose</span> = <span class="ruby-keyword kw">false</span> <span class="ruby-comment cmt"># Make this configurable with a switch on the class.</span>
+381:     <span class="ruby-ivar">@auth</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DefaultAuth</span>
+382:     <span class="ruby-ivar">@base</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:base</span>] <span class="ruby-operator">||</span> <span class="ruby-constant">DefaultTreebase</span>
+383:     <span class="ruby-identifier">encryption</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:encryption</span>] <span class="ruby-comment cmt"># may be nil</span>
+384: 
+385:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pr</span> = <span class="ruby-ivar">@auth</span>[<span class="ruby-identifier">:password</span>] <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">pr</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+386:       <span class="ruby-ivar">@auth</span>[<span class="ruby-identifier">:password</span>] = <span class="ruby-identifier">pr</span>.<span class="ruby-identifier">call</span>
+387:     <span class="ruby-keyword kw">end</span>
+388: 
+389:     <span class="ruby-comment cmt"># This variable is only set when we are created with LDAP::open. All of</span>
+390:     <span class="ruby-comment cmt"># our internal methods will connect using it, or else they will create</span>
+391:     <span class="ruby-comment cmt"># their own.</span>
+392:     <span class="ruby-ivar">@open_connection</span> = <span class="ruby-keyword kw">nil</span>
+393:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000110">
+                    
+                    <a name="M000110"></a><b>open</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="LDAP.html#M000110">open</a> takes the same parameters as <a
+href="LDAP.html#M000106">new</a>. <a href="LDAP.html#M000110">open</a>
+makes a network connection to the <a href="LDAP.html">LDAP</a> server and
+then passes a newly-created <a href="LDAP.html">Net::LDAP</a> object to the
+caller-supplied block. Within the block, you can call any of the instance
+methods of <a href="LDAP.html">Net::LDAP</a> to perform operations against
+the <a href="LDAP.html">LDAP</a> directory. <a
+href="LDAP.html#M000110">open</a> will perform all the operations in the
+user-supplied block on the same network connection, which will be closed
+automatically when the block finishes.
+</p>
+<pre>
+ # (PSEUDOCODE)
+ auth = { :method =&gt; :simple, :username =&gt; username, :password =&gt; password }
+ Net::LDAP.open(:host =&gt; ipaddress, :port =&gt; 389, :auth =&gt; auth) do |ldap|
+   ldap.search(...)
+   ldap.add(...)
+   ldap.modify(...)
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000110_source')" id="l_M000110_source">show</a>
+                        
+                    </p>
+                    <div id="M000110_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 494</span>
+494:   <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">args</span>)
+495:     <span class="ruby-identifier">ldap1</span> = <span class="ruby-identifier">new</span>(<span class="ruby-identifier">args</span>)
+496:     <span class="ruby-identifier">ldap1</span>.<span class="ruby-identifier">open</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">ldap</span><span class="ruby-operator">|</span> <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">ldap</span> }
+497:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000116">
+                    
+                    <a name="M000116"></a><b>add</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Adds a new entry to the remote <a href="LDAP.html">LDAP</a> server.
+Supported arguments:
+</p>
+<table>
+<tr><td valign="top">:dn :</td><td>Full <a href="LDAP/DN.html">DN</a> of the new entry
+
+</td></tr>
+<tr><td valign="top">:attributes :</td><td>Attributes of the new entry.
+
+</td></tr>
+</table>
+<p>
+The attributes argument is supplied as a Hash keyed by Strings or Symbols
+giving the attribute name, and mapping to Strings or Arrays of Strings
+giving the actual attribute values. Observe that most <a
+href="LDAP.html">LDAP</a> directories enforce schema constraints on the
+attributes contained in entries. <a href="LDAP.html#M000116">add</a> will
+fail with a server-generated error if your attributes violate the
+server-specific constraints.
+</p>
+<p>
+Here&#8217;s an example:
+</p>
+<pre>
+ dn = &quot;cn=George Smith, ou=people, dc=example, dc=com&quot;
+ attr = {
+   :cn =&gt; &quot;George Smith&quot;,
+   :objectclass =&gt; [&quot;top&quot;, &quot;inetorgperson&quot;],
+   :sn =&gt; &quot;Smith&quot;,
+   :mail =&gt; &quot;gsmith@example.com&quot;
+ }
+ Net::LDAP.open(:host =&gt; host) do |ldap|
+   ldap.add(:dn =&gt; dn, :attributes =&gt; attr)
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000116_source')" id="l_M000116_source">show</a>
+                        
+                    </p>
+                    <div id="M000116_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 811</span>
+811:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add</span>(<span class="ruby-identifier">args</span>)
+812:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+813:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">args</span>)
+814:     <span class="ruby-keyword kw">else</span>
+815:       <span class="ruby-ivar">@result</span> = <span class="ruby-value">0</span>
+816:       <span class="ruby-keyword kw">begin</span>
+817:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+818:                               <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+819:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@auth</span>)) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+820:           <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">add</span>(<span class="ruby-identifier">args</span>)
+821:         <span class="ruby-keyword kw">end</span>
+822:       <span class="ruby-keyword kw">ensure</span>
+823:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">conn</span>
+824:       <span class="ruby-keyword kw">end</span>
+825:     <span class="ruby-keyword kw">end</span>
+826:     <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+827:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000118">
+                    
+                    <a name="M000118"></a><b>add_attribute</b>(dn, attribute, value)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Add a value to an attribute. Takes the full <a href="LDAP/DN.html">DN</a>
+of the entry to modify, the name (Symbol or String) of the attribute, and
+the value (String or Array). If the attribute does not exist (and there are
+no schema violations), <a href="LDAP.html#M000118">add_attribute</a> will
+create it with the caller-specified values. If the attribute already exists
+(and there are no schema violations), the caller-specified values will be
+<em>added</em> to the values already present.
+</p>
+<p>
+Returns True or False to indicate whether the operation succeeded or
+failed, with extended information available by calling <a
+href="LDAP.html#M000111">get_operation_result</a>. See also <a
+href="LDAP.html#M000119">replace_attribute</a> and <a
+href="LDAP.html#M000120">delete_attribute</a>.
+</p>
+<pre>
+ dn = &quot;cn=modifyme, dc=example, dc=com&quot;
+ ldap.add_attribute dn, :mail, &quot;newmailaddress@example.com&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000118_source')" id="l_M000118_source">show</a>
+                        
+                    </p>
+                    <div id="M000118_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 942</span>
+942:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">add_attribute</span>(<span class="ruby-identifier">dn</span>, <span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">value</span>)
+943:     <span class="ruby-identifier">modify</span>(<span class="ruby-identifier">:dn</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">dn</span>, <span class="ruby-identifier">:operations</span> =<span class="ruby-operator">&gt;</span> [[<span class="ruby-identifier">:add</span>, <span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">value</span>]])
+944:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000108">
+                    
+                    <a name="M000108"></a><b>auth</b>(username, password)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="LDAP.html#M000107">authenticate</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000107">
+                    
+                    <a name="M000107"></a><b>authenticate</b>(username, password)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Convenience method to specify authentication credentials to the <a
+href="LDAP.html">LDAP</a> server. Currently supports simple authentication
+requiring a username and password.
+</p>
+<p>
+Observe that on most <a href="LDAP.html">LDAP</a> servers, the username is
+a complete <a href="LDAP/DN.html">DN</a>. However, with A/D, it&#8217;s
+often possible to give only a user-name rather than a complete <a
+href="LDAP/DN.html">DN</a>. In the latter case, beware that many A/D
+servers are configured to permit anonymous (uncredentialled) binding, and
+will silently accept your binding as anonymous if you give an unrecognized
+username. This is not usually what you want. (See <a
+href="LDAP.html#M000111">get_operation_result</a>.)
+</p>
+<p>
+<b>Important:</b> The password argument may be a Proc that returns a
+string. This makes it possible for you to write client programs that
+solicit passwords from users or from other data sources without showing
+them in your code or on command lines.
+</p>
+<pre>
+ require 'net/ldap'
+
+ ldap = Net::LDAP.new
+ ldap.host = server_ip_address
+ ldap.authenticate &quot;cn=Your Username, cn=Users, dc=example, dc=com&quot;, &quot;your_psw&quot;
+</pre>
+<p>
+Alternatively (with a password block):
+</p>
+<pre>
+ require 'net/ldap'
+
+ ldap = Net::LDAP.new
+ ldap.host = server_ip_address
+ psw = proc { your_psw_function }
+ ldap.authenticate &quot;cn=Your Username, cn=Users, dc=example, dc=com&quot;, psw
+</pre>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="LDAP.html#M000108">auth</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000107_source')" id="l_M000107_source">show</a>
+                        
+                    </p>
+                    <div id="M000107_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 427</span>
+427:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">authenticate</span>(<span class="ruby-identifier">username</span>, <span class="ruby-identifier">password</span>)
+428:     <span class="ruby-identifier">password</span> = <span class="ruby-identifier">password</span>.<span class="ruby-identifier">call</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">password</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+429:     <span class="ruby-ivar">@auth</span> = {
+430:       <span class="ruby-identifier">:method</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:simple</span>,
+431:       <span class="ruby-identifier">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">username</span>,
+432:       <span class="ruby-identifier">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">password</span>
+433:     }
+434:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000114">
+                    
+                    <a name="M000114"></a><b>bind</b>(auth = @auth)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="LDAP.html#M000114">bind</a> connects to an <a
+href="LDAP.html">LDAP</a> server and requests authentication based on the
+<tt>:auth</tt> parameter passed to <a href="LDAP.html#M000110">open</a> or
+<a href="LDAP.html#M000106">new</a>. It takes no parameters.
+</p>
+<p>
+User code does not need to call <a href="LDAP.html#M000114">bind</a>
+directly. It will be called implicitly by the library whenever you invoke
+an <a href="LDAP.html">LDAP</a> operation, such as <a
+href="LDAP.html#M000113">search</a> or <a href="LDAP.html#M000116">add</a>.
+</p>
+<p>
+It is useful, however, to call <a href="LDAP.html#M000114">bind</a> in your
+own code when the only operation you intend to perform against the
+directory is to validate a login credential. <a
+href="LDAP.html#M000114">bind</a> returns true or false to indicate whether
+the binding was successful. Reasons for failure include malformed or
+unrecognized usernames and incorrect passwords. Use <a
+href="LDAP.html#M000111">get_operation_result</a> to find out what happened
+in case of failure.
+</p>
+<p>
+Here&#8217;s a typical example using <a href="LDAP.html#M000114">bind</a>
+to authenticate a credential which was (perhaps) solicited from the user of
+a web site:
+</p>
+<pre>
+ require 'net/ldap'
+ ldap = Net::LDAP.new
+ ldap.host = your_server_ip_address
+ ldap.port = 389
+ ldap.auth your_user_name, your_user_password
+ if ldap.bind
+   # authentication succeeded
+ else
+   # authentication failed
+   p ldap.get_operation_result
+ end
+</pre>
+<p>
+Here&#8217;s a more succinct example which does exactly the same thing, but
+collects all the required parameters into arguments:
+</p>
+<pre>
+ require 'net/ldap'
+ ldap = Net::LDAP.new(:host =&gt; your_server_ip_address, :port =&gt; 389)
+ if ldap.bind(:method =&gt; :simple, :username =&gt; your_user_name,
+              :password =&gt; your_user_password)
+   # authentication succeeded
+ else
+   # authentication failed
+   p ldap.get_operation_result
+ end
+</pre>
+<p>
+You don&#8217;t need to pass a user-password as a String object to bind.
+You can also pass a Ruby Proc object which returns a string. This will
+cause bind to execute the Proc (which might then solicit input from a user
+with console display suppressed). The String value returned from the Proc
+is used as the password.
+</p>
+<p>
+You don&#8217;t have to create a new instance of <a
+href="LDAP.html">Net::LDAP</a> every time you perform a binding in this
+way. If you prefer, you can cache the <a href="LDAP.html">Net::LDAP</a>
+object and re-use it to perform subsequent bindings, <em>provided</em> you
+call <a href="LDAP.html#M000108">auth</a> to specify a new credential
+before calling <a href="LDAP.html#M000114">bind</a>. Otherwise,
+you&#8217;ll just re-authenticate the previous user! (You don&#8217;t need
+to re-set the values of <a href="LDAP.html#host">host</a> and <a
+href="LDAP.html#port">port</a>.) As noted in the documentation for <a
+href="LDAP.html#M000108">auth</a>, the password parameter can be a Ruby
+Proc instead of a String.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000114_source')" id="l_M000114_source">show</a>
+                        
+                    </p>
+                    <div id="M000114_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 711</span>
+711:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bind</span>(<span class="ruby-identifier">auth</span> = <span class="ruby-ivar">@auth</span>)
+712:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+713:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">auth</span>)
+714:     <span class="ruby-keyword kw">else</span>
+715:       <span class="ruby-keyword kw">begin</span>
+716:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+717:                               <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+718:         <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">auth</span>)
+719:       <span class="ruby-keyword kw">ensure</span>
+720:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">conn</span>
+721:       <span class="ruby-keyword kw">end</span>
+722:     <span class="ruby-keyword kw">end</span>
+723: 
+724:     <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+725:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000115">
+                    
+                    <a name="M000115"></a><b>bind_as</b>(args = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+<a href="LDAP.html#M000115">bind_as</a> is for testing authentication
+credentials.
+</p>
+<p>
+As described under <a href="LDAP.html#M000114">bind</a>, most <a
+href="LDAP.html">LDAP</a> servers require that you supply a complete <a
+href="LDAP/DN.html">DN</a> as a binding-credential, along with an
+authenticator such as a password. But for many applications (such as
+authenticating users to a Rails application), you often don&#8217;t have a
+full <a href="LDAP/DN.html">DN</a> to identify the user. You usually get a
+simple identifier like a username or an email address, along with a
+password. <a href="LDAP.html#M000115">bind_as</a> allows you to
+authenticate these user-identifiers.
+</p>
+<p>
+<a href="LDAP.html#M000115">bind_as</a> is a combination of a search and an
+<a href="LDAP.html">LDAP</a> binding. First, it connects and binds to the
+directory as normal. Then it searches the directory for an entry
+corresponding to the email address, username, or other string that you
+supply. If the entry exists, then <a href="LDAP.html#M000115">bind_as</a>
+will <b>re-bind</b> as that user with the password (or other authenticator)
+that you supply.
+</p>
+<p>
+<a href="LDAP.html#M000115">bind_as</a> takes the same parameters as <a
+href="LDAP.html#M000113">search</a>, <em>with the addition of an
+authenticator.</em> Currently, this authenticator must be
+<tt>:password</tt>. Its value may be either a String, or a <tt>proc</tt>
+that returns a String. <a href="LDAP.html#M000115">bind_as</a> returns
+<tt>false</tt> on failure. On success, it returns a result set, just as <a
+href="LDAP.html#M000113">search</a> does. This result set is an Array of
+objects of type <a href="LDAP/Entry.html">Net::LDAP::Entry</a>. It contains
+the directory attributes corresponding to the user. (Just test whether the
+return value is logically true, if you don&#8217;t need this additional
+information.)
+</p>
+<p>
+Here&#8217;s how you would use <a href="LDAP.html#M000115">bind_as</a> to
+authenticate an email address and password:
+</p>
+<pre>
+ require 'net/ldap'
+
+ user, psw = &quot;joe_user@yourcompany.com&quot;, &quot;joes_psw&quot;
+
+ ldap = Net::LDAP.new
+ ldap.host = &quot;192.168.0.100&quot;
+ ldap.port = 389
+ ldap.auth &quot;cn=manager, dc=yourcompany, dc=com&quot;, &quot;topsecret&quot;
+
+ result = ldap.bind_as(:base =&gt; &quot;dc=yourcompany, dc=com&quot;,
+                       :filter =&gt; &quot;(mail=#{user})&quot;,
+                       :password =&gt; psw)
+ if result
+   puts &quot;Authenticated #{result.first.dn}&quot;
+ else
+   puts &quot;Authentication FAILED.&quot;
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000115_source')" id="l_M000115_source">show</a>
+                        
+                    </p>
+                    <div id="M000115_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 773</span>
+773:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bind_as</span>(<span class="ruby-identifier">args</span> = {})
+774:     <span class="ruby-identifier">result</span> = <span class="ruby-keyword kw">false</span>
+775:     <span class="ruby-identifier">open</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">me</span><span class="ruby-operator">|</span>
+776:       <span class="ruby-identifier">rs</span> = <span class="ruby-identifier">search</span> <span class="ruby-identifier">args</span>
+777:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">rs</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">dn</span> = <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">dn</span>
+778:         <span class="ruby-identifier">password</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:password</span>]
+779:         <span class="ruby-identifier">password</span> = <span class="ruby-identifier">password</span>.<span class="ruby-identifier">call</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">password</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>)
+780:         <span class="ruby-identifier">result</span> = <span class="ruby-identifier">rs</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">bind</span>(<span class="ruby-identifier">:method</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">:simple</span>, <span class="ruby-identifier">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">dn</span>,
+781:                             <span class="ruby-identifier">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">password</span>)
+782:       <span class="ruby-keyword kw">end</span>
+783:     }
+784:     <span class="ruby-identifier">result</span>
+785:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000123">
+                    
+                    <a name="M000123"></a><b>delete</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Delete an entry from the <a href="LDAP.html">LDAP</a> directory. Takes a
+hash of arguments. The only supported argument is :dn, which must give the
+complete <a href="LDAP/DN.html">DN</a> of the entry to be deleted.
+</p>
+<p>
+Returns True or False to indicate whether the delete succeeded. Extended
+status information is available by calling <a
+href="LDAP.html#M000111">get_operation_result</a>.
+</p>
+<pre>
+ dn = &quot;mail=deleteme@example.com, ou=people, dc=example, dc=com&quot;
+ ldap.delete :dn =&gt; dn
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000123_source')" id="l_M000123_source">show</a>
+                        
+                    </p>
+                    <div id="M000123_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 1008</span>
+1008:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">delete</span>(<span class="ruby-identifier">args</span>)
+1009:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+1010:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">args</span>)
+1011:     <span class="ruby-keyword kw">else</span>
+1012:       <span class="ruby-ivar">@result</span> = <span class="ruby-value">0</span>
+1013:       <span class="ruby-keyword kw">begin</span>
+1014:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+1015:                               <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+1016:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@auth</span>)) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+1017:           <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">args</span>)
+1018:         <span class="ruby-keyword kw">end</span>
+1019:       <span class="ruby-keyword kw">ensure</span>
+1020:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span>
+1021:       <span class="ruby-keyword kw">end</span>
+1022:     <span class="ruby-keyword kw">end</span>
+1023:     <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+1024:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000120">
+                    
+                    <a name="M000120"></a><b>delete_attribute</b>(dn, attribute)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Delete an attribute and all its values. Takes the full <a
+href="LDAP/DN.html">DN</a> of the entry to modify, and the name (Symbol or
+String) of the attribute to delete.
+</p>
+<p>
+Returns True or False to indicate whether the operation succeeded or
+failed, with extended information available by calling <a
+href="LDAP.html#M000111">get_operation_result</a>. See also <a
+href="LDAP.html#M000118">add_attribute</a> and <a
+href="LDAP.html#M000119">replace_attribute</a>.
+</p>
+<pre>
+ dn = &quot;cn=modifyme, dc=example, dc=com&quot;
+ ldap.delete_attribute dn, :mail
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000120_source')" id="l_M000120_source">show</a>
+                        
+                    </p>
+                    <div id="M000120_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 973</span>
+973:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">delete_attribute</span>(<span class="ruby-identifier">dn</span>, <span class="ruby-identifier">attribute</span>)
+974:     <span class="ruby-identifier">modify</span>(<span class="ruby-identifier">:dn</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">dn</span>, <span class="ruby-identifier">:operations</span> =<span class="ruby-operator">&gt;</span> [[<span class="ruby-identifier">:delete</span>, <span class="ruby-identifier">attribute</span>, <span class="ruby-keyword kw">nil</span>]])
+975:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000109">
+                    
+                    <a name="M000109"></a><b>encryption</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Convenience method to specify encryption characteristics for connections to
+<a href="LDAP.html">LDAP</a> servers. Called implicitly by <a
+href="LDAP.html#M000106">new</a> and <a href="LDAP.html#M000110">open</a>,
+but may also be called by user code if desired. The single argument is
+generally a Hash (but see below for convenience alternatives). This
+implementation is currently a stub, supporting only a few encryption
+alternatives. As additional capabilities are added, more configuration
+values will be added here.
+</p>
+<p>
+Currently, the only supported argument is { :method => :simple_tls }.
+(Equivalently, you may pass the symbol :simple_tls all by itself, without
+enclosing it in a Hash.)
+</p>
+<p>
+The :simple_tls encryption method encrypts <em>all</em> communications with
+the <a href="LDAP.html">LDAP</a> server. It completely establishes SSL/TLS
+encryption with the <a href="LDAP.html">LDAP</a> server before any
+LDAP-protocol data is exchanged. There is no plaintext negotiation and no
+special encryption-request controls are sent to the server. <em>The
+:simple_tls option is the simplest, easiest way to encrypt communications
+between <a href="LDAP.html">Net::LDAP</a> and <a href="LDAP.html">LDAP</a>
+servers.</em> It&#8217;s intended for cases where you have an implicit
+level of trust in the authenticity of the <a href="LDAP.html">LDAP</a>
+server. No validation of the <a href="LDAP.html">LDAP</a> server&#8217;s
+SSL certificate is performed. This means that :simple_tls will not produce
+errors if the <a href="LDAP.html">LDAP</a> server&#8217;s encryption
+certificate is not signed by a well-known Certification Authority. If you
+get communications or protocol errors when using this option, check with
+your <a href="LDAP.html">LDAP</a> server administrator. Pay particular
+attention to the TCP port you are connecting to. It&#8217;s impossible for
+an <a href="LDAP.html">LDAP</a> server to support plaintext <a
+href="LDAP.html">LDAP</a> communications and <em>simple TLS</em>
+connections on the same port. The standard TCP port for unencrypted <a
+href="LDAP.html">LDAP</a> connections is 389, but the standard port for
+simple-TLS encrypted connections is 636. Be sure you are using the correct
+port.
+</p>
+<p>
+<em>[Note: a future version of <a href="LDAP.html">Net::LDAP</a> will
+support the STARTTLS <a href="LDAP.html">LDAP</a> control, which will
+enable encrypted communications on the same TCP port used for unencrypted
+connections.]</em>
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000109_source')" id="l_M000109_source">show</a>
+                        
+                    </p>
+                    <div id="M000109_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 471</span>
+471:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">encryption</span>(<span class="ruby-identifier">args</span>)
+472:     <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">args</span>
+473:     <span class="ruby-keyword kw">when</span> <span class="ruby-identifier">:simple_tls</span>, <span class="ruby-identifier">:start_tls</span>
+474:       <span class="ruby-identifier">args</span> = { <span class="ruby-identifier">:method</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">args</span> }
+475:     <span class="ruby-keyword kw">end</span>
+476:     <span class="ruby-ivar">@encryption</span> = <span class="ruby-identifier">args</span>
+477:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000111">
+                    
+                    <a name="M000111"></a><b>get_operation_result</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a meaningful result any time after a protocol operation (<a
+href="LDAP.html#M000114">bind</a>, <a href="LDAP.html#M000113">search</a>,
+<a href="LDAP.html#M000116">add</a>, <a
+href="LDAP.html#M000117">modify</a>, <a
+href="LDAP.html#M000121">rename</a>, <a
+href="LDAP.html#M000123">delete</a>) has completed. It returns an
+OpenStruct containing an <a href="LDAP.html">LDAP</a> result code (0 means
+success), and a human-readable string.
+</p>
+<pre>
+ unless ldap.bind
+   puts &quot;Result: #{ldap.get_operation_result.code}&quot;
+   puts &quot;Message: #{ldap.get_operation_result.message}&quot;
+ end
+</pre>
+<p>
+Certain operations return additional information, accessible through
+members of the object returned from <a
+href="LDAP.html#M000111">get_operation_result</a>. Check <a
+href="LDAP.html#M000111">get_operation_result</a>.error_message and <a
+href="LDAP.html#M000111">get_operation_result</a>.matched_dn.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000111_source')" id="l_M000111_source">show</a>
+                        
+                    </p>
+                    <div id="M000111_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 518</span>
+518:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_operation_result</span>
+519:     <span class="ruby-identifier">os</span> = <span class="ruby-constant">OpenStruct</span>.<span class="ruby-identifier">new</span>
+520:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@result</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>)
+521:       <span class="ruby-comment cmt"># We might get a hash of LDAP response codes instead of a simple</span>
+522:       <span class="ruby-comment cmt"># numeric code.</span>
+523:       <span class="ruby-identifier">os</span>.<span class="ruby-identifier">code</span> = (<span class="ruby-ivar">@result</span>[<span class="ruby-identifier">:resultCode</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&quot;</span>).<span class="ruby-identifier">to_i</span>
+524:       <span class="ruby-identifier">os</span>.<span class="ruby-identifier">error_message</span> = <span class="ruby-ivar">@result</span>[<span class="ruby-identifier">:errorMessage</span>]
+525:       <span class="ruby-identifier">os</span>.<span class="ruby-identifier">matched_dn</span> = <span class="ruby-ivar">@result</span>[<span class="ruby-identifier">:matchedDN</span>]
+526:     <span class="ruby-keyword kw">elsif</span> <span class="ruby-ivar">@result</span>
+527:       <span class="ruby-identifier">os</span>.<span class="ruby-identifier">code</span> = <span class="ruby-ivar">@result</span>
+528:     <span class="ruby-keyword kw">else</span>
+529:       <span class="ruby-identifier">os</span>.<span class="ruby-identifier">code</span> = <span class="ruby-value">0</span>
+530:     <span class="ruby-keyword kw">end</span>
+531:     <span class="ruby-identifier">os</span>.<span class="ruby-identifier">message</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span>.<span class="ruby-identifier">result2string</span>(<span class="ruby-identifier">os</span>.<span class="ruby-identifier">code</span>)
+532:     <span class="ruby-identifier">os</span>
+533:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000117">
+                    
+                    <a name="M000117"></a><b>modify</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Modifies the attribute values of a particular entry on the <a
+href="LDAP.html">LDAP</a> directory. Takes a hash with arguments. Supported
+arguments are:
+</p>
+<table>
+<tr><td valign="top">:dn :</td><td>(the full <a href="LDAP/DN.html">DN</a> of the entry whose attributes are
+to be modified)
+
+</td></tr>
+<tr><td valign="top">:operations :</td><td>(the modifications to be performed, detailed next)
+
+</td></tr>
+</table>
+<p>
+This method returns True or False to indicate whether the operation
+succeeded or failed, with extended information available by calling <a
+href="LDAP.html#M000111">get_operation_result</a>.
+</p>
+<p>
+Also see <a href="LDAP.html#M000118">add_attribute</a>, <a
+href="LDAP.html#M000119">replace_attribute</a>, or <a
+href="LDAP.html#M000120">delete_attribute</a>, which provide simpler
+interfaces to this functionality.
+</p>
+<p>
+The <a href="LDAP.html">LDAP</a> protocol provides a full and well
+thought-out set of operations for changing the values of attributes, but
+they are necessarily somewhat complex and not always intuitive. If these
+instructions are confusing or incomplete, please send us email or create a
+bug report on rubyforge.
+</p>
+<p>
+The :operations parameter to <a href="LDAP.html#M000117">modify</a> takes
+an array of operation-descriptors. Each individual operation is specified
+in one element of the array, and most <a href="LDAP.html">LDAP</a> servers
+will attempt to perform the operations in order.
+</p>
+<p>
+Each of the operations appearing in the Array must itself be an Array
+</p>
+<table>
+<tr><td valign="top">with exactly three elements: an operator:</td><td>must be :add, :replace, or
+
+</td></tr>
+<tr><td valign="top">:delete an attribute name:</td><td>the attribute name (string or symbol) to
+
+</td></tr>
+<tr><td valign="top">modify a value:</td><td>either a string or an array of strings.
+
+</td></tr>
+</table>
+<p>
+The :add operator will, unsurprisingly, add the specified values to the
+specified attribute. If the attribute does not already exist, :add will
+create it. Most <a href="LDAP.html">LDAP</a> servers will generate an error
+if you try to add a value that already exists.
+</p>
+<p>
+:replace will erase the current value(s) for the specified attribute, if
+there are any, and replace them with the specified value(s).
+</p>
+<p>
+:delete will remove the specified value(s) from the specified attribute. If
+you pass nil, an empty string, or an empty array as the value parameter to
+a :delete operation, the <em>entire</em> <em>attribute</em> will be
+deleted, along with all of its values.
+</p>
+<p>
+For example:
+</p>
+<pre>
+ dn = &quot;mail=modifyme@example.com, ou=people, dc=example, dc=com&quot;
+ ops = [
+   [:add, :mail, &quot;aliasaddress@example.com&quot;],
+   [:replace, :mail, [&quot;newaddress@example.com&quot;, &quot;newalias@example.com&quot;]],
+   [:delete, :sn, nil]
+ ]
+ ldap.modify :dn =&gt; dn, :operations =&gt; ops
+</pre>
+<p>
+<em>(This example is contrived since you probably wouldn&#8217;t add a mail
+value right before replacing the whole attribute, but it shows that order
+of execution matters. Also, many <a href="LDAP.html">LDAP</a> servers
+won&#8217;t let you delete SN because that would be a schema
+violation.)</em>
+</p>
+<p>
+It&#8217;s essential to keep in mind that if you specify more than one
+operation in a call to <a href="LDAP.html#M000117">modify</a>, most <a
+href="LDAP.html">LDAP</a> servers will attempt to perform all of the
+operations in the order you gave them. This matters because you may specify
+operations on the same attribute which must be performed in a certain
+order.
+</p>
+<p>
+Most <a href="LDAP.html">LDAP</a> servers will <em>stop</em> processing
+your modifications if one of them causes an error on the server (such as a
+schema-constraint violation). If this happens, you will probably get a
+result code from the server that reflects only the operation that failed,
+and you may or may not get extended information that will tell you which
+one failed. <a href="LDAP.html#M000117">modify</a> has no notion of an
+atomic transaction. If you specify a chain of modifications in one call to
+<a href="LDAP.html#M000117">modify</a>, and one of them fails, the
+preceding ones will usually not be &#8220;rolled back, &#8220; resulting in
+a partial update. This is a limitation of the <a href="LDAP.html">LDAP</a>
+protocol, not of <a href="LDAP.html">Net::LDAP</a>.
+</p>
+<p>
+The lack of transactional atomicity in <a href="LDAP.html">LDAP</a> means
+that you&#8217;re usually better off using the convenience methods <a
+href="LDAP.html#M000118">add_attribute</a>, <a
+href="LDAP.html#M000119">replace_attribute</a>, and <a
+href="LDAP.html#M000120">delete_attribute</a>, which are are wrappers over
+<a href="LDAP.html#M000117">modify</a>. However, certain <a
+href="LDAP.html">LDAP</a> servers may provide concurrency semantics, in
+which the several operations contained in a single <a
+href="LDAP.html#M000117">modify</a> call are not interleaved with other
+modification-requests received simultaneously by the server. It bears
+repeating that this concurrency does <em>not</em> imply transactional
+atomicity, which <a href="LDAP.html">LDAP</a> does not provide.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000117_source')" id="l_M000117_source">show</a>
+                        
+                    </p>
+                    <div id="M000117_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 909</span>
+909:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">modify</span>(<span class="ruby-identifier">args</span>)
+910:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+911:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">modify</span>(<span class="ruby-identifier">args</span>)
+912:     <span class="ruby-keyword kw">else</span>
+913:       <span class="ruby-ivar">@result</span> = <span class="ruby-value">0</span>
+914:       <span class="ruby-keyword kw">begin</span>
+915:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+916:                               <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+917:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@auth</span>)) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+918:           <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">modify</span>(<span class="ruby-identifier">args</span>)
+919:         <span class="ruby-keyword kw">end</span>
+920:       <span class="ruby-keyword kw">ensure</span>
+921:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">conn</span>
+922:       <span class="ruby-keyword kw">end</span>
+923:     <span class="ruby-keyword kw">end</span>
+924:     <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+925:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000122">
+                    
+                    <a name="M000122"></a><b>modify_rdn</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Alias for <a href="LDAP.html#M000121">rename</a>
+</p>
+
+                </div>
+                
+                
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000112">
+                    
+                    <a name="M000112"></a><b>open</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Opens a network connection to the server and then passes <tt>self</tt> to
+the caller-supplied block. The connection is closed when the block
+completes. Used for executing multiple <a href="LDAP.html">LDAP</a>
+operations without requiring a separate network connection (and
+authentication) for each one. <em>Note:</em> You do not need to log-in or
+&#8220;bind&#8221; to the server. This will be done for you automatically.
+For an even simpler approach, see the class method <a
+href="LDAP.html#M000110">Net::LDAP#open</a>.
+</p>
+<pre>
+ # (PSEUDOCODE)
+ auth = { :method =&gt; :simple, :username =&gt; username, :password =&gt; password }
+ ldap = Net::LDAP.new(:host =&gt; ipaddress, :port =&gt; 389, :auth =&gt; auth)
+ ldap.open do |ldap|
+   ldap.search(...)
+   ldap.add(...)
+   ldap.modify(...)
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000112_source')" id="l_M000112_source">show</a>
+                        
+                    </p>
+                    <div id="M000112_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 551</span>
+551:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">open</span>
+552:     <span class="ruby-comment cmt"># First we make a connection and then a binding, but we don't do</span>
+553:     <span class="ruby-comment cmt"># anything with the bind results. We then pass self to the caller's</span>
+554:     <span class="ruby-comment cmt"># block, where he will execute his LDAP operations. Of course they will</span>
+555:     <span class="ruby-comment cmt"># all generate auth failures if the bind was unsuccessful.</span>
+556:     <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">LdapError</span>, <span class="ruby-value str">&quot;Open already in progress&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+557: 
+558:     <span class="ruby-keyword kw">begin</span>
+559:       <span class="ruby-ivar">@open_connection</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>,
+560:                                                    <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+561:                                                    <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span>
+562:                                                    <span class="ruby-ivar">@encryption</span>)
+563:       <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-ivar">@auth</span>)
+564:       <span class="ruby-keyword kw">yield</span> <span class="ruby-keyword kw">self</span>
+565:     <span class="ruby-keyword kw">ensure</span>
+566:       <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+567:       <span class="ruby-ivar">@open_connection</span> = <span class="ruby-keyword kw">nil</span>
+568:     <span class="ruby-keyword kw">end</span>
+569:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000126">
+                    
+                    <a name="M000126"></a><b>paged_searches_supported?</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000126_source')" id="l_M000126_source">show</a>
+                        
+                    </p>
+                    <div id="M000126_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 1094</span>
+1094:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">paged_searches_supported?</span>
+1095:     <span class="ruby-ivar">@server_caps</span> <span class="ruby-operator">||=</span> <span class="ruby-identifier">search_root_dse</span>
+1096:     <span class="ruby-ivar">@server_caps</span>[<span class="ruby-identifier">:supportedcontrol</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">LdapControls</span><span class="ruby-operator">::</span><span class="ruby-constant">PagedResults</span>)
+1097:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000121">
+                    
+                    <a name="M000121"></a><b>rename</b>(args)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Rename an entry on the remote DIS by changing the last RDN of its <a
+href="LDAP/DN.html">DN</a>.
+</p>
+<p>
+<em>Documentation</em> <em>stub</em>
+</p>
+
+                </div>
+                
+                
+                <div class="aka">
+                    This method is also aliased as
+                    
+                    <a href="LDAP.html#M000122">modify_rdn</a>
+                    
+                </div>
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000121_source')" id="l_M000121_source">show</a>
+                        
+                    </p>
+                    <div id="M000121_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 980</span>
+980:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">rename</span>(<span class="ruby-identifier">args</span>)
+981:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+982:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-identifier">args</span>)
+983:     <span class="ruby-keyword kw">else</span>
+984:       <span class="ruby-ivar">@result</span> = <span class="ruby-value">0</span>
+985:       <span class="ruby-keyword kw">begin</span>
+986:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+987:                               <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+988:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@auth</span>)) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+989:           <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-identifier">args</span>)
+990:         <span class="ruby-keyword kw">end</span>
+991:       <span class="ruby-keyword kw">ensure</span>
+992:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">conn</span>
+993:       <span class="ruby-keyword kw">end</span>
+994:     <span class="ruby-keyword kw">end</span>
+995:     <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+996:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000119">
+                    
+                    <a name="M000119"></a><b>replace_attribute</b>(dn, attribute, value)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Replace the value of an attribute. <a
+href="LDAP.html#M000119">replace_attribute</a> can be thought of as
+equivalent to calling <a href="LDAP.html#M000120">delete_attribute</a>
+followed by <a href="LDAP.html#M000118">add_attribute</a>. It takes the
+full <a href="LDAP/DN.html">DN</a> of the entry to modify, the name (Symbol
+or String) of the attribute, and the value (String or Array). If the
+attribute does not exist, it will be created with the caller-specified
+value(s). If the attribute does exist, its values will be
+<em>discarded</em> and replaced with the caller-specified values.
+</p>
+<p>
+Returns True or False to indicate whether the operation succeeded or
+failed, with extended information available by calling <a
+href="LDAP.html#M000111">get_operation_result</a>. See also <a
+href="LDAP.html#M000118">add_attribute</a> and <a
+href="LDAP.html#M000120">delete_attribute</a>.
+</p>
+<pre>
+ dn = &quot;cn=modifyme, dc=example, dc=com&quot;
+ ldap.replace_attribute dn, :mail, &quot;newmailaddress@example.com&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000119_source')" id="l_M000119_source">show</a>
+                        
+                    </p>
+                    <div id="M000119_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 960</span>
+960:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">replace_attribute</span>(<span class="ruby-identifier">dn</span>, <span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">value</span>)
+961:     <span class="ruby-identifier">modify</span>(<span class="ruby-identifier">:dn</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">dn</span>, <span class="ruby-identifier">:operations</span> =<span class="ruby-operator">&gt;</span> [[<span class="ruby-identifier">:replace</span>, <span class="ruby-identifier">attribute</span>, <span class="ruby-identifier">value</span>]])
+962:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000113">
+                    
+                    <a name="M000113"></a><b>search</b>(args = {})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Searches the <a href="LDAP.html">LDAP</a> directory for directory entries.
+Takes a hash argument with parameters. Supported parameters include:
+</p>
+<ul>
+<li>:base (a string specifying the tree-base for the search);
+
+</li>
+<li>:filter (an object of type <a
+href="LDAP/Filter.html">Net::LDAP::Filter</a>, defaults to objectclass=*);
+
+</li>
+<li>:attributes (a string or array of strings specifying the <a
+href="LDAP.html">LDAP</a> attributes to return from the server);
+
+</li>
+<li>:return_result (a boolean specifying whether to return a result set).
+
+</li>
+<li>:attributes_only (a boolean flag, defaults false)
+
+</li>
+<li>:scope (one of: Net::LDAP::SearchScope_BaseObject,
+Net::LDAP::SearchScope_SingleLevel, Net::LDAP::SearchScope_WholeSubtree.
+Default is WholeSubtree.)
+
+</li>
+<li>:size (an integer indicating the maximum number of search entries to
+return. Default is zero, which signifies no limit.)
+
+</li>
+</ul>
+<p>
+<a href="LDAP.html#M000113">search</a> queries the <a
+href="LDAP.html">LDAP</a> server and passes <em>each entry</em> to the
+caller-supplied block, as an object of type <a
+href="LDAP/Entry.html">Net::LDAP::Entry</a>. If the search returns 1000
+entries, the block will be called 1000 times. If the search returns no
+entries, the block will not be called.
+</p>
+<p>
+<a href="LDAP.html#M000113">search</a> returns either a result-set or a
+boolean, depending on the value of the <tt>:return_result</tt> argument.
+The default behavior is to return a result set, which is an Array of
+objects of class <a href="LDAP/Entry.html">Net::LDAP::Entry</a>. If you
+request a result set and <a href="LDAP.html#M000113">search</a> fails with
+an error, it will return nil. Call <a
+href="LDAP.html#M000111">get_operation_result</a> to get the error
+information returned by the <a href="LDAP.html">LDAP</a> server.
+</p>
+<p>
+When <tt>:return_result =&gt; false, </tt> <a
+href="LDAP.html#M000113">search</a> will return only a Boolean, to indicate
+whether the operation succeeded. This can improve performance with very
+large result sets, because the library can discard each entry from memory
+after your block processes it.
+</p>
+<pre>
+ treebase = &quot;dc=example, dc=com&quot;
+ filter = Net::LDAP::Filter.eq(&quot;mail&quot;, &quot;a*.com&quot;)
+ attrs = [&quot;mail&quot;, &quot;cn&quot;, &quot;sn&quot;, &quot;objectclass&quot;]
+ ldap.search(:base =&gt; treebase, :filter =&gt; filter, :attributes =&gt; attrs,
+             :return_result =&gt; false) do |entry|
+   puts &quot;DN: #{entry.dn}&quot;
+   entry.each do |attr, values|
+     puts &quot;.......#{attr}:&quot;
+     values.each do |value|
+       puts &quot;          #{value}&quot;
+     end
+   end
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000113_source')" id="l_M000113_source">show</a>
+                        
+                    </p>
+                    <div id="M000113_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 617</span>
+617:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">search</span>(<span class="ruby-identifier">args</span> = {})
+618:     <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:ignore_server_caps</span>]
+619:       <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:paged_searches_supported</span>] = <span class="ruby-identifier">paged_searches_supported?</span>
+620:     <span class="ruby-keyword kw">end</span>
+621: 
+622:     <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:base</span>] <span class="ruby-operator">||=</span> <span class="ruby-ivar">@base</span>
+623:     <span class="ruby-identifier">return_result_set</span> = <span class="ruby-identifier">args</span>[<span class="ruby-identifier">:return_result</span>] <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">false</span>
+624:     <span class="ruby-identifier">result_set</span> = <span class="ruby-identifier">return_result_set</span> <span class="ruby-value">? </span>[] <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+625: 
+626:     <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@open_connection</span>
+627:       <span class="ruby-ivar">@result</span> = <span class="ruby-ivar">@open_connection</span>.<span class="ruby-identifier">search</span>(<span class="ruby-identifier">args</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span><span class="ruby-operator">|</span>
+628:         <span class="ruby-identifier">result_set</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">entry</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">result_set</span>
+629:         <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">entry</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+630:       }
+631:     <span class="ruby-keyword kw">else</span>
+632:       <span class="ruby-ivar">@result</span> = <span class="ruby-value">0</span>
+633:       <span class="ruby-keyword kw">begin</span>
+634:         <span class="ruby-identifier">conn</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Connection</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@host</span>, <span class="ruby-identifier">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@port</span>,
+635:                                          <span class="ruby-identifier">:encryption</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-ivar">@encryption</span>)
+636:         <span class="ruby-keyword kw">if</span> (<span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">bind</span>(<span class="ruby-identifier">args</span>[<span class="ruby-identifier">:auth</span>] <span class="ruby-operator">||</span> <span class="ruby-ivar">@auth</span>)) <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+637:           <span class="ruby-ivar">@result</span> = <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">search</span>(<span class="ruby-identifier">args</span>) { <span class="ruby-operator">|</span><span class="ruby-identifier">entry</span><span class="ruby-operator">|</span>
+638:             <span class="ruby-identifier">result_set</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">entry</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">result_set</span>
+639:             <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">entry</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block_given?</span>
+640:           }
+641:         <span class="ruby-keyword kw">end</span>
+642:       <span class="ruby-keyword kw">ensure</span>
+643:         <span class="ruby-identifier">conn</span>.<span class="ruby-identifier">close</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">conn</span>
+644:       <span class="ruby-keyword kw">end</span>
+645:     <span class="ruby-keyword kw">end</span>
+646: 
+647:     <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">return_result_set</span>
+648:       <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span> <span class="ruby-operator">?</span> <span class="ruby-identifier">result_set</span> <span class="ruby-operator">:</span> <span class="ruby-keyword kw">nil</span>
+649:     <span class="ruby-keyword kw">else</span>
+650:       <span class="ruby-ivar">@result</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>
+651:     <span class="ruby-keyword kw">end</span>
+652:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000124">
+                    
+                    <a name="M000124"></a><b>search_root_dse</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This method is experimental and subject to change. Return the rootDSE
+record from the <a href="LDAP.html">LDAP</a> server as a <a
+href="LDAP/Entry.html">Net::LDAP::Entry</a>, or an empty <a
+href="LDAP/Entry.html">Entry</a> if the server doesn&#8217;t return the
+record.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000124_source')" id="l_M000124_source">show</a>
+                        
+                    </p>
+                    <div id="M000124_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 1039</span>
+1039:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">search_root_dse</span>
+1040:     <span class="ruby-identifier">rs</span> = <span class="ruby-identifier">search</span>(<span class="ruby-identifier">:ignore_server_caps</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>, <span class="ruby-identifier">:base</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;&quot;</span>,
+1041:                 <span class="ruby-identifier">:scope</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">SearchScope_BaseObject</span>,
+1042:                 <span class="ruby-identifier">:attributes</span> =<span class="ruby-operator">&gt;</span> [ <span class="ruby-identifier">:namingContexts</span>, <span class="ruby-identifier">:supportedLdapVersion</span>,
+1043:                   <span class="ruby-identifier">:altServer</span>, <span class="ruby-identifier">:supportedControl</span>, <span class="ruby-identifier">:supportedExtension</span>,
+1044:                   <span class="ruby-identifier">:supportedFeatures</span>, <span class="ruby-identifier">:supportedSASLMechanisms</span>])
+1045:     (<span class="ruby-identifier">rs</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span>) <span class="ruby-keyword kw">or</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Entry</span>.<span class="ruby-identifier">new</span>
+1046:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000125">
+                    
+                    <a name="M000125"></a><b>search_subschema_entry</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return the root Subschema record from the <a href="LDAP.html">LDAP</a>
+server as a <a href="LDAP/Entry.html">Net::LDAP::Entry</a>, or an empty <a
+href="LDAP/Entry.html">Entry</a> if the server doesn&#8217;t return the
+record. On success, the <a href="LDAP/Entry.html">Net::LDAP::Entry</a>
+returned from this call will have the attributes :dn, :objectclasses, and
+:attributetypes. If there is an error, call <a
+href="LDAP.html#M000111">get_operation_result</a> for more information.
+</p>
+<pre>
+ ldap = Net::LDAP.new
+ ldap.host = &quot;your.ldap.host&quot;
+ ldap.auth &quot;your-user-dn&quot;, &quot;your-psw&quot;
+ subschema_entry = ldap.search_subschema_entry
+
+ subschema_entry.attributetypes.each do |attrtype|
+   # your code
+ end
+
+ subschema_entry.objectclasses.each do |attrtype|
+   # your code
+ end
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000125_source')" id="l_M000125_source">show</a>
+                        
+                    </p>
+                    <div id="M000125_source" class="dyn-source">
+                        <pre>      <span class="ruby-comment cmt"># File lib/net/ldap.rb, line 1072</span>
+1072:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">search_subschema_entry</span>
+1073:     <span class="ruby-identifier">rs</span> = <span class="ruby-identifier">search</span>(<span class="ruby-identifier">:ignore_server_caps</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>, <span class="ruby-identifier">:base</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;&quot;</span>,
+1074:                 <span class="ruby-identifier">:scope</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">SearchScope_BaseObject</span>,
+1075:                 <span class="ruby-identifier">:attributes</span> =<span class="ruby-operator">&gt;</span> [<span class="ruby-identifier">:subschemaSubentry</span>])
+1076:     <span class="ruby-keyword kw">return</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Entry</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">unless</span> (<span class="ruby-identifier">rs</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span>)
+1077: 
+1078:     <span class="ruby-identifier">subschema_name</span> = <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span>.<span class="ruby-identifier">subschemasubentry</span>
+1079:     <span class="ruby-keyword kw">return</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Entry</span>.<span class="ruby-identifier">new</span> <span class="ruby-keyword kw">unless</span> (<span class="ruby-identifier">subschema_name</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">subschema_name</span>.<span class="ruby-identifier">first</span>)
+1080: 
+1081:     <span class="ruby-identifier">rs</span> = <span class="ruby-identifier">search</span>(<span class="ruby-identifier">:ignore_server_caps</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword kw">true</span>, <span class="ruby-identifier">:base</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">subschema_name</span>.<span class="ruby-identifier">first</span>,
+1082:                 <span class="ruby-identifier">:scope</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">SearchScope_BaseObject</span>,
+1083:                 <span class="ruby-identifier">:filter</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;objectclass=subschema&quot;</span>,
+1084:                 <span class="ruby-identifier">:attributes</span> =<span class="ruby-operator">&gt;</span> [<span class="ruby-identifier">:objectclasses</span>, <span class="ruby-identifier">:attributetypes</span>])
+1085:     (<span class="ruby-identifier">rs</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">rs</span>.<span class="ruby-identifier">first</span>) <span class="ruby-keyword kw">or</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Entry</span>.<span class="ruby-identifier">new</span>
+1086:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

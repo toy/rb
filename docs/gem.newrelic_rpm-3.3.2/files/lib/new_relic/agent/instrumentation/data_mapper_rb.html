@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>data_mapper.rb</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            data_mapper.rb
+        </h1>
+        <ul class="files">
+            <li>lib/new_relic/agent/instrumentation/data_mapper.rb</li>
+            <li>Last modified: Tue Feb 21 01:30:48 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <pre>
+ NewRelic instrumentation for DataMapper
+</pre>
+<p>
+Instrumenting DM has different key challenges versus AR:
+</p>
+<pre>
+  1. The hooking of SQL logging in DM is decoupled from any knowledge of the
+     Model#method that invoked it.  But on the positive side, the duration is
+     already calculated for you (and it happens inside the C-based DO code, so
+     it's faster than a Ruby equivalent).
+
+  2. There are a lot more entry points that need to be hooked in order to
+     understand call flow: DM::Model (model class) vs. DM::Resource (model
+     instance) vs. DM::Collection (collection of model instances).  And
+     others.
+
+  3. Strategic Eager Loading (SEL) combined with separately-grouped
+     lazy-loaded attributes presents a unique problem for tying resulting
+     SEL-invoked SQL calls to their proper scope.
+</pre>
+<p>
+NOTE: On using &#8220;Database&#8221; versus &#8220;ActiveRecord&#8221; as
+base metric name
+</p>
+<pre>
+  Using &quot;Database&quot; as the metric name base seems to properly identify methods
+  as being DB-related in call graphs, but certain New Relic views that show
+  aggregations of DB CPM, etc still seem to rely solely on &quot;ActiveRecord&quot;
+  being the base name, thus AFAICT &quot;Database&quot; calls to this are lost.  (Though
+  I haven't yet tested &quot;Database/SQL/{find/save/destroy/all}&quot; yet, as it seems
+  like an intuitively good name to use.)
+
+  So far I think these are the rules:
+
+    - ActiveRecord/{find/save/destroy} populates &quot;Database Throughput&quot; and
+      &quot;Database Response Time&quot; in the Database tab. [non-scoped]
+
+    - ActiveRecord/all populates the main Overview tab of DB time.  (still
+      unsure about this one). [non-scoped]
+
+    These metrics are represented as :push_scope =&gt; false or included as the
+    non-first metric in trace_execution_scoped() (docs say only first counts
+    towards scope) so they don't show up ine normal call graph/trace.
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>::NewRelic::Agent::Instrumentation::DataMapperInstrumentation</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="../../../../../classes/NewRelic.html">NewRelic</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

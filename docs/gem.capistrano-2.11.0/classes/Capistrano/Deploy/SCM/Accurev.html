@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Capistrano::Deploy::SCM::Accurev</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Capistrano::Deploy::SCM::Accurev 
+            
+                <span class="parent">&lt; 
+                    
+                    Base
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/capistrano/recipes/deploy/scm/accurev_rb.html">lib/capistrano/recipes/deploy/scm/accurev.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+<a href="Accurev.html">Accurev</a> bridge for use by <a
+href="../../../Capistrano.html">Capistrano</a>. This implementation does
+not implement all features of a <a
+href="../../../Capistrano.html">Capistrano</a> <a
+href="../SCM.html">SCM</a> module. The ones that are left out are either
+exceedingly difficult to implement with <a href="Accurev.html">Accurev</a>
+or are considered bad form.
+</p>
+<p>
+When using this module in a project, the following variables are used:
+</p>
+<pre>
+ * :repository - This should match the depot that code lives in. If your code
+                 exists in a subdirectory, you can append the path depot.
+                 eg. foo-depot/bar_dir
+ * :stream - The stream in the depot that code should be pulled from. If
+             left blank, the depot stream will be used
+ * :revision - Should be in the form 'stream/transaction'.
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000213">change_or_create_stream</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000210">depot</a>,</li>
+                
+                <li><a href="#M000206">diff</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000202">export</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000193">head</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000204">log</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>Q</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000198">query_revision</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000215">scm_quiet</a>,</li>
+                
+                <li><a href="#M000214">show_streams_for</a>,</li>
+                
+                <li><a href="#M000211">stream</a>,</li>
+                
+                <li><a href="#M000212">subdir</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+    <div class="sectiontitle">Included Modules</div>
+    <ul>
+        
+        <li>
+            
+            <span>REXML</span>
+            
+            START:includes
+        </li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="Accurev/InternalRevision.html">Capistrano::Deploy::SCM::Accurev::InternalRevision</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000206">
+                    
+                    <a name="M000206"></a><b>diff</b>(from, to=head)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the command needed to show the diff between what is deployed and
+what is pending. Because <a href="Accurev.html">Accurev</a> can not do this
+task without creating some streams, two time basis streams will be created
+for the purposes of doing the diff.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000206_source')" id="l_M000206_source">show</a>
+                        
+                    </p>
+                    <div id="M000206_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 95</span>
+ 95:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">diff</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>=<span class="ruby-identifier">head</span>)
+ 96:           <span class="ruby-identifier">from</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">from</span>)
+ 97:           <span class="ruby-identifier">to</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">to</span>)
+ 98: 
+ 99:           <span class="ruby-identifier">from_stream</span> = <span class="ruby-node">&quot;#{from.stream}-capistrano-diff-from&quot;</span>
+100:           <span class="ruby-identifier">to_stream</span> = <span class="ruby-node">&quot;#{to.stream}-capistrano-diff-to&quot;</span>
+101: 
+102:           [
+103:             <span class="ruby-identifier">change_or_create_stream</span>(<span class="ruby-identifier">from_stream</span>, <span class="ruby-identifier">from</span>),
+104:             <span class="ruby-identifier">change_or_create_stream</span>(<span class="ruby-identifier">to_stream</span>, <span class="ruby-identifier">to</span>),
+105:             <span class="ruby-identifier">scm</span>(<span class="ruby-identifier">:diff</span>, <span class="ruby-value str">'-v'</span>, <span class="ruby-identifier">from_stream</span>, <span class="ruby-value str">'-V'</span>, <span class="ruby-identifier">to_stream</span>, <span class="ruby-value str">'-a'</span>)
+106:           ].<span class="ruby-identifier">join</span>(<span class="ruby-value str">' &amp;&amp; '</span>)
+107:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000202">
+                    
+                    <a name="M000202"></a><b>export</b>(revision_id, destination)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Pops a copy of the code for the specified <a
+href="Accurev.html">Accurev</a> revision identifier. The revision
+identifier is represented as a stream &amp; transaction ID combo. <a
+href="Accurev.html">Accurev</a> can only pop a particular transaction if a
+stream is created on the server with a time basis of that transaction id.
+Therefore, we will create a stream with the required criteria and pop that.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000202_source')" id="l_M000202_source">show</a>
+                        
+                    </p>
+                    <div id="M000202_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 62</span>
+62:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">export</span>(<span class="ruby-identifier">revision_id</span>, <span class="ruby-identifier">destination</span>)
+63:           <span class="ruby-identifier">revision</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">revision_id</span>)
+64:           <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Exporting #{revision.stream}/#{revision.transaction_id} to #{destination}&quot;</span>)
+65: 
+66:           <span class="ruby-identifier">commands</span> = [
+67:             <span class="ruby-identifier">change_or_create_stream</span>(<span class="ruby-node">&quot;#{revision.stream}-capistrano-deploy&quot;</span>, <span class="ruby-identifier">revision</span>),
+68:             <span class="ruby-node">&quot;mkdir -p #{destination}&quot;</span>,
+69:             <span class="ruby-identifier">scm_quiet</span>(<span class="ruby-identifier">:pop</span>, <span class="ruby-node">&quot;-Rv #{stream}&quot;</span>, <span class="ruby-node">&quot;-L #{destination}&quot;</span>, <span class="ruby-node">&quot;'/./#{subdir}'&quot;</span>)
+70:           ]
+71:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">subdir</span>
+72:             <span class="ruby-identifier">commands</span>.<span class="ruby-identifier">push</span>(
+73:               <span class="ruby-node">&quot;mv #{destination}/#{subdir}/* #{destination}&quot;</span>,
+74:               <span class="ruby-node">&quot;rm -rf #{File.join(destination, subdir)}&quot;</span>
+75:             )
+76:           <span class="ruby-keyword kw">end</span>
+77:           <span class="ruby-identifier">commands</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">' &amp;&amp; '</span>)
+78:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000193">
+                    
+                    <a name="M000193"></a><b>head</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Defines pseudo-revision value for the most recent changes to be deployed.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000193_source')" id="l_M000193_source">show</a>
+                        
+                    </p>
+                    <div id="M000193_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 25</span>
+25:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">head</span>
+26:           <span class="ruby-node">&quot;#{stream}/highest&quot;</span>
+27:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000204">
+                    
+                    <a name="M000204"></a><b>log</b>(from, to=head)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns the command needed to show the changes that exist between the two
+revisions.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000204_source')" id="l_M000204_source">show</a>
+                        
+                    </p>
+                    <div id="M000204_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 81</span>
+81:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>=<span class="ruby-identifier">head</span>)
+82:           <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;Getting transactions between #{from} and #{to}&quot;</span>)
+83:           <span class="ruby-identifier">from_rev</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">from</span>)
+84:           <span class="ruby-identifier">to_rev</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">to</span>)
+85: 
+86:           [
+87:             <span class="ruby-identifier">scm</span>(<span class="ruby-identifier">:hist</span>, <span class="ruby-value str">'-s'</span>, <span class="ruby-identifier">from_rev</span>.<span class="ruby-identifier">stream</span>, <span class="ruby-value str">'-t'</span>, <span class="ruby-node">&quot;#{to_rev.transaction_id}-#{from_rev.transaction_id}&quot;</span>),
+88:             <span class="ruby-node">&quot;sed -e '/transaction #{from_rev.transaction_id}/ { Q }'&quot;</span>
+89:           ].<span class="ruby-identifier">join</span>(<span class="ruby-value str">' | '</span>)
+90:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000198">
+                    
+                    <a name="M000198"></a><b>query_revision</b>(revision)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Given an <a href="Accurev.html">Accurev</a> revision identifier, this
+method returns an identifier that can be used for later <a
+href="../SCM.html">SCM</a> calls. This returned identifier will not change
+as a result of further <a href="../SCM.html">SCM</a> activity.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000198_source')" id="l_M000198_source">show</a>
+                        
+                    </p>
+                    <div id="M000198_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 32</span>
+32:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">query_revision</span>(<span class="ruby-identifier">revision</span>)
+33:           <span class="ruby-identifier">internal_revision</span> = <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">revision</span>)
+34:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">revision</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">internal_revision</span>.<span class="ruby-identifier">psuedo_revision?</span>
+35: 
+36:           <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Querying for real revision for #{internal_revision}&quot;</span>)
+37:           <span class="ruby-identifier">rev_stream</span> = <span class="ruby-identifier">internal_revision</span>.<span class="ruby-identifier">stream</span>
+38: 
+39:           <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Determining what type of stream #{rev_stream} is...&quot;</span>)
+40:           <span class="ruby-identifier">stream_xml</span> = <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">show_streams_for</span>(<span class="ruby-identifier">rev_stream</span>)
+41:           <span class="ruby-identifier">stream_doc</span> = <span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">stream_xml</span>)
+42:           <span class="ruby-identifier">type</span> = <span class="ruby-constant">XPath</span>.<span class="ruby-identifier">first</span>(<span class="ruby-identifier">stream_doc</span>, <span class="ruby-value str">'//streams/stream/@type'</span>).<span class="ruby-identifier">value</span>
+43: 
+44:           <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">type</span>
+45:           <span class="ruby-keyword kw">when</span> <span class="ruby-value str">'snapshot'</span>
+46:             <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">rev_stream</span>, <span class="ruby-value str">'highest'</span>).<span class="ruby-identifier">to_s</span>
+47:           <span class="ruby-keyword kw">else</span>
+48:             <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;Getting latest transaction id in #{rev_stream}&quot;</span>)
+49:             <span class="ruby-comment cmt"># Doing another yield for a second Accurev call. Hopefully this is ok.</span>
+50:             <span class="ruby-identifier">hist_xml</span> = <span class="ruby-keyword kw">yield</span> <span class="ruby-identifier">scm</span>(<span class="ruby-identifier">:hist</span>, <span class="ruby-value str">'-ftx'</span>, <span class="ruby-value str">'-s'</span>, <span class="ruby-identifier">rev_stream</span>, <span class="ruby-value str">'-t'</span>, <span class="ruby-value str">'now.1'</span>)
+51:             <span class="ruby-identifier">hist_doc</span> = <span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">hist_xml</span>)
+52:             <span class="ruby-identifier">transaction_id</span> = <span class="ruby-constant">XPath</span>.<span class="ruby-identifier">first</span>(<span class="ruby-identifier">hist_doc</span>, <span class="ruby-value str">'//AcResponse/transaction/@id'</span>).<span class="ruby-identifier">value</span>
+53:             <span class="ruby-constant">InternalRevision</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">stream</span>, <span class="ruby-identifier">transaction_id</span>).<span class="ruby-identifier">to_s</span>
+54:           <span class="ruby-keyword kw">end</span>
+55:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000213">
+                    
+                    <a name="M000213"></a><b>change_or_create_stream</b>(name, revision)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000213_source')" id="l_M000213_source">show</a>
+                        
+                    </p>
+                    <div id="M000213_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 122</span>
+122:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">change_or_create_stream</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">revision</span>)
+123:           [
+124:             <span class="ruby-identifier">scm_quiet</span>(<span class="ruby-identifier">:mkstream</span>, <span class="ruby-value str">'-b'</span>, <span class="ruby-identifier">revision</span>.<span class="ruby-identifier">stream</span>, <span class="ruby-value str">'-s'</span>, <span class="ruby-identifier">name</span>, <span class="ruby-value str">'-t'</span>, <span class="ruby-identifier">revision</span>.<span class="ruby-identifier">transaction_id</span>),
+125:             <span class="ruby-identifier">scm_quiet</span>(<span class="ruby-identifier">:chstream</span>, <span class="ruby-value str">'-b'</span>, <span class="ruby-identifier">revision</span>.<span class="ruby-identifier">stream</span>, <span class="ruby-value str">'-s'</span>, <span class="ruby-identifier">name</span>, <span class="ruby-value str">'-t'</span>, <span class="ruby-identifier">revision</span>.<span class="ruby-identifier">transaction_id</span>)
+126:           ].<span class="ruby-identifier">join</span>(<span class="ruby-value str">'; '</span>)
+127:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000210">
+                    
+                    <a name="M000210"></a><b>depot</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000210_source')" id="l_M000210_source">show</a>
+                        
+                    </p>
+                    <div id="M000210_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 110</span>
+110:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">depot</span>
+111:           <span class="ruby-identifier">repository</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'/'</span>)[<span class="ruby-value">0</span>]
+112:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000215">
+                    
+                    <a name="M000215"></a><b>scm_quiet</b>(*args)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000215_source')" id="l_M000215_source">show</a>
+                        
+                    </p>
+                    <div id="M000215_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 133</span>
+133:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">scm_quiet</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+134:           <span class="ruby-identifier">scm</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>) <span class="ruby-operator">+</span> (<span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:scm_verbose</span>) <span class="ruby-operator">?</span> <span class="ruby-value str">''</span> <span class="ruby-operator">:</span> <span class="ruby-value str">'&amp;&gt; /dev/null'</span>)
+135:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000214">
+                    
+                    <a name="M000214"></a><b>show_streams_for</b>(stream)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000214_source')" id="l_M000214_source">show</a>
+                        
+                    </p>
+                    <div id="M000214_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 129</span>
+129:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">show_streams_for</span>(<span class="ruby-identifier">stream</span>)
+130:           <span class="ruby-identifier">scm</span> <span class="ruby-identifier">:show</span>, <span class="ruby-value str">'-fx'</span>, <span class="ruby-value str">'-s'</span>, <span class="ruby-identifier">stream</span>, <span class="ruby-identifier">:streams</span>
+131:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000211">
+                    
+                    <a name="M000211"></a><b>stream</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000211_source')" id="l_M000211_source">show</a>
+                        
+                    </p>
+                    <div id="M000211_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 114</span>
+114:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">stream</span>
+115:           <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:stream</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">depot</span>
+116:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000212">
+                    
+                    <a name="M000212"></a><b>subdir</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000212_source')" id="l_M000212_source">show</a>
+                        
+                    </p>
+                    <div id="M000212_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/accurev.rb, line 118</span>
+118:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">subdir</span>
+119:           <span class="ruby-identifier">repository</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">'/'</span>)[<span class="ruby-value">1</span><span class="ruby-operator">..</span><span class="ruby-value">-1</span>].<span class="ruby-identifier">join</span>(<span class="ruby-value str">'/'</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">repository</span>.<span class="ruby-identifier">index</span>(<span class="ruby-value str">'/'</span>).<span class="ruby-identifier">nil?</span>
+120:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

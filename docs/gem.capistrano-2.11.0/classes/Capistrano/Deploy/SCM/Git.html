@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Capistrano::Deploy::SCM::Git</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Capistrano::Deploy::SCM::Git 
+            
+                <span class="parent">&lt; 
+                    
+                    Base
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../../files/lib/capistrano/recipes/deploy/scm/git_rb.html">lib/capistrano/recipes/deploy/scm/git.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+An <a href="../SCM.html">SCM</a> module for using <a
+href="Git.html">Git</a> as your source control tool with <a
+href="../../../Capistrano.html">Capistrano</a> 2.0. If you are using <a
+href="../../../Capistrano.html">Capistrano</a> 1.x, use this plugin
+instead:
+</p>
+<pre>
+  http://scie.nti.st/2007/3/16/capistrano-with-git-shared-repository
+</pre>
+<p>
+Assumes you are using a shared <a href="Git.html">Git</a> repository.
+</p>
+<p>
+Parts of this plugin borrowed from Scott Chacon&#8217;s version, which I
+found on the <a href="../../../Capistrano.html">Capistrano</a> mailing list
+but failed to be able to get working.
+</p>
+<p>
+FEATURES:
+</p>
+<pre>
+  * Very simple, only requiring 2 lines in your deploy.rb.
+  * Can deploy different branches, tags, or any SHA1 easily.
+  * Supports prompting for password / passphrase upon checkout.
+    (I am amazed at how some plugins don't do this)
+  * Supports :scm_command, :scm_password, :scm_passphrase Capistrano
+    directives.
+</pre>
+<p>
+CONFIGURATION
+</p>
+<hr size="10"></hr><p>
+Use this plugin by adding the following line in your config/deploy.rb:
+</p>
+<pre>
+  set :scm, :git
+</pre>
+<p>
+Set <tt>:repository</tt> to the path of your <a href="Git.html">Git</a>
+repo:
+</p>
+<pre>
+  set :repository, &quot;someuser@somehost:/home/myproject&quot;
+</pre>
+<p>
+The above two options are required to be set, the ones below are optional.
+</p>
+<p>
+You may set <tt>:branch</tt>, which is the reference to the branch, tag, or
+any SHA1 you are deploying, for example:
+</p>
+<pre>
+  set :branch, &quot;master&quot;
+</pre>
+<p>
+Otherwise, HEAD is assumed. I strongly suggest you set this. HEAD is not
+always the best assumption.
+</p>
+<p>
+You may also set <tt>:remote</tt>, which will be used as a name for remote
+tracking of repositories. This option is intended for use with the
+<tt>:remote_cache</tt> strategy in a distributed git environment.
+</p>
+<p>
+For example in the projects <tt>config/deploy.rb</tt>:
+</p>
+<pre>
+  set :repository, &quot;#{scm_user}@somehost:~/projects/project.git&quot;
+  set :remote, &quot;#{scm_user}&quot;
+</pre>
+<p>
+Then each person with deploy priveledges can add the following to their
+local <tt>~/.caprc</tt> file:
+</p>
+<pre>
+  set :scm_user, 'someuser'
+</pre>
+<p>
+Now any time a person deploys the project, their repository will be setup
+as a remote git repository within the cached repository.
+</p>
+<p>
+The <tt>:scm_command</tt> configuration variable, if specified, will be
+used as the full path to the git executable on the <b>remote</b> machine:
+</p>
+<pre>
+  set :scm_command, &quot;/opt/local/bin/git&quot;
+</pre>
+<p>
+For compatibility with deploy scripts that may have used the 1.x version of
+this plugin before upgrading, <tt>:git</tt> is still recognized as an alias
+for :scm_command.
+</p>
+<p>
+Set <tt>:scm_password</tt> to the password needed to clone your repo if you
+don&#8217;t have password-less (public key) entry:
+</p>
+<pre>
+  set :scm_password, &quot;my_secret'
+</pre>
+<p>
+Otherwise, you will be prompted for a password.
+</p>
+<p>
+<tt>:scm_passphrase</tt> is also supported.
+</p>
+<p>
+The remote cache strategy is also supported.
+</p>
+<pre>
+  set :repository_cache, &quot;git_master&quot;
+  set :deploy_via, :remote_cache
+</pre>
+<p>
+For faster clone, you can also use shallow cloning. This will set the
+&#8217;&#8212;depth&#8217; flag using the depth specified. This
+<b>cannot</b> be used together with the :remote_cache strategy
+</p>
+<pre>
+  set :git_shallow_clone, 1
+</pre>
+<p>
+For those that don&#8217;t like to leave your entire repository on your
+production server you can:
+</p>
+<pre>
+  set :deploy_via, :export
+</pre>
+<p>
+To deploy from a local repository:
+</p>
+<pre>
+  set :repository, &quot;file://.&quot;
+  set :deploy_via, :copy
+</pre>
+<p>
+AUTHORS
+</p>
+<hr size="5"></hr><p>
+Garry Dolley <a href="http://scie.nti.st">scie.nti.st</a> Contributions by
+Geoffrey Grosenbach <a href="http://topfunky.com">topfunky.com</a>
+</p>
+<pre>
+             Scott Chacon http://jointheconversation.org
+                         Alex Arnell http://twologic.com
+                                  and Phillip Goldenburg
+</pre>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000284">checkout</a>,</li>
+                
+                <li><a href="#M000295">command</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>D</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000292">diff</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>E</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000285">export</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>H</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000296">handle_data</a>,</li>
+                
+                <li><a href="#M000282">head</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000293">log</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>O</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000283">origin</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>Q</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000294">query_revision</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000289">sync</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>V</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000298">verbose</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000284">
+                    
+                    <a name="M000284"></a><b>checkout</b>(revision, destination)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Performs a clone on the remote machine, then checkout on the branch you
+want to deploy.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000284_source')" id="l_M000284_source">show</a>
+                        
+                    </p>
+                    <div id="M000284_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 132</span>
+132:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">checkout</span>(<span class="ruby-identifier">revision</span>, <span class="ruby-identifier">destination</span>)
+133:           <span class="ruby-identifier">git</span>    = <span class="ruby-identifier">command</span>
+134:           <span class="ruby-identifier">remote</span> = <span class="ruby-identifier">origin</span>
+135: 
+136:           <span class="ruby-identifier">args</span> = []
+137:           <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;-o #{remote}&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">remote</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'origin'</span>
+138:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">depth</span> = <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git_shallow_clone</span>)
+139:             <span class="ruby-identifier">args</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;--depth #{depth}&quot;</span>
+140:           <span class="ruby-keyword kw">end</span>
+141: 
+142:           <span class="ruby-identifier">execute</span> = []
+143:           <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} clone #{verbose} #{args.join(' ')} #{variable(:repository)} #{destination}&quot;</span>
+144: 
+145:           <span class="ruby-comment cmt"># checkout into a local branch rather than a detached HEAD</span>
+146:           <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;cd #{destination} &amp;&amp; #{git} checkout #{verbose} -b deploy #{revision}&quot;</span>
+147: 
+148:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git_enable_submodules</span>)
+149:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} init&quot;</span>
+150:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} sync&quot;</span>
+151:             <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">false</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git_submodules_recursive</span>)
+152:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} update --init&quot;</span>
+153:             <span class="ruby-keyword kw">else</span>
+154:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">%Q(export GIT_RECURSIVE=$([ ! &quot;`#{git} --version`&quot; \\&lt; &quot;git version 1.6.5&quot; ] &amp;&amp; echo --recursive))</span>
+155:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} update --init $GIT_RECURSIVE&quot;</span>
+156:             <span class="ruby-keyword kw">end</span>
+157:           <span class="ruby-keyword kw">end</span>
+158: 
+159:           <span class="ruby-identifier">execute</span>.<span class="ruby-identifier">compact</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot; &amp;&amp; &quot;</span>).<span class="ruby-identifier">gsub</span>(<span class="ruby-regexp re">/\s+/</span>, <span class="ruby-value str">' '</span>)
+160:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000295">
+                    
+                    <a name="M000295"></a><b>command</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000295_source')" id="l_M000295_source">show</a>
+                        
+                    </p>
+                    <div id="M000295_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 247</span>
+247:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">command</span>
+248:           <span class="ruby-comment cmt"># For backwards compatibility with 1.x version of this module</span>
+249:           <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git</span>) <span class="ruby-operator">||</span> <span class="ruby-keyword kw">super</span>
+250:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000292">
+                    
+                    <a name="M000292"></a><b>diff</b>(from, to=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a string of diffs between two revisions
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000292_source')" id="l_M000292_source">show</a>
+                        
+                    </p>
+                    <div id="M000292_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 211</span>
+211:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">diff</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>=<span class="ruby-keyword kw">nil</span>)
+212:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">scm</span> <span class="ruby-operator">:</span><span class="ruby-identifier">diff</span>, <span class="ruby-identifier">from</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">to</span>
+213:           <span class="ruby-identifier">scm</span> <span class="ruby-identifier">:diff</span>, <span class="ruby-node">&quot;#{from}..#{to}&quot;</span>
+214:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000285">
+                    
+                    <a name="M000285"></a><b>export</b>(revision, destination)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+An expensive export. Performs a checkout as above, then removes the repo.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000285_source')" id="l_M000285_source">show</a>
+                        
+                    </p>
+                    <div id="M000285_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 164</span>
+164:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">export</span>(<span class="ruby-identifier">revision</span>, <span class="ruby-identifier">destination</span>)
+165:           <span class="ruby-identifier">checkout</span>(<span class="ruby-identifier">revision</span>, <span class="ruby-identifier">destination</span>) <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot; &amp;&amp; rm -Rf #{destination}/.git&quot;</span>
+166:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000296">
+                    
+                    <a name="M000296"></a><b>handle_data</b>(state, stream, text)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Determines what the response should be for a particular bit of text from
+the <a href="../SCM.html">SCM</a>. Password prompts, connection requests,
+passphrases, etc. are handled here.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000296_source')" id="l_M000296_source">show</a>
+                        
+                    </p>
+                    <div id="M000296_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 255</span>
+255:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">handle_data</span>(<span class="ruby-identifier">state</span>, <span class="ruby-identifier">stream</span>, <span class="ruby-identifier">text</span>)
+256:           <span class="ruby-identifier">host</span> = <span class="ruby-identifier">state</span>[<span class="ruby-identifier">:channel</span>][<span class="ruby-identifier">:host</span>]
+257:           <span class="ruby-identifier">logger</span>.<span class="ruby-identifier">info</span> <span class="ruby-node">&quot;[#{host} :: #{stream}] #{text}&quot;</span>
+258:           <span class="ruby-keyword kw">case</span> <span class="ruby-identifier">text</span>
+259:           <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/\bpassword.*:/i</span>
+260:             <span class="ruby-comment cmt"># git is prompting for a password</span>
+261:             <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">pass</span> = <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:scm_password</span>)
+262:               <span class="ruby-identifier">pass</span> = <span class="ruby-constant">Capistrano</span><span class="ruby-operator">::</span><span class="ruby-constant">CLI</span>.<span class="ruby-identifier">password_prompt</span>
+263:             <span class="ruby-keyword kw">end</span>
+264:             <span class="ruby-node">&quot;#{pass}\n&quot;</span>
+265:           <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">%r{\(yes/no\)}</span>
+266:             <span class="ruby-comment cmt"># git is asking whether or not to connect</span>
+267:             <span class="ruby-value str">&quot;yes\n&quot;</span>
+268:           <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/passphrase/i</span>
+269:             <span class="ruby-comment cmt"># git is asking for the passphrase for the user's key</span>
+270:             <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">pass</span> = <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:scm_passphrase</span>)
+271:               <span class="ruby-identifier">pass</span> = <span class="ruby-constant">Capistrano</span><span class="ruby-operator">::</span><span class="ruby-constant">CLI</span>.<span class="ruby-identifier">password_prompt</span>
+272:             <span class="ruby-keyword kw">end</span>
+273:             <span class="ruby-node">&quot;#{pass}\n&quot;</span>
+274:           <span class="ruby-keyword kw">when</span> <span class="ruby-regexp re">/accept \(t\)emporarily/</span>
+275:             <span class="ruby-comment cmt"># git is asking whether to accept the certificate</span>
+276:             <span class="ruby-value str">&quot;t\n&quot;</span>
+277:           <span class="ruby-keyword kw">end</span>
+278:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000282">
+                    
+                    <a name="M000282"></a><b>head</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+When referencing &#8220;head&#8221;, use the branch we want to deploy or,
+by default, Git&#8217;s reference of HEAD (the latest changeset in the
+default branch, usually called &#8220;master&#8221;).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000282_source')" id="l_M000282_source">show</a>
+                        
+                    </p>
+                    <div id="M000282_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 122</span>
+122:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">head</span>
+123:           <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:branch</span>) <span class="ruby-operator">||</span> <span class="ruby-value str">'HEAD'</span>
+124:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000293">
+                    
+                    <a name="M000293"></a><b>log</b>(from, to=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a log of changes between the two revisions (inclusive).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000293_source')" id="l_M000293_source">show</a>
+                        
+                    </p>
+                    <div id="M000293_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 217</span>
+217:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log</span>(<span class="ruby-identifier">from</span>, <span class="ruby-identifier">to</span>=<span class="ruby-keyword kw">nil</span>)
+218:           <span class="ruby-identifier">scm</span> <span class="ruby-identifier">:log</span>, <span class="ruby-node">&quot;#{from}..#{to}&quot;</span>
+219:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000283">
+                    
+                    <a name="M000283"></a><b>origin</b>()
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000283_source')" id="l_M000283_source">show</a>
+                        
+                    </p>
+                    <div id="M000283_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 126</span>
+126:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">origin</span>
+127:           <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:remote</span>) <span class="ruby-operator">||</span> <span class="ruby-value str">'origin'</span>
+128:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000294">
+                    
+                    <a name="M000294"></a><b>query_revision</b>(revision)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Getting the actual commit id, in case we were passed a tag or partial sha
+or something - it will return the sha if you pass a sha, too
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000294_source')" id="l_M000294_source">show</a>
+                        
+                    </p>
+                    <div id="M000294_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 223</span>
+223:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">query_revision</span>(<span class="ruby-identifier">revision</span>)
+224:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-node">&quot;Deploying remote branches is no longer supported.  Specify the remote branch as a local branch for the git repository you're deploying from (ie: '#{revision.gsub('origin/', '')}' rather than '#{revision}').&quot;</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">revision</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^origin\//</span>
+225:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">revision</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">revision</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^[0-9a-f]{40}$/</span>
+226:           <span class="ruby-identifier">command</span> = <span class="ruby-identifier">scm</span>(<span class="ruby-value str">'ls-remote'</span>, <span class="ruby-identifier">repository</span>, <span class="ruby-identifier">revision</span>)
+227:           <span class="ruby-identifier">result</span> = <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">command</span>)
+228:           <span class="ruby-identifier">revdata</span> = <span class="ruby-identifier">result</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/[\t\n]/</span>)
+229:           <span class="ruby-identifier">newrev</span> = <span class="ruby-keyword kw">nil</span>
+230:           <span class="ruby-identifier">revdata</span>.<span class="ruby-identifier">each_slice</span>(<span class="ruby-value">2</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">refs</span><span class="ruby-operator">|</span>
+231:             <span class="ruby-identifier">rev</span>, <span class="ruby-identifier">ref</span> = <span class="ruby-operator">*</span><span class="ruby-identifier">refs</span>
+232:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ref</span>.<span class="ruby-identifier">sub</span>(<span class="ruby-regexp re">/refs\/.*?\//</span>, <span class="ruby-value str">''</span>).<span class="ruby-identifier">strip</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">revision</span>.<span class="ruby-identifier">to_s</span>
+233:               <span class="ruby-identifier">newrev</span> = <span class="ruby-identifier">rev</span>
+234:               <span class="ruby-keyword kw">break</span>
+235:             <span class="ruby-keyword kw">end</span>
+236:           <span class="ruby-keyword kw">end</span>
+237:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">newrev</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">newrev</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^[0-9a-f]{40}$/</span>
+238: 
+239:           <span class="ruby-comment cmt"># If sha is not found on remote, try expanding from local repository</span>
+240:           <span class="ruby-identifier">command</span> = <span class="ruby-identifier">scm</span>(<span class="ruby-value str">'rev-parse --revs-only'</span>, <span class="ruby-identifier">revision</span>)
+241:           <span class="ruby-identifier">newrev</span> = <span class="ruby-keyword kw">yield</span>(<span class="ruby-identifier">command</span>).<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">strip</span>
+242: 
+243:           <span class="ruby-identifier">raise</span> <span class="ruby-node">&quot;Unable to resolve revision for '#{revision}' on repository '#{repository}'.&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">newrev</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^[0-9a-f]{40}$/</span>
+244:           <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">newrev</span>
+245:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000289">
+                    
+                    <a name="M000289"></a><b>sync</b>(revision, destination)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Merges the changes to &#8216;head&#8217; since the last fetch, for
+remote_cache deployment strategy
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000289_source')" id="l_M000289_source">show</a>
+                        
+                    </p>
+                    <div id="M000289_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 170</span>
+170:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">sync</span>(<span class="ruby-identifier">revision</span>, <span class="ruby-identifier">destination</span>)
+171:           <span class="ruby-identifier">git</span>     = <span class="ruby-identifier">command</span>
+172:           <span class="ruby-identifier">remote</span>  = <span class="ruby-identifier">origin</span>
+173: 
+174:           <span class="ruby-identifier">execute</span> = []
+175:           <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;cd #{destination}&quot;</span>
+176: 
+177:           <span class="ruby-comment cmt"># Use git-config to setup a remote tracking branches. Could use</span>
+178:           <span class="ruby-comment cmt"># git-remote but it complains when a remote of the same name already</span>
+179:           <span class="ruby-comment cmt"># exists, git-config will just silenty overwrite the setting every</span>
+180:           <span class="ruby-comment cmt"># time. This could cause wierd-ness in the remote cache if the url</span>
+181:           <span class="ruby-comment cmt"># changes between calls, but as long as the repositories are all</span>
+182:           <span class="ruby-comment cmt"># based from each other it should still work fine.</span>
+183:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">remote</span> <span class="ruby-operator">!=</span> <span class="ruby-value str">'origin'</span>
+184:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} config remote.#{remote}.url #{variable(:repository)}&quot;</span>
+185:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} config remote.#{remote}.fetch +refs/heads/*:refs/remotes/#{remote}/*&quot;</span>
+186:           <span class="ruby-keyword kw">end</span>
+187: 
+188:           <span class="ruby-comment cmt"># since we're in a local branch already, just reset to specified revision rather than merge</span>
+189:           <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} fetch #{verbose} #{remote} &amp;&amp; #{git} fetch --tags #{verbose} #{remote} &amp;&amp; #{git} reset #{verbose} --hard #{revision}&quot;</span>
+190: 
+191:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git_enable_submodules</span>)
+192:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} init&quot;</span>
+193:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;for mod in `#{git} submodule status | awk '{ print $2 }'`; do #{git} config -f .git/config submodule.${mod}.url `#{git} config -f .gitmodules --get submodule.${mod}.url` &amp;&amp; echo Synced $mod; done&quot;</span>
+194:             <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} sync&quot;</span>
+195:             <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">false</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:git_submodules_recursive</span>)
+196:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} update --init&quot;</span>
+197:             <span class="ruby-keyword kw">else</span>
+198:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">%Q(export GIT_RECURSIVE=$([ ! &quot;`#{git} --version`&quot; \\&lt; &quot;git version 1.6.5&quot; ] &amp;&amp; echo --recursive))</span>
+199:               <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} submodule #{verbose} update --init $GIT_RECURSIVE&quot;</span>
+200:             <span class="ruby-keyword kw">end</span>
+201:           <span class="ruby-keyword kw">end</span>
+202: 
+203:           <span class="ruby-comment cmt"># Make sure there's nothing else lying around in the repository (for</span>
+204:           <span class="ruby-comment cmt"># example, a submodule that has subsequently been removed).</span>
+205:           <span class="ruby-identifier">execute</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-node">&quot;#{git} clean #{verbose} -d -x -f&quot;</span>
+206: 
+207:           <span class="ruby-identifier">execute</span>.<span class="ruby-identifier">join</span>(<span class="ruby-value str">&quot; &amp;&amp; &quot;</span>)
+208:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000298">
+                    
+                    <a name="M000298"></a><b>verbose</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If verbose output is requested, return nil, otherwise return the
+command-line switch for &#8220;quiet&#8221; (&#8220;-q&#8221;).
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000298_source')" id="l_M000298_source">show</a>
+                        
+                    </p>
+                    <div id="M000298_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/recipes/deploy/scm/git.rb, line 284</span>
+284:           <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">verbose</span>
+285:             <span class="ruby-identifier">variable</span>(<span class="ruby-identifier">:scm_verbose</span>) <span class="ruby-operator">?</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-operator">:</span> <span class="ruby-value str">&quot;-q&quot;</span>
+286:           <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

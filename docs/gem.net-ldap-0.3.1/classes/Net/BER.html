@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::BER</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" />
+    <script src="../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Net::BER 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../files/lib/net/ber_rb.html">lib/net/ber.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <h2>Basic Encoding Rules (<a href="BER.html">BER</a>) Support Module</h2>
+<p>
+Much of the text below is cribbed from Wikipedia: <a
+href="http://en.wikipedia.org/wiki/Basic_Encoding_Rules">en.wikipedia.org/wiki/Basic_Encoding_Rules</a>
+</p>
+<p>
+The ITU Specification is also worthwhile reading: <a
+href="http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf">www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf</a>
+</p>
+<p>
+The Basic Encoding Rules were the original rules laid out by the ASN.1
+standard for encoding abstract information into a concrete data stream. The
+rules, collectively referred to as a transfer syntax in ASN.1 parlance,
+specify the exact octet sequences which are used to encode a given data
+item. The syntax defines such elements as: the representations for basic
+data types, the structure of length information, and the means for defining
+complex or compound types based on more primitive types. The <a
+href="BER.html">BER</a> syntax, along with two subsets of <a
+href="BER.html">BER</a> (the Canonical Encoding Rules and the Distinguished
+Encoding Rules), are defined by the ITU-T&#8217;s X.690 standards document,
+which is part of the ASN.1 document series.
+</p>
+<h2>Encoding</h2>
+<p>
+The <a href="BER.html">BER</a> format specifies a self-describing and
+self-delimiting format for encoding ASN.1 data structures. Each data
+element is encoded as a type identifier, a length description, the actual
+data elements, and where necessary, an end-of-content marker. This format
+allows a receiver to decode the ASN.1 information from an incomplete
+stream, without requiring any pre-knowledge of the size, content, or
+semantic meaning of the data.
+</p>
+<pre>
+  &lt;Type | Length | Value [| End-of-Content]&gt;
+</pre>
+<h2>Protocol Data Units (PDU)</h2>
+<p>
+Protocols are defined with schema represented in <a
+href="BER.html">BER</a>, such that a PDU consists of cascaded
+type-length-value encodings.
+</p>
+<h3>Type Tags</h3>
+<p>
+<a href="BER.html">BER</a> type tags are represented as single octets
+(bytes). The lower five bits of the octet are tag identifier numbers and
+the upper three bits of the octet are used to distinguish the type as
+native to ASN.1, application-specific, context-specific, or private. See
+Net::BER::TAG_CLASS and Net::BER::ENCODING_TYPE for more information.
+</p>
+<p>
+If Class is set to Universal (0b00______), the value is of a type native to
+ASN.1 (e.g. INTEGER). The Application class (0b01______) is only valid for
+one specific application. Context_specific (0b10______) depends on the
+context and private (0b11_______) can be defined in private specifications
+</p>
+<p>
+If the primitive/constructed bit is zero (0b__0_____), it specifies that
+the value is primitive like an INTEGER. If it is one (0b__1_____), the
+value is a constructed value that contains type-length-value encoded types
+like a SET or a SEQUENCE.
+</p>
+<h3>Defined Universal (ASN.1 Native) Types</h3>
+<p>
+There are a number of pre-defined universal (native) types.
+</p>
+<p>
+<table> <tr><th>Name</th><th>Primitive<br
+/>Constructed</th><th>Number</th></tr> <tr><th>EOC
+(End-of-Content)</th><th>P</th><td>0: 0 (0x0, 0b00000000)</td></tr>
+<tr><th>BOOLEAN</th><th>P</th><td>1: 1 (0x01, 0b00000001)</td></tr>
+<tr><th>INTEGER</th><th>P</th><td>2: 2 (0x02, 0b00000010)</td></tr>
+<tr><th>BIT STRING</th><th>P</th><td>3: 3 (0x03, 0b00000011)</td></tr>
+<tr><th>BIT STRING</th><th>C</th><td>3: 35 (0x23, 0b00100011)</td></tr>
+<tr><th>OCTET STRING</th><th>P</th><td>4: 4 (0x04, 0b00000100)</td></tr>
+<tr><th>OCTET STRING</th><th>C</th><td>4: 36 (0x24, 0b00100100)</td></tr>
+<tr><th>NULL</th><th>P</th><td>5: 5 (0x05, 0b00000101)</td></tr>
+<tr><th>OBJECT IDENTIFIER</th><th>P</th><td>6: 6 (0x06,
+0b00000110)</td></tr> <tr><th>Object Descriptor</th><th>P</th><td>7: 7
+(0x07, 0b00000111)</td></tr> <tr><th>EXTERNAL</th><th>C</th><td>8: 40
+(0x28, 0b00101000)</td></tr> <tr><th>REAL (float)</th><th>P</th><td>9: 9
+(0x09, 0b00001001)</td></tr> <tr><th>ENUMERATED</th><th>P</th><td>10: 10
+(0x0a, 0b00001010)</td></tr> <tr><th>EMBEDDED PDV</th><th>C</th><td>11: 43
+(0x2b, 0b00101011)</td></tr> <tr><th>UTF8String</th><th>P</th><td>12: 12
+(0x0c, 0b00001100)</td></tr> <tr><th>UTF8String</th><th>C</th><td>12: 44
+(0x2c, 0b00101100)</td></tr> <tr><th>RELATIVE-OID</th><th>P</th><td>13: 13
+(0x0d, 0b00001101)</td></tr> <tr><th>SEQUENCE and SEQUENCE
+OF</th><th>C</th><td>16: 48 (0x30, 0b00110000)</td></tr> <tr><th>SET and
+SET OF</th><th>C</th><td>17: 49 (0x31, 0b00110001)</td></tr>
+<tr><th>NumericString</th><th>P</th><td>18: 18 (0x12, 0b00010010)</td></tr>
+<tr><th>NumericString</th><th>C</th><td>18: 50 (0x32, 0b00110010)</td></tr>
+<tr><th>PrintableString</th><th>P</th><td>19: 19 (0x13,
+0b00010011)</td></tr> <tr><th>PrintableString</th><th>C</th><td>19: 51
+(0x33, 0b00110011)</td></tr> <tr><th>T61String</th><th>P</th><td>20: 20
+(0x14, 0b00010100)</td></tr> <tr><th>T61String</th><th>C</th><td>20: 52
+(0x34, 0b00110100)</td></tr> <tr><th>VideotexString</th><th>P</th><td>21:
+21 (0x15, 0b00010101)</td></tr>
+<tr><th>VideotexString</th><th>C</th><td>21: 53 (0x35,
+0b00110101)</td></tr> <tr><th>IA5String</th><th>P</th><td>22: 22 (0x16,
+0b00010110)</td></tr> <tr><th>IA5String</th><th>C</th><td>22: 54 (0x36,
+0b00110110)</td></tr> <tr><th>UTCTime</th><th>P</th><td>23: 23 (0x17,
+0b00010111)</td></tr> <tr><th>UTCTime</th><th>C</th><td>23: 55 (0x37,
+0b00110111)</td></tr> <tr><th>GeneralizedTime</th><th>P</th><td>24: 24
+(0x18, 0b00011000)</td></tr> <tr><th>GeneralizedTime</th><th>C</th><td>24:
+56 (0x38, 0b00111000)</td></tr> <tr><th>GraphicString</th><th>P</th><td>25:
+25 (0x19, 0b00011001)</td></tr> <tr><th>GraphicString</th><th>C</th><td>25:
+57 (0x39, 0b00111001)</td></tr> <tr><th>VisibleString</th><th>P</th><td>26:
+26 (0x1a, 0b00011010)</td></tr> <tr><th>VisibleString</th><th>C</th><td>26:
+58 (0x3a, 0b00111010)</td></tr> <tr><th>GeneralString</th><th>P</th><td>27:
+27 (0x1b, 0b00011011)</td></tr> <tr><th>GeneralString</th><th>C</th><td>27:
+59 (0x3b, 0b00111011)</td></tr>
+<tr><th>UniversalString</th><th>P</th><td>28: 28 (0x1c,
+0b00011100)</td></tr> <tr><th>UniversalString</th><th>C</th><td>28: 60
+(0x3c, 0b00111100)</td></tr> <tr><th>CHARACTER STRING</th><th>P</th><td>29:
+29 (0x1d, 0b00011101)</td></tr> <tr><th>CHARACTER
+STRING</th><th>C</th><td>29: 61 (0x3d, 0b00111101)</td></tr>
+<tr><th>BMPString</th><th>P</th><td>30: 30 (0x1e, 0b00011110)</td></tr>
+<tr><th>BMPString</th><th>C</th><td>30: 62 (0x3e, 0b00111110)</td></tr>
+</table>
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>C</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000031">compile_syntax</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="BER/BERParser.html">Net::BER::BERParser</a></li>
+        
+        <li><span class="type">MODULE</span> <a href="BER/Extensions.html">Net::BER::Extensions</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="BER/BerError.html">Net::BER::BerError</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="BER/BerIdentifiedArray.html">Net::BER::BerIdentifiedArray</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="BER/BerIdentifiedNull.html">Net::BER::BerIdentifiedNull</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="BER/BerIdentifiedOid.html">Net::BER::BerIdentifiedOid</a></li>
+        
+        <li><span class="type">CLASS</span> <a href="BER/BerIdentifiedString.html">Net::BER::BerIdentifiedString</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">VERSION</td>
+            <td>=</td>
+            <td class="attr-value">'0.3.1'</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">MAX_FIXNUM_SIZE</td>
+            <td>=</td>
+            <td class="attr-value">0.size</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+Used for BER-encoding the length and content bytes of a Fixnum integer
+values.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">TAG_CLASS</td>
+            <td>=</td>
+            <td class="attr-value">{       :universal        =&gt; 0b00000000, # 0       :application      =&gt; 0b01000000, # 64       :context_specific =&gt; 0b10000000, # 128       :private          =&gt; 0b11000000, # 192     }</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="BER.html">BER</a> tag classes are kept in bits seven and eight of
+the tag type octet.
+</p>
+<p>
+<table> <tr><th>Bitmask</th><th>Definition</th></tr>
+<tr><th><tt>0b00______</tt></th><td>Universal (ASN.1 Native)
+Types</td></tr> <tr><th><tt>0b01______</tt></th><td>Application
+Types</td></tr> <tr><th><tt>0b10______</tt></th><td>Context-Specific
+Types</td></tr> <tr><th><tt>0b11______</tt></th><td>Private Types</td></tr>
+</table>
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ENCODING_TYPE</td>
+            <td>=</td>
+            <td class="attr-value">{       :primitive    =&gt; 0b00000000,  # 0       :constructed  =&gt; 0b00100000,  # 32     }</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+<a href="BER.html">BER</a> encoding type is kept in bit 6 of the tag type
+octet.
+</p>
+<p>
+<table> <tr><th>Bitmask</th><th>Definition</th></tr>
+<tr><th><tt>0b__0_____</tt></th><td>Primitive</td></tr>
+<tr><th><tt>0b__1_____</tt></th><td>Constructed</td></tr> </table>
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">Null</td>
+            <td>=</td>
+            <td class="attr-value">Net::BER::BerIdentifiedNull.new</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+The default <a href="BER/BerIdentifiedNull.html">BerIdentifiedNull</a>
+object.
+</p>
+</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000031">
+                    
+                    <a name="M000031"></a><b>compile_syntax</b>(syntax)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Accepts a hash of hashes describing a <a href="BER.html">BER</a> syntax and
+converts it into a byte-keyed object for fast <a href="BER.html">BER</a>
+conversion lookup. The resulting &#8220;compiled&#8221; syntax is used by
+<a href="BER/BERParser.html">Net::BER::BERParser</a>.
+</p>
+<p>
+This method should be called only by client classes of <a
+href="BER.html">Net::BER</a> (e.g., <a href="LDAP.html">Net::LDAP</a> and
+Net::SNMP) and not by clients of those classes.
+</p>
+<p>
+The hash-based syntax uses <a href="BER.html#TAG_CLASS">TAG_CLASS</a> keys
+that contain hashes of <a href="BER.html#ENCODING_TYPE">ENCODING_TYPE</a>
+keys that contain tag numbers with object type markers.
+</p>
+<pre>
+  :&lt;TAG_CLASS&gt; =&gt; {
+    :&lt;ENCODING_TYPE&gt; =&gt; {
+      &lt;number&gt; =&gt; &lt;object-type&gt;
+    },
+  },
+</pre>
+<h3>Permitted Object Types</h3>
+<table>
+<tr><td valign="top"><tt>:string</tt>:</td><td>A string value, represented as <a
+href="BER/BerIdentifiedString.html">BerIdentifiedString</a>.
+
+</td></tr>
+<tr><td valign="top"><tt>:integer</tt>:</td><td>An integer value, represented with Fixnum.
+
+</td></tr>
+<tr><td valign="top"><tt>:oid</tt>:</td><td>An Object Identifier value; see X.690 section 8.19. Currently represented
+with a standard array, but may be better represented as a BerIdentifiedOID
+object.
+
+</td></tr>
+<tr><td valign="top"><tt>:array</tt>:</td><td>A sequence, represented as <a
+href="BER/BerIdentifiedArray.html">BerIdentifiedArray</a>.
+
+</td></tr>
+<tr><td valign="top"><tt>:boolean</tt>:</td><td>A boolean value, represented as <tt>true</tt> or <tt>false</tt>.
+
+</td></tr>
+<tr><td valign="top"><tt>:null</tt>:</td><td>A null value, represented as <a
+href="BER/BerIdentifiedNull.html">BerIdentifiedNull</a>.
+
+</td></tr>
+</table>
+<h3>Example</h3>
+<p>
+<a href="LDAP.html">Net::LDAP</a> defines its ASN.1 <a
+href="BER.html">BER</a> syntax something like this:
+</p>
+<pre>
+  class Net::LDAP
+    AsnSyntax = Net::BER.compile_syntax({
+      :application =&gt; {
+        :primitive =&gt; {
+          2 =&gt; :null,
+        },
+        :constructed =&gt; {
+          0 =&gt; :array,
+          # ...
+        },
+      },
+      :context_specific =&gt; {
+        :primitive =&gt; {
+          0 =&gt; :string,
+          # ...
+        },
+        :constructed =&gt; {
+          0 =&gt; :array,
+          # ...
+        },
+      }
+      })
+  end
+</pre>
+<table>
+<tr><td valign="top">NOTE:</td><td>For readability and formatting purposes, <a href="LDAP.html">Net::LDAP</a>
+and its siblings actually construct their syntaxes more deliberately, as
+shown below. Since a hash is passed in the end in any case, the format does
+not matter.
+
+</td></tr>
+</table>
+<pre>
+  primitive = { 2 =&gt; :null }
+  constructed = {
+    0 =&gt; :array,
+    # ...
+  }
+  application = {
+    :primitive =&gt; primitive,
+    :constructed =&gt; constructed
+  }
+
+  primitive = {
+    0 =&gt; :string,
+    # ...
+  }
+  constructed = {
+    0 =&gt; :array,
+    # ...
+  }
+  context_specific = {
+    :primitive =&gt; primitive,
+    :constructed =&gt; constructed
+  }
+  AsnSyntax = Net::BER.compile_syntax(:application =&gt; application,
+                                      :context_specific =&gt; context_specific)
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000031_source')" id="l_M000031_source">show</a>
+                        
+                    </p>
+                    <div id="M000031_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ber.rb, line 231</span>
+231:     <span class="ruby-keyword kw">def</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">compile_syntax</span>(<span class="ruby-identifier">syntax</span>)
+232:       <span class="ruby-comment cmt"># TODO 20100327 AZ: Should we be allocating an array of 256 values</span>
+233:       <span class="ruby-comment cmt"># that will either be +nil+ or an object type symbol, or should we</span>
+234:       <span class="ruby-comment cmt"># allocate an empty Hash since unknown values return +nil+ anyway?</span>
+235:       <span class="ruby-identifier">out</span> = [ <span class="ruby-keyword kw">nil</span> ] <span class="ruby-operator">*</span> <span class="ruby-value">256</span>
+236:       <span class="ruby-identifier">syntax</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">tag_class_id</span>, <span class="ruby-identifier">encodings</span><span class="ruby-operator">|</span>
+237:         <span class="ruby-identifier">tag_class</span> = <span class="ruby-constant">TAG_CLASS</span>[<span class="ruby-identifier">tag_class_id</span>]
+238:         <span class="ruby-identifier">encodings</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">encoding_id</span>, <span class="ruby-identifier">classes</span><span class="ruby-operator">|</span>
+239:           <span class="ruby-identifier">encoding</span> = <span class="ruby-constant">ENCODING_TYPE</span>[<span class="ruby-identifier">encoding_id</span>]
+240:           <span class="ruby-identifier">object_class</span> = <span class="ruby-identifier">tag_class</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">encoding</span>
+241:           <span class="ruby-identifier">classes</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">number</span>, <span class="ruby-identifier">object_type</span><span class="ruby-operator">|</span>
+242:             <span class="ruby-identifier">out</span>[<span class="ruby-identifier">object_class</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">number</span>] = <span class="ruby-identifier">object_type</span>
+243:           <span class="ruby-keyword kw">end</span>
+244:         <span class="ruby-keyword kw">end</span>
+245:       <span class="ruby-keyword kw">end</span>
+246:       <span class="ruby-identifier">out</span>
+247:     <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

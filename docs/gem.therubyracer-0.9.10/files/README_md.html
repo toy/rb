@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" />
+    <script src="../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            README.md
+        </h1>
+        <ul class="files">
+            <li>README.md</li>
+            <li>Last modified: Tue Feb 21 01:30:59 +0100 2012</li>
+        </ul>
+    </div>
+
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+# therubyracer
+</p>
+<ul>
+<li>[<a
+href="http://github.com/cowboyd/therubyracer](http://github.com/cowboyd/therubyracer">github.com/cowboyd/therubyracer](http://github.com/cowboyd/therubyracer</a>)
+
+</li>
+<li>[<a
+href="http://groups.google.com/group/therubyracer](http://groups.google.com/group/therubyracer">groups.google.com/group/therubyracer](http://groups.google.com/group/therubyracer</a>)
+
+</li>
+<li>[irc://irc.freenode.net/therubyracer](<a
+href="http://groups.google.com/group/therubyracer">groups.google.com/group/therubyracer</a>)
+
+</li>
+<li>[Documentation](<a
+href="https://github.com/cowboyd/therubyracer/wiki">github.com/cowboyd/therubyracer/wiki</a>)
+
+</li>
+</ul>
+<p>
+## DESCRIPTION
+</p>
+<p>
+Embed the <a href="../classes/V8.html">V8</a> Javascript interpreter into
+Ruby.
+</p>
+<p>
+## FEATURES
+</p>
+<ul>
+<li>Evaluate Javascript from with in Ruby
+
+</li>
+<li>Embed your Ruby objects into the Javascript world
+
+</li>
+<li>Manipulate JavaScript objects and call JavaScript functions from Ruby
+
+</li>
+<li>API compatible with the The Ruby Rhino (for JRuby: <a
+href="http://github.com/cowboyd/therubyrhino">github.com/cowboyd/therubyrhino</a>)
+
+</li>
+</ul>
+<p>
+## SYNOPSIS
+</p>
+<pre>
+    gem install therubyracer         ;: stable
+    gem install therubyracer --pre   ;: bleeding edge
+</pre>
+<p>
+then in your ruby code
+</p>
+<pre>
+    require 'v8'
+</pre>
+<p>
+evaluate some simple javascript
+</p>
+<pre>
+    cxt = V8::Context.new
+    cxt.eval('7 * 6') #=&gt; 42
+</pre>
+<p>
+embed values into the scope of your context
+</p>
+<pre>
+    cxt['foo'] = &quot;bar&quot;
+    cxt.eval('foo') # =&gt; &quot;bar&quot;
+</pre>
+<p>
+embed ruby code into your scope and call it from javascript
+</p>
+<pre>
+    cxt[&quot;say&quot;] = lambda {|word, times| word * times}
+    cxt.eval(&quot;say('Hello', 3)&quot;) #=&gt; HelloHelloHello
+</pre>
+<p>
+embed a ruby object into your scope and access its properties/methods from
+javascript
+</p>
+<pre>
+    class MyMath
+      def plus(lhs, rhs)
+        lhs + rhs
+      end
+    end
+
+    cxt['math'] = MyMath.new
+    cxt.eval(&quot;math.plus(20,22)&quot;) #=&gt; 42
+</pre>
+<p>
+make a ruby object <b>be</b> your global javascript scope.
+</p>
+<pre>
+    math = MyMath.new
+    V8::Context.new(:with =&gt; math) do |cxt|
+      cxt.eval(&quot;plus(20,22)&quot;) #=&gt; 42
+    end
+</pre>
+<p>
+you can do the same thing with <a
+href="../classes/Object.html#M000048">Object#eval_js</a>
+</p>
+<pre>
+    math.eval_js(&quot;plus(20,22)&quot;)
+</pre>
+<p>
+## Different ways of loading javascript source
+</p>
+<p>
+In addition to just evaluating strings, you can also use streams such as
+files.
+</p>
+<p>
+evaluate bytes read from any File/IO object:
+</p>
+<pre>
+    File.open(&quot;mysource.js&quot;) do |file|
+      cxt.eval(file, &quot;mysource.js&quot;)
+    end
+</pre>
+<p>
+or load it by filename
+</p>
+<pre>
+    cxt.load(&quot;mysource.js&quot;)
+</pre>
+<p>
+## Safe by default, dangerous by demand
+</p>
+<p>
+The Ruby Racer is designed to let you evaluate javascript as safely as
+possible unless you tell it to do something more dangerous. The default
+context is a hermetically sealed javascript environment with only the
+standard javascript objects and functions. Nothing from the ruby world is
+accessible at all.
+</p>
+<p>
+For ruby objects that you explicitly embed into javascript, by default only
+the <em>public</em> methods <em>below</em> `Object` are exposed by default.
+E.g.
+</p>
+<pre>
+    class A
+      def a
+        &quot;a&quot;
+      end
+
+      def to_s
+        super
+      end
+    end
+
+    class B &lt; A
+      def b
+        &quot;b&quot;
+      end
+    end
+
+    V8::Context.new do |cxt|
+      cxt['a'] = A.new
+      cxt['b'] = B.new
+      cxt.eval(&quot;a.a&quot;) # =&gt; 'a'
+      cxt.eval(&quot;b.b&quot;) # =&gt; 'b'
+      cxt.eval(&quot;b.a&quot;) # =&gt; 'a'
+      cxt.eval(&quot;b.to_s&quot;) # =&gt; #&lt;B:0x101776be8&gt; (because A explicitly defined it)
+      cxt.eval(&quot;b.object_id&quot;) #=&gt; undefined, object_id is on Object
+    end
+</pre>
+<p>
+If needed, you can override the [Ruby Access](<a
+href="https://github.com/cowboyd/therubyracer/blob/master/lib/v8/access.rb">github.com/cowboyd/therubyracer/blob/master/lib/v8/access.rb</a>)
+to allow whatever behavior you&#8217;d like
+</p>
+<p>
+More documentation can be found on the [github wiki](<a
+href="https://github.com/cowboyd/therubyracer/wiki">github.com/cowboyd/therubyracer/wiki</a>)
+</p>
+<p>
+## REQUIREMENTS:
+</p>
+<ul>
+<li>python >= 2.5 (required to compile v8)
+
+</li>
+<li>C++ compiler
+
+</li>
+</ul>
+<p>
+## Rails/Bundler
+</p>
+<p>
+To use the ruby racer in rails, or any application using Bundler to manage
+gems, add the following to your Gemfile
+</p>
+<pre>
+    gem &quot;therubyracer&quot;, :require =&gt; 'v8'
+    gem &quot;therubyracer&quot;, &quot;~&gt; 0.8.2.pre&quot; #bleeding edge.
+</pre>
+<p>
+## DEVELOP
+</p>
+<pre>
+    git clone git://github.com/cowboyd/therubyracer.git
+    cd therubyracer
+    git submodule update --init
+    bundle install
+    rake compile
+</pre>
+<p>
+## Sponsored by <a href=&#8220;<a
+href="http://thefrontside.net">![The">thefrontside.net">![The</a>
+Frontside](<a
+href="http://github.com/cowboyd/therubyracer/raw/master/thefrontside.png)</a">github.com/cowboyd/therubyracer/raw/master/thefrontside.png)</a</a>>
+</p>
+<p>
+## LICENSE:
+</p>
+<p>
+(The MIT License)
+</p>
+<p>
+Copyright &#169; 2009,2010,2011 Charles Lowell
+</p>
+<p>
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+&#8216;Software&#8217;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the
+following conditions:
+</p>
+<p>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+</p>
+<p>
+THE SOFTWARE IS PROVIDED &#8216;AS IS&#8217;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</div>
+    </div>
+  </body>
+</html>

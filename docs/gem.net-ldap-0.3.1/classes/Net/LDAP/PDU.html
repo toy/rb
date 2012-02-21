@@ -1,0 +1,808 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Net::LDAP::PDU</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Class</span> 
+            Net::LDAP::PDU 
+            
+                <span class="parent">&lt; 
+                    
+                    Object
+                    
+                </span>
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/net/ldap/pdu_rb.html">lib/net/ldap/pdu.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+    <div class="description">
+        <p>
+Defines the Protocol Data Unit (<a href="PDU.html">PDU</a>) for <a
+href="../LDAP.html">LDAP</a>. An <a href="../LDAP.html">LDAP</a> <a
+href="PDU.html">PDU</a> always looks like a <a href="../BER.html">BER</a>
+SEQUENCE with at least two elements: an INTEGER message ID number and an
+application-specific SEQUENCE. Some LDAPv3 packets also include an optional
+third element, a sequence of &#8220;controls&#8221; (see RFC 2251 section
+4.1.12 for more information).
+</p>
+<p>
+The application-specific tag in the sequence tells us what kind of packet
+it is, and each kind has its own format, defined in RFC-1777.
+</p>
+<p>
+Observe that many clients (such as ldapsearch) do not necessarily enforce
+the expected application tags on received protocol packets. This
+implementation does interpret the RFC strictly in this regard, and it
+remains to be seen whether there are servers out there that will not work
+well with our approach.
+</p>
+<p>
+Currently, we only support controls on <a
+href="PDU.html#SearchResult">SearchResult</a>.
+</p>
+
+    </div>
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>N</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000079">new</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>P</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000098">parse_bind_request</a>,</li>
+                
+                <li><a href="#M000084">parse_bind_response</a>,</li>
+                
+                <li><a href="#M000094">parse_controls</a>,</li>
+                
+                <li><a href="#M000083">parse_ldap_result</a>,</li>
+                
+                <li><a href="#M000095">parse_ldap_search_request</a>,</li>
+                
+                <li><a href="#M000090">parse_search_referral</a>,</li>
+                
+                <li><a href="#M000087">parse_search_return</a>,</li>
+                
+                <li><a href="#M000099">parse_unbind_request</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000080">result</a>,</li>
+                
+                <li><a href="#M000081">result_code</a>,</li>
+                
+                <li><a href="#M000082">result_server_sasl_creds</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">CLASS</span> <a href="PDU/Error.html">Net::LDAP::PDU::Error</a></li>
+        
+    </ul>
+    
+
+    
+    <div class="sectiontitle">Constants</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class="attr-name">BindRequest</td>
+            <td>=</td>
+            <td class="attr-value">0</td>
+        </tr>
+        
+        <tr valign='top'>
+            <td>&nbsp;</td>
+            <td colspan="2" class="attr-desc"><p>
+This message packet is a bind request.
+</p>
+</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">BindResult</td>
+            <td>=</td>
+            <td class="attr-value">1</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">UnbindRequest</td>
+            <td>=</td>
+            <td class="attr-value">2</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchRequest</td>
+            <td>=</td>
+            <td class="attr-value">3</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchReturnedData</td>
+            <td>=</td>
+            <td class="attr-value">4</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchResult</td>
+            <td>=</td>
+            <td class="attr-value">5</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ModifyResponse</td>
+            <td>=</td>
+            <td class="attr-value">7</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">AddResponse</td>
+            <td>=</td>
+            <td class="attr-value">9</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">DeleteResponse</td>
+            <td>=</td>
+            <td class="attr-value">11</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ModifyRDNResponse</td>
+            <td>=</td>
+            <td class="attr-value">13</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">SearchResultReferral</td>
+            <td>=</td>
+            <td class="attr-value">19</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ExtendedRequest</td>
+            <td>=</td>
+            <td class="attr-value">23</td>
+        </tr>
+        
+        
+        <tr valign='top'>
+            <td class="attr-name">ExtendedResponse</td>
+            <td>=</td>
+            <td class="attr-value">24</td>
+        </tr>
+        
+        
+    </table>
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>message_id</td>
+            <td class='attr-desc'><p>
+The <a href="../LDAP.html">LDAP</a> packet message ID.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>app_tag</td>
+            <td class='attr-desc'><p>
+The application protocol format tag.
+</p></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>search_entry</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>search_referrals</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>search_parameters</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>bind_parameters</td>
+            <td class='attr-desc'></td>
+        </tr>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>ldap_controls</td>
+            <td class='attr-desc'><p>
+Returns RFC-2251 Controls if any.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Class Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000079">
+                    
+                    <a name="M000079"></a><b>new</b>(ber_object)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Messy. Does this functionality belong somewhere else?
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000079_source')" id="l_M000079_source">show</a>
+                        
+                    </p>
+                    <div id="M000079_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 60</span>
+ 60:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">ber_object</span>)
+ 61:     <span class="ruby-keyword kw">begin</span>
+ 62:       <span class="ruby-ivar">@message_id</span> = <span class="ruby-identifier">ber_object</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">to_i</span>
+ 63:       <span class="ruby-comment cmt"># Grab the bottom five bits of the identifier so we know which type of</span>
+ 64:       <span class="ruby-comment cmt"># PDU this is.</span>
+ 65:       <span class="ruby-comment cmt">#</span>
+ 66:       <span class="ruby-comment cmt"># This is safe enough in LDAP-land, but it is recommended that other</span>
+ 67:       <span class="ruby-comment cmt"># approaches be taken for other protocols in the case that there's an</span>
+ 68:       <span class="ruby-comment cmt"># app-specific tag that has both primitive and constructed forms.</span>
+ 69:       <span class="ruby-ivar">@app_tag</span> = <span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>].<span class="ruby-identifier">ber_identifier</span> <span class="ruby-operator">&amp;</span> <span class="ruby-value">0x1f</span>
+ 70:       <span class="ruby-ivar">@ldap_controls</span> = []
+ 71:     <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+ 72:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">PDU</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;LDAP PDU Format Error: #{ex.message}&quot;</span>
+ 73:     <span class="ruby-keyword kw">end</span>
+ 74: 
+ 75:     <span class="ruby-keyword kw">case</span> <span class="ruby-ivar">@app_tag</span>
+ 76:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">BindResult</span>
+ 77:       <span class="ruby-identifier">parse_bind_response</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 78:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">SearchReturnedData</span>
+ 79:       <span class="ruby-identifier">parse_search_return</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 80:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">SearchResultReferral</span>
+ 81:       <span class="ruby-identifier">parse_search_referral</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 82:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">SearchResult</span>
+ 83:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 84:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ModifyResponse</span>
+ 85:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 86:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">AddResponse</span>
+ 87:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 88:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">DeleteResponse</span>
+ 89:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 90:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ModifyRDNResponse</span>
+ 91:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 92:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">SearchRequest</span>
+ 93:       <span class="ruby-identifier">parse_ldap_search_request</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 94:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">BindRequest</span>
+ 95:       <span class="ruby-identifier">parse_bind_request</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 96:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">UnbindRequest</span>
+ 97:       <span class="ruby-identifier">parse_unbind_request</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+ 98:     <span class="ruby-keyword kw">when</span> <span class="ruby-constant">ExtendedResponse</span>
+ 99:       <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">1</span>])
+100:     <span class="ruby-keyword kw">else</span>
+101:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">LdapPduError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;unknown pdu-type: #{@app_tag}&quot;</span>)
+102:     <span class="ruby-keyword kw">end</span>
+103: 
+104:     <span class="ruby-identifier">parse_controls</span>(<span class="ruby-identifier">ber_object</span>[<span class="ruby-value">2</span>]) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">ber_object</span>[<span class="ruby-value">2</span>]
+105:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000080">
+                    
+                    <a name="M000080"></a><b>result</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Returns a hash which (usually) defines the members :resultCode,
+:errorMessage, and :matched<a href="DN.html">DN</a>. These values come
+directly from an <a href="../LDAP.html">LDAP</a> response packet returned
+by the remote peer. Also see <a href="PDU.html#M000081">result_code</a>.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000080_source')" id="l_M000080_source">show</a>
+                        
+                    </p>
+                    <div id="M000080_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 111</span>
+111:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">result</span>
+112:     <span class="ruby-ivar">@ldap_result</span> <span class="ruby-operator">||</span> {}
+113:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000081">
+                    
+                    <a name="M000081"></a><b>result_code</b>(code = :resultCode)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+This returns an <a href="../LDAP.html">LDAP</a> result code taken from the
+<a href="PDU.html">PDU</a>, but it will be nil if there wasn&#8217;t a
+result code. That can easily happen depending on the type of packet.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000081_source')" id="l_M000081_source">show</a>
+                        
+                    </p>
+                    <div id="M000081_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 119</span>
+119:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">result_code</span>(<span class="ruby-identifier">code</span> = <span class="ruby-identifier">:resultCode</span>)
+120:     <span class="ruby-ivar">@ldap_result</span> <span class="ruby-keyword kw">and</span> <span class="ruby-ivar">@ldap_result</span>[<span class="ruby-identifier">code</span>]
+121:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000082">
+                    
+                    <a name="M000082"></a><b>result_server_sasl_creds</b>()
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Return serverSaslCreds, which are only present in BindResponse packets.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000082_source')" id="l_M000082_source">show</a>
+                        
+                    </p>
+                    <div id="M000082_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 128</span>
+128:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">result_server_sasl_creds</span>
+129:     <span class="ruby-ivar">@ldap_result</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-ivar">@ldap_result</span>[<span class="ruby-identifier">:serverSaslCreds</span>]
+130:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000098">
+                    
+                    <a name="M000098"></a><b>parse_bind_request</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+(provisional, must document)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000098_source')" id="l_M000098_source">show</a>
+                        
+                    </p>
+                    <div id="M000098_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 225</span>
+225:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_bind_request</span> <span class="ruby-identifier">sequence</span>
+226:     <span class="ruby-identifier">s</span> = <span class="ruby-constant">OpenStruct</span>.<span class="ruby-identifier">new</span>
+227:     <span class="ruby-identifier">s</span>.<span class="ruby-identifier">version</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">name</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">authentication</span> = <span class="ruby-identifier">sequence</span>
+228:     <span class="ruby-ivar">@bind_parameters</span> = <span class="ruby-identifier">s</span>
+229:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000084">
+                    
+                    <a name="M000084"></a><b>parse_bind_response</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A Bind Response may have an additional field, ID [7], serverSaslCreds, per
+RFC 2251 pgh 4.2.3.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000084_source')" id="l_M000084_source">show</a>
+                        
+                    </p>
+                    <div id="M000084_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 146</span>
+146:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_bind_response</span>(<span class="ruby-identifier">sequence</span>)
+147:     <span class="ruby-identifier">sequence</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">3</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">PDU</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-value str">&quot;Invalid LDAP Bind Response length.&quot;</span>
+148:     <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">sequence</span>)
+149:     <span class="ruby-ivar">@ldap_result</span>[<span class="ruby-identifier">:serverSaslCreds</span>] = <span class="ruby-identifier">sequence</span>[<span class="ruby-value">3</span>] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sequence</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">4</span>
+150:     <span class="ruby-ivar">@ldap_result</span>
+151:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000094">
+                    
+                    <a name="M000094"></a><b>parse_controls</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Per RFC 2251, an <a href="../LDAP.html">LDAP</a> &#8220;control&#8221; is a
+sequence of tuples, each consisting of an OID, a boolean criticality flag
+defaulting FALSE, and an OPTIONAL Octet String. If only two fields are
+given, the second one may be either criticality or data, since criticality
+has a default value. Someday we may want to come back here and add support
+for some of more-widely used controls. RFC-2696 is a good example.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000094_source')" id="l_M000094_source">show</a>
+                        
+                    </p>
+                    <div id="M000094_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 202</span>
+202:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_controls</span>(<span class="ruby-identifier">sequence</span>)
+203:     <span class="ruby-ivar">@ldap_controls</span> = <span class="ruby-identifier">sequence</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">control</span><span class="ruby-operator">|</span>
+204:       <span class="ruby-identifier">o</span> = <span class="ruby-constant">OpenStruct</span>.<span class="ruby-identifier">new</span>
+205:       <span class="ruby-identifier">o</span>.<span class="ruby-identifier">oid</span>, <span class="ruby-identifier">o</span>.<span class="ruby-identifier">criticality</span>, <span class="ruby-identifier">o</span>.<span class="ruby-identifier">value</span> = <span class="ruby-identifier">control</span>[<span class="ruby-value">0</span>], <span class="ruby-identifier">control</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">control</span>[<span class="ruby-value">2</span>]
+206:       <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">o</span>.<span class="ruby-identifier">criticality</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">o</span>.<span class="ruby-identifier">criticality</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">String</span>)
+207:         <span class="ruby-identifier">o</span>.<span class="ruby-identifier">value</span> = <span class="ruby-identifier">o</span>.<span class="ruby-identifier">criticality</span>
+208:         <span class="ruby-identifier">o</span>.<span class="ruby-identifier">criticality</span> = <span class="ruby-keyword kw">false</span>
+209:       <span class="ruby-keyword kw">end</span>
+210:       <span class="ruby-identifier">o</span>
+211:     <span class="ruby-keyword kw">end</span>
+212:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000083">
+                    
+                    <a name="M000083"></a><b>parse_ldap_result</b>(sequence)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000083_source')" id="l_M000083_source">show</a>
+                        
+                    </p>
+                    <div id="M000083_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 132</span>
+132:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_ldap_result</span>(<span class="ruby-identifier">sequence</span>)
+133:     <span class="ruby-identifier">sequence</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">3</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">PDU</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-value str">&quot;Invalid LDAP result length.&quot;</span>
+134:     <span class="ruby-ivar">@ldap_result</span> = {
+135:       <span class="ruby-identifier">:resultCode</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">sequence</span>[<span class="ruby-value">0</span>],
+136:       <span class="ruby-identifier">:matchedDN</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">sequence</span>[<span class="ruby-value">1</span>],
+137:       <span class="ruby-identifier">:errorMessage</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">sequence</span>[<span class="ruby-value">2</span>]
+138:     }
+139:     <span class="ruby-identifier">parse_search_referral</span>(<span class="ruby-identifier">sequence</span>[<span class="ruby-value">3</span>]) <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@ldap_result</span>[<span class="ruby-identifier">:resultCode</span>] <span class="ruby-operator">==</span> <span class="ruby-value">10</span>
+140:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000095">
+                    
+                    <a name="M000095"></a><b>parse_ldap_search_request</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+(provisional, must document)
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000095_source')" id="l_M000095_source">show</a>
+                        
+                    </p>
+                    <div id="M000095_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 216</span>
+216:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_ldap_search_request</span>(<span class="ruby-identifier">sequence</span>)
+217:     <span class="ruby-identifier">s</span> = <span class="ruby-constant">OpenStruct</span>.<span class="ruby-identifier">new</span>
+218:     <span class="ruby-identifier">s</span>.<span class="ruby-identifier">base_object</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">scope</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">deref_aliases</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">size_limit</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">time_limit</span>,
+219:       <span class="ruby-identifier">s</span>.<span class="ruby-identifier">types_only</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">filter</span>, <span class="ruby-identifier">s</span>.<span class="ruby-identifier">attributes</span> = <span class="ruby-identifier">sequence</span>
+220:     <span class="ruby-ivar">@search_parameters</span> = <span class="ruby-identifier">s</span>
+221:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000090">
+                    
+                    <a name="M000090"></a><b>parse_search_referral</b>(uris)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+A search referral is a sequence of one or more <a
+href="../LDAP.html">LDAP</a> URIs. Any number of search-referral replies
+can be returned by the server, interspersed with normal replies in any
+order.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000090_source')" id="l_M000090_source">show</a>
+                        
+                    </p>
+                    <div id="M000090_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 190</span>
+190:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_search_referral</span>(<span class="ruby-identifier">uris</span>)
+191:     <span class="ruby-ivar">@search_referrals</span> = <span class="ruby-identifier">uris</span>
+192:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000087">
+                    
+                    <a name="M000087"></a><b>parse_search_return</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Definition from RFC 1777 (we&#8217;re handling application-4 here).
+</p>
+<p>
+Search Response ::=
+</p>
+<pre>
+  CHOICE {
+    entry      [APPLICATION 4] SEQUENCE {
+                 objectName     LDAPDN,
+                 attributes     SEQUENCE OF SEQUENCE {
+                   AttributeType,
+                   SET OF AttributeValue
+                 }
+               },
+    resultCode [APPLICATION 5] LDAPResult
+  }
+</pre>
+<p>
+We concoct a search response that is a hash of the returned attribute
+values.
+</p>
+<p>
+NOW OBSERVE CAREFULLY: WE ARE DOWNCASING THE RETURNED ATTRIBUTE NAMES.
+</p>
+<p>
+This is to make them more predictable for user programs, but it may not be
+a good idea. Maybe this should be configurable.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000087_source')" id="l_M000087_source">show</a>
+                        
+                    </p>
+                    <div id="M000087_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 175</span>
+175:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_search_return</span>(<span class="ruby-identifier">sequence</span>)
+176:     <span class="ruby-identifier">sequence</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">&gt;=</span> <span class="ruby-value">2</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">raise</span> <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">PDU</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-value str">&quot;Invalid Search Response length.&quot;</span>
+177:     <span class="ruby-ivar">@search_entry</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">LDAP</span><span class="ruby-operator">::</span><span class="ruby-constant">Entry</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">sequence</span>[<span class="ruby-value">0</span>])
+178:     <span class="ruby-identifier">sequence</span>[<span class="ruby-value">1</span>].<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">seq</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@search_entry</span>[<span class="ruby-identifier">seq</span>[<span class="ruby-value">0</span>]] = <span class="ruby-identifier">seq</span>[<span class="ruby-value">1</span>] }
+179:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000099">
+                    
+                    <a name="M000099"></a><b>parse_unbind_request</b>(sequence)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+(provisional, must document) <a
+href="PDU.html#UnbindRequest">UnbindRequest</a> has no content so this is a
+no-op.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000099_source')" id="l_M000099_source">show</a>
+                        
+                    </p>
+                    <div id="M000099_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/net/ldap/pdu.rb, line 234</span>
+234:   <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_unbind_request</span>(<span class="ruby-identifier">sequence</span>)
+235:     <span class="ruby-keyword kw">nil</span>
+236:   <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

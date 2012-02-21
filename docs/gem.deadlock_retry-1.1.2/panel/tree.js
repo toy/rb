@@ -1,1 +1,0 @@
-var tree = [["","","files",[["CHANGELOG","files/CHANGELOG.html","",[]],["LICENSE","files/LICENSE.html","",[]],["README","files/README.html","",[]],["","","lib",[["deadlock_retry.rb","files/lib/deadlock_retry_rb.html","",[]]]]]],["DeadlockRetry","classes/DeadlockRetry.html","",[["ClassMethods","classes/DeadlockRetry/ClassMethods.html","",[]]]]]

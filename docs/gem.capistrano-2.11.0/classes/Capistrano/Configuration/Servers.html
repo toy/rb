@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Capistrano::Configuration::Servers</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Capistrano::Configuration::Servers 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/capistrano/configuration/servers_rb.html">lib/capistrano/configuration/servers.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>B</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000171">build_list</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000165">filter_server_list</a>,</li>
+                
+                <li><a href="#M000159">find_servers</a>,</li>
+                
+                <li><a href="#M000156">find_servers_for_task</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000170">role_list_from</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>S</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000169">server_list_from</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000159">
+                    
+                    <a name="M000159"></a><b>find_servers</b>(options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Attempts to find all defined servers that match the given criteria. The
+options hash may include a :hosts option (which should specify an array of
+host names or <a href="../ServerDefinition.html">ServerDefinition</a>
+instances), a :roles option (specifying an array of roles), an :only option
+(specifying a hash of key/value pairs that any matching server must match),
+an :exception option (like :only, but the inverse), and a :skip_hostfilter
+option to ignore the HOSTFILTER environment variable described below.
+</p>
+<p>
+Additionally, if the HOSTS environment variable is set, it will take
+precedence over any other options. Similarly, the ROLES environment
+variable will take precedence over other options. If both HOSTS and ROLES
+are given, HOSTS wins.
+</p>
+<p>
+Yet additionally, if the HOSTFILTER environment variable is set, it will
+limit the result to hosts found in that (comma-separated) list.
+</p>
+<p>
+If the HOSTROLEFILTER environment variable is set, it will limit the result
+to hosts found in that (comma-separated) list of roles
+</p>
+<p>
+Usage:
+</p>
+<pre>
+  # return all known servers
+  servers = find_servers
+
+  # find all servers in the app role that are not exempted from
+  # deployment
+  servers = find_servers :roles =&gt; :app,
+               :except =&gt; { :no_release =&gt; true }
+
+  # returns the given hosts, translated to ServerDefinition objects
+  servers = find_servers :hosts =&gt; &quot;jamis@example.host.com&quot;
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000159_source')" id="l_M000159_source">show</a>
+                        
+                    </p>
+                    <div id="M000159_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 44</span>
+44:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_servers</span>(<span class="ruby-identifier">options</span>={})
+45:         <span class="ruby-keyword kw">return</span> [] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:hosts</span>) <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:hosts</span>].<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> [] <span class="ruby-operator">==</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:hosts</span>])
+46:         <span class="ruby-keyword kw">return</span> [] <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">key?</span>(<span class="ruby-identifier">:roles</span>) <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:roles</span>].<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> [] <span class="ruby-operator">==</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:roles</span>])
+47:         
+48:         <span class="ruby-identifier">hosts</span>  = <span class="ruby-identifier">server_list_from</span>(<span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTS'</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:hosts</span>])
+49:         
+50:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">hosts</span>.<span class="ruby-identifier">any?</span>
+51:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:skip_hostfilter</span>]
+52:             <span class="ruby-identifier">hosts</span>.<span class="ruby-identifier">uniq</span>
+53:           <span class="ruby-keyword kw">else</span>
+54:             <span class="ruby-identifier">filter_server_list</span>(<span class="ruby-identifier">hosts</span>.<span class="ruby-identifier">uniq</span>)
+55:           <span class="ruby-keyword kw">end</span>
+56:         <span class="ruby-keyword kw">else</span>
+57:           <span class="ruby-identifier">roles</span> = <span class="ruby-identifier">role_list_from</span>(<span class="ruby-constant">ENV</span>[<span class="ruby-value str">'ROLES'</span>] <span class="ruby-operator">||</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:roles</span>] <span class="ruby-operator">||</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">roles</span>.<span class="ruby-identifier">keys</span>)
+58:           <span class="ruby-identifier">roles</span> = <span class="ruby-identifier">roles</span> <span class="ruby-operator">&amp;</span> <span class="ruby-constant">Array</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:roles</span>]) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">preserve_roles</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-operator">!</span><span class="ruby-identifier">options</span>[<span class="ruby-identifier">:roles</span>].<span class="ruby-identifier">nil?</span>
+59: 
+60:           <span class="ruby-identifier">only</span>   = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:only</span>] <span class="ruby-operator">||</span> {}
+61:           <span class="ruby-identifier">except</span> = <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:except</span>] <span class="ruby-operator">||</span> {}
+62:           
+63:           <span class="ruby-comment cmt"># If we don't have a def for a role it means its bogus, skip it so higher level can handle</span>
+64:           <span class="ruby-identifier">servers</span> = <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">inject</span>([]) { <span class="ruby-operator">|</span><span class="ruby-identifier">list</span>, <span class="ruby-identifier">role</span><span class="ruby-operator">|</span> <span class="ruby-identifier">list</span>.<span class="ruby-identifier">concat</span>(<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">roles</span>[<span class="ruby-identifier">role</span>] <span class="ruby-operator">||</span> []) }
+65:           <span class="ruby-identifier">servers</span> = <span class="ruby-identifier">servers</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">server</span><span class="ruby-operator">|</span> <span class="ruby-identifier">only</span>.<span class="ruby-identifier">all?</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>,<span class="ruby-identifier">value</span><span class="ruby-operator">|</span> <span class="ruby-identifier">server</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">key</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">value</span> } }
+66:           <span class="ruby-identifier">servers</span> = <span class="ruby-identifier">servers</span>.<span class="ruby-identifier">reject</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">server</span><span class="ruby-operator">|</span> <span class="ruby-identifier">except</span>.<span class="ruby-identifier">any?</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>,<span class="ruby-identifier">value</span><span class="ruby-operator">|</span> <span class="ruby-identifier">server</span>.<span class="ruby-identifier">options</span>[<span class="ruby-identifier">key</span>] <span class="ruby-operator">==</span> <span class="ruby-identifier">value</span> } }
+67: 
+68:           <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:skip_hostfilter</span>]
+69:             <span class="ruby-identifier">servers</span>.<span class="ruby-identifier">uniq</span>
+70:           <span class="ruby-keyword kw">else</span>
+71:             <span class="ruby-identifier">filter_server_list</span>(<span class="ruby-identifier">servers</span>.<span class="ruby-identifier">uniq</span>)
+72:           <span class="ruby-keyword kw">end</span>
+73:         <span class="ruby-keyword kw">end</span>
+74:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000156">
+                    
+                    <a name="M000156"></a><b>find_servers_for_task</b>(task, options={})
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Identifies all servers that the given task should be executed on. The
+options hash accepts the same arguments as <a
+href="Servers.html#M000159">find_servers</a>, and any preexisting options
+there will take precedence over the options in the task.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000156_source')" id="l_M000156_source">show</a>
+                        
+                    </p>
+                    <div id="M000156_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 8</span>
+ 8:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_servers_for_task</span>(<span class="ruby-identifier">task</span>, <span class="ruby-identifier">options</span>={})
+ 9:         <span class="ruby-identifier">find_servers</span>(<span class="ruby-identifier">task</span>.<span class="ruby-identifier">options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>))
+10:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Protected methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000171">
+                    
+                    <a name="M000171"></a><b>build_list</b>(list)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000171_source')" id="l_M000171_source">show</a>
+                        
+                    </p>
+                    <div id="M000171_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 111</span>
+111:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">build_list</span>(<span class="ruby-identifier">list</span>)
+112:         <span class="ruby-constant">Array</span>(<span class="ruby-identifier">list</span>).<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">item</span><span class="ruby-operator">|</span> <span class="ruby-identifier">item</span>.<span class="ruby-identifier">respond_to?</span>(<span class="ruby-identifier">:call</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">item</span>.<span class="ruby-identifier">call</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">item</span> }.<span class="ruby-identifier">flatten</span>
+113:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000165">
+                    
+                    <a name="M000165"></a><b>filter_server_list</b>(servers)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000165_source')" id="l_M000165_source">show</a>
+                        
+                    </p>
+                    <div id="M000165_source" class="dyn-source">
+                        <pre>    <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 78</span>
+78:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">filter_server_list</span>(<span class="ruby-identifier">servers</span>)
+79:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">servers</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTFILTER'</span>] <span class="ruby-keyword kw">or</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTROLEFILTER'</span>]
+80:         <span class="ruby-keyword kw">if</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTFILTER'</span>]
+81:           <span class="ruby-identifier">filters</span> = <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTFILTER'</span>].<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,/</span>)
+82:           <span class="ruby-identifier">servers</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">server</span><span class="ruby-operator">|</span> <span class="ruby-identifier">filters</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">server</span>.<span class="ruby-identifier">host</span>) }
+83:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTROLEFILTER'</span>]
+84:           <span class="ruby-identifier">filters</span> = <span class="ruby-constant">ENV</span>[<span class="ruby-value str">'HOSTROLEFILTER'</span>].<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,/</span>).<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">role</span><span class="ruby-operator">|</span>
+85:             <span class="ruby-identifier">local_roles</span> = <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">role</span>.<span class="ruby-identifier">to_sym</span>]
+86:             <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">local_roles</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">Array</span>
+87:               <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">role</span>.<span class="ruby-identifier">to_sym</span>]
+88:             <span class="ruby-keyword kw">else</span>
+89:               <span class="ruby-identifier">roles</span>[<span class="ruby-identifier">role</span>.<span class="ruby-identifier">to_sym</span>].<span class="ruby-identifier">servers</span>
+90:             <span class="ruby-keyword kw">end</span>
+91:           <span class="ruby-keyword kw">end</span>.<span class="ruby-identifier">flatten</span>
+92:           <span class="ruby-identifier">servers</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">server</span><span class="ruby-operator">|</span> <span class="ruby-identifier">filters</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">server</span>) }
+93:         <span class="ruby-keyword kw">end</span>
+94:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000170">
+                    
+                    <a name="M000170"></a><b>role_list_from</b>(roles)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000170_source')" id="l_M000170_source">show</a>
+                        
+                    </p>
+                    <div id="M000170_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 102</span>
+102:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">role_list_from</span>(<span class="ruby-identifier">roles</span>)
+103:         <span class="ruby-identifier">roles</span> = <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,/</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">roles</span>
+104:         <span class="ruby-identifier">roles</span> = <span class="ruby-identifier">build_list</span>(<span class="ruby-identifier">roles</span>)
+105:         <span class="ruby-identifier">roles</span>.<span class="ruby-identifier">map</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">role</span><span class="ruby-operator">|</span>
+106:           <span class="ruby-identifier">role</span> = <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">role</span> <span class="ruby-value">? </span><span class="ruby-identifier">role</span>.<span class="ruby-identifier">strip</span>.<span class="ruby-identifier">to_sym</span> <span class="ruby-operator">:</span> <span class="ruby-identifier">role</span>
+107:           <span class="ruby-identifier">role</span>
+108:         <span class="ruby-keyword kw">end</span>
+109:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000169">
+                    
+                    <a name="M000169"></a><b>server_list_from</b>(hosts)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000169_source')" id="l_M000169_source">show</a>
+                        
+                    </p>
+                    <div id="M000169_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/servers.rb, line 96</span>
+ 96:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">server_list_from</span>(<span class="ruby-identifier">hosts</span>)
+ 97:         <span class="ruby-identifier">hosts</span> = <span class="ruby-identifier">hosts</span>.<span class="ruby-identifier">split</span>(<span class="ruby-regexp re">/,/</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">hosts</span>
+ 98:         <span class="ruby-identifier">hosts</span> = <span class="ruby-identifier">build_list</span>(<span class="ruby-identifier">hosts</span>)
+ 99:         <span class="ruby-identifier">hosts</span>.<span class="ruby-identifier">map</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span> <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-identifier">s</span> <span class="ruby-value">? </span><span class="ruby-constant">ServerDefinition</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">s</span>.<span class="ruby-identifier">strip</span>) <span class="ruby-operator">:</span> <span class="ruby-identifier">s</span> }
+100:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    

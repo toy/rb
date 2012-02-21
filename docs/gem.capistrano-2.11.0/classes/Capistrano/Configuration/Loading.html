@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>Capistrano::Configuration::Loading</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../../../css/reset.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../css/main.css" type="text/css" media="screen" />
+    <script src="../../../js/jquery-1.3.2.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/jquery-effect.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../../js/main.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>     
+    <div class="banner">
+        <h1>
+            <span class="type">Module</span> 
+            Capistrano::Configuration::Loading 
+            
+        </h1>
+        <ul class="files">
+            
+            <li><a href="../../../files/lib/capistrano/configuration/loading_rb.html">lib/capistrano/configuration/loading.rb</a></li>
+            
+        </ul>
+    </div>
+    <div id="bodyContent">
+        <div id="content">
+    
+
+    
+
+    
+    
+
+    
+    
+    <div class="sectiontitle">Methods</div>
+    <dl class="methods">
+    
+        <dt>F</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000130">find_file_in_load_path</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>L</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000126">load</a>,</li>
+                
+                <li><a href="#M000128">load_from_file</a></li>
+                
+            </ul>
+        </dd>
+    
+        <dt>R</dt>
+        <dd>
+            <ul>
+                
+                <li><a href="#M000131">remember_load</a></li>
+                
+            </ul>
+        </dd>
+    
+    </dl>
+    
+
+    
+
+    
+
+    
+    <div class="sectiontitle">Classes and Modules</div>
+    <ul>
+        
+        <li><span class="type">MODULE</span> <a href="Loading/ClassMethods.html">Capistrano::Configuration::Loading::ClassMethods</a></li>
+        
+    </ul>
+    
+
+    
+
+    
+    <div class="sectiontitle">Attributes</div>
+    <table border='0' cellpadding='5'>
+        
+        <tr valign='top'>
+            <td class='attr-rw'>
+                [R]
+            </td>
+            <td class='attr-name'>load_paths</td>
+            <td class='attr-desc'><p>
+The load paths used for locating recipe files.
+</p></td>
+        </tr>
+        
+    </table>
+    
+
+    
+            <div class="sectiontitle">Instance Public methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000126">
+                    
+                    <a name="M000126"></a><b>load</b>(*args, &amp;block)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Load a configuration file or string into this configuration.
+</p>
+<p>
+Usage:
+</p>
+<pre>
+  load(&quot;recipe&quot;):
+    Look for and load the contents of 'recipe.rb' into this
+    configuration.
+
+  load(:file =&gt; &quot;recipe&quot;):
+    same as above
+
+  load(:string =&gt; &quot;set :scm, :subversion&quot;):
+    Load the given string as a configuration specification.
+
+  load { ... }
+    Load the block in the context of the configuration.
+</pre>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000126_source')" id="l_M000126_source">show</a>
+                        
+                    </p>
+                    <div id="M000126_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/loading.rb, line 78</span>
+ 78:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+ 79:         <span class="ruby-identifier">options</span> = <span class="ruby-identifier">args</span>.<span class="ruby-identifier">last</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Hash</span>) <span class="ruby-operator">?</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">pop</span> <span class="ruby-operator">:</span> {}
+ 80: 
+ 81:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">block</span>
+ 82:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">&quot;loading a block requires 0 arguments&quot;</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">empty?</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">empty?</span>
+ 83:           <span class="ruby-identifier">load</span>(<span class="ruby-identifier">:proc</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">block</span>)
+ 84: 
+ 85:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">any?</span>
+ 86:           <span class="ruby-identifier">args</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">arg</span><span class="ruby-operator">|</span> <span class="ruby-identifier">load</span> <span class="ruby-identifier">options</span>.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">:file</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">arg</span>) }
+ 87: 
+ 88:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:file</span>]
+ 89:           <span class="ruby-identifier">load_from_file</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:file</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:name</span>])
+ 90: 
+ 91:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:string</span>]
+ 92:           <span class="ruby-identifier">remember_load</span>(<span class="ruby-identifier">options</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:reloading</span>]
+ 93:           <span class="ruby-identifier">instance_eval</span>(<span class="ruby-identifier">options</span>[<span class="ruby-identifier">:string</span>], <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:name</span>] <span class="ruby-operator">||</span> <span class="ruby-value str">&quot;&lt;eval&gt;&quot;</span>)
+ 94: 
+ 95:         <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:proc</span>]
+ 96:           <span class="ruby-identifier">remember_load</span>(<span class="ruby-identifier">options</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:reloading</span>]
+ 97:           <span class="ruby-identifier">instance_eval</span>(<span class="ruby-operator">&amp;</span><span class="ruby-identifier">options</span>[<span class="ruby-identifier">:proc</span>])
+ 98: 
+ 99:         <span class="ruby-keyword kw">else</span>
+100:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-node">&quot;don't know how to load #{options.inspect}&quot;</span>
+101:         <span class="ruby-keyword kw">end</span>
+102:       <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="sectiontitle">Instance Private methods</div>
+            
+            <div class="method">
+                <div class="title" id="M000130">
+                    
+                    <a name="M000130"></a><b>find_file_in_load_path</b>(file)
+                    
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000130_source')" id="l_M000130_source">show</a>
+                        
+                    </p>
+                    <div id="M000130_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/loading.rb, line 175</span>
+175:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">find_file_in_load_path</span>(<span class="ruby-identifier">file</span>)
+176:           <span class="ruby-identifier">load_paths</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">path</span><span class="ruby-operator">|</span>
+177:             [<span class="ruby-value str">&quot;&quot;</span>, <span class="ruby-value str">&quot;.rb&quot;</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ext</span><span class="ruby-operator">|</span>
+178:               <span class="ruby-identifier">name</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-identifier">path</span>, <span class="ruby-node">&quot;#{file}#{ext}&quot;</span>)
+179:               <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">name</span> <span class="ruby-keyword kw">if</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">file?</span>(<span class="ruby-identifier">name</span>)
+180:             <span class="ruby-keyword kw">end</span>
+181:           <span class="ruby-keyword kw">end</span>
+182: 
+183:           <span class="ruby-identifier">raise</span> <span class="ruby-constant">LoadError</span>, <span class="ruby-node">&quot;no such file to load -- #{file}&quot;</span>
+184:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000128">
+                    
+                    <a name="M000128"></a><b>load_from_file</b>(file, name=nil)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+Load a recipe from the named file. If <tt>name</tt> is given, the file will
+be reported using that name.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000128_source')" id="l_M000128_source">show</a>
+                        
+                    </p>
+                    <div id="M000128_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/loading.rb, line 170</span>
+170:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">load_from_file</span>(<span class="ruby-identifier">file</span>, <span class="ruby-identifier">name</span>=<span class="ruby-keyword kw">nil</span>)
+171:           <span class="ruby-identifier">file</span> = <span class="ruby-identifier">find_file_in_load_path</span>(<span class="ruby-identifier">file</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">file?</span>(<span class="ruby-identifier">file</span>)
+172:           <span class="ruby-identifier">load</span> <span class="ruby-identifier">:string</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">file</span>), <span class="ruby-identifier">:name</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">name</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">file</span>
+173:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="method">
+                <div class="title" id="M000131">
+                    
+                    <a name="M000131"></a><b>remember_load</b>(options)
+                    
+                </div>
+                
+                <div class="description">
+                  <p>
+If a file is being required, the options associated with loading a recipe
+are remembered in the recipes_per_feature archive under the name of the
+file currently being required.
+</p>
+
+                </div>
+                
+                
+                
+                
+                <div class="sourcecode">
+                    <p class="source-link">
+                        Source: <a href="javascript:toggleSource('M000131_source')" id="l_M000131_source">show</a>
+                        
+                    </p>
+                    <div id="M000131_source" class="dyn-source">
+                        <pre>     <span class="ruby-comment cmt"># File lib/capistrano/configuration/loading.rb, line 189</span>
+189:         <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">remember_load</span>(<span class="ruby-identifier">options</span>)
+190:           <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">current_feature</span>
+191:             <span class="ruby-identifier">list</span> = (<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">recipes_per_feature</span>[<span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">class</span>.<span class="ruby-identifier">current_feature</span>] <span class="ruby-operator">||=</span> [])
+192:             <span class="ruby-identifier">list</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">options</span>
+193:           <span class="ruby-keyword kw">end</span>
+194:         <span class="ruby-keyword kw">end</span></pre>
+                    </div>
+                </div>
+                
+            </div>
+            
+</div>
+    </div>
+  </body>
+</html>    
